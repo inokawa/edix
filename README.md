@@ -11,6 +11,7 @@ TODO
 ## Demo
 
 - [React Storybook](https://inokawa.github.io/edix/)
+- [Framework examples](#other-examples)
 
 ## Install
 
@@ -71,6 +72,18 @@ export const App = () => {
   );
 };
 ```
+
+### Other examples
+
+- [React](./examples/react)
+- [Vue](./examples/vue)
+- [Svelte](./examples/svelte)
+- [Solid](./examples/solid)
+- [Angular](./examples/angular)
+- [Preact](./examples/preact)
+- [Qwik](./examples/qwik)
+
+...and more! Contribution welcome!
 
 ## Contribute
 

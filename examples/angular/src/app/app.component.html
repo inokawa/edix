@@ -1,0 +1,16 @@
+<style>
+  .editor {
+    background-color: white;
+    border: solid 1px darkgray;
+    padding: 8px;
+  }
+</style>
+
+<div #ref class="editor">
+  @for (t of value().split("\n"); track $index) {
+    <!-- https://github.com/angular/angular/issues/56323 -->
+    <div>
+      @if (t) {{{ t }}} @else {<br />}
+    </div>
+  }
+</div>
