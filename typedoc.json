@@ -1,0 +1,12 @@
+{
+  "entryPoints": ["./src/index.ts"],
+  "out": "docs",
+  "name": "API",
+  "plugin": ["typedoc-plugin-markdown"],
+  "readme": "none",
+  "sort": ["kind"],
+  "groupOrder": ["Function", "Interface", "TypeAlias"],
+  "githubPages": false,
+  "entryFileName": "API.md",
+  "hideBreadcrumbs": true
+}
