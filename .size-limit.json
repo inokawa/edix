@@ -1,8 +1,0 @@
-[
-  {
-    "name": "Total",
-    "path": "lib/index.mjs",
-    "import": "*",
-    "limit": "3 kB"
-  }
-]

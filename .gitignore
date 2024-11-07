@@ -1,7 +1,0 @@
-lib
-dist
-node_modules
-/storybook-static/
-/test-results/
-/playwright-report/
-/playwright/.cache/
