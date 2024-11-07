@@ -16,7 +16,7 @@ TODO
 ## Install
 
 ```sh
-TODO
+npm install edix
 ```
 
 ## Getting started
@@ -84,6 +84,10 @@ export const App = () => {
 - [Qwik](./examples/qwik)
 
 ...and more! Contribution welcome!
+
+## Documentation
+
+- [API reference](./docs/API.md)
 
 ## Contribute
 
