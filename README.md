@@ -25,7 +25,7 @@ npm install edix
 
    - Direct children of the root are treated as rows. They must be elements, not text.
    - You must render `<br/>` in empty row (limitation of contenteditable).
-   - TODO
+   - (TODO)
 
 2. Call `editable` on mount, with `HTMLElement` which is the root of editable contents.
 3. Update your state with `onChange`, which will be called on edit.
@@ -100,3 +100,11 @@ If you find a problem, feel free to create an [issue](https://github.com/inokawa
 2. Run `npm install`.
 3. Commit your fix.
 4. Make a PR and confirm all the CI checks passed.
+
+## Inspirations
+
+- [rich-textarea](https://github.com/inokawa/rich-textarea) (my early work)
+- [use-editable](https://github.com/FormidableLabs/use-editable)
+- Some great text editor libraries ([prosemirror](https://prosemirror.net/), [lexical](https://github.com/facebook/lexical), [slate](https://github.com/ianstormtaylor/slate), etc.)
+- Proposed [EditContext API](https://github.com/w3c/edit-context)
+- Proposed [Richer Text Fields](https://open-ui.org/components/richer-text-fields.explainer/) in [Open UI](https://open-ui.org/)
