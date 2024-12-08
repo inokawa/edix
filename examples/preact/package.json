@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "edix": "file:../../",
+    "edix": "0.0.1",
     "preact": "^10.24.1"
   },
   "devDependencies": {

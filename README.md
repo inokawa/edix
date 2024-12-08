@@ -77,13 +77,13 @@ export const App = () => {
 
 ### Other examples
 
-- [React](./examples/react)
-- [Vue](./examples/vue)
-- [Svelte](./examples/svelte)
-- [Solid](./examples/solid)
-- [Angular](./examples/angular)
-- [Preact](./examples/preact)
-- [Qwik](./examples/qwik)
+- React ([Demo](https://inokawa.github.io/edix/react), [Source](./examples/react))
+- Vue ([Demo](https://inokawa.github.io/edix/vue), [Source](./examples/vue))
+- Svelte ([Demo](https://inokawa.github.io/edix/svelte), [Source](./examples/svelte))
+- Solid ([Demo](https://inokawa.github.io/edix/solid), [Source](./examples/solid))
+- Angular ([Demo](https://inokawa.github.io/edix/angular), [Source](./examples/angular))
+- Preact ([Demo](https://inokawa.github.io/edix/preact), [Source](./examples/preact))
+- Qwik ([Source](./examples/qwik))
 
 ...and more! Contribution welcome!
 

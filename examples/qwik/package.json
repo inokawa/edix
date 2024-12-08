@@ -15,6 +15,6 @@
   },
   "dependencies": {
     "@builder.io/qwik": "^1.9.1",
-    "edix": "file:../../"
+    "edix": "0.0.1"
   }
 }

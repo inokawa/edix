@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "edix": "file:../../",
+    "edix": "0.0.1",
     "solid-js": "^1.9.1"
   },
   "devDependencies": {
