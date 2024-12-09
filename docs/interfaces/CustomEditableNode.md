@@ -1,4 +1,4 @@
-[**API**](../API.md) • **Docs**
+[**API**](../API.md)
 
 ***
 
@@ -12,7 +12,7 @@
 
 #### Defined in
 
-[editable.ts:67](https://github.com/inokawa/edix/blob/820238f0bcfa46750da7f1cfc712dacb5c04fe41/src/core/editable.ts#L67)
+[editable.ts:67](https://github.com/inokawa/edix/blob/2cd4a1c675fecf235ccfd663a55e67ba6e569aa7/src/core/editable.ts#L67)
 
 ***
 
@@ -22,7 +22,9 @@
 
 #### Parameters
 
-• **e**: `HTMLElement`
+##### e
+
+`HTMLElement`
 
 #### Returns
 
@@ -30,4 +32,4 @@
 
 #### Defined in
 
-[editable.ts:68](https://github.com/inokawa/edix/blob/820238f0bcfa46750da7f1cfc712dacb5c04fe41/src/core/editable.ts#L68)
+[editable.ts:68](https://github.com/inokawa/edix/blob/2cd4a1c675fecf235ccfd663a55e67ba6e569aa7/src/core/editable.ts#L68)

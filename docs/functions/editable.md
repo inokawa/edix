@@ -1,4 +1,4 @@
-[**API**](../API.md) • **Docs**
+[**API**](../API.md)
 
 ***
 
@@ -8,9 +8,13 @@
 
 ## Parameters
 
-• **element**: `HTMLElement`
+### element
 
-• **\_\_namedParameters**: [`EditableOptions`](../interfaces/EditableOptions.md)
+`HTMLElement`
+
+### \_\_namedParameters
+
+[`EditableOptions`](../interfaces/EditableOptions.md)
 
 ## Returns
 
@@ -18,4 +22,4 @@
 
 ## Defined in
 
-[editable.ts:83](https://github.com/inokawa/edix/blob/820238f0bcfa46750da7f1cfc712dacb5c04fe41/src/core/editable.ts#L83)
+[editable.ts:83](https://github.com/inokawa/edix/blob/2cd4a1c675fecf235ccfd663a55e67ba6e569aa7/src/core/editable.ts#L83)
