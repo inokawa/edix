@@ -131,7 +131,7 @@ export const setSelectionToDOM = (
 
   const domStart = findBoundaryPoint(
     document,
-    root.childNodes[startLine]!,
+    root.children[startLine]!,
     startOffset,
     isCustomNode
   );
@@ -141,7 +141,7 @@ export const setSelectionToDOM = (
 
   const domEnd = findBoundaryPoint(
     document,
-    root.childNodes[endLine]!,
+    root.children[endLine]!,
     endOffset,
     isCustomNode
   );
