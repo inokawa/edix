@@ -8,7 +8,7 @@
 
 Web editing is so hard even today. There are excellent libraries to make complex rich text editor, but they are too much for small purposes. Native [textarea](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/textarea) element is accessible and easy to use, but it's hardly customizable.
 
-Adding [contenteditable](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/contenteditable) attribute may seem easy to use, but as you may know it has [so many problems](https://github.com/grammarly/contenteditable). It has many edge case bugs, and has cross browser/OS/input device problems. And also it doesn't work well with declarative frontend frameworks... This library aims to fill that gap, fix contenteditable to fit modern web development.
+[contenteditable](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/contenteditable) attribute is a primitive for rich text editing, but as you may know it has [so many problems](https://github.com/grammarly/contenteditable). It has many edge case bugs, and has cross browser/OS/input device problems. And it doesn't work well with declarative frontend frameworks... However, at least the core of contenteditable is stable and it works in all browsers except the inconsistencies. This library aims to fill that gap, fix contenteditable to fit modern web development.
 
 ## Demo
 
