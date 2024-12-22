@@ -405,6 +405,5 @@ export const serializeSelectedDOM = (
 ): string | undefined => {
   const range = getSelectionRangeInEditor(getDOMSelection(root), root);
   if (!range) return;
-  const contents = range.cloneContents();
-  return serializeDOM(document, contents, serializeCustomNode);
+  return serializeDOM(document, range.cloneContents(), serializeCustomNode);
 };
