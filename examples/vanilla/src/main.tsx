@@ -21,7 +21,7 @@ const updateRows = (text: string) => {
 
 updateRows("Hello World.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
 
-const cleanup = editable(el, {
+editable(el, {
   onChange: (v) => {
     updateRows(v);
   },
