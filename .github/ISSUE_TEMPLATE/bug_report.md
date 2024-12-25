@@ -20,7 +20,7 @@ A clear and concise description of what you expected to happen.
 - OS: [Windows, MacOS, Linux, Android, iOS]
 - Browser: [Chrome, Firefox, Safari, Edge]
 - Version of this package: [x.x.x]
-- Framework and its version: [react: x.x.x]
+- Framework and its version: [react@x.x.x]
 
 **Additional context**
 Add any other context about the problem here.
