@@ -84,6 +84,7 @@ export const App = () => {
 - Angular ([Demo](https://inokawa.github.io/edix/angular), [Source](./examples/angular))
 - Preact ([Demo](https://inokawa.github.io/edix/preact), [Source](./examples/preact))
 - Qwik ([Source](./examples/qwik))
+- Vanilla ([Demo](https://inokawa.github.io/edix/vanilla), [Source](./examples/vanilla))
 
 ...and more! Contribution welcome!
 
