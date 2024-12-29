@@ -20,6 +20,7 @@ const isBrInText = (node: Element): boolean => {
   if (node.tagName !== BR_TAG_NAME) {
     return false;
   }
+  // unexpected br may be inserted expecially with paste in firefox
   let hasTextPrev = false;
   let hasTextNext = false;
   let prev: Node = node;
@@ -135,6 +136,7 @@ export const setSelectionToDOM = (
     return false;
   }
 
+  // https://w3c.github.io/contentEditable/#dfn-legal-caret-positions
   const range = document.createRange();
   {
     const [node, offset] = domStart;
@@ -251,6 +253,7 @@ const serializeBoundaryPoint = (
 
   const isTargetEmbed = !isTextNode(targetNode);
   if (isTargetEmbed) {
+    // If anchor/focus of selection is not selectable node, it will have offset relative to its parent
     targetNode = targetNode.childNodes[offsetAtNode]!;
   }
 
@@ -306,6 +309,7 @@ export const getSelectionSnapshot = (
       range.endOffset !== 0 &&
       root.children.length <= range.endOffset
     ) {
+      // special case for Ctrl+A in firefox
       start = [0, 0];
       end = serializeBoundaryPoint(
         document,
@@ -364,6 +368,7 @@ export const serializeDOM = (
         SINGLE_LINE_CONTAINER_TAG_NAMES.has(node.tagName) &&
         node.parentNode === root
       ) {
+        // row
         if (lineIndex !== 0) {
           text += "\n";
         }
