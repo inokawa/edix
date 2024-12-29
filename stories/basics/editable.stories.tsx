@@ -6,7 +6,7 @@ export default {
   component: editable,
 };
 
-export const Text: StoryObj = {
+export const Multiline: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
     const [value, setValue] = useState(
@@ -15,6 +15,7 @@ export const Text: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
+        multiline: true,
         onChange: setValue,
       });
     }, []);
@@ -31,6 +32,32 @@ export const Text: StoryObj = {
         {value.split("\n").map((r, i) => (
           <div key={i}>{r ? r : <br />}</div>
         ))}
+      </div>
+    );
+  },
+};
+
+export const Singleline: StoryObj = {
+  render: () => {
+    const ref = useRef<HTMLDivElement>(null);
+    const [value, setValue] = useState("Hello World.");
+    useEffect(() => {
+      if (!ref.current) return;
+      return editable(ref.current, {
+        onChange: setValue,
+      });
+    }, []);
+
+    return (
+      <div
+        ref={ref}
+        style={{
+          backgroundColor: "white",
+          border: "solid 1px darkgray",
+          padding: 8,
+        }}
+      >
+        {value ? value : <br />}
       </div>
     );
   },
@@ -69,9 +96,7 @@ export const Readonly: StoryObj = {
             color: readonly ? "gray" : undefined,
           }}
         >
-          {value.split("\n").map((r, i) => (
-            <div key={i}>{r ? r : <br />}</div>
-          ))}
+          {value ? value : <br />}
         </div>
       </div>
     );
@@ -87,6 +112,7 @@ two !
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
+        multiline: true,
         onChange: setValue,
       });
     }, []);
@@ -117,6 +143,7 @@ export const Vertical: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
+        multiline: true,
         onChange: setValue,
       });
     }, []);
@@ -148,6 +175,7 @@ export const Highlight: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
+        multiline: true,
         onChange: setValue,
       });
     }, []);
@@ -270,6 +298,7 @@ export const Image: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
+        multiline: true,
         onChange: setValue,
         nodes: [
           {
@@ -331,6 +360,7 @@ export const Video: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
+        multiline: true,
         onChange: setValue,
         nodes: [
           {
@@ -394,6 +424,7 @@ export const Iframe: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return (editorRef.current = editable(ref.current, {
+        multiline: true,
         onChange: setValue,
         nodes: [
           {
@@ -424,15 +455,19 @@ export const Iframe: StoryObj = {
         >
           {value.split("\n").map((r, i) => (
             <div key={i}>
-              {r
-                .split(/(\[.+?\])/)
-                .map((t, j) =>
-                  t.startsWith("[") ? (
-                    <Youtube key={j} id={t.slice(1, t.length - 1)} />
-                  ) : (
-                    <span key={j}>{t}</span>
+              {r ? (
+                r
+                  .split(/(\[.+?\])/)
+                  .map((t, j) =>
+                    t.startsWith("[") ? (
+                      <Youtube key={j} id={t.slice(1, t.length - 1)} />
+                    ) : (
+                      <span key={j}>{t}</span>
+                    )
                   )
-                )}
+              ) : (
+                <br />
+              )}
             </div>
           ))}
         </div>

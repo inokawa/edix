@@ -69,6 +69,7 @@ export interface CustomEditableNode {
 }
 
 export interface EditableOptions {
+  multiline?: boolean;
   readonly?: boolean;
   nodes?: CustomEditableNode[];
   onChange: (value: string) => void;
@@ -82,7 +83,7 @@ export interface EditableHandle {
 
 export const editable = (
   element: HTMLElement,
-  { readonly, nodes, onChange }: EditableOptions
+  { multiline, readonly, nodes, onChange }: EditableOptions
 ): EditableHandle => {
   // https://w3c.github.io/contentEditable/
   // https://w3c.github.io/editing/docs/execCommand/
@@ -96,8 +97,10 @@ export const editable = (
   const prevWhiteSpace = element.style.whiteSpace;
   element.contentEditable = "true";
   element.role = "textbox";
-  element.ariaMultiLine = "true";
   element.style.whiteSpace = "pre-wrap";
+  if (multiline) {
+    element.ariaMultiLine = "true";
+  }
 
   let disposed = false;
   let selectionReverted = false;
@@ -108,6 +111,7 @@ export const editable = (
   let hasFocus = false;
   let isDragging = false;
 
+  const isSingleline = !multiline;
   const getCustomNodeData = (node: Element): CustomEditableNode | undefined => {
     if (!nodes) return;
     return nodes.find((n) => {
@@ -137,7 +141,7 @@ export const editable = (
   const document = getCurrentDocument(element);
 
   const history = createHistory<
-    readonly [value: string, selection: SelectionSnapshot]
+    readonly [value: string[], selection: SelectionSnapshot]
   >([
     serializeDOM(document, element, serializeCustomNode),
     getEmptySelectionSnapshot(),
@@ -146,7 +150,13 @@ export const editable = (
   const observer = createMutationObserver(element, () => {
     if (hasFocus) {
       if (currentSelection) {
-        setSelectionToDOM(document, element, currentSelection, isCustomNode);
+        setSelectionToDOM(
+          document,
+          element,
+          currentSelection,
+          isCustomNode,
+          isSingleline
+        );
         if (restoreSelectionQueue != null) {
           cancelAnimationFrame(restoreSelectionQueue);
           restoreSelectionQueue = null;
@@ -157,12 +167,18 @@ export const editable = (
 
   const restoreSelectionOnTimeout = (selection: SelectionSnapshot) => {
     restoreSelectionQueue = requestAnimationFrame(() => {
-      setSelectionToDOM(document, element, selection, isCustomNode);
+      setSelectionToDOM(
+        document,
+        element,
+        selection,
+        isCustomNode,
+        isSingleline
+      );
     });
   };
 
-  const emitChange = (value: string) => {
-    onChange(value);
+  const emitChange = (value: string[]) => {
+    onChange(value.join(multiline ? "\n" : ""));
   };
 
   const prepareBeforeChange = () => {
@@ -182,7 +198,8 @@ export const editable = (
           const selection = getSelectionSnapshot(
             document,
             element,
-            isCustomNode
+            isCustomNode,
+            isSingleline
           );
 
           const value = serializeDOM(document, element, serializeCustomNode);
@@ -195,7 +212,8 @@ export const editable = (
             document,
             element,
             prevSelection,
-            isCustomNode
+            isCustomNode,
+            isSingleline
           );
 
           const prevValue = serializeDOM(
@@ -238,7 +256,7 @@ export const editable = (
 
     clipboardData.setData(
       "text/plain",
-      serializeDOM(document, selected, serializeCustomNode)
+      serializeDOM(document, selected, serializeCustomNode).join("\n")
     );
   };
 
@@ -271,17 +289,22 @@ export const editable = (
     switch (e.inputType as InputType) {
       case "historyUndo": {
         e.preventDefault();
-        break;
+        return;
       }
       case "historyRedo": {
         e.preventDefault();
-        break;
+        return;
       }
-      default: {
-        prepareBeforeChange();
-        break;
+      case "insertLineBreak":
+      case "insertParagraph": {
+        if (isSingleline) {
+          e.preventDefault();
+          return;
+        }
       }
     }
+
+    prepareBeforeChange();
   };
   const onCompositionStart = () => {
     isComposing = true;
@@ -297,7 +320,12 @@ export const editable = (
       return;
     }
     if (isComposing || isDragging) return;
-    currentSelection = getSelectionSnapshot(document, element, isCustomNode);
+    currentSelection = getSelectionSnapshot(
+      document,
+      element,
+      isCustomNode,
+      isSingleline
+    );
   };
 
   const onCopy = (e: ClipboardEvent) => {

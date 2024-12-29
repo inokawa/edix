@@ -42,6 +42,7 @@ export const Segmenter: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
+        multiline: true,
         onChange: setText,
       });
     }, []);
