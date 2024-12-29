@@ -58,7 +58,7 @@ export interface SelectionSnapshot {
 /**
  * @internal
  */
-export const getCurrentDocument = (node: HTMLElement): Document =>
+export const getCurrentDocument = (node: Element): Document =>
   node.ownerDocument;
 
 const isTextNode = (node: Node): node is Text => {
@@ -92,14 +92,14 @@ const SINGLE_LINE_CONTAINER_TAG_NAMES = new Set([
 /**
  * @internal
  */
-export const getDOMSelection = (element: HTMLElement): Selection => {
+export const getDOMSelection = (element: Element): Selection => {
   // TODO support ShadowRoot
   return getCurrentDocument(element).getSelection()!;
 };
 
 const getSelectionRangeInEditor = (
   selection: Selection,
-  root: HTMLElement
+  root: Element
 ): Range | undefined => {
   if (!selection.rangeCount) {
     return;
@@ -119,7 +119,7 @@ const compareDocumentPosition = (node: Node, otherNode: Node) =>
  */
 export const setSelectionToDOM = (
   document: Document,
-  root: HTMLElement,
+  root: Element,
   snapshot: SelectionSnapshot,
   isCustomNode: (node: Element) => boolean
 ): boolean => {
@@ -176,7 +176,7 @@ export const setSelectionToDOM = (
 
 const findBoundaryPoint = (
   document: Document,
-  root: HTMLElement,
+  root: Element,
   [line, targetOffset]: Point,
   isCustomNode: (node: Element) => boolean
 ): [node: Text | Element, offsetAtNode: number] | undefined => {
@@ -229,7 +229,7 @@ const isSelectionBackward = (selection: Selection): boolean => {
 
 const serializeBoundaryPoint = (
   document: Document,
-  root: HTMLElement,
+  root: Element,
   targetNode: Node,
   offsetAtNode: number,
   isCustomNode: (node: Element) => boolean
@@ -289,7 +289,7 @@ export const getEmptySelectionSnapshot = (): SelectionSnapshot => {
  */
 export const getSelectionSnapshot = (
   document: Document,
-  root: HTMLElement,
+  root: Element,
   isCustomNode: (node: Element) => boolean
 ): SelectionSnapshot => {
   const selection = getDOMSelection(root);
@@ -387,7 +387,7 @@ export const serializeDOM = (
  */
 export const serializeSelectedDOM = (
   document: Document,
-  root: HTMLElement,
+  root: Element,
   serializeCustomNode: (node: Element) => string | undefined
 ): string | undefined => {
   const range = getSelectionRangeInEditor(getDOMSelection(root), root);

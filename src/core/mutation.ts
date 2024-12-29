@@ -2,7 +2,7 @@
  * @internal
  */
 export const createMutationObserver = (
-  element: HTMLElement,
+  element: Element,
   onMutationIgnored: () => void
 ) => {
   let isInputing = false;
