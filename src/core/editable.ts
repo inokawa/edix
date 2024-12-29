@@ -84,8 +84,6 @@ export const editable = (
   element: HTMLElement,
   { readonly, nodes, onChange }: EditableOptions
 ): EditableHandle => {
-  type History = readonly [text: string, selection: SelectionSnapshot];
-
   // https://w3c.github.io/contentEditable/
   // https://w3c.github.io/editing/docs/execCommand/
   // https://w3c.github.io/selection-api/
@@ -138,7 +136,9 @@ export const editable = (
 
   const document = getCurrentDocument(element);
 
-  const history = createHistory<History>([
+  const history = createHistory<
+    readonly [text: string, selection: SelectionSnapshot]
+  >([
     serializeDOM(document, element, serializeCustomNode),
     getEmptySelectionSnapshot(),
   ]);

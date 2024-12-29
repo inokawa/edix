@@ -123,28 +123,14 @@ export const setSelectionToDOM = (
   snapshot: SelectionSnapshot,
   isCustomNode: (node: Element) => boolean
 ): boolean => {
-  const {
-    start: [startLine, startOffset],
-    end: [endLine, endOffset],
-    backward,
-  } = snapshot;
+  const { start, end, backward } = snapshot;
 
-  const domStart = findBoundaryPoint(
-    document,
-    root.children[startLine]!,
-    startOffset,
-    isCustomNode
-  );
+  const domStart = findBoundaryPoint(document, root, start, isCustomNode);
   if (!domStart) {
     return false;
   }
 
-  const domEnd = findBoundaryPoint(
-    document,
-    root.children[endLine]!,
-    endOffset,
-    isCustomNode
-  );
+  const domEnd = findBoundaryPoint(document, root, end, isCustomNode);
   if (!domEnd) {
     return false;
   }
@@ -190,18 +176,19 @@ export const setSelectionToDOM = (
 
 const findBoundaryPoint = (
   document: Document,
-  root: Node,
-  targetOffset: number,
+  root: HTMLElement,
+  [line, targetOffset]: Point,
   isCustomNode: (node: Element) => boolean
 ): [node: Text | Element, offsetAtNode: number] | undefined => {
   let offset = 0;
   let node: Node | null;
-  let isCustom = false;
+  let skipChildren = false;
 
-  const iterator = document.createTreeWalker(root, SHOW_TEXT | SHOW_ELEMENT);
+  const row = root.children[line]!;
+  const iterator = document.createTreeWalker(row, SHOW_TEXT | SHOW_ELEMENT);
 
-  while ((node = isCustom ? iterator.nextSibling() : iterator.nextNode())) {
-    isCustom = false;
+  while ((node = skipChildren ? iterator.nextSibling() : iterator.nextNode())) {
+    skipChildren = false;
     if (isTextNode(node)) {
       const textLength = node.data.length;
       if (offset + textLength >= targetOffset) {
@@ -211,7 +198,7 @@ const findBoundaryPoint = (
       offset += textLength;
     } else if (isElementNode(node)) {
       if (isCustomNode(node)) {
-        isCustom = true;
+        skipChildren = true;
         if (offset + 1 >= targetOffset) {
           return [node, targetOffset - offset];
         }
@@ -260,7 +247,7 @@ const serializeBoundaryPoint = (
   }
   let offset = 0;
   let node: Node | null;
-  let isCustom = false;
+  let skipChildren = false;
 
   const isTargetEmbed = !isTextNode(targetNode);
   if (isTargetEmbed) {
@@ -269,8 +256,8 @@ const serializeBoundaryPoint = (
 
   const iterator = document.createTreeWalker(row, SHOW_TEXT | SHOW_ELEMENT);
 
-  while ((node = isCustom ? iterator.nextSibling() : iterator.nextNode())) {
-    isCustom = false;
+  while ((node = skipChildren ? iterator.nextSibling() : iterator.nextNode())) {
+    skipChildren = false;
     if (node === targetNode) {
       offset += isTargetEmbed ? 0 : offsetAtNode;
       break;
@@ -279,7 +266,7 @@ const serializeBoundaryPoint = (
       offset += node.data.length;
     } else if (isElementNode(node)) {
       if (isCustomNode(node)) {
-        isCustom = true;
+        skipChildren = true;
         offset++;
       } else if (isBrInText(node)) {
         lineIndex++;
@@ -383,7 +370,7 @@ export const serializeDOM = (
         lineIndex++;
       } else {
         const data = serializeCustomNode(node);
-        if (typeof data !== "undefined") {
+        if (data != null) {
           skipChildren = true;
           text += data;
         } else if (isBrInText(node)) {
