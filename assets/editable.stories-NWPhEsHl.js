@@ -1,4 +1,4 @@
-import{e as u,j as e}from"./editable-BCe1KNdS.js";import{r as t}from"./index-RYns6xqu.js";const se={component:u},c={render:()=>{const n=t.useRef(null),[i,o]=t.useState(`Hello World.
+import{e as u,j as e}from"./editable-DKZP3yxX.js";import{r as t}from"./index-RYns6xqu.js";const se={component:u},c={render:()=>{const n=t.useRef(null),[i,o]=t.useState(`Hello World.
 こんにちは。
 👍❤️🧑‍🧑‍🧒`);return t.useEffect(()=>{if(n.current)return u(n.current,{onChange:o})},[]),e.jsx("div",{ref:n,style:{backgroundColor:"white",border:"solid 1px darkgray",padding:8},children:i.split(`
 `).map((r,s)=>e.jsx("div",{children:r||e.jsx("br",{})},s))})}},p={render:()=>{const n=t.useRef(null),[i,o]=t.useState("Hello world."),[r,s]=t.useState(!1),l=t.useRef(null);return t.useEffect(()=>{if(n.current)return l.current=u(n.current,{onChange:o})},[]),e.jsxs("div",{children:[e.jsx("div",{children:e.jsx("button",{onClick:()=>{if(!l.current)return;const a=!r;l.current.readonly(a),s(a)},children:r?"editable":"readonly"})}),e.jsx("div",{ref:n,style:{background:"white",color:r?"gray":void 0},children:i.split(`
