@@ -197,17 +197,17 @@ const findBoundaryPoint = (
 
       offset += textLength;
     } else if (isElementNode(node)) {
-      if (isCustomNode(node)) {
-        skipChildren = true;
-        if (offset + 1 >= targetOffset) {
-          return [node, targetOffset - offset];
-        }
-        offset++;
-      } else if (node.tagName === BR_TAG_NAME) {
+      if (node.tagName === BR_TAG_NAME) {
         if (offset + 1 >= targetOffset) {
           return [node, 0];
         }
 
+        offset++;
+      } else if (isCustomNode(node)) {
+        skipChildren = true;
+        if (offset + 1 >= targetOffset) {
+          return [node, targetOffset - offset];
+        }
         offset++;
       }
     }
@@ -265,12 +265,12 @@ const serializeBoundaryPoint = (
     if (isTextNode(node)) {
       offset += node.data.length;
     } else if (isElementNode(node)) {
-      if (isCustomNode(node)) {
-        skipChildren = true;
-        offset++;
-      } else if (isBrInText(node)) {
+      if (isBrInText(node)) {
         lineIndex++;
         offset = 0;
+      } else if (isCustomNode(node)) {
+        skipChildren = true;
+        offset++;
       }
     }
   }
@@ -369,12 +369,14 @@ export const serializeDOM = (
         }
         lineIndex++;
       } else {
-        const data = serializeCustomNode(node);
-        if (data != null) {
-          skipChildren = true;
-          text += data;
-        } else if (isBrInText(node)) {
+        if (isBrInText(node)) {
           text += "\n";
+        } else {
+          const data = serializeCustomNode(node);
+          if (data != null) {
+            skipChildren = true;
+            text += data;
+          }
         }
       }
     }
