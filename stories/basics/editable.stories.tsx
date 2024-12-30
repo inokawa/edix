@@ -152,7 +152,7 @@ export const Highlight: StoryObj = {
       });
     }, []);
 
-    const reg = new RegExp(`(${searchText})`);
+    const reg = searchText ? new RegExp(`(${searchText})`) : null;
 
     return (
       <div>
@@ -168,7 +168,7 @@ export const Highlight: StoryObj = {
           {value.split("\n").map((r, i) => (
             <div key={i}>
               {r ? (
-                r.split(reg).map((t, j) => (
+                (reg ? r.split(reg) : [r]).map((t, j) => (
                   <span
                     key={j}
                     style={{
