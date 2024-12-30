@@ -801,7 +801,7 @@ test.describe("Keydown", () => {
 });
 
 test.describe("Cut", () => {
-  test("noop", async ({ page }) => {
+  test("noop (collapsed selection)", async ({ page }) => {
     await page.goto(storyUrl("basics-editable--text"));
 
     const editable = await getEditable(page);
@@ -959,6 +959,105 @@ test.describe("Cut", () => {
     expect(await getSelectionRange(editable)).toEqual({
       start: [0, 0],
       end: [0, 0],
+      backward: false,
+    });
+  });
+});
+
+test.describe("Paste", () => {
+  test.beforeEach(async ({ context, browserName }) => {
+    // https://github.com/microsoft/playwright/issues/13037#issuecomment-1078208810
+    test.skip(browserName !== "chromium");
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  });
+
+  const writeClipboard = async (page: Page, value: string) => {
+    await page.evaluate((t) => navigator.clipboard.writeText(t), value);
+  };
+
+  test("paste text", async ({ page }) => {
+    await page.goto(storyUrl("basics-editable--text"));
+
+    const editable = await getEditable(page);
+    const initialValue = await getText(editable);
+
+    await editable.focus();
+
+    expect(await getSelectionRange(editable)).toEqual({
+      start: [0, 0],
+      end: [0, 0],
+      backward: false,
+    });
+
+    // Move caret
+    await keypress(page, "ArrowRight", 2);
+    expect(await getSelectionRange(editable)).toEqual({
+      start: [0, 2],
+      end: [0, 2],
+      backward: false,
+    });
+
+    // paste
+    const pastedText = "Paste text.";
+    await writeClipboard(page, pastedText);
+    await page.keyboard.press("ControlOrMeta+V");
+
+    const charLength = pastedText.length;
+    const value = await getText(editable);
+    expect(value).toEqual(
+      initialValue.map((r, i) => (i === 0 ? insertAt(r, 2, pastedText) : r))
+    );
+    expect(await getSelectionRange(editable)).toEqual({
+      start: [0, 2 + charLength],
+      end: [0, 2 + charLength],
+      backward: false,
+    });
+  });
+
+  test("paste linebreak", async ({ page }) => {
+    await page.goto(storyUrl("basics-editable--text"));
+
+    const editable = await getEditable(page);
+    const initialValue = await getText(editable);
+
+    await editable.focus();
+
+    expect(await getSelectionRange(editable)).toEqual({
+      start: [0, 0],
+      end: [0, 0],
+      backward: false,
+    });
+
+    // Move caret
+    await keypress(page, "ArrowRight", 2);
+    expect(await getSelectionRange(editable)).toEqual({
+      start: [0, 2],
+      end: [0, 2],
+      backward: false,
+    });
+
+    // paste
+    const pastedText = "Paste \ntext.";
+    await writeClipboard(page, pastedText);
+    await page.keyboard.press("ControlOrMeta+V");
+
+    const beforeLineBreakText = pastedText.split("\n")[0];
+    const afterLineBreakText = pastedText.split("\n")[1];
+    const afterLineBreakLength = afterLineBreakText.length;
+    const value = await getText(editable);
+    expect(value).toEqual(
+      initialValue.flatMap((r, i) =>
+        i === 0
+          ? [
+              r.slice(0, 2) + beforeLineBreakText,
+              afterLineBreakText + r.slice(2),
+            ]
+          : r
+      )
+    );
+    expect(await getSelectionRange(editable)).toEqual({
+      start: [1, afterLineBreakLength],
+      end: [1, afterLineBreakLength],
       backward: false,
     });
   });
