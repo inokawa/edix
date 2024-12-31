@@ -12,7 +12,7 @@
 
 #### Defined in
 
-[editable.ts:72](https://github.com/inokawa/edix/blob/2cd4a1c675fecf235ccfd663a55e67ba6e569aa7/src/core/editable.ts#L72)
+[editable.ts:72](https://github.com/inokawa/edix/blob/572610e01d8da5d90412e7ddb91cd712dd123451/src/core/editable.ts#L72)
 
 ***
 
@@ -22,17 +22,17 @@
 
 #### Defined in
 
-[editable.ts:73](https://github.com/inokawa/edix/blob/2cd4a1c675fecf235ccfd663a55e67ba6e569aa7/src/core/editable.ts#L73)
+[editable.ts:73](https://github.com/inokawa/edix/blob/572610e01d8da5d90412e7ddb91cd712dd123451/src/core/editable.ts#L73)
 
 ***
 
 ### onChange()
 
-> **onChange**: (`text`) => `void`
+> **onChange**: (`value`) => `void`
 
 #### Parameters
 
-##### text
+##### value
 
 `string`
 
@@ -42,4 +42,4 @@
 
 #### Defined in
 
-[editable.ts:74](https://github.com/inokawa/edix/blob/2cd4a1c675fecf235ccfd663a55e67ba6e569aa7/src/core/editable.ts#L74)
+[editable.ts:74](https://github.com/inokawa/edix/blob/572610e01d8da5d90412e7ddb91cd712dd123451/src/core/editable.ts#L74)
