@@ -115,6 +115,25 @@ const getSelectionRangeInEditor = (
 const compareDocumentPosition = (node: Node, otherNode: Node) =>
   node.compareDocumentPosition(otherNode);
 
+const findNextNode = (
+  walker: TreeWalker,
+  skipChildren: boolean
+): Node | null => {
+  if (skipChildren) {
+    const current = walker.currentNode;
+    let node: Node | null;
+    // don't use TreeWalker.nextSibling() to support case like <body><p><a><img /></a></p><p>hello</p></body>
+    while ((node = walker.nextNode())) {
+      if (!node || !current.contains(node)) {
+        break;
+      }
+    }
+    return node;
+  }
+
+  return walker.nextNode();
+};
+
 /**
  * @internal
  */
@@ -187,9 +206,9 @@ const findBoundaryPoint = (
   let skipChildren = false;
 
   const row = root.children[line]!;
-  const iterator = document.createTreeWalker(row, SHOW_TEXT | SHOW_ELEMENT);
+  const walker = document.createTreeWalker(row, SHOW_TEXT | SHOW_ELEMENT);
 
-  while ((node = skipChildren ? iterator.nextSibling() : iterator.nextNode())) {
+  while ((node = findNextNode(walker, skipChildren))) {
     skipChildren = false;
     if (isTextNode(node)) {
       const textLength = node.data.length;
@@ -257,9 +276,9 @@ const serializeBoundaryPoint = (
     targetNode = targetNode.childNodes[offsetAtNode]!;
   }
 
-  const iterator = document.createTreeWalker(row, SHOW_TEXT | SHOW_ELEMENT);
+  const walker = document.createTreeWalker(row, SHOW_TEXT | SHOW_ELEMENT);
 
-  while ((node = skipChildren ? iterator.nextSibling() : iterator.nextNode())) {
+  while ((node = findNextNode(walker, skipChildren))) {
     skipChildren = false;
     if (node === targetNode) {
       offset += isTargetEmbed ? 0 : offsetAtNode;
@@ -353,13 +372,13 @@ export const serializeDOM = (
   root: Node,
   serializeCustomNode: (node: Element) => string | undefined
 ): string => {
-  const iterator = document.createTreeWalker(root, SHOW_TEXT | SHOW_ELEMENT);
+  const walker = document.createTreeWalker(root, SHOW_TEXT | SHOW_ELEMENT);
 
   let node: Node | null;
   let text = "";
   let lineIndex = 0;
   let skipChildren = false;
-  while ((node = skipChildren ? iterator.nextSibling() : iterator.nextNode())) {
+  while ((node = findNextNode(walker, skipChildren))) {
     skipChildren = false;
     if (isTextNode(node)) {
       text += node.data;
