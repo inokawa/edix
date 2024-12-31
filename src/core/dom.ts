@@ -124,7 +124,7 @@ const findNextNode = (
     let node: Node | null;
     // don't use TreeWalker.nextSibling() to support case like <body><p><a><img /></a></p><p>hello</p></body>
     while ((node = walker.nextNode())) {
-      if (!node || !current.contains(node)) {
+      if (!current.contains(node)) {
         break;
       }
     }
