@@ -70,9 +70,9 @@ const isElementNode = (node: Node): node is Element => {
   return node.nodeType === ELEMENT_NODE;
 };
 
-// https://w3c.github.io/editing/docs/execCommand/#single-line-container
-const SINGLE_LINE_CONTAINER_TAG_NAMES = new Set([
-  // non-list
+const PARAGRAPH_TAG_NAMES = new Set([
+  // https://w3c.github.io/editing/docs/execCommand/#single-line-container
+  // non-list single-line container
   "DIV",
   "H1",
   "H2",
@@ -80,14 +80,15 @@ const SINGLE_LINE_CONTAINER_TAG_NAMES = new Set([
   "H4",
   "H5",
   "H6",
-  // "LISTING",
   "P",
   "PRE",
-  // "XMP",
-  // list
+  // list single-line container
   "LI",
   "DT",
   "DD",
+
+  // other elements
+  "TR",
 ]);
 
 /**
@@ -376,31 +377,24 @@ export const serializeDOM = (
 
   let node: Node | null;
   let text = "";
-  let isFirstLine = true;
   let skipChildren = false;
   while ((node = findNextNode(walker, skipChildren))) {
     skipChildren = false;
     if (isTextNode(node)) {
       text += node.data;
     } else if (isElementNode(node)) {
+      // a block next to block, or br
       if (
-        SINGLE_LINE_CONTAINER_TAG_NAMES.has(node.tagName) &&
-        node.parentNode === root
+        (PARAGRAPH_TAG_NAMES.has(node.tagName) &&
+          node.previousElementSibling) ||
+        isBrInText(node)
       ) {
-        // row
-        if (!isFirstLine) {
-          text += "\n";
-        }
-        isFirstLine = false;
+        text += "\n";
       } else {
-        if (isBrInText(node)) {
-          text += "\n";
-        } else {
-          const data = serializeCustomNode(node);
-          if (data != null) {
-            skipChildren = true;
-            text += data;
-          }
+        const data = serializeCustomNode(node);
+        if (data != null) {
+          skipChildren = true;
+          text += data;
         }
       }
     }

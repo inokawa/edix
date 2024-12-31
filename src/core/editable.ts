@@ -236,6 +236,9 @@ export const editable = (
     const selected = getSelectedElements(element);
     if (!selected) return;
 
+    const wrapper = document.createElement("div");
+    wrapper.appendChild(selected);
+    clipboardData.setData("text/html", wrapper.innerHTML);
     clipboardData.setData(
       "text/plain",
       serializeDOM(document, selected, serializeCustomNode)
@@ -311,8 +314,22 @@ export const editable = (
   };
   const onPaste = (e: ClipboardEvent) => {
     e.preventDefault();
+    const clipboardData = e.clipboardData!;
 
-    insertText(e.clipboardData!.getData("text/plain"));
+    if (nodes) {
+      const html = clipboardData.getData("text/html");
+      if (html) {
+        try {
+          const dom = new DOMParser().parseFromString(html, "text/html");
+          insertText(serializeDOM(document, dom.body, serializeCustomNode));
+          return;
+        } catch {
+          // NOP
+        }
+      }
+    }
+
+    insertText(clipboardData.getData("text/plain"));
   };
 
   const onFocus = () => {
