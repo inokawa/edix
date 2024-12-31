@@ -71,7 +71,7 @@ export interface CustomEditableNode {
 export interface EditableOptions {
   readonly?: boolean;
   nodes?: CustomEditableNode[];
-  onChange: (text: string) => void;
+  onChange: (value: string) => void;
 }
 
 export interface EditableHandle {
@@ -137,7 +137,7 @@ export const editable = (
   const document = getCurrentDocument(element);
 
   const history = createHistory<
-    readonly [text: string, selection: SelectionSnapshot]
+    readonly [value: string, selection: SelectionSnapshot]
   >([
     serializeDOM(document, element, serializeCustomNode),
     getEmptySelectionSnapshot(),
@@ -161,8 +161,8 @@ export const editable = (
     });
   };
 
-  const emitChange = (text: string) => {
-    onChange(text);
+  const emitChange = (value: string) => {
+    onChange(value);
   };
 
   const prepareBeforeChange = () => {
@@ -185,7 +185,7 @@ export const editable = (
             isCustomNode
           );
 
-          const text = serializeDOM(document, element, serializeCustomNode);
+          const value = serializeDOM(document, element, serializeCustomNode);
 
           revertMutations(queue);
           observer._flush();
@@ -198,12 +198,16 @@ export const editable = (
             isCustomNode
           );
 
-          const prevText = serializeDOM(document, element, serializeCustomNode);
+          const prevValue = serializeDOM(
+            document,
+            element,
+            serializeCustomNode
+          );
           if (!readonly) {
-            history.push([prevText, prevSelection], true);
-            history.push([text, selection]);
+            history.push([prevValue, prevSelection], true);
+            history.push([value, selection]);
             currentSelection = selection;
-            emitChange(text);
+            emitChange(value);
           }
 
           if (currentSelection) {
@@ -229,9 +233,9 @@ export const editable = (
   };
 
   const copyText = (clipboardData: DataTransfer) => {
-    const text = serializeSelectedDOM(document, element, serializeCustomNode);
-    if (text == null) return;
-    clipboardData.setData("text/plain", text);
+    const value = serializeSelectedDOM(document, element, serializeCustomNode);
+    if (value == null) return;
+    clipboardData.setData("text/plain", value);
   };
 
   const doUndoOrRedo = (isRedo: boolean) => {
