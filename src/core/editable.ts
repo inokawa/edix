@@ -7,7 +7,7 @@ import {
   setSelectionToDOM,
   serializeDOM,
   getEmptySelectionSnapshot,
-  serializeSelectedDOM,
+  getSelectedElements,
 } from "./dom";
 import { createMutationObserver, revertMutations } from "./mutation";
 import { microtask } from "./utils";
@@ -233,9 +233,13 @@ export const editable = (
   };
 
   const copyText = (clipboardData: DataTransfer) => {
-    const value = serializeSelectedDOM(document, element, serializeCustomNode);
-    if (value == null) return;
-    clipboardData.setData("text/plain", value);
+    const selected = getSelectedElements(element);
+    if (!selected) return;
+
+    clipboardData.setData(
+      "text/plain",
+      serializeDOM(document, selected, serializeCustomNode)
+    );
   };
 
   const doUndoOrRedo = (isRedo: boolean) => {

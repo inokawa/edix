@@ -392,12 +392,8 @@ export const serializeDOM = (
 /**
  * @internal
  */
-export const serializeSelectedDOM = (
-  document: Document,
-  root: Element,
-  serializeCustomNode: (node: Element) => string | undefined
-): string | undefined => {
+export const getSelectedElements = (root: Element): Node | undefined => {
   const range = getSelectionRangeInEditor(getDOMSelection(root), root);
   if (!range) return;
-  return serializeDOM(document, range.cloneContents(), serializeCustomNode);
+  return range.cloneContents();
 };
