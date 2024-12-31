@@ -376,7 +376,7 @@ export const serializeDOM = (
 
   let node: Node | null;
   let text = "";
-  let lineIndex = 0;
+  let isFirstLine = true;
   let skipChildren = false;
   while ((node = findNextNode(walker, skipChildren))) {
     skipChildren = false;
@@ -388,10 +388,10 @@ export const serializeDOM = (
         node.parentNode === root
       ) {
         // row
-        if (lineIndex !== 0) {
+        if (!isFirstLine) {
           text += "\n";
         }
-        lineIndex++;
+        isFirstLine = false;
       } else {
         if (isBrInText(node)) {
           text += "\n";
