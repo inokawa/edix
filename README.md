@@ -25,8 +25,10 @@ npm install edix
 
 1. Define your contents declaratively. There are rules you have to follow:
 
-   - Direct children of the root are treated as rows. They must be elements, not text.
    - You must render `<br/>` in empty row (limitation of contenteditable).
+   - If `multiline` option is
+     - `false` or undefined, direct children of the root are treated as inline nodes.
+     - `true`, direct children of the root are treated as rows. They must be elements, not text.
    - (TODO)
 
 2. Call `editable` on mount, with `HTMLElement` which is the root of editable contents.
@@ -34,6 +36,8 @@ npm install edix
 4. Call return value of `editable` on unmount for cleanup.
 
 Here is an example for React.
+
+### Single line
 
 ```tsx
 import { useState, useEffect, useRef } from "react";
@@ -46,6 +50,47 @@ export const App = () => {
   useEffect(() => {
     // 2. init
     const cleanup = editable(ref.current, {
+      onChange: (v) => {
+        // 3. update state
+        setValue(v);
+      },
+    });
+    return () => {
+      // 4. cleanup
+      cleanup();
+    };
+  }, []);
+
+  // 1. render contents from state
+  return (
+    <div
+      ref={ref}
+      style={{
+        backgroundColor: "white",
+        border: "solid 1px darkgray",
+        padding: 8,
+      }}
+    >
+      {value ? value : <br />}
+    </div>
+  );
+};
+```
+
+### Multi line
+
+```tsx
+import { useState, useEffect, useRef } from "react";
+import { editable } from "edix";
+
+export const App = () => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [value, setValue] = useState("Hello world.");
+
+  useEffect(() => {
+    // 2. init
+    const cleanup = editable(ref.current, {
+      multiline: true,
       onChange: (v) => {
         // 3. update state
         setValue(v);

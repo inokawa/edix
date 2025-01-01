@@ -119,6 +119,7 @@ export const WithTextlint: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
+        multiline: true,
         onChange: setText,
       });
     }, []);
@@ -136,15 +137,12 @@ export const WithTextlint: StoryObj = {
       };
     }, [text]);
 
-    const tokensByLine = tokens.reduce(
-      (acc, t) => {
-        if (!acc[t.line]) acc[t.line] = {};
-        if (!acc[t.line][t.column]) acc[t.line][t.column] = [];
-        acc[t.line][t.column].push(t);
-        return acc;
-      },
-      {} as { [key: number]: { [column: number]: TextlintMessage[] } }
-    );
+    const tokensByLine = tokens.reduce((acc, t) => {
+      if (!acc[t.line]) acc[t.line] = {};
+      if (!acc[t.line][t.column]) acc[t.line][t.column] = [];
+      acc[t.line][t.column].push(t);
+      return acc;
+    }, {} as { [key: number]: { [column: number]: TextlintMessage[] } });
 
     return (
       <div style={{ marginTop: 32 }}>

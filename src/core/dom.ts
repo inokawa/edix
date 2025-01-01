@@ -141,16 +141,29 @@ export const setSelectionToDOM = (
   document: Document,
   root: Element,
   snapshot: SelectionSnapshot,
-  isCustomNode: (node: Element) => boolean
+  isCustomNode: (node: Element) => boolean,
+  isSingleline: boolean
 ): boolean => {
   const { start, end, backward } = snapshot;
 
-  const domStart = findBoundaryPoint(document, root, start, isCustomNode);
+  const domStart = findBoundaryPoint(
+    document,
+    root,
+    start,
+    isCustomNode,
+    isSingleline
+  );
   if (!domStart) {
     return false;
   }
 
-  const domEnd = findBoundaryPoint(document, root, end, isCustomNode);
+  const domEnd = findBoundaryPoint(
+    document,
+    root,
+    end,
+    isCustomNode,
+    isSingleline
+  );
   if (!domEnd) {
     return false;
   }
@@ -199,13 +212,15 @@ const findBoundaryPoint = (
   document: Document,
   root: Element,
   [line, targetOffset]: Point,
-  isCustomNode: (node: Element) => boolean
+  isCustomNode: (node: Element) => boolean,
+  isSingleline: boolean
 ): [node: Text | Element, offsetAtNode: number] | undefined => {
   let offset = 0;
   let node: Node | null;
   let skipChildren = false;
 
-  const row = root.children[line]!;
+  const row =
+    isSingleline || root.childElementCount === 0 ? root : root.children[line]!;
   const walker = document.createTreeWalker(row, SHOW_TEXT | SHOW_ELEMENT);
 
   while ((node = findNextNode(walker, skipChildren))) {
@@ -253,11 +268,12 @@ const serializeBoundaryPoint = (
   root: Element,
   targetNode: Node,
   offsetAtNode: number,
-  isCustomNode: (node: Element) => boolean
+  isCustomNode: (node: Element) => boolean,
+  isSingleline: boolean
 ): Point => {
   let row: Node = targetNode;
   let lineIndex: number;
-  if (root.childElementCount === 0) {
+  if (isSingleline || root.childElementCount === 0) {
     row = root;
     lineIndex = 0;
   } else {
@@ -312,7 +328,8 @@ export const getEmptySelectionSnapshot = (): SelectionSnapshot => {
 export const getSelectionSnapshot = (
   document: Document,
   root: Element,
-  isCustomNode: (node: Element) => boolean
+  isCustomNode: (node: Element) => boolean,
+  isSingleline: boolean
 ): SelectionSnapshot => {
   const selection = getDOMSelection(root);
   const range = getSelectionRangeInEditor(selection, root);
@@ -335,7 +352,8 @@ export const getSelectionSnapshot = (
         root,
         root.lastElementChild!,
         root.lastElementChild!.textContent!.length,
-        isCustomNode
+        isCustomNode,
+        isSingleline
       );
     } else {
       return getEmptySelectionSnapshot();
@@ -346,14 +364,16 @@ export const getSelectionSnapshot = (
       root,
       range.startContainer,
       range.startOffset,
-      isCustomNode
+      isCustomNode,
+      isSingleline
     );
     end = serializeBoundaryPoint(
       document,
       root,
       range.endContainer,
       range.endOffset,
-      isCustomNode
+      isCustomNode,
+      isSingleline
     );
   }
 
@@ -371,8 +391,14 @@ export const serializeDOM = (
   document: Document,
   root: Node,
   serializeCustomNode: (node: Element) => string | undefined
-): string => {
+): string[] => {
+  const rows: string[] = [];
   const walker = document.createTreeWalker(root, SHOW_TEXT | SHOW_ELEMENT);
+
+  const completeRow = () => {
+    rows.push(text);
+    text = "";
+  };
 
   let node: Node | null;
   let text = "";
@@ -389,12 +415,12 @@ export const serializeDOM = (
       ) {
         // row
         if (!isFirstLine) {
-          text += "\n";
+          completeRow();
         }
         isFirstLine = false;
       } else {
         if (isBrInText(node)) {
-          text += "\n";
+          completeRow();
         } else {
           const data = serializeCustomNode(node);
           if (data != null) {
@@ -405,7 +431,9 @@ export const serializeDOM = (
       }
     }
   }
-  return text;
+  completeRow();
+
+  return rows;
 };
 
 /**
