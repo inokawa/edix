@@ -84,6 +84,11 @@ type InputType =
   | "formatFontColor" // change the font color
   | "formatFontName"; // change the font-family
 
+export type KeyboardPayload = Pick<
+  KeyboardEvent,
+  "key" | "code" | "ctrlKey" | "shiftKey" | "altKey" | "metaKey"
+>;
+
 /**
  * Options of {@link editable}.
  */
@@ -97,9 +102,15 @@ export interface EditableOptions<T> {
    */
   isBlock?: (node: HTMLElement) => boolean;
   /**
-   * TODO
+   * Callback invoked when document state changes.
    */
   onChange: (value: T) => void;
+  /**
+   * Callback invoked when `keydown` events are dispatched.
+   *
+   * Return `true` if you want to cancel the editor's default behavior.
+   */
+  onKeyDown?: (keyboard: KeyboardPayload) => boolean | void;
 }
 
 /**
@@ -138,6 +149,7 @@ export const editable = <T>(
     },
     isBlock = defaultIsBlockNode,
     onChange,
+    onKeyDown: onKeyDownCallback,
   }: EditableOptions<T>
 ): EditableHandle => {
   // https://w3c.github.io/contentEditable/
@@ -367,9 +379,17 @@ export const editable = <T>(
     }
   };
 
+  // spec compliant: keydown -> beforeinput -> input (-> keyup)
+  // Safari (IME)  : beforeinput -> input -> keydown (-> keyup)
+  // https://w3c.github.io/uievents/#events-keyboard-event-order
+  // https://bugs.webkit.org/show_bug.cgi?id=165004
   const onKeyDown = (e: KeyboardEvent) => {
     if (isComposing) return;
 
+    if (onKeyDownCallback && onKeyDownCallback(e)) {
+      e.preventDefault();
+      return;
+    }
     if ((e.metaKey || e.ctrlKey) && !e.altKey && e.code === "KeyZ") {
       e.preventDefault();
 

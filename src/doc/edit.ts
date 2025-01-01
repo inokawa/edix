@@ -13,7 +13,10 @@ const isTextNode = (node: DocNode) => node.type === NODE_TEXT;
 const getNodeSize = (node: DocNode): number =>
   isTextNode(node) ? node.text.length : 1;
 
-const getLineSize = (line: DocLine): number =>
+/**
+ * @internal
+ */
+export const getLineSize = (line: DocLine): number =>
   line.reduce((acc, n) => acc + getNodeSize(n), 0);
 
 const merge = (a: DocLine, b: DocLine): DocLine => {

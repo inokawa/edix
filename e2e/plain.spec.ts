@@ -1253,6 +1253,50 @@ test.describe("Keydown", () => {
       expect(await getSelection(editable)).toEqual(createSelection());
     });
   });
+
+  test.describe("User defined shortcuts", () => {
+    test("combobox", async ({ page }) => {
+      await page.goto(storyUrl("advanced-combobox--combobox"));
+
+      const editable = await getEditable(page);
+
+      await editable.focus();
+
+      expect(await getSelection(editable)).toEqual(createSelection());
+
+      const textA = "a";
+      await type(editable, textA);
+
+      // Enter(but no-op)
+      await page.keyboard.press("Enter");
+      expect(await getText(editable)).toEqual([textA]);
+
+      // Select item with Enter
+      await page.keyboard.press("ArrowDown");
+      await page.keyboard.press("Enter");
+      const updatedA = await getText(editable);
+      expect(updatedA).not.toEqual([textA]);
+      expect(updatedA[0].length).toBeGreaterThan(textA.length + 1);
+      expect(updatedA[0].toLowerCase().startsWith(textA)).toBe(true);
+
+      // Delete all
+      await page.keyboard.press("ControlOrMeta+A");
+      await page.keyboard.press("Backspace");
+      expect(await getText(editable)).toEqual([""]);
+
+      const textB = "e";
+      await type(editable, textB);
+
+      // Select item with Space
+      await page.keyboard.press("ArrowUp");
+      // TODO fix e2e to test Safari's wrong event order
+      await page.keyboard.press("Space");
+      const updatedB = await getText(editable);
+      expect(updatedB).not.toEqual([textB]);
+      expect(updatedB[0].length).toBeGreaterThan(textB.length + 1);
+      expect(updatedB[0].toLowerCase().startsWith(textB)).toBe(true);
+    });
+  });
 });
 
 test.describe("Cut", () => {
