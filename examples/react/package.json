@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "edix": "0.0.2",
+    "edix": "0.0.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
