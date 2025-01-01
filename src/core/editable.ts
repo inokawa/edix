@@ -73,6 +73,7 @@ export interface EditableOptions {
   readonly?: boolean;
   nodes?: CustomEditableNode[];
   onChange: (value: string) => void;
+  onKeyDown?: (event: KeyboardEvent) => boolean | void;
 }
 
 export interface EditableHandle {
@@ -83,7 +84,13 @@ export interface EditableHandle {
 
 export const editable = (
   element: HTMLElement,
-  { multiline, readonly, nodes, onChange }: EditableOptions
+  {
+    multiline,
+    readonly,
+    nodes,
+    onChange,
+    onKeyDown: onKeyDownProp,
+  }: EditableOptions
 ): EditableHandle => {
   // https://w3c.github.io/contentEditable/
   // https://w3c.github.io/editing/docs/execCommand/
@@ -272,8 +279,13 @@ export const editable = (
     }
   };
 
+  // https://w3c.github.io/uievents/#event-type-keydown
   const onKeyDown = (e: KeyboardEvent) => {
     if (isComposing) return;
+    if (onKeyDownProp && onKeyDownProp(e)) {
+      e.preventDefault();
+      return;
+    }
     if ((e.metaKey || e.ctrlKey) && !e.altKey && e.code === "KeyZ") {
       e.preventDefault();
 
@@ -400,6 +412,7 @@ export const editable = (
     element.removeEventListener("dragstart", onDragStart);
     element.removeEventListener("dragend", onDragEnd);
   };
+
   handle.insert = insertText;
   handle.readonly = (value: boolean) => {
     readonly = value;
