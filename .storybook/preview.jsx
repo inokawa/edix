@@ -3,7 +3,7 @@ export const parameters = {
   layout: "fullscreen",
   options: {
     storySort: {
-      order: ["basics", "advanced"],
+      order: ["basics", ["plain", "custom"], "advanced"],
     },
   },
 };

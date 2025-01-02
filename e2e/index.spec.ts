@@ -91,7 +91,7 @@ const keypress = async (page: Page, key: string, count: number = 1) => {
 test.describe("type word", () => {
   test.describe("multiline", () => {
     test("on origin", async ({ page }) => {
-      await page.goto(storyUrl("basics-editable--multiline"));
+      await page.goto(storyUrl("basics-plain--multiline"));
 
       const editable = await getEditable(page);
       const initialValue = await getText(editable);
@@ -120,7 +120,7 @@ test.describe("type word", () => {
     });
 
     test("on 1st row", async ({ page }) => {
-      await page.goto(storyUrl("basics-editable--multiline"));
+      await page.goto(storyUrl("basics-plain--multiline"));
 
       const editable = await getEditable(page);
       const initialValue = await getText(editable);
@@ -157,7 +157,7 @@ test.describe("type word", () => {
     });
 
     test("on 2nd row", async ({ page }) => {
-      await page.goto(storyUrl("basics-editable--multiline"));
+      await page.goto(storyUrl("basics-plain--multiline"));
 
       const editable = await getEditable(page);
       const initialValue = await getText(editable);
@@ -197,7 +197,7 @@ test.describe("type word", () => {
     test("with IME", async ({ browserName, page }) => {
       test.skip(browserName !== "chromium");
 
-      await page.goto(storyUrl("basics-editable--multiline"));
+      await page.goto(storyUrl("basics-plain--multiline"));
 
       const editable = await getEditable(page);
       const initialValue = await getText(editable);
@@ -240,7 +240,7 @@ test.describe("type word", () => {
 
   test.describe("singleline", () => {
     test("on origin", async ({ page }) => {
-      await page.goto(storyUrl("basics-editable--singleline"));
+      await page.goto(storyUrl("basics-plain--singleline"));
 
       const editable = await getEditable(page);
       const initialValue = await getText(editable);
@@ -269,7 +269,7 @@ test.describe("type word", () => {
     });
 
     test("on 1st row", async ({ page }) => {
-      await page.goto(storyUrl("basics-editable--singleline"));
+      await page.goto(storyUrl("basics-plain--singleline"));
 
       const editable = await getEditable(page);
       const initialValue = await getText(editable);
@@ -308,7 +308,7 @@ test.describe("type word", () => {
     test("with IME", async ({ browserName, page }) => {
       test.skip(browserName !== "chromium");
 
-      await page.goto(storyUrl("basics-editable--singleline"));
+      await page.goto(storyUrl("basics-plain--singleline"));
 
       const editable = await getEditable(page);
       const initialValue = await getText(editable);
@@ -352,7 +352,7 @@ test.describe("type word", () => {
 
 test.describe("replace range", () => {
   test("replace chars", async ({ page }) => {
-    await page.goto(storyUrl("basics-editable--multiline"));
+    await page.goto(storyUrl("basics-plain--multiline"));
 
     const editable = await getEditable(page);
     const initialValue = await getText(editable);
@@ -399,7 +399,7 @@ test.describe("replace range", () => {
   });
 
   test("replace linebreak", async ({ page }) => {
-    await page.goto(storyUrl("basics-editable--multiline"));
+    await page.goto(storyUrl("basics-plain--multiline"));
 
     const editable = await getEditable(page);
     const initialValue = await getText(editable);
@@ -446,7 +446,7 @@ test.describe("replace range", () => {
   });
 
   test("replace all", async ({ page }) => {
-    await page.goto(storyUrl("basics-editable--multiline"));
+    await page.goto(storyUrl("basics-plain--multiline"));
 
     const editable = await getEditable(page);
     const initialValue = await getText(editable);
@@ -488,7 +488,7 @@ test.describe("replace range", () => {
 test.describe("Keydown", () => {
   test.describe("Arrow keys", () => {
     test("multiline", async ({ page }) => {
-      await page.goto(storyUrl("basics-editable--multiline"));
+      await page.goto(storyUrl("basics-plain--multiline"));
 
       const editable = await getEditable(page);
 
@@ -530,7 +530,7 @@ test.describe("Keydown", () => {
     });
 
     test("singleline", async ({ page }) => {
-      await page.goto(storyUrl("basics-editable--singleline"));
+      await page.goto(storyUrl("basics-plain--singleline"));
 
       const editable = await getEditable(page);
       const textLength = (await getText(editable))[0].length;
@@ -575,7 +575,7 @@ test.describe("Keydown", () => {
 
   test.describe("Enter", () => {
     test("multiline", async ({ page }) => {
-      await page.goto(storyUrl("basics-editable--multiline"));
+      await page.goto(storyUrl("basics-plain--multiline"));
 
       const editable = await getEditable(page);
       const initialValue = await getText(editable);
@@ -631,7 +631,7 @@ test.describe("Keydown", () => {
     });
 
     test("singleline", async ({ page }) => {
-      await page.goto(storyUrl("basics-editable--singleline"));
+      await page.goto(storyUrl("basics-plain--singleline"));
 
       const editable = await getEditable(page);
       const initialValue = await getText(editable);
@@ -666,7 +666,7 @@ test.describe("Keydown", () => {
 
   test.describe("Backspace", () => {
     test("delete char", async ({ page }) => {
-      await page.goto(storyUrl("basics-editable--multiline"));
+      await page.goto(storyUrl("basics-plain--multiline"));
 
       const editable = await getEditable(page);
       const initialValue = await getText(editable);
@@ -702,7 +702,7 @@ test.describe("Keydown", () => {
     });
 
     test("delete chars", async ({ page }) => {
-      await page.goto(storyUrl("basics-editable--multiline"));
+      await page.goto(storyUrl("basics-plain--multiline"));
 
       const editable = await getEditable(page);
       const initialValue = await getText(editable);
@@ -746,7 +746,7 @@ test.describe("Keydown", () => {
     });
 
     test("delete linebreak", async ({ page }) => {
-      await page.goto(storyUrl("basics-editable--multiline"));
+      await page.goto(storyUrl("basics-plain--multiline"));
 
       const editable = await getEditable(page);
       const initialValue = await getText(editable);
@@ -791,7 +791,7 @@ test.describe("Keydown", () => {
     });
 
     test("delete all", async ({ page }) => {
-      await page.goto(storyUrl("basics-editable--multiline"));
+      await page.goto(storyUrl("basics-plain--multiline"));
 
       const editable = await getEditable(page);
       const initialValue = await getText(editable);
@@ -830,7 +830,7 @@ test.describe("Keydown", () => {
 
   test.describe("Delete", () => {
     test("delete char", async ({ page }) => {
-      await page.goto(storyUrl("basics-editable--multiline"));
+      await page.goto(storyUrl("basics-plain--multiline"));
 
       const editable = await getEditable(page);
       const initialValue = await getText(editable);
@@ -866,7 +866,7 @@ test.describe("Keydown", () => {
     });
 
     test("delete chars", async ({ page }) => {
-      await page.goto(storyUrl("basics-editable--multiline"));
+      await page.goto(storyUrl("basics-plain--multiline"));
 
       const editable = await getEditable(page);
       const initialValue = await getText(editable);
@@ -912,7 +912,7 @@ test.describe("Keydown", () => {
     });
 
     test("delete linebreak", async ({ page }) => {
-      await page.goto(storyUrl("basics-editable--multiline"));
+      await page.goto(storyUrl("basics-plain--multiline"));
 
       const editable = await getEditable(page);
       const initialValue = await getText(editable);
@@ -957,7 +957,7 @@ test.describe("Keydown", () => {
     });
 
     test("delete all", async ({ page }) => {
-      await page.goto(storyUrl("basics-editable--multiline"));
+      await page.goto(storyUrl("basics-plain--multiline"));
 
       const editable = await getEditable(page);
       const initialValue = await getText(editable);
@@ -997,7 +997,7 @@ test.describe("Keydown", () => {
 
 test.describe("Cut", () => {
   test("noop (collapsed selection)", async ({ page }) => {
-    await page.goto(storyUrl("basics-editable--multiline"));
+    await page.goto(storyUrl("basics-plain--multiline"));
 
     const editable = await getEditable(page);
     const initialValue = await getText(editable);
@@ -1031,7 +1031,7 @@ test.describe("Cut", () => {
   });
 
   test("cut chars", async ({ page }) => {
-    await page.goto(storyUrl("basics-editable--multiline"));
+    await page.goto(storyUrl("basics-plain--multiline"));
 
     const editable = await getEditable(page);
     const initialValue = await getText(editable);
@@ -1077,7 +1077,7 @@ test.describe("Cut", () => {
   });
 
   test("cut linebreak", async ({ page }) => {
-    await page.goto(storyUrl("basics-editable--multiline"));
+    await page.goto(storyUrl("basics-plain--multiline"));
 
     const editable = await getEditable(page);
     const initialValue = await getText(editable);
@@ -1122,7 +1122,7 @@ test.describe("Cut", () => {
   });
 
   test("cut all", async ({ page }) => {
-    await page.goto(storyUrl("basics-editable--multiline"));
+    await page.goto(storyUrl("basics-plain--multiline"));
 
     const editable = await getEditable(page);
     const initialValue = await getText(editable);
@@ -1172,7 +1172,7 @@ test.describe("Paste", () => {
 
   test.describe("multiline", () => {
     test("paste text", async ({ page }) => {
-      await page.goto(storyUrl("basics-editable--multiline"));
+      await page.goto(storyUrl("basics-plain--multiline"));
 
       const editable = await getEditable(page);
       const initialValue = await getText(editable);
@@ -1211,7 +1211,7 @@ test.describe("Paste", () => {
     });
 
     test("paste linebreak", async ({ page }) => {
-      await page.goto(storyUrl("basics-editable--multiline"));
+      await page.goto(storyUrl("basics-plain--multiline"));
 
       const editable = await getEditable(page);
       const initialValue = await getText(editable);
@@ -1261,7 +1261,7 @@ test.describe("Paste", () => {
 
   test.describe("singleline", () => {
     test("paste text", async ({ page }) => {
-      await page.goto(storyUrl("basics-editable--singleline"));
+      await page.goto(storyUrl("basics-plain--singleline"));
 
       const editable = await getEditable(page);
       const initialValue = await getText(editable);
@@ -1300,7 +1300,7 @@ test.describe("Paste", () => {
     });
 
     test("paste linebreak", async ({ page }) => {
-      await page.goto(storyUrl("basics-editable--singleline"));
+      await page.goto(storyUrl("basics-plain--singleline"));
 
       const editable = await getEditable(page);
       const initialValue = await getText(editable);
@@ -1345,7 +1345,7 @@ test.describe("Paste", () => {
 
 test.describe("undo and redo", () => {
   test("one char", async ({ page }) => {
-    await page.goto(storyUrl("basics-editable--multiline"));
+    await page.goto(storyUrl("basics-plain--multiline"));
 
     const editable = await getEditable(page);
     const initialValue = await getText(editable);
@@ -1378,7 +1378,7 @@ test.describe("undo and redo", () => {
 });
 
 test("rtl", async ({ page }) => {
-  await page.goto(storyUrl("basics-editable--rtl"));
+  await page.goto(storyUrl("basics-plain--rtl"));
 
   const editable = await getEditable(page);
   const initialValue = await getText(editable);
@@ -1417,7 +1417,7 @@ test("rtl", async ({ page }) => {
 });
 
 test("readonly", async ({ page, browserName }) => {
-  await page.goto(storyUrl("basics-editable--readonly"));
+  await page.goto(storyUrl("basics-plain--readonly"));
 
   const editable = await getEditable(page);
   const initialValue = await getText(editable);
