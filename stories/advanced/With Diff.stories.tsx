@@ -57,13 +57,13 @@ const Editor = ({
         return (
           <div
             key={i}
-            style={{
-              background: rowResult
-                ? type === "base"
-                  ? REMOVED_COLOR
-                  : ADDED_COLOR
-                : undefined,
-            }}
+            style={
+              rowResult
+                ? {
+                    background: type === "base" ? REMOVED_COLOR : ADDED_COLOR,
+                  }
+                : undefined
+            }
           >
             {l ? (
               Array.isArray(rowResult) ? (
