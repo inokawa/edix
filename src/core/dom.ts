@@ -1,3 +1,5 @@
+import type { EditableSerializer } from "./editable";
+import { Indexable } from "./types";
 import { min } from "./utils";
 
 const ELEMENT_NODE = 1;
@@ -90,6 +92,29 @@ const SINGLE_LINE_CONTAINER_TAG_NAMES = new Set([
   "DD",
 ]);
 
+const WITHOUT_TEXT_TAG_NAMES = new Set([
+  // void elements
+  // https://developer.mozilla.org/en-US/docs/Glossary/Void_element
+  "EMBED",
+  "IMG",
+  // others
+  "PICTURE",
+  "AUDIO",
+  "VIDEO",
+  "MAP",
+  "SVG",
+  "CANVAS",
+  "IFRAME",
+  // TODO support more elements
+]);
+
+const isUneditableElement = (node: Element): boolean => {
+  return (
+    (node as HTMLElement).contentEditable === "false" ||
+    WITHOUT_TEXT_TAG_NAMES.has(node.tagName)
+  );
+};
+
 /**
  * @internal
  */
@@ -141,29 +166,16 @@ export const setSelectionToDOM = (
   document: Document,
   root: Element,
   snapshot: SelectionSnapshot,
-  isCustomNode: (node: Element) => boolean,
   isSingleline: boolean
 ): boolean => {
   const { start, end, backward } = snapshot;
 
-  const domStart = findBoundaryPoint(
-    document,
-    root,
-    start,
-    isCustomNode,
-    isSingleline
-  );
+  const domStart = findBoundaryPoint(document, root, start, isSingleline);
   if (!domStart) {
     return false;
   }
 
-  const domEnd = findBoundaryPoint(
-    document,
-    root,
-    end,
-    isCustomNode,
-    isSingleline
-  );
+  const domEnd = findBoundaryPoint(document, root, end, isSingleline);
   if (!domEnd) {
     return false;
   }
@@ -212,7 +224,6 @@ const findBoundaryPoint = (
   document: Document,
   root: Element,
   [line, targetOffset]: Point,
-  isCustomNode: (node: Element) => boolean,
   isSingleline: boolean
 ): [node: Text | Element, offsetAtNode: number] | undefined => {
   let offset = 0;
@@ -239,7 +250,7 @@ const findBoundaryPoint = (
         }
 
         offset++;
-      } else if (isCustomNode(node)) {
+      } else if (isUneditableElement(node)) {
         skipChildren = true;
         if (offset + 1 >= targetOffset) {
           return [node, targetOffset - offset];
@@ -268,7 +279,6 @@ const serializeBoundaryPoint = (
   root: Element,
   targetNode: Node,
   offsetAtNode: number,
-  isCustomNode: (node: Element) => boolean,
   isSingleline: boolean
 ): Point => {
   let row: Node = targetNode;
@@ -306,7 +316,7 @@ const serializeBoundaryPoint = (
       if (isBrInText(node)) {
         lineIndex++;
         offset = 0;
-      } else if (isCustomNode(node)) {
+      } else if (isUneditableElement(node)) {
         skipChildren = true;
         offset++;
       }
@@ -328,7 +338,6 @@ export const getEmptySelectionSnapshot = (): SelectionSnapshot => {
 export const getSelectionSnapshot = (
   document: Document,
   root: Element,
-  isCustomNode: (node: Element) => boolean,
   isSingleline: boolean
 ): SelectionSnapshot => {
   const selection = getDOMSelection(root);
@@ -352,7 +361,6 @@ export const getSelectionSnapshot = (
         root,
         root.lastElementChild!,
         root.lastElementChild!.textContent!.length,
-        isCustomNode,
         isSingleline
       );
     } else {
@@ -364,7 +372,6 @@ export const getSelectionSnapshot = (
       root,
       range.startContainer,
       range.startOffset,
-      isCustomNode,
       isSingleline
     );
     end = serializeBoundaryPoint(
@@ -372,7 +379,6 @@ export const getSelectionSnapshot = (
       root,
       range.endContainer,
       range.endOffset,
-      isCustomNode,
       isSingleline
     );
   }
@@ -387,20 +393,33 @@ export const getSelectionSnapshot = (
 /**
  * @internal
  */
-export const serializeDOM = (
+export const serializeDOM = <T extends Indexable>(
   document: Document,
   root: Node,
-  serializeCustomNode: (node: Element) => string | undefined
-): string[] => {
-  const rows: string[] = [];
+  {
+    text: serializeText,
+    node: serializeNode,
+    push: pushToRow,
+  }: EditableSerializer<T>
+): T[] => {
+  const rows: T[] = [];
   const walker = document.createTreeWalker(root, SHOW_TEXT | SHOW_ELEMENT);
 
+  const completeNode = () => {
+    if (text) {
+      serializedRow = pushToRow(serializeText(text), serializedRow);
+      text = "";
+    }
+  };
   const completeRow = () => {
-    rows.push(text);
-    text = "";
+    completeNode();
+    if (serializedRow != null) {
+      rows.push(serializedRow);
+    }
   };
 
   let node: Node | null;
+  let serializedRow: T | undefined;
   let text = "";
   let isFirstLine = true;
   let skipChildren = false;
@@ -422,10 +441,11 @@ export const serializeDOM = (
         if (isBrInText(node)) {
           completeRow();
         } else {
-          const data = serializeCustomNode(node);
+          const data = serializeNode(node);
           if (data != null) {
             skipChildren = true;
-            text += data;
+            completeNode();
+            serializedRow = pushToRow(data, serializedRow);
           }
         }
       }
