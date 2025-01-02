@@ -11,6 +11,7 @@ import {
 } from "./dom";
 import { createMutationObserver, revertMutations } from "./mutation";
 import { microtask } from "./utils";
+import { ExtractItem, Indexable } from "./types";
 
 /**
  * https://www.w3.org/TR/input-events-1/#interface-InputEvent-Attributes
@@ -63,16 +64,42 @@ type InputType =
   | "formatFontColor" // change the font color
   | "formatFontName"; // change the font-family
 
-export interface CustomEditableNode {
-  is: keyof HTMLElementTagNameMap | ((e: HTMLElement) => boolean);
-  serialize?: (e: HTMLElement) => string;
+export interface EditableSerializer<T extends Indexable> {
+  text: (text: string) => ExtractItem<T>;
+  node: (node: Element) => ExtractItem<T> | void | null;
+  push: (node: ExtractItem<T>, row: T | undefined) => T;
 }
 
-export interface EditableOptions {
+const plaintextSerializer: EditableSerializer<string> = {
+  text: (t) => t,
+  node: () => null,
+  push: (node, row = "") => row + node,
+};
+
+export const serializer = <T extends unknown>(
+  options: Pick<EditableSerializer<T[]>, "text" | "node">
+): EditableSerializer<T[]> => {
+  return {
+    ...options,
+    push: (n, row = [] as T[]) => {
+      row.push(n);
+      return row;
+    },
+  };
+};
+
+interface CommonEditableOptions {
   multiline?: boolean;
   readonly?: boolean;
-  nodes?: CustomEditableNode[];
-  onChange: (value: string) => void;
+}
+
+export interface EditableOptions extends CommonEditableOptions {
+  onChange: (text: string) => void;
+}
+export interface EditableOptionsWithSerializer<T>
+  extends CommonEditableOptions {
+  serializer: EditableSerializer<T[]>;
+  onChange: (text: T[]) => void;
 }
 
 export interface EditableHandle {
@@ -81,10 +108,26 @@ export interface EditableHandle {
   readonly: (value: boolean) => void;
 }
 
-export const editable = (
+export function editable(
   element: HTMLElement,
-  { multiline, readonly, nodes, onChange }: EditableOptions
-): EditableHandle => {
+  options: EditableOptions
+): EditableHandle;
+export function editable<T extends Indexable>(
+  element: HTMLElement,
+  options: EditableOptionsWithSerializer<T>
+): EditableHandle;
+export function editable<T extends Indexable>(
+  element: HTMLElement,
+  {
+    multiline,
+    readonly,
+    serializer,
+    onChange,
+  }: CommonEditableOptions & {
+    serializer?: EditableSerializer<T>;
+    onChange: (text: string & T[]) => void;
+  }
+): EditableHandle {
   // https://w3c.github.io/contentEditable/
   // https://w3c.github.io/editing/docs/execCommand/
   // https://w3c.github.io/selection-api/
@@ -112,26 +155,6 @@ export const editable = (
   let isDragging = false;
 
   const isSingleline = !multiline;
-  const getCustomNodeData = (node: Element): CustomEditableNode | undefined => {
-    if (!nodes) return;
-    return nodes.find((n) => {
-      return typeof n.is === "function"
-        ? n.is(node as HTMLElement)
-        : node.nodeName === n.is.toUpperCase();
-    });
-  };
-  const serializeCustomNode = (node: Element): string | undefined => {
-    const nodeData = getCustomNodeData(node);
-    if (nodeData) {
-      return nodeData.serialize
-        ? nodeData.serialize(node as HTMLElement)
-        : node.textContent!;
-    }
-    return;
-  };
-  const isCustomNode = (node: Element): boolean => {
-    return !!getCustomNodeData(node);
-  };
 
   const updateReadonly = () => {
     element.ariaReadOnly = readonly ? "true" : null;
@@ -141,22 +164,13 @@ export const editable = (
   const document = getCurrentDocument(element);
 
   const history = createHistory<
-    readonly [value: string[], selection: SelectionSnapshot]
-  >([
-    serializeDOM(document, element, serializeCustomNode),
-    getEmptySelectionSnapshot(),
-  ]);
+    readonly [value: T[], selection: SelectionSnapshot]
+  >([serializeDOM(document, element, serializer), getEmptySelectionSnapshot()]);
 
   const observer = createMutationObserver(element, () => {
     if (hasFocus) {
       if (currentSelection) {
-        setSelectionToDOM(
-          document,
-          element,
-          currentSelection,
-          isCustomNode,
-          isSingleline
-        );
+        setSelectionToDOM(document, element, currentSelection, isSingleline);
         if (restoreSelectionQueue != null) {
           cancelAnimationFrame(restoreSelectionQueue);
           restoreSelectionQueue = null;
@@ -167,13 +181,7 @@ export const editable = (
 
   const restoreSelectionOnTimeout = (selection: SelectionSnapshot) => {
     restoreSelectionQueue = requestAnimationFrame(() => {
-      setSelectionToDOM(
-        document,
-        element,
-        selection,
-        isCustomNode,
-        isSingleline
-      );
+      setSelectionToDOM(document, element, selection, isSingleline);
     });
   };
 
@@ -198,11 +206,10 @@ export const editable = (
           const selection = getSelectionSnapshot(
             document,
             element,
-            isCustomNode,
             isSingleline
           );
 
-          const value = serializeDOM(document, element, serializeCustomNode);
+          const value = serializeDOM(document, element, serializer);
 
           revertMutations(queue);
           observer._flush();
@@ -212,15 +219,10 @@ export const editable = (
             document,
             element,
             prevSelection,
-            isCustomNode,
             isSingleline
           );
 
-          const prevValue = serializeDOM(
-            document,
-            element,
-            serializeCustomNode
-          );
+          const prevValue = serializeDOM(document, element, serializer);
           if (!readonly) {
             history.push([prevValue, prevSelection], true);
             history.push([value, selection]);
@@ -256,7 +258,7 @@ export const editable = (
 
     clipboardData.setData(
       "text/plain",
-      serializeDOM(document, selected, serializeCustomNode).join("\n")
+      serializeDOM(document, selected, serializer)
     );
   };
 
@@ -320,12 +322,7 @@ export const editable = (
       return;
     }
     if (isComposing || isDragging) return;
-    currentSelection = getSelectionSnapshot(
-      document,
-      element,
-      isCustomNode,
-      isSingleline
-    );
+    currentSelection = getSelectionSnapshot(document, element, isSingleline);
   };
 
   const onCopy = (e: ClipboardEvent) => {
@@ -406,4 +403,4 @@ export const editable = (
     updateReadonly();
   };
   return handle;
-};
+}
