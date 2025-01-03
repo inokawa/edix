@@ -185,7 +185,7 @@ export const Highlight: StoryObj = {
     return (
       <div>
         <div>
-          <label htmlFor="search">input search word: </label>
+          <label htmlFor="search">search word</label>
           <input
             name="search"
             value={searchText}

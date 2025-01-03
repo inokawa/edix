@@ -1075,6 +1075,154 @@ test("readonly", async ({ page, browserName }) => {
   }
 });
 
+test.describe("keep state on render", () => {
+  test("sync", async ({ page }) => {
+    await page.goto(storyUrl("basics-plain--highlight"));
+
+    const editable = await getEditable(page);
+    const initialValue = await getText(editable);
+
+    await editable.focus();
+
+    expect(await getSelection(editable)).toEqual(createSelection());
+
+    const searchInput = page.getByRole("textbox").first();
+    const searchValue = await searchInput.inputValue();
+
+    const markedOffset = initialValue[0].indexOf(searchValue);
+    const char = "a";
+
+    // type just before node
+    await loop(markedOffset, () => page.keyboard.press("ArrowRight"));
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: markedOffset })
+    );
+    {
+      // insert
+      await input(editable, char);
+
+      const value = await getText(editable);
+      expect(value).toEqual(insertAt(initialValue, char, [0, markedOffset]));
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ offset: markedOffset + 1 })
+      );
+    }
+    {
+      // delete
+      await page.keyboard.press("Backspace");
+      const value = await getText(editable);
+      expect(value).toEqual(initialValue);
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ offset: markedOffset })
+      );
+    }
+
+    // type just after node
+    await page.keyboard.press("ArrowRight");
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: markedOffset + 1 })
+    );
+    {
+      // insert
+      await input(editable, char);
+
+      const value = await getText(editable);
+      expect(value).toEqual(
+        insertAt(initialValue, char, [0, markedOffset + 1])
+      );
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ offset: markedOffset + 2 })
+      );
+    }
+    {
+      // delete
+      await page.keyboard.press("Backspace");
+      const value = await getText(editable);
+      expect(value).toEqual(initialValue);
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ offset: markedOffset + 1 })
+      );
+    }
+  });
+
+  test("async", async ({ page }) => {
+    await page.goto(storyUrl("advanced-with-textlint--with-textlint"));
+
+    const editable = await getEditable(page);
+    const initialValue = await getText(editable);
+
+    await editable.focus();
+
+    expect(await getSelection(editable)).toEqual(createSelection());
+
+    const markedOffset = await editable.evaluate((e) => {
+      const marks = e.querySelectorAll('span[style*="text-decoration"]');
+      if (marks.length < 2) throw new Error();
+      const secondMark = marks[1];
+      if (e.firstChild !== secondMark.parentNode) throw new Error();
+      let offset = 0;
+      let n: Node = secondMark;
+      while ((n = n.previousSibling!)) {
+        offset += n.textContent!.length;
+      }
+      return offset;
+    });
+    const char = "a";
+
+    // type just before node
+    await loop(markedOffset, () => page.keyboard.press("ArrowRight"));
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: markedOffset })
+    );
+    {
+      // insert
+      await input(editable, char);
+
+      const value = await getText(editable);
+      expect(value).toEqual(insertAt(initialValue, char, [0, markedOffset]));
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ offset: markedOffset + 1 })
+      );
+    }
+    {
+      // delete
+      await page.keyboard.press("Backspace");
+      const value = await getText(editable);
+      expect(value).toEqual(initialValue);
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ offset: markedOffset })
+      );
+    }
+
+    // type just after node
+    await page.keyboard.press("ArrowRight");
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: markedOffset + 1 })
+    );
+    {
+      // insert
+      await input(editable, char);
+
+      const value = await getText(editable);
+      expect(value).toEqual(
+        insertAt(initialValue, char, [0, markedOffset + 1])
+      );
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ offset: markedOffset + 2 })
+      );
+    }
+    {
+      // delete
+      await page.keyboard.press("Backspace");
+      const value = await getText(editable);
+      expect(value).toEqual(initialValue);
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ offset: markedOffset + 1 })
+      );
+    }
+  });
+});
+
 test("new window", async ({ page, context }) => {
   await page.goto(storyUrl("advanced-newwindow--default"));
 
