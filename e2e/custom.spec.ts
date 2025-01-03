@@ -148,12 +148,7 @@ test.describe("smoke node", () => {
     }
   });
 
-  test("video", async ({ page, browserName }) => {
-    if (browserName === "webkit") {
-      // TODO Fix selection behavior in Safari
-      test.skip();
-    }
-
+  test("video", async ({ page }) => {
     await page.goto(storyUrl("basics-custom--video"));
 
     const editable = await getEditable(page);

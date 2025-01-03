@@ -133,8 +133,9 @@ const VIDEO_PREFIX = "[video:";
 const VideoNode = ({ text }: { text: string }) => {
   const src = text.slice(VIDEO_PREFIX.length, text.length - 1);
 
+  // safari needs contentEditable="false"
   return (
-    <video width={400} controls>
+    <video width={400} controls contentEditable="false">
       <source src={src} />
     </video>
   );
