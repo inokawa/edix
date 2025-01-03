@@ -9,18 +9,6 @@ export const getEditable = async (page: Page) => {
   return editable;
 };
 
-export const deleteAt = (
-  str: string,
-  index: number,
-  length: number
-): string => {
-  return str.slice(0, index) + str.slice(index + length);
-};
-
-export const insertAt = (str: string, index: number, value: string): string => {
-  return str.slice(0, index) + value + str.slice(index);
-};
-
 export const input = async (editable: Locator, text: string) => {
   for (const t of text.split("")) {
     // playwright doesn't fire beforeinput event on press

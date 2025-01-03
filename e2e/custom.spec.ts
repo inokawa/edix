@@ -3,9 +3,15 @@ import {
   createSelection,
   getSelection,
   getText,
+  initEdixHelpers,
   NON_EDITABLE_PLACEHOLDER,
+  insertAt,
 } from "./edix";
-import { getEditable, input, insertAt, loop, storyUrl } from "./utils";
+import { getEditable, input, loop, storyUrl } from "./utils";
+
+test.beforeEach(async ({ context }) => {
+  await initEdixHelpers(context);
+});
 
 test.describe("smoke node", () => {
   test("contenteditable: false", async ({ page }) => {
@@ -31,10 +37,7 @@ test.describe("smoke node", () => {
       await input(editable, char);
 
       const value = await getText(editable);
-      expect(value).toEqual([
-        insertAt(initialValue[0], nodeOffset, char),
-        ...initialValue.slice(1),
-      ]);
+      expect(value).toEqual(insertAt(initialValue, char, [0, nodeOffset]));
       expect(await getSelection(editable)).toEqual(
         createSelection({ offset: nodeOffset + 1 })
       );
@@ -59,10 +62,7 @@ test.describe("smoke node", () => {
       await input(editable, char);
 
       const value = await getText(editable);
-      expect(value).toEqual([
-        insertAt(initialValue[0], nodeOffset + 1, char),
-        ...initialValue.slice(1),
-      ]);
+      expect(value).toEqual(insertAt(initialValue, char, [0, nodeOffset + 1]));
       expect(await getSelection(editable)).toEqual(
         createSelection({ offset: nodeOffset + 2 })
       );
@@ -101,10 +101,7 @@ test.describe("smoke node", () => {
       await input(editable, char);
 
       const value = await getText(editable);
-      expect(value).toEqual([
-        insertAt(initialValue[0], nodeOffset, char),
-        ...initialValue.slice(1),
-      ]);
+      expect(value).toEqual(insertAt(initialValue, char, [0, nodeOffset]));
       expect(await getSelection(editable)).toEqual(
         createSelection({ offset: nodeOffset + 1 })
       );
@@ -129,10 +126,7 @@ test.describe("smoke node", () => {
       await input(editable, char);
 
       const value = await getText(editable);
-      expect(value).toEqual([
-        insertAt(initialValue[0], nodeOffset + 1, char),
-        ...initialValue.slice(1),
-      ]);
+      expect(value).toEqual(insertAt(initialValue, char, [0, nodeOffset + 1]));
       expect(await getSelection(editable)).toEqual(
         createSelection({ offset: nodeOffset + 2 })
       );
@@ -171,10 +165,7 @@ test.describe("smoke node", () => {
       await input(editable, char);
 
       const value = await getText(editable);
-      expect(value).toEqual([
-        insertAt(initialValue[0], nodeOffset, char),
-        ...initialValue.slice(1),
-      ]);
+      expect(value).toEqual(insertAt(initialValue, char, [0, nodeOffset]));
       expect(await getSelection(editable)).toEqual(
         createSelection({ offset: nodeOffset + 1 })
       );
@@ -199,10 +190,7 @@ test.describe("smoke node", () => {
       await input(editable, char);
 
       const value = await getText(editable);
-      expect(value).toEqual([
-        insertAt(initialValue[0], nodeOffset + 1, char),
-        ...initialValue.slice(1),
-      ]);
+      expect(value).toEqual(insertAt(initialValue, char, [0, nodeOffset + 1]));
       expect(await getSelection(editable)).toEqual(
         createSelection({ offset: nodeOffset + 2 })
       );
@@ -241,10 +229,7 @@ test.describe("smoke node", () => {
       await input(editable, char);
 
       const value = await getText(editable);
-      expect(value).toEqual([
-        insertAt(initialValue[0], nodeOffset, char),
-        ...initialValue.slice(1),
-      ]);
+      expect(value).toEqual(insertAt(initialValue, char, [0, nodeOffset]));
       expect(await getSelection(editable)).toEqual(
         createSelection({ offset: nodeOffset + 1 })
       );
@@ -269,10 +254,7 @@ test.describe("smoke node", () => {
       await input(editable, char);
 
       const value = await getText(editable);
-      expect(value).toEqual([
-        insertAt(initialValue[0], nodeOffset + 1, char),
-        ...initialValue.slice(1),
-      ]);
+      expect(value).toEqual(insertAt(initialValue, char, [0, nodeOffset + 1]));
       expect(await getSelection(editable)).toEqual(
         createSelection({ offset: nodeOffset + 2 })
       );

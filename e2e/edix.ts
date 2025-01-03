@@ -1,4 +1,4 @@
-import test, { Locator } from "@playwright/test";
+import test, { BrowserContext, Locator } from "@playwright/test";
 import * as esbuild from "esbuild";
 import * as path from "node:path";
 import { SelectionSnapshot } from "../src/core/dom";
@@ -19,12 +19,12 @@ const edixDom = esbuild
   })
   .then((r) => r.outputFiles[0].text);
 
-test.beforeEach(async ({ context }) => {
+export const initEdixHelpers = async (context: BrowserContext) => {
   await context.addInitScript(`
-${await edixDom}
-window.edix = edix;
-`);
-});
+    ${await edixDom}
+    window.edix = edix;
+    `);
+};
 
 const NON_EDITABLE_NODES = ["IMG", "VIDEO", "IFRAME"];
 export const NON_EDITABLE_PLACEHOLDER = "$";
@@ -65,6 +65,38 @@ export const getSelection = (
     },
     [isSingleline, NON_EDITABLE_NODES] as const
   );
+};
+
+export const deleteAt = (
+  value: readonly string[],
+  length: number,
+  [line, offset]: readonly [line: number, offset: number]
+): string[] => {
+  return value.map((r, i) =>
+    i === line ? r.slice(0, offset) + r.slice(offset + length) : r
+  );
+};
+
+export const insertAt = (
+  value: readonly string[],
+  text: string,
+  [line, offset]: readonly [line: number, offset: number]
+): string[] => {
+  return value.map((r, i) =>
+    i === line ? r.slice(0, offset) + text + r.slice(offset) : r
+  );
+};
+
+export const insertLineBreakAt = (
+  value: readonly string[],
+  [line, offset]: readonly [line: number, offset: number]
+): string[] => {
+  return value.flatMap((r, i) => {
+    if (i === line) {
+      return [r.slice(0, offset), r.slice(offset)];
+    }
+    return r;
+  });
 };
 
 export const createSelection = (
