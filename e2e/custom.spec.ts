@@ -6,6 +6,7 @@ import {
   initEdixHelpers,
   NON_EDITABLE_PLACEHOLDER,
   insertAt,
+  deleteAt,
 } from "./edix";
 import { getEditable, input, loop, storyUrl } from "./utils";
 
@@ -76,6 +77,14 @@ test.describe("smoke node", () => {
         createSelection({ offset: nodeOffset + 1 })
       );
     }
+
+    // delete custom node
+    await page.keyboard.press("Backspace");
+    const value = await getText(editable);
+    expect(value).toEqual(deleteAt(initialValue, 1, [0, nodeOffset]));
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: nodeOffset })
+    );
   });
 
   test("img", async ({ page }) => {
@@ -140,6 +149,14 @@ test.describe("smoke node", () => {
         createSelection({ offset: nodeOffset + 1 })
       );
     }
+
+    // delete custom node
+    await page.keyboard.press("Backspace");
+    const value = await getText(editable);
+    expect(value).toEqual(deleteAt(initialValue, 1, [0, nodeOffset]));
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: nodeOffset })
+    );
   });
 
   test("video", async ({ page }) => {
@@ -204,6 +221,14 @@ test.describe("smoke node", () => {
         createSelection({ offset: nodeOffset + 1 })
       );
     }
+
+    // delete custom node
+    await page.keyboard.press("Backspace");
+    const value = await getText(editable);
+    expect(value).toEqual(deleteAt(initialValue, 1, [0, nodeOffset]));
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: nodeOffset })
+    );
   });
 
   test("iframe", async ({ page }) => {
@@ -268,5 +293,13 @@ test.describe("smoke node", () => {
         createSelection({ offset: nodeOffset + 1 })
       );
     }
+
+    // delete custom node
+    await page.keyboard.press("Backspace");
+    const value = await getText(editable);
+    expect(value).toEqual(deleteAt(initialValue, 1, [0, nodeOffset]));
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: nodeOffset })
+    );
   });
 });
