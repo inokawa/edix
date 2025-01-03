@@ -1,92 +1,13 @@
-import { test, expect, Page, Locator } from "@playwright/test";
-import * as esbuild from "esbuild";
-import * as path from "node:path";
-
-declare global {
-  interface Window {
-    edix: typeof import("../src/core/dom.ts");
-  }
-}
-
-const edixDom = esbuild
-  .build({
-    entryPoints: [path.join(__dirname, "../src/core/dom.ts")],
-    bundle: true,
-    write: false,
-    format: "iife",
-    globalName: "edix",
-  })
-  .then((r) => r.outputFiles[0].text);
-
-test.beforeEach(async ({ context }) => {
-  await context.addInitScript(`
-${await edixDom}
-window.edix = edix;
-`);
-});
-
-const storyUrl = (id: string) =>
-  `http://localhost:6006/iframe.html?id=${id}&viewMode=story`;
-
-const getEditable = async (page: Page) => {
-  const editable = page.locator('[contenteditable="true"]');
-  await editable.waitFor();
-  return editable;
-};
-
-const getText = async (editable: Locator): Promise<string[]> => {
-  return editable.evaluate((element) => {
-    return window.edix.serializeDOM(
-      element.ownerDocument,
-      element as HTMLElement,
-      () => undefined // TODO
-    );
-  });
-};
-
-const getSelectionRange = (
-  editable: Locator,
-  isSingleline: boolean = false
-) => {
-  return editable.evaluate((element, isSingleline) => {
-    return window.edix.getSelectionSnapshot(
-      element.ownerDocument,
-      element as HTMLElement,
-      () => false, // TODO
-      isSingleline
-    );
-  }, isSingleline);
-};
-
-const deleteAt = (str: string, index: number, length: number): string => {
-  return str.slice(0, index) + str.slice(index + length);
-};
-const insertAt = (str: string, index: number, value: string): string => {
-  return str.slice(0, index) + value + str.slice(index);
-};
-
-const input = async (editable: Locator, text: string) => {
-  for (const t of text.split("")) {
-    // playwright doesn't fire beforeinput event on press
-    await editable.evaluate((e, t) => {
-      e.dispatchEvent(
-        new InputEvent("beforeinput", {
-          data: t,
-          bubbles: true,
-          cancelable: true,
-          inputType: "insertText",
-        })
-      );
-    }, t);
-    await editable.press(t);
-  }
-};
-
-const keypress = async (page: Page, key: string, count: number = 1) => {
-  for (let i = 1; i <= count; i++) {
-    await page.keyboard.press(key);
-  }
-};
+import { test, expect, Page } from "@playwright/test";
+import { getSelectionRange, getText } from "./edix";
+import {
+  deleteAt,
+  getEditable,
+  input,
+  insertAt,
+  loop,
+  storyUrl,
+} from "./utils";
 
 test.describe("type word", () => {
   test.describe("multiline", () => {
@@ -374,7 +295,8 @@ test.describe("replace range", () => {
     });
     // Expand selection
     const selLength = 3;
-    await keypress(page, "Shift+ArrowRight", selLength);
+
+    await loop(selLength, () => page.keyboard.press("Shift+ArrowRight"));
     expect(await getSelectionRange(editable)).toEqual({
       start: [0, 1],
       end: [0, 1 + selLength],
@@ -414,7 +336,7 @@ test.describe("replace range", () => {
 
     // Move caret
     const len = 1;
-    await keypress(page, "ArrowRight", len);
+    await loop(len, () => page.keyboard.press("ArrowRight"));
     expect(await getSelectionRange(editable)).toEqual({
       start: [0, len],
       end: [0, len],
@@ -588,7 +510,7 @@ test.describe("Keydown", () => {
         backward: false,
       });
 
-      await keypress(page, "ArrowRight", 2);
+      await loop(2, () => page.keyboard.press("ArrowRight"));
       expect(await getSelectionRange(editable)).toEqual({
         start: [0, 2],
         end: [0, 2],
@@ -644,7 +566,7 @@ test.describe("Keydown", () => {
         backward: false,
       });
 
-      await keypress(page, "ArrowRight", 2);
+      await loop(2, () => page.keyboard.press("ArrowRight"));
       expect(await getSelectionRange(editable)).toEqual({
         start: [0, 2],
         end: [0, 2],
@@ -680,7 +602,7 @@ test.describe("Keydown", () => {
       });
 
       // Move caret
-      await keypress(page, "ArrowRight", 2);
+      await loop(2, () => page.keyboard.press("ArrowRight"));
       expect(await getSelectionRange(editable)).toEqual({
         start: [0, 2],
         end: [0, 2],
@@ -724,7 +646,7 @@ test.describe("Keydown", () => {
       });
       // Expand selection
       const selLength = 3;
-      await keypress(page, "Shift+ArrowRight", selLength);
+      await loop(selLength, () => page.keyboard.press("Shift+ArrowRight"));
       expect(await getSelectionRange(editable)).toEqual({
         start: [0, 1],
         end: [0, 1 + selLength],
@@ -761,7 +683,7 @@ test.describe("Keydown", () => {
 
       // Move caret
       const len = 1;
-      await keypress(page, "ArrowRight", len);
+      await loop(len, () => page.keyboard.press("ArrowRight"));
       expect(await getSelectionRange(editable)).toEqual({
         start: [0, len],
         end: [0, len],
@@ -844,7 +766,7 @@ test.describe("Keydown", () => {
       });
 
       // Move caret
-      await keypress(page, "ArrowRight", 2);
+      await loop(2, () => page.keyboard.press("ArrowRight"));
       expect(await getSelectionRange(editable)).toEqual({
         start: [0, 2],
         end: [0, 2],
@@ -927,7 +849,7 @@ test.describe("Keydown", () => {
 
       // Move caret
       const len = 1;
-      await keypress(page, "ArrowRight", len);
+      await loop(len, () => page.keyboard.press("ArrowRight"));
       expect(await getSelectionRange(editable)).toEqual({
         start: [0, len],
         end: [0, len],
@@ -1011,7 +933,7 @@ test.describe("Cut", () => {
     });
 
     // Move caret
-    await keypress(page, "ArrowRight", 2);
+    await loop(2, () => page.keyboard.press("ArrowRight"));
     expect(await getSelectionRange(editable)).toEqual({
       start: [0, 2],
       end: [0, 2],
@@ -1092,7 +1014,7 @@ test.describe("Cut", () => {
 
     // Move caret
     const len = 1;
-    await keypress(page, "ArrowRight", len);
+    await loop(len, () => page.keyboard.press("ArrowRight"));
     expect(await getSelectionRange(editable)).toEqual({
       start: [0, len],
       end: [0, len],
@@ -1186,7 +1108,7 @@ test.describe("Paste", () => {
       });
 
       // Move caret
-      await keypress(page, "ArrowRight", 2);
+      await loop(2, () => page.keyboard.press("ArrowRight"));
       expect(await getSelectionRange(editable)).toEqual({
         start: [0, 2],
         end: [0, 2],
@@ -1225,7 +1147,7 @@ test.describe("Paste", () => {
       });
 
       // Move caret
-      await keypress(page, "ArrowRight", 2);
+      await loop(2, () => page.keyboard.press("ArrowRight"));
       expect(await getSelectionRange(editable)).toEqual({
         start: [0, 2],
         end: [0, 2],
@@ -1275,7 +1197,7 @@ test.describe("Paste", () => {
       });
 
       // Move caret
-      await keypress(page, "ArrowRight", 2);
+      await loop(2, () => page.keyboard.press("ArrowRight"));
       expect(await getSelectionRange(editable)).toEqual({
         start: [0, 2],
         end: [0, 2],
@@ -1314,7 +1236,7 @@ test.describe("Paste", () => {
       });
 
       // Move caret
-      await keypress(page, "ArrowRight", 2);
+      await loop(2, () => page.keyboard.press("ArrowRight"));
       expect(await getSelectionRange(editable)).toEqual({
         start: [0, 2],
         end: [0, 2],
