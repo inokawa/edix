@@ -1,6 +1,7 @@
 import test, { Locator } from "@playwright/test";
 import * as esbuild from "esbuild";
 import * as path from "node:path";
+import { SelectionSnapshot } from "../src/core/dom";
 
 declare global {
   interface Window {
@@ -35,10 +36,10 @@ export const getText = async (editable: Locator): Promise<string[]> => {
   });
 };
 
-export const getSelectionRange = (
+export const getSelection = (
   editable: Locator,
   isSingleline: boolean = false
-) => {
+): Promise<SelectionSnapshot> => {
   return editable.evaluate((element, isSingleline) => {
     return window.edix.getSelectionSnapshot(
       element.ownerDocument,
@@ -47,4 +48,31 @@ export const getSelectionRange = (
       isSingleline
     );
   }, isSingleline);
+};
+
+export const createSelection = (
+  opts:
+    | {
+        line?: number;
+        offset?: number;
+        extent?: number;
+      }
+    | { start: [number, number]; end: [number, number] } = {}
+): SelectionSnapshot => {
+  if ("start" in opts) {
+    return {
+      start: opts.start,
+      end: opts.end,
+      backward: false,
+    };
+  }
+
+  const line = opts.line ?? 0;
+  const startOffset = opts.offset ?? 0;
+  const endOffset = startOffset + (opts.extent ?? 0);
+  return {
+    start: [line, startOffset],
+    end: [line, endOffset],
+    backward: false,
+  };
 };
