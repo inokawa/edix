@@ -1088,6 +1088,8 @@ test.describe("keep state on render", () => {
 
     const searchInput = page.getByRole("textbox").first();
     const searchValue = await searchInput.inputValue();
+    const searchValueLength = searchValue.length;
+    expect(searchValueLength).toBeGreaterThan(1);
 
     const markedOffset = initialValue[0].indexOf(searchValue);
     const char = "a";
@@ -1117,7 +1119,7 @@ test.describe("keep state on render", () => {
       );
     }
 
-    // type just after node
+    // type on node
     await page.keyboard.press("ArrowRight");
     expect(await getSelection(editable)).toEqual(
       createSelection({ offset: markedOffset + 1 })
@@ -1143,6 +1145,33 @@ test.describe("keep state on render", () => {
         createSelection({ offset: markedOffset + 1 })
       );
     }
+
+    // type just after node
+    await loop(searchValueLength - 1, () => page.keyboard.press("ArrowRight"));
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: markedOffset + searchValueLength })
+    );
+    {
+      // insert
+      await input(editable, char);
+
+      const value = await getText(editable);
+      expect(value).toEqual(
+        insertAt(initialValue, char, [0, markedOffset + searchValueLength])
+      );
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ offset: markedOffset + searchValueLength + 1 })
+      );
+    }
+    {
+      // delete
+      await page.keyboard.press("Backspace");
+      const value = await getText(editable);
+      expect(value).toEqual(initialValue);
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ offset: markedOffset + searchValueLength })
+      );
+    }
   });
 
   test("async", async ({ page }) => {
@@ -1159,7 +1188,11 @@ test.describe("keep state on render", () => {
       const marks = e.querySelectorAll('span[style*="text-decoration"]');
       if (marks.length < 2) throw new Error();
       const secondMark = marks[1];
-      if (e.firstChild !== secondMark.parentNode) throw new Error();
+      if (
+        e.firstChild !== secondMark.parentNode ||
+        secondMark.textContent!.length !== 1
+      )
+        throw new Error();
       let offset = 0;
       let n: Node = secondMark;
       while ((n = n.previousSibling!)) {
