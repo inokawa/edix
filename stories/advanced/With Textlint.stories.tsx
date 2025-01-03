@@ -51,7 +51,6 @@ export default {
 
 const style: React.CSSProperties = {
   width: "300px",
-  height: "200px",
   background: "white",
 };
 
@@ -72,7 +71,8 @@ const Mark = ({
     <span
       ref={ref}
       style={{
-        textDecoration: "underline dashed red",
+        textDecorationColor: "red",
+        textDecorationLine: "underline",
       }}
       onMouseOver={(e) => {
         if (!ref.current) return;
