@@ -16,6 +16,7 @@ export const deleteAt = (
 ): string => {
   return str.slice(0, index) + str.slice(index + length);
 };
+
 export const insertAt = (str: string, index: number, value: string): string => {
   return str.slice(0, index) + value + str.slice(index);
 };
@@ -37,7 +38,7 @@ export const input = async (editable: Locator, text: string) => {
   }
 };
 
-export const loop = async (count: number = 1, fn: () => Promise<void>) => {
+export const loop = async (count: number, fn: () => Promise<void>) => {
   for (let i = 1; i <= count; i++) {
     await fn();
   }

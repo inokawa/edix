@@ -26,28 +26,45 @@ window.edix = edix;
 `);
 });
 
+const NON_EDITABLE_NODES = ["IMG", "VIDEO", "IFRAME"];
+export const NON_EDITABLE_PLACEHOLDER = "$";
+
 export const getText = async (editable: Locator): Promise<string[]> => {
-  return editable.evaluate((element) => {
-    return window.edix.serializeDOM(
-      element.ownerDocument,
-      element as HTMLElement,
-      () => undefined // TODO
-    );
-  });
+  return editable.evaluate(
+    (element, [NON_EDITABLE_NODES, NON_EDITABLE_PLACEHOLDER]) => {
+      return window.edix.serializeDOM(
+        element.ownerDocument,
+        element as HTMLElement,
+        (e) =>
+          // TODO improve
+          NON_EDITABLE_NODES.includes(e.tagName) ||
+          (e as HTMLElement).contentEditable === "false"
+            ? NON_EDITABLE_PLACEHOLDER
+            : undefined
+      );
+    },
+    [NON_EDITABLE_NODES, NON_EDITABLE_PLACEHOLDER] as const
+  );
 };
 
 export const getSelection = (
   editable: Locator,
   isSingleline: boolean = false
 ): Promise<SelectionSnapshot> => {
-  return editable.evaluate((element, isSingleline) => {
-    return window.edix.getSelectionSnapshot(
-      element.ownerDocument,
-      element as HTMLElement,
-      () => false, // TODO
-      isSingleline
-    );
-  }, isSingleline);
+  return editable.evaluate(
+    (element, [isSingleline, NON_EDITABLE_NODES]) => {
+      return window.edix.getSelectionSnapshot(
+        element.ownerDocument,
+        element as HTMLElement,
+        (e) =>
+          // TODO improve
+          NON_EDITABLE_NODES.includes(e.tagName) ||
+          (e as HTMLElement).contentEditable === "false",
+        isSingleline
+      );
+    },
+    [isSingleline, NON_EDITABLE_NODES] as const
+  );
 };
 
 export const createSelection = (
