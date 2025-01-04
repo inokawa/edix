@@ -56,15 +56,17 @@ export const createMutationObserver = (
 export const revertMutations = (queue: MutationRecord[]) => {
   let m: MutationRecord | undefined;
   while ((m = queue.pop())) {
-    if (m.oldValue !== null) {
-      m.target.textContent = m.oldValue;
-    }
-    for (let i = m.removedNodes.length - 1; i >= 0; i--) {
-      m.target.insertBefore(m.removedNodes[i]!, m.nextSibling);
-    }
-    for (let i = m.addedNodes.length - 1; i >= 0; i--) {
-      if (m.addedNodes[i]!.parentNode) {
-        m.target.removeChild(m.addedNodes[i]!);
+    if (m.type === "characterData") {
+      (m.target as CharacterData).nodeValue = m.oldValue!;
+    } else if (m.type === "childList") {
+      const { target, removedNodes, addedNodes, nextSibling } = m;
+      for (let i = removedNodes.length - 1; i >= 0; i--) {
+        target.insertBefore(removedNodes[i]!, nextSibling);
+      }
+      for (let i = addedNodes.length - 1; i >= 0; i--) {
+        if (addedNodes[i]!.parentNode) {
+          target.removeChild(addedNodes[i]!);
+        }
       }
     }
   }
