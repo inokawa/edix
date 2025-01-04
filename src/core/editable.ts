@@ -1,7 +1,6 @@
 import { createHistory } from "./history";
 import {
   getCurrentDocument,
-  SelectionSnapshot,
   getSelectionSnapshot,
   getDOMSelection,
   setSelectionToDOM,
@@ -10,6 +9,7 @@ import {
   getSelectedElements,
 } from "./dom";
 import { createMutationObserver, revertMutations } from "./mutation";
+import { SelectionSnapshot } from "./types";
 import { microtask } from "./utils";
 
 /**

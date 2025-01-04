@@ -1,3 +1,4 @@
+import { Point, SelectionSnapshot } from "./types";
 import { min } from "./utils";
 
 const ELEMENT_NODE = 1;
@@ -47,14 +48,6 @@ const isBrInText = (node: Element): boolean => {
   }
   return hasTextPrev && hasTextNext;
 };
-
-type Point = readonly [line: number, offset: number];
-
-export interface SelectionSnapshot {
-  readonly start: Point;
-  readonly end: Point;
-  readonly backward: boolean;
-}
 
 /**
  * @internal
