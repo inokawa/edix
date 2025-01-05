@@ -14,8 +14,7 @@ export const createHistory = <T>(initialValue: T) => {
   };
 
   const push = (history: T) => {
-    index++;
-    histories[index] = history;
+    histories[++index] = history;
     histories.splice(index + 1);
     if (index > MAX_HISTORY_LENGTH) {
       index--;
