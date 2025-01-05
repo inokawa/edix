@@ -9,10 +9,12 @@ export const createHistory = <T>(initialValue: T) => {
 
   const get = () => histories[index]!;
 
-  const push = (history: T, merge?: boolean) => {
-    if (!merge) {
-      index++;
-    }
+  const set = (history: T) => {
+    histories[index] = history;
+  };
+
+  const push = (history: T) => {
+    index++;
     histories[index] = history;
     histories.splice(index + 1);
     if (index > MAX_HISTORY_LENGTH) {
@@ -49,6 +51,7 @@ export const createHistory = <T>(initialValue: T) => {
 
   return {
     get,
+    set,
     undo,
     redo,
     push,

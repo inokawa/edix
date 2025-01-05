@@ -216,13 +216,8 @@ export const editable = (
             isSingleline
           );
 
-          const prevValue = serializeDOM(
-            document,
-            element,
-            serializeCustomNode
-          );
           if (!readonly) {
-            history.push([prevValue, prevSelection], true);
+            history.set([history.get()[0], prevSelection]);
             history.push([value, selection]);
             currentSelection = selection;
             emitChange(value);
