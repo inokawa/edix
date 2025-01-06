@@ -7,6 +7,7 @@ const element = ref<HTMLDivElement>()
 let cleanup: EditableHandle | null = null
 onMounted(() => {
   cleanup = editable(element.value!, {
+    multiline: true,
     onChange: (v) => {
       value.value = v
     },

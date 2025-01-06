@@ -22,6 +22,7 @@ const updateRows = (text: string) => {
 updateRows("Hello World.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
 
 editable(el, {
+  multiline: true,
   onChange: (v) => {
     updateRows(v);
   },

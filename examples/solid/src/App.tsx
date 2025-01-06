@@ -6,6 +6,7 @@ function App() {
   const [value, setValue] = createSignal("Hello World.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
   onMount(() => {
     const cleanup = editable(ref!, {
+      multiline: true,
       onChange: setValue,
     });
     onCleanup(() => {

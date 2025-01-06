@@ -13,6 +13,7 @@ export class AppComponent {
 
   ngAfterViewInit() {
     this.cleanup = editable(this.ref()!.nativeElement, {
+      multiline: true,
       onChange: (v) => {
         this.value.set(v);
       },

@@ -7,6 +7,7 @@
   let cleanup: EditableHandle | null = null;
   onMount(() => {
     cleanup = editable(ref!, {
+      multiline: true,
       onChange: (v) => {
         value = v;
       },

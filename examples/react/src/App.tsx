@@ -6,6 +6,7 @@ function App() {
   const [value, setValue] = useState("Hello World.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
   useEffect(() => {
     return editable(ref.current!, {
+      multiline: true,
       onChange: setValue,
     });
   }, []);

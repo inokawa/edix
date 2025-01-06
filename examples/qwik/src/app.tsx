@@ -8,6 +8,7 @@ export const App = component$(() => {
   useVisibleTask$(({ cleanup }) => {
     if (!ref.value) return;
     const handle = editable(ref.value, {
+      multiline: true,
       onChange: (v) => {
         value.value = v;
       },

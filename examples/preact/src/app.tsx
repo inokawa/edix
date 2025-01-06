@@ -7,6 +7,7 @@ export function App() {
   useEffect(() => {
     if (!ref.current) return;
     return editable(ref.current, {
+      multiline: true,
       onChange: setValue,
     });
   }, []);
