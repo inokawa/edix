@@ -1,10 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
-/**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
- */
-// require('dotenv').config();
+const FRAMEWORK_DIR = process.env.FRAMEWORK_DIR;
+
+const FRAMEWORK_SPEC = "framework.spec.ts";
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -33,47 +31,40 @@ export default defineConfig({
   },
 
   /* Configure projects for major browsers */
-  projects: [
-    {
-      name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
-    },
-
-    {
-      name: "firefox",
-      use: { ...devices["Desktop Firefox"] },
-    },
-
-    {
-      name: "webkit",
-      use: { ...devices["Desktop Safari"] },
-    },
-
-    /* Test against mobile viewports. */
-    // {
-    //   name: 'Mobile Chrome',
-    //   use: { ...devices['Pixel 5'] },
-    // },
-    // {
-    //   name: 'Mobile Safari',
-    //   use: { ...devices['iPhone 12'] },
-    // },
-
-    /* Test against branded browsers. */
-    // {
-    //   name: 'Microsoft Edge',
-    //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
-    // },
-    // {
-    //   name: 'Google Chrome',
-    //   use: { ..devices['Desktop Chrome'], channel: 'chrome' },
-    // },
-  ],
+  projects: FRAMEWORK_DIR
+    ? [
+        {
+          name: "framework",
+          use: { ...devices["Desktop Chrome"] },
+          testMatch: FRAMEWORK_SPEC,
+        },
+      ]
+    : [
+        {
+          name: "chromium",
+          use: { ...devices["Desktop Chrome"] },
+          testIgnore: FRAMEWORK_SPEC,
+        },
+        {
+          name: "firefox",
+          use: { ...devices["Desktop Firefox"] },
+          testIgnore: FRAMEWORK_SPEC,
+        },
+        {
+          name: "webkit",
+          use: { ...devices["Desktop Safari"] },
+          testIgnore: FRAMEWORK_SPEC,
+        },
+      ],
 
   /* Run your local dev server before starting the tests */
-  webServer: {
-    command: "npm run storybook",
-    url: "http://127.0.0.1:6006",
-    reuseExistingServer: !process.env.CI,
-  },
+  webServer: [
+    {
+      command: FRAMEWORK_DIR
+        ? `(cd ${FRAMEWORK_DIR} && npm run build && npx http-server dist)`
+        : "npm run storybook",
+      url: FRAMEWORK_DIR ? "http://127.0.0.1:8080" : "http://127.0.0.1:6006",
+      reuseExistingServer: !process.env.CI,
+    },
+  ],
 });

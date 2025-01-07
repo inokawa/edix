@@ -39,6 +39,21 @@ jobs:
         run: npx playwright install --with-deps
       - name: Run Playwright tests
         run: npm run e2e
+
+      - run: npm run build && npm link
+
+      - name: Smoke vanilla
+        run: (cd examples/vanilla && npm install && npm link edix) && FRAMEWORK_DIR=examples/vanilla npm run e2e
+      - name: Smoke react
+        run: (cd examples/react && npm install && npm link edix) && FRAMEWORK_DIR=examples/react npm run e2e
+      - name: Smoke vue
+        run: (cd examples/vue && npm install && npm link edix) && FRAMEWORK_DIR=examples/vue npm run e2e
+      - name: Smoke svelte
+        run: (cd examples/svelte && npm install && npm link edix) && FRAMEWORK_DIR=examples/svelte npm run e2e
+      - name: Smoke solid
+        run: (cd examples/solid && npm install && npm link edix) && FRAMEWORK_DIR=examples/solid npm run e2e
+      - name: Smoke angular
+        run: (cd examples/angular && npm install && npm link edix) && FRAMEWORK_DIR=examples/angular npm run e2e
       # - uses: actions/upload-artifact@v3
       #   if: always()
       #   with:
