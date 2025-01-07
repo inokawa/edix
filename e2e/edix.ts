@@ -1,4 +1,4 @@
-import test, { BrowserContext, Locator } from "@playwright/test";
+import { BrowserContext, Locator } from "@playwright/test";
 import * as esbuild from "esbuild";
 import * as path from "node:path";
 import { SelectionSnapshot } from "../src/core/types";
@@ -32,15 +32,12 @@ export const NON_EDITABLE_PLACEHOLDER = "$";
 export const getText = async (editable: Locator): Promise<string[]> => {
   return editable.evaluate(
     (element, [NON_EDITABLE_NODES, NON_EDITABLE_PLACEHOLDER]) => {
-      return window.edix.serializeDOM(
-        element.ownerDocument,
-        element as HTMLElement,
-        (e) =>
-          // TODO improve
-          NON_EDITABLE_NODES.includes(e.tagName) ||
-          (e as HTMLElement).contentEditable === "false"
-            ? NON_EDITABLE_PLACEHOLDER
-            : undefined
+      return window.edix.serializeDOM(element.ownerDocument, element, (e) =>
+        // TODO improve
+        NON_EDITABLE_NODES.includes(e.tagName) ||
+        (e as HTMLElement).contentEditable === "false"
+          ? NON_EDITABLE_PLACEHOLDER
+          : undefined
       );
     },
     [NON_EDITABLE_NODES, NON_EDITABLE_PLACEHOLDER] as const
@@ -55,7 +52,7 @@ export const getSelection = (
     (element, [isSingleline, NON_EDITABLE_NODES]) => {
       return window.edix.getSelectionSnapshot(
         element.ownerDocument,
-        element as HTMLElement,
+        element,
         (e) =>
           // TODO improve
           NON_EDITABLE_NODES.includes(e.tagName) ||
