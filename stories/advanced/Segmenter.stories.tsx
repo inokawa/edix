@@ -1,5 +1,5 @@
 import { StoryObj } from "@storybook/react";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { editable } from "../../src";
 
 export default {
@@ -50,20 +50,27 @@ export const Segmenter: StoryObj = {
     const [locale, setLocale] = useState("ja");
     const [granularity, setGranularity] = useState<Granularity>("word");
 
-    const hasSegmenter = !!Intl?.Segmenter;
+    const segmenter = useMemo(() => {
+      if (!Intl?.Segmenter) {
+        return null;
+      }
 
-    if (!hasSegmenter) {
+      return new Intl.Segmenter(locale, {
+        granularity,
+      });
+    }, [locale, granularity]);
+
+    if (!segmenter) {
       return <div>{"Intl.Segmenter is not supported in this browser."}</div>;
     }
-
-    const segmenter = new Intl.Segmenter(locale, {
-      granularity,
-    });
 
     return (
       <div>
         <div>
-          <input value={locale} onChange={(e) => setLocale(e.target.value)} />
+          <select value={locale} onChange={(e) => setLocale(e.target.value)}>
+            <option value={"ja"}>ja</option>
+            <option value={"en"}>en</option>
+          </select>
           <select
             value={granularity}
             onChange={(e) => setGranularity(e.target.value as Granularity)}
