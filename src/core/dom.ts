@@ -139,6 +139,21 @@ export const setSelectionToDOM = (
 ): boolean => {
   const { start, end, backward } = snapshot;
 
+  // special path for empty content with empty selection, necessary for placeholder
+  if (
+    start[0] === 0 &&
+    start[1] === 0 &&
+    start[0] === end[0] &&
+    start[1] === end[1] &&
+    !root.hasChildNodes()
+  ) {
+    const range = document.createRange();
+    range.setStart(root, 0);
+    range.setEnd(root, 0);
+
+    return true;
+  }
+
   const domStart = findBoundaryPoint(
     document,
     root,

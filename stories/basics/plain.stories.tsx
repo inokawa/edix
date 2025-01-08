@@ -103,6 +103,41 @@ export const Readonly: StoryObj = {
   },
 };
 
+export const Placeholder: StoryObj = {
+  render: () => {
+    const ref = useRef<HTMLDivElement>(null);
+    const [value, setValue] = useState("");
+    useEffect(() => {
+      if (!ref.current) return;
+      return editable(ref.current, {
+        onChange: setValue,
+      });
+    }, []);
+    return (
+      <>
+        <div
+          ref={ref}
+          style={{
+            backgroundColor: "white",
+            border: "solid 1px darkgray",
+            padding: 8,
+          }}
+          aria-placeholder="Enter some text..."
+        >
+          {value}
+        </div>
+        <style>{`
+[contenteditable]:empty:before {
+  content: attr(aria-placeholder) / "";
+  pointer-events: none;
+  color: gray;
+}
+`}</style>
+      </>
+    );
+  },
+};
+
 export const Rtl: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);

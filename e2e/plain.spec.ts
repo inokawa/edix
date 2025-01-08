@@ -1075,6 +1075,39 @@ test("readonly", async ({ page, browserName }) => {
   }
 });
 
+test("placeholder", async ({ page }) => {
+  await page.goto(storyUrl("basics-plain--placeholder"));
+
+  const editable = await getEditable(page);
+  const initialValue = await getText(editable);
+
+  await editable.focus();
+
+  // const getPlaceholder = () =>
+  //   editable.evaluate((e) => {
+  //     return window.getComputedStyle(e, "before").getPropertyValue("content");
+  //   });
+
+  expect(initialValue).toEqual([""]);
+  expect(await getSelection(editable)).toEqual(createSelection());
+  // expect((await getPlaceholder()).includes("Enter some text...")).toBe(true);
+
+  // Input
+  const char = "a";
+  await input(editable, char);
+
+  const value1 = await getText(editable);
+  expect(value1).toEqual(insertAt(initialValue, char, [0, 0]));
+  expect(await getSelection(editable)).toEqual(createSelection({ offset: 1 }));
+  // expect((await getPlaceholder()).includes("Enter some text...")).toBe(false);
+
+  await page.keyboard.press("Backspace");
+  const value2 = await getText(editable);
+  expect(value2).toEqual([""]);
+  expect(await getSelection(editable)).toEqual(createSelection());
+  // expect((await getPlaceholder()).includes("Enter some text...")).toBe(true);
+});
+
 test.describe("keep state on render", () => {
   test("sync", async ({ page }) => {
     await page.goto(storyUrl("basics-plain--highlight"));
