@@ -1,6 +1,6 @@
 {
   "name": "edix",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "An experimental, framework agnostic, small (~2.5kB) contenteditable state manager.",
   "main": "lib/index.js",
   "module": "lib/index.mjs",
