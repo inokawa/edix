@@ -105,6 +105,20 @@ const getSelectionRangeInEditor = (
   return range;
 };
 
+const setRangeToSelection = (
+  root: Element,
+  range: Range,
+  backward?: boolean
+) => {
+  const selection = getDOMSelection(root);
+  selection.removeAllRanges();
+  selection.addRange(range);
+  if (backward) {
+    selection.collapseToEnd();
+    selection.extend(range.startContainer, range.startOffset);
+  }
+};
+
 const compareDocumentPosition = (node: Node, otherNode: Node) =>
   node.compareDocumentPosition(otherNode);
 
@@ -149,6 +163,7 @@ export const setSelectionToDOM = (
     range.setStart(root, 0);
     range.setEnd(root, 0);
 
+    setRangeToSelection(root, range);
     return true;
   }
 
@@ -203,14 +218,7 @@ export const setSelectionToDOM = (
     }
   }
 
-  const selection = getDOMSelection(root);
-
-  selection.removeAllRanges();
-  selection.addRange(range);
-  if (backward) {
-    selection.collapseToEnd();
-    selection.extend(range.startContainer, range.startOffset);
-  }
+  setRangeToSelection(root, range, backward);
   return true;
 };
 
