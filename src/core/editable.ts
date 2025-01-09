@@ -150,6 +150,7 @@ export const editable = (
   const observer = createMutationObserver(element, () => {
     if (hasFocus) {
       if (currentSelection) {
+        // Mutation to selected DOM may change selection, so restore it.
         setSelectionToDOM(
           document,
           element,
@@ -164,18 +165,6 @@ export const editable = (
       }
     }
   });
-
-  const restoreSelectionOnTimeout = (selection: SelectionSnapshot) => {
-    restoreSelectionQueue = requestAnimationFrame(() => {
-      setSelectionToDOM(
-        document,
-        element,
-        selection,
-        isCustomNode,
-        isSingleline
-      );
-    });
-  };
 
   const emitChange = (value: string[]) => {
     onChange(value.join(multiline ? "\n" : ""));
@@ -195,19 +184,23 @@ export const editable = (
 
         observer._accept(false);
         if (queue.length) {
+          // Get current value and selection from DOM
           const selection = getSelectionSnapshot(
             document,
             element,
             isCustomNode,
             isSingleline
           );
-
           const value = serializeDOM(document, element, serializeCustomNode);
 
+          // Revert DOM and restore previous selection
           revertMutations(queue);
           observer._flush();
 
           const prevSelection = currentSelection || getEmptySelectionSnapshot();
+
+          // Updating selection may schedule the next selectionchange event
+          // It should be ignored especially in firefox not to confuse editor state
           selectionReverted = setSelectionToDOM(
             document,
             element,
@@ -224,7 +217,19 @@ export const editable = (
           }
 
           if (currentSelection) {
-            restoreSelectionOnTimeout(currentSelection);
+            // We set updated selection after the next rerender, because it will modify DOM and selection again.
+            // However frameworks may not rerender for optimization in some case, for example if selection is updated but value is the same.
+            // In general, rerender should be done before next paint. So we also schedule restoring on the timing for safe.
+            const sel = currentSelection;
+            restoreSelectionQueue = requestAnimationFrame(() => {
+              setSelectionToDOM(
+                document,
+                element,
+                sel,
+                isCustomNode,
+                isSingleline
+              );
+            });
           }
         }
       });
