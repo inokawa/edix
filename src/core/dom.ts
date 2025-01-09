@@ -133,12 +133,10 @@ const findNextNode = (
 export const setSelectionToDOM = (
   document: Document,
   root: Element,
-  snapshot: SelectionSnapshot,
+  { start, end, backward }: SelectionSnapshot,
   isCustomNode: (node: Element) => boolean,
   isSingleline: boolean
 ): boolean => {
-  const { start, end, backward } = snapshot;
-
   // special path for empty content with empty selection, necessary for placeholder
   if (
     start[0] === 0 &&
