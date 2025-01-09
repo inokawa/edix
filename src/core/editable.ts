@@ -104,7 +104,7 @@ export const editable = (
 
   let disposed = false;
   let selectionReverted = false;
-  let currentSelection: SelectionSnapshot | undefined;
+  let currentSelection: SelectionSnapshot = getEmptySelectionSnapshot();
   let flushQueued = false;
   let restoreSelectionQueue: number | null = null;
   let isComposing = false;
@@ -142,26 +142,21 @@ export const editable = (
 
   const history = createHistory<
     readonly [value: string[], selection: SelectionSnapshot]
-  >([
-    serializeDOM(document, element, serializeCustomNode),
-    getEmptySelectionSnapshot(),
-  ]);
+  >([serializeDOM(document, element, serializeCustomNode), currentSelection]);
 
   const observer = createMutationObserver(element, () => {
     if (hasFocus) {
-      if (currentSelection) {
-        // Mutation to selected DOM may change selection, so restore it.
-        setSelectionToDOM(
-          document,
-          element,
-          currentSelection,
-          isCustomNode,
-          isSingleline
-        );
-        if (restoreSelectionQueue != null) {
-          cancelAnimationFrame(restoreSelectionQueue);
-          restoreSelectionQueue = null;
-        }
+      // Mutation to selected DOM may change selection, so restore it.
+      setSelectionToDOM(
+        document,
+        element,
+        currentSelection,
+        isCustomNode,
+        isSingleline
+      );
+      if (restoreSelectionQueue != null) {
+        cancelAnimationFrame(restoreSelectionQueue);
+        restoreSelectionQueue = null;
       }
     }
   });
@@ -197,7 +192,7 @@ export const editable = (
           revertMutations(queue);
           observer._flush();
 
-          const prevSelection = currentSelection || getEmptySelectionSnapshot();
+          const prevSelection = currentSelection;
 
           // Updating selection may schedule the next selectionchange event
           // It should be ignored especially in firefox not to confuse editor state
@@ -216,21 +211,19 @@ export const editable = (
             emitChange(value);
           }
 
-          if (currentSelection) {
-            // We set updated selection after the next rerender, because it will modify DOM and selection again.
-            // However frameworks may not rerender for optimization in some case, for example if selection is updated but value is the same.
-            // In general, rerender should be done before next paint. So we also schedule restoring on the timing for safe.
-            const sel = currentSelection;
-            restoreSelectionQueue = requestAnimationFrame(() => {
-              setSelectionToDOM(
-                document,
-                element,
-                sel,
-                isCustomNode,
-                isSingleline
-              );
-            });
-          }
+          // We set updated selection after the next rerender, because it will modify DOM and selection again.
+          // However frameworks may not rerender for optimization in some case, for example if selection is updated but value is the same.
+          // In general, rerender should be done before next paint. So we also schedule restoring on the timing for safe.
+          const nextSelection = currentSelection;
+          restoreSelectionQueue = requestAnimationFrame(() => {
+            setSelectionToDOM(
+              document,
+              element,
+              nextSelection,
+              isCustomNode,
+              isSingleline
+            );
+          });
         }
       });
     }
