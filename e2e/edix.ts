@@ -106,19 +106,11 @@ export const createSelection = (
     | { start: [number, number]; end: [number, number] } = {}
 ): SelectionSnapshot => {
   if ("start" in opts) {
-    return {
-      start: opts.start,
-      end: opts.end,
-      backward: false,
-    };
+    return [opts.start, opts.end, false];
   }
 
   const line = opts.line ?? 0;
   const startOffset = opts.offset ?? 0;
   const endOffset = startOffset + (opts.extent ?? 0);
-  return {
-    start: [line, startOffset],
-    end: [line, endOffset],
-    backward: false,
-  };
+  return [[line, startOffset], [line, endOffset], false];
 };
