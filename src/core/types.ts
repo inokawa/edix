@@ -6,8 +6,8 @@ export type Point = readonly [line: number, offset: number];
 /**
  * @internal
  */
-export interface SelectionSnapshot {
-  readonly start: Point;
-  readonly end: Point;
-  readonly backward: boolean;
-}
+export type SelectionSnapshot = readonly [
+  start: Point,
+  end: Point,
+  backward: boolean
+];

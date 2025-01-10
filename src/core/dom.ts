@@ -144,7 +144,7 @@ const findNextNode = (
 export const setSelectionToDOM = (
   document: Document,
   root: Element,
-  { start, end, backward }: SelectionSnapshot,
+  [start, end, backward]: SelectionSnapshot,
   isCustomNode: (node: Element) => boolean,
   isSingleline: boolean
 ): boolean => {
@@ -329,7 +329,7 @@ const serializeBoundaryPoint = (
  * @internal
  */
 export const getEmptySelectionSnapshot = (): SelectionSnapshot => {
-  return { start: [0, 0], end: [0, 0], backward: false };
+  return [[0, 0], [0, 0], false];
 };
 
 /**
@@ -387,11 +387,7 @@ export const getSelectionSnapshot = (
     );
   }
 
-  return {
-    start,
-    end,
-    backward: isSelectionBackward(selection),
-  };
+  return [start, end, isSelectionBackward(selection)];
 };
 
 /**
