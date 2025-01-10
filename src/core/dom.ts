@@ -119,9 +119,6 @@ const setRangeToSelection = (
   }
 };
 
-const compareDocumentPosition = (node: Node, otherNode: Node) =>
-  node.compareDocumentPosition(otherNode);
-
 const findNextNode = (
   walker: TreeWalker,
   skipChildren: boolean
@@ -267,8 +264,7 @@ const findBoundaryPoint = (
 
 // https://stackoverflow.com/questions/9180405/detect-direction-of-user-selection-with-javascript
 const isSelectionBackward = (selection: Selection): boolean => {
-  const position = compareDocumentPosition(
-    selection.anchorNode!,
+  const position = selection.anchorNode!.compareDocumentPosition(
     selection.focusNode!
   );
   // position == 0 if nodes are the same
