@@ -347,13 +347,15 @@ export const getSelectionSnapshot = (
     return getEmptySelectionSnapshot();
   }
 
+  const { startOffset, startContainer, endOffset, endContainer } = range;
+
   let start: Point;
   let end: Point;
-  if (root === range.startContainer) {
+  if (root === startContainer) {
     if (
-      range.startOffset === 0 &&
-      range.endOffset !== 0 &&
-      root.children.length <= range.endOffset
+      startOffset === 0 &&
+      endOffset !== 0 &&
+      root.children.length <= endOffset
     ) {
       // special case for Ctrl+A in firefox
       start = [0, 0];
@@ -372,16 +374,16 @@ export const getSelectionSnapshot = (
     start = serializeBoundaryPoint(
       document,
       root,
-      range.startContainer,
-      range.startOffset,
+      startContainer,
+      startOffset,
       isCustomNode,
       isSingleline
     );
     end = serializeBoundaryPoint(
       document,
       root,
-      range.endContainer,
-      range.endOffset,
+      endContainer,
+      endOffset,
       isCustomNode,
       isSingleline
     );
