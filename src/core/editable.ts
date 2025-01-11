@@ -165,6 +165,15 @@ export const editable = (
     onChange(value.join(multiline ? "\n" : ""));
   };
 
+  const syncSelection = () => {
+    currentSelection = getSelectionSnapshot(
+      document,
+      element,
+      isCustomNode,
+      isSingleline
+    );
+  };
+
   const prepareBeforeChange = () => {
     observer._accept(true);
   };
@@ -312,13 +321,9 @@ export const editable = (
       selectionReverted = false;
       return;
     }
-    if (isComposing || isDragging) return;
-    currentSelection = getSelectionSnapshot(
-      document,
-      element,
-      isCustomNode,
-      isSingleline
-    );
+    if (hasFocus && !isComposing && !isDragging) {
+      syncSelection();
+    }
   };
 
   const onCopy = (e: ClipboardEvent) => {
@@ -338,6 +343,7 @@ export const editable = (
 
   const onFocus = () => {
     hasFocus = true;
+    syncSelection();
   };
   const onBlur = () => {
     hasFocus = false;
