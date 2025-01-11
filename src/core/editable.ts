@@ -106,7 +106,7 @@ export const editable = (
   let selectionReverted = false;
   let currentSelection: SelectionSnapshot = getEmptySelectionSnapshot();
   let flushQueued = false;
-  let restoreSelectionQueue: number | null = null;
+  let restoreSelectionQueue: ReturnType<typeof setTimeout> | null = null;
   let isComposing = false;
   let hasFocus = false;
   let isDragging = false;
@@ -155,7 +155,7 @@ export const editable = (
         isSingleline
       );
       if (restoreSelectionQueue != null) {
-        cancelAnimationFrame(restoreSelectionQueue);
+        clearTimeout(restoreSelectionQueue);
         restoreSelectionQueue = null;
       }
     }
@@ -197,12 +197,13 @@ export const editable = (
           );
           const value = serializeDOM(document, element, serializeCustomNode);
 
-          // Revert DOM and restore previous selection
+          // Revert DOM
           revertMutations(queue);
           observer._flush();
 
           const prevSelection = currentSelection;
 
+          // Restore previous selection
           // Updating selection may schedule the next selectionchange event
           // It should be ignored especially in firefox not to confuse editor state
           selectionReverted = setSelectionToDOM(
@@ -222,9 +223,9 @@ export const editable = (
 
           // We set updated selection after the next rerender, because it will modify DOM and selection again.
           // However frameworks may not rerender for optimization in some case, for example if selection is updated but value is the same.
-          // In general, rerender should be done before next paint. So we also schedule restoring on the timing for safe.
+          // So we also schedule restoring on timeout for safe.
           const nextSelection = currentSelection;
-          restoreSelectionQueue = requestAnimationFrame(() => {
+          restoreSelectionQueue = setTimeout(() => {
             setSelectionToDOM(
               document,
               element,
