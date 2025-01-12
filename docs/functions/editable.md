@@ -22,4 +22,4 @@
 
 ## Defined in
 
-[editable.ts:84](https://github.com/inokawa/edix/blob/1b375ce8a8ceb18c03401bfd0498a5a67fe6f920/src/core/editable.ts#L84)
+[editable.ts:84](https://github.com/inokawa/edix/blob/d12ce9aa272b606f6a70f27bbca028b978a9489c/src/core/editable.ts#L84)
