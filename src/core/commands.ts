@@ -27,23 +27,22 @@ const normalizeRow = (row: NodeRef[]): NodeRef[] => {
 
 const splitRow = (
   doc: Writeable<DomSnapshot>,
-  [line, targetOffset]: Point
+  [line, offset]: Point
 ): [NodeRef[], NodeRef[]] => {
   const row = doc[line]!;
 
-  for (let i = 0, offset = 0; i < row.length; i++) {
+  for (let i = 0; i < row.length; i++) {
     const node = row[i]!;
     const length = getNodeLength(node);
-    const diff = targetOffset - offset;
-    if (length > diff) {
+    if (length > offset) {
       const before = row.slice(0, i);
       const after = row.slice(i + 1);
       if (isTextNode(node)) {
-        before.push(node.slice(0, diff));
-        after.unshift(node.slice(diff));
+        before.push(node.slice(0, offset));
+        after.unshift(node.slice(offset));
       } else {
         // TODO improve
-        if (diff === 0) {
+        if (offset === 0) {
           after.unshift(node);
         } else {
           before.push(node);
@@ -51,7 +50,7 @@ const splitRow = (
       }
       return [before, after];
     }
-    offset += length;
+    offset -= length;
   }
   return [row, []];
 };
