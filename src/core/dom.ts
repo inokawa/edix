@@ -1,5 +1,5 @@
-import { Point, SelectionSnapshot } from "./types";
-import { min } from "./utils";
+import { DomSnapshot, Point, NodeRef, SelectionSnapshot } from "./types";
+import { isSamePoint, min } from "./utils";
 
 const ELEMENT_NODE = 1;
 const TEXT_NODE = 3;
@@ -83,10 +83,30 @@ const SINGLE_LINE_CONTAINER_TAG_NAMES = new Set([
   "DD",
 ]);
 
-/**
- * @internal
- */
-export const getDOMSelection = (element: Element): Selection => {
+const WITHOUT_TEXT_TAG_NAMES = new Set([
+  // void elements
+  // https://developer.mozilla.org/en-US/docs/Glossary/Void_element
+  "EMBED",
+  "IMG",
+  // others
+  "PICTURE",
+  "AUDIO",
+  "VIDEO",
+  "MAP",
+  "SVG",
+  "CANVAS",
+  "IFRAME",
+  // TODO support more elements
+]);
+
+const isUneditableElement = (node: Element): boolean => {
+  return (
+    (node as HTMLElement).contentEditable === "false" ||
+    WITHOUT_TEXT_TAG_NAMES.has(node.tagName)
+  );
+};
+
+const getDOMSelection = (element: Element): Selection => {
   // TODO support ShadowRoot
   return getCurrentDocument(element).getSelection()!;
 };
@@ -145,15 +165,13 @@ export const setSelectionToDOM = (
   document: Document,
   root: Element,
   [start, end, backward]: SelectionSnapshot,
-  isCustomNode: (node: Element) => boolean,
   isSingleline: boolean
 ): boolean => {
   // special path for empty content with empty selection, necessary for placeholder
   if (
     start[0] === 0 &&
     start[1] === 0 &&
-    start[0] === end[0] &&
-    start[1] === end[1] &&
+    isSamePoint(start, end) &&
     !root.hasChildNodes()
   ) {
     const range = document.createRange();
@@ -164,24 +182,12 @@ export const setSelectionToDOM = (
     return true;
   }
 
-  const domStart = findBoundaryPoint(
-    document,
-    root,
-    start,
-    isCustomNode,
-    isSingleline
-  );
+  const domStart = findBoundaryPoint(document, root, start, isSingleline);
   if (!domStart) {
     return false;
   }
 
-  const domEnd = findBoundaryPoint(
-    document,
-    root,
-    end,
-    isCustomNode,
-    isSingleline
-  );
+  const domEnd = findBoundaryPoint(document, root, end, isSingleline);
   if (!domEnd) {
     return false;
   }
@@ -223,7 +229,6 @@ const findBoundaryPoint = (
   document: Document,
   root: Element,
   [line, targetOffset]: Point,
-  isCustomNode: (node: Element) => boolean,
   isSingleline: boolean
 ): [node: Text | Element, offsetAtNode: number] | undefined => {
   let offset = 0;
@@ -250,7 +255,7 @@ const findBoundaryPoint = (
         }
 
         offset++;
-      } else if (isCustomNode(node)) {
+      } else if (isUneditableElement(node)) {
         skipChildren = true;
         if (offset + 1 >= targetOffset) {
           return [node, targetOffset - offset];
@@ -278,7 +283,6 @@ const serializeBoundaryPoint = (
   root: Element,
   targetNode: Node,
   offsetAtNode: number,
-  isCustomNode: (node: Element) => boolean,
   isSingleline: boolean
 ): Point => {
   let row: Node = targetNode;
@@ -296,9 +300,11 @@ const serializeBoundaryPoint = (
   let node: Node | null;
   let skipChildren = false;
 
-  const isTargetEmbed = !isTextNode(targetNode);
-  if (isTargetEmbed) {
+  const isTargetElement = isElementNode(targetNode);
+  if (isTargetElement) {
     // If anchor/focus of selection is not selectable node, it will have offset relative to its parent
+    //      0  1       2               3
+    // <div>aaaa<img /><span>bbbb</span></div>
     targetNode = targetNode.childNodes[offsetAtNode]!;
   }
 
@@ -307,7 +313,7 @@ const serializeBoundaryPoint = (
   while ((node = findNextNode(walker, skipChildren))) {
     skipChildren = false;
     if (node === targetNode) {
-      offset += isTargetEmbed ? 0 : offsetAtNode;
+      offset += isTargetElement ? 0 : offsetAtNode;
       break;
     }
     if (isTextNode(node)) {
@@ -316,7 +322,7 @@ const serializeBoundaryPoint = (
       if (isBrInText(node)) {
         lineIndex++;
         offset = 0;
-      } else if (isCustomNode(node)) {
+      } else if (isUneditableElement(node)) {
         skipChildren = true;
         offset++;
       }
@@ -335,10 +341,9 @@ export const getEmptySelectionSnapshot = (): SelectionSnapshot => {
 /**
  * @internal
  */
-export const getSelectionSnapshot = (
+export const takeSelectionSnapshot = (
   document: Document,
   root: Element,
-  isCustomNode: (node: Element) => boolean,
   isSingleline: boolean
 ): SelectionSnapshot => {
   const selection = getDOMSelection(root);
@@ -351,7 +356,7 @@ export const getSelectionSnapshot = (
 
   let start: Point;
   let end: Point;
-  if (root === startContainer) {
+  if (root === startContainer && !isSingleline) {
     if (
       startOffset === 0 &&
       endOffset !== 0 &&
@@ -364,7 +369,6 @@ export const getSelectionSnapshot = (
         root,
         root.lastElementChild!,
         root.lastElementChild!.textContent!.length,
-        isCustomNode,
         isSingleline
       );
     } else {
@@ -376,7 +380,6 @@ export const getSelectionSnapshot = (
       root,
       startContainer,
       startOffset,
-      isCustomNode,
       isSingleline
     );
     end = serializeBoundaryPoint(
@@ -384,7 +387,6 @@ export const getSelectionSnapshot = (
       root,
       endContainer,
       endOffset,
-      isCustomNode,
       isSingleline
     );
   }
@@ -395,20 +397,35 @@ export const getSelectionSnapshot = (
 /**
  * @internal
  */
-export const serializeDOM = (
+export const takeDomSnapshot = (
   document: Document,
-  root: Node,
-  serializeCustomNode: (node: Element) => string | undefined
-): string[] => {
-  const rows: string[] = [];
+  root: Node
+): DomSnapshot => {
+  const rows: NodeRef[][] = [];
   const walker = document.createTreeWalker(root, SHOW_TEXT | SHOW_ELEMENT);
 
+  const completeNode = (element?: Element) => {
+    if (!row) {
+      row = [];
+    }
+    if (text) {
+      row.push(text);
+      text = "";
+    }
+    if (element) {
+      row.push(element);
+    }
+  };
   const completeRow = () => {
-    rows.push(text);
-    text = "";
+    completeNode();
+    if (row) {
+      rows.push(row);
+    }
+    row = null;
   };
 
   let node: Node | null;
+  let row: NodeRef[] | null = null;
   let text = "";
   let isFirstLine = true;
   let skipChildren = false;
@@ -429,12 +446,9 @@ export const serializeDOM = (
       } else {
         if (isBrInText(node)) {
           completeRow();
-        } else {
-          const data = serializeCustomNode(node);
-          if (data != null) {
-            skipChildren = true;
-            text += data;
-          }
+        } else if (isUneditableElement(node)) {
+          skipChildren = true;
+          completeNode(node);
         }
       }
     }

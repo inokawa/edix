@@ -26,42 +26,31 @@ export const initEdixHelpers = async (context: BrowserContext) => {
     `);
 };
 
-const NON_EDITABLE_NODES = ["IMG", "VIDEO", "IFRAME"];
 export const NON_EDITABLE_PLACEHOLDER = "$";
 
 export const getText = async (editable: Locator): Promise<string[]> => {
-  return editable.evaluate(
-    (element, [NON_EDITABLE_NODES, NON_EDITABLE_PLACEHOLDER]) => {
-      return window.edix.serializeDOM(element.ownerDocument, element, (e) =>
-        // TODO improve
-        NON_EDITABLE_NODES.includes(e.tagName) ||
-        (e as HTMLElement).contentEditable === "false"
-          ? NON_EDITABLE_PLACEHOLDER
-          : undefined
-      );
-    },
-    [NON_EDITABLE_NODES, NON_EDITABLE_PLACEHOLDER] as const
-  );
+  return editable.evaluate((element, NON_EDITABLE_PLACEHOLDER) => {
+    return window.edix
+      .takeDomSnapshot(element.ownerDocument, element)
+      .map((r) => {
+        return r.reduce<string>((acc, n) => {
+          return acc + (typeof n === "string" ? n : NON_EDITABLE_PLACEHOLDER);
+        }, "");
+      });
+  }, NON_EDITABLE_PLACEHOLDER);
 };
 
 export const getSelection = (
   editable: Locator,
   isSingleline: boolean = false
 ): Promise<SelectionSnapshot> => {
-  return editable.evaluate(
-    (element, [isSingleline, NON_EDITABLE_NODES]) => {
-      return window.edix.getSelectionSnapshot(
-        element.ownerDocument,
-        element,
-        (e) =>
-          // TODO improve
-          NON_EDITABLE_NODES.includes(e.tagName) ||
-          (e as HTMLElement).contentEditable === "false",
-        isSingleline
-      );
-    },
-    [isSingleline, NON_EDITABLE_NODES] as const
-  );
+  return editable.evaluate((element, isSingleline) => {
+    return window.edix.takeSelectionSnapshot(
+      element.ownerDocument,
+      element,
+      isSingleline
+    );
+  }, isSingleline);
 };
 
 export const deleteAt = (

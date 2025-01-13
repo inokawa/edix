@@ -6,38 +6,41 @@ export default {
   component: editable,
 };
 
-const TAG_PREFIX = "[TAG:";
-
-const TagComponent = ({ children }: { children: string }) => {
-  return (
-    <span
-      contentEditable={false}
-      style={{
-        background: "slategray",
-        color: "white",
-        padding: 4,
-        borderRadius: 8,
-      }}
-    >
-      {children}
-    </span>
-  );
-};
-
 export const Tag: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
-    const [value, setValue] = useState("Hello [TAG:TAG1] world [TAG:TAG2]");
+
+    type EditableNode =
+      | { type: "text"; value: string }
+      | { type: "tag"; label: string; value: string };
+    const [value, setValue] = useState<EditableNode[]>([
+      { type: "text", value: "Hello " },
+      { type: "tag", label: "Apple", value: "1" },
+      { type: "text", value: " world " },
+      { type: "tag", label: "Orange", value: "2" },
+    ]);
+
     useEffect(() => {
       if (!ref.current) return;
-      return editable(ref.current, {
-        onChange: setValue,
-        nodes: [
-          {
-            is: (e) => e.contentEditable === "false",
-            serialize: (e) => e.textContent!,
+      return editable<EditableNode[]>(ref.current, {
+        serializer: {
+          data: (snap) => {
+            // singleline
+            return snap[0].reduce((acc, t) => {
+              if (typeof t === "string") {
+                acc.push({ type: "text", value: t });
+              } else if ((t as HTMLElement).contentEditable === "false") {
+                acc.push({
+                  type: "tag",
+                  label: t.textContent!,
+                  value: (t as HTMLElement).dataset.tagValue!,
+                });
+              }
+              return acc;
+            }, [] as EditableNode[]);
           },
-        ],
+        },
+        onChange: setValue,
       });
     }, []);
 
@@ -49,52 +52,81 @@ export const Tag: StoryObj = {
           padding: 8,
         }}
       >
-        {value.split("\n").map((r, i) => (
-          <div key={i}>
-            {r ? (
-              r
-                .split(/(\[.+?\])/)
-                .map((t, j) =>
-                  t.startsWith(TAG_PREFIX) ? (
-                    <TagComponent key={j}>{t}</TagComponent>
-                  ) : (
-                    <span key={j}>{t}</span>
-                  )
-                )
+        {value.length ? (
+          value.map((t, j) =>
+            t.type === "tag" ? (
+              <span
+                key={j}
+                contentEditable={false}
+                data-tag-value={t.value}
+                style={{
+                  background: "slategray",
+                  color: "white",
+                  fontSize: 12,
+                  padding: 4,
+                  borderRadius: 8,
+                }}
+              >
+                {t.label}
+              </span>
             ) : (
-              <br />
-            )}
-          </div>
-        ))}
+              <span key={j}>{t.value}</span>
+            )
+          )
+        ) : (
+          <br />
+        )}
       </div>
     );
   },
-};
-
-const IMAGE_PREFIX = "[image:";
-
-const Img = ({ text }: { text: string }) => {
-  const src = text.slice(IMAGE_PREFIX.length, text.length - 1);
-  return <img src={src} />;
 };
 
 export const Image: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
-    const [value, setValue] = useState(
-      "Hello [image:https://loremflickr.com/320/240/cats?lock=1] world [image:https://loremflickr.com/320/240/cats?lock=2]"
-    );
+
+    type EditableNode =
+      | { type: "text"; value: string }
+      | { type: "image"; src: string };
+    const [value, setValue] = useState<EditableNode[][]>([
+      [
+        {
+          type: "text",
+          value: "Hello ",
+        },
+        {
+          type: "image",
+          src: "https://loremflickr.com/320/240/cats?lock=1",
+        },
+        {
+          type: "text",
+          value: " world ",
+        },
+        {
+          type: "image",
+          src: "https://loremflickr.com/320/240/cats?lock=2",
+        },
+      ],
+    ]);
     useEffect(() => {
       if (!ref.current) return;
-      return editable(ref.current, {
+      return editable<EditableNode[][]>(ref.current, {
         multiline: true,
-        onChange: setValue,
-        nodes: [
-          {
-            is: "img",
-            serialize: (e) => `[image:${(e as HTMLImageElement).src}]`,
+        serializer: {
+          data: (snap) => {
+            return snap.map((r) => {
+              return r.reduce((acc, t) => {
+                if (typeof t === "string") {
+                  acc.push({ type: "text", value: t });
+                } else if (t.tagName === "IMG") {
+                  acc.push({ type: "image", src: (t as HTMLImageElement).src });
+                }
+                return acc;
+              }, [] as EditableNode[]);
+            });
           },
-        ],
+        },
+        onChange: setValue,
       });
     }, []);
 
@@ -106,18 +138,16 @@ export const Image: StoryObj = {
           padding: 8,
         }}
       >
-        {value.split("\n").map((r, i) => (
+        {value.map((r, i) => (
           <div key={i}>
-            {r ? (
-              r
-                .split(/(\[.+?\])/)
-                .map((t, j) =>
-                  t.startsWith(IMAGE_PREFIX) ? (
-                    <Img key={j} text={t} />
-                  ) : (
-                    <span key={j}>{t}</span>
-                  )
+            {r.length ? (
+              r.map((t, j) =>
+                t.type === "image" ? (
+                  <img key={j} src={t.src} />
+                ) : (
+                  <span key={j}>{t.value}</span>
                 )
+              )
             ) : (
               <br />
             )}
@@ -128,37 +158,51 @@ export const Image: StoryObj = {
   },
 };
 
-const VIDEO_PREFIX = "[video:";
-
-const VideoNode = ({ text }: { text: string }) => {
-  const src = text.slice(VIDEO_PREFIX.length, text.length - 1);
-
-  // safari needs contentEditable="false"
-  return (
-    <video width={400} controls contentEditable="false">
-      <source src={src} />
-    </video>
-  );
-};
-
 export const Video: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
-    const [value, setValue] = useState(
-      "Hello [video:https://download.samplelib.com/mp4/sample-5s.mp4] world"
-    );
+
+    type EditableNode =
+      | { type: "text"; value: string }
+      | { type: "video"; src: string };
+    const [value, setValue] = useState<EditableNode[][]>([
+      [
+        {
+          type: "text",
+          value: "Hello ",
+        },
+        {
+          type: "video",
+          src: "https://download.samplelib.com/mp4/sample-5s.mp4",
+        },
+        {
+          type: "text",
+          value: " world ",
+        },
+      ],
+    ]);
     useEffect(() => {
       if (!ref.current) return;
-      return editable(ref.current, {
+      return editable<EditableNode[][]>(ref.current, {
         multiline: true,
-        onChange: setValue,
-        nodes: [
-          {
-            is: "video",
-            serialize: (e) =>
-              `[video:${(e.childNodes[0] as HTMLSourceElement).src}]`,
+        serializer: {
+          data: (snap) => {
+            return snap.map((r) => {
+              return r.reduce((acc, t) => {
+                if (typeof t === "string") {
+                  acc.push({ type: "text", value: t });
+                } else if (t.tagName === "VIDEO") {
+                  acc.push({
+                    type: "video",
+                    src: (t.childNodes[0] as HTMLSourceElement).src,
+                  });
+                }
+                return acc;
+              }, [] as EditableNode[]);
+            });
           },
-        ],
+        },
+        onChange: setValue,
       });
     }, []);
 
@@ -170,18 +214,25 @@ export const Video: StoryObj = {
           padding: 8,
         }}
       >
-        {value.split("\n").map((r, i) => (
+        {value.map((r, i) => (
           <div key={i}>
-            {r ? (
-              r
-                .split(/(\[.+?\])/)
-                .map((t, j) =>
-                  t.startsWith(VIDEO_PREFIX) ? (
-                    <VideoNode key={j} text={t} />
-                  ) : (
-                    <span key={j}>{t}</span>
-                  )
+            {r.length ? (
+              r.map((t, j) =>
+                t.type === "video" ? (
+                  // safari needs contentEditable="false"
+                  <video
+                    key={j}
+                    width={400}
+                    controls
+                    contentEditable="false"
+                    suppressContentEditableWarning
+                  >
+                    <source src={t.src} />
+                  </video>
+                ) : (
+                  <span key={j}>{t.value}</span>
                 )
+              )
             ) : (
               <br />
             )}
@@ -209,33 +260,64 @@ const Youtube = ({ id }: { id: string }) => {
 export const Iframe: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
-    const [value, setValue] = useState("Hello [IqKz0SfHaqI] Youtube");
     const editorRef = useRef<EditableHandle | null>(null);
+
+    type EditableNode =
+      | { type: "text"; value: string }
+      | { type: "youtube"; id: string };
+    const [value, setValue] = useState<EditableNode[][]>([
+      [
+        {
+          type: "text",
+          value: "Hello ",
+        },
+        {
+          type: "youtube",
+          id: "IqKz0SfHaqI",
+        },
+        {
+          type: "text",
+          value: " Youtube",
+        },
+      ],
+    ]);
     useEffect(() => {
       if (!ref.current) return;
-      return (editorRef.current = editable(ref.current, {
+      return (editorRef.current = editable<EditableNode[][]>(ref.current, {
         multiline: true,
-        onChange: setValue,
-        nodes: [
-          {
-            is: (e) => !!e.dataset.youtubeNode,
-            serialize: (e) => "[" + e.dataset.youtubeId + "]",
+        serializer: {
+          data: (snap) => {
+            return snap.map((r) => {
+              return r.reduce((acc, t) => {
+                if (typeof t === "string") {
+                  acc.push({ type: "text", value: t });
+                } else if (!!(t as HTMLElement).dataset.youtubeNode) {
+                  acc.push({
+                    type: "youtube",
+                    id: (t as HTMLElement).dataset.youtubeId!,
+                  });
+                }
+                return acc;
+              }, [] as EditableNode[]);
+            });
           },
-        ],
+        },
+        onChange: setValue,
       }));
     }, []);
 
     return (
       <div>
-        <div>
+        {/* <div>
           <button
             onClick={() => {
+              // TODO
               editorRef.current?.insert(" [IqKz0SfHaqI]");
             }}
           >
             insert
           </button>
-        </div>
+        </div> */}
         <div
           ref={ref}
           style={{
@@ -243,18 +325,16 @@ export const Iframe: StoryObj = {
             padding: 8,
           }}
         >
-          {value.split("\n").map((r, i) => (
+          {value.map((r, i) => (
             <div key={i}>
-              {r ? (
-                r
-                  .split(/(\[.+?\])/)
-                  .map((t, j) =>
-                    t.startsWith("[") ? (
-                      <Youtube key={j} id={t.slice(1, t.length - 1)} />
-                    ) : (
-                      <span key={j}>{t}</span>
-                    )
+              {r.length ? (
+                r.map((t, j) =>
+                  t.type === "youtube" ? (
+                    <Youtube key={j} id={t.id} />
+                  ) : (
+                    <span key={j}>{t.value}</span>
                   )
+                )
               ) : (
                 <br />
               )}

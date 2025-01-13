@@ -1,16 +1,16 @@
 import { createHistory } from "./history";
 import {
   getCurrentDocument,
-  getSelectionSnapshot,
-  getDOMSelection,
+  takeSelectionSnapshot,
   setSelectionToDOM,
-  serializeDOM,
+  takeDomSnapshot,
   getEmptySelectionSnapshot,
   getSelectedElements,
 } from "./dom";
 import { createMutationObserver, revertMutations } from "./mutation";
-import { SelectionSnapshot } from "./types";
+import { DomSnapshot, SelectionSnapshot } from "./types";
 import { microtask } from "./utils";
+import { deleteText, flatten, insertText } from "./commands";
 
 /**
  * https://www.w3.org/TR/input-events-1/#interface-InputEvent-Attributes
@@ -63,27 +63,46 @@ type InputType =
   | "formatFontColor" // change the font color
   | "formatFontName"; // change the font-family
 
-export interface CustomEditableNode {
-  is: keyof HTMLElementTagNameMap | ((e: HTMLElement) => boolean);
-  serialize?: (e: HTMLElement) => string;
+export interface EditableSerializer<T> {
+  data: (snapshot: DomSnapshot) => T;
+  plain?: (snapshot: DomSnapshot) => string;
 }
 
-export interface EditableOptions {
+const serializeToString = (snapshot: DomSnapshot): string => {
+  return snapshot.reduce((acc, r, i) => {
+    if (i !== 0) {
+      acc += "\n";
+    }
+    return (
+      acc +
+      r.reduce(
+        (acc, n) => acc + (typeof n === "string" ? n : n.textContent!),
+        ""
+      )
+    );
+  }, "");
+};
+
+export interface EditableOptions<T> {
   multiline?: boolean;
   readonly?: boolean;
-  nodes?: CustomEditableNode[];
-  onChange: (value: string) => void;
+  serializer?: EditableSerializer<T>;
+  onChange: (value: T) => void;
 }
 
 export interface EditableHandle {
   (): void;
-  insert: (text: string) => void;
   readonly: (value: boolean) => void;
 }
 
-export const editable = (
+export const editable = <T = string>(
   element: HTMLElement,
-  { multiline, readonly, nodes, onChange }: EditableOptions
+  {
+    multiline,
+    readonly,
+    serializer = { data: serializeToString as EditableSerializer<T>["data"] },
+    onChange,
+  }: EditableOptions<T>
 ): EditableHandle => {
   // https://w3c.github.io/contentEditable/
   // https://w3c.github.io/editing/docs/execCommand/
@@ -112,26 +131,7 @@ export const editable = (
   let isDragging = false;
 
   const isSingleline = !multiline;
-  const getCustomNodeData = (node: Element): CustomEditableNode | undefined => {
-    if (!nodes) return;
-    return nodes.find((n) => {
-      return typeof n.is === "function"
-        ? n.is(node as HTMLElement)
-        : node.nodeName === n.is.toUpperCase();
-    });
-  };
-  const serializeCustomNode = (node: Element): string | undefined => {
-    const nodeData = getCustomNodeData(node);
-    if (nodeData) {
-      return nodeData.serialize
-        ? nodeData.serialize(node as HTMLElement)
-        : node.textContent!;
-    }
-    return;
-  };
-  const isCustomNode = (node: Element): boolean => {
-    return !!getCustomNodeData(node);
-  };
+  const { data: serialize, plain: toString = serializeToString } = serializer;
 
   const updateReadonly = () => {
     element.ariaReadOnly = readonly ? "true" : null;
@@ -141,19 +141,13 @@ export const editable = (
   const document = getCurrentDocument(element);
 
   const history = createHistory<
-    readonly [value: string[], selection: SelectionSnapshot]
-  >([serializeDOM(document, element, serializeCustomNode), currentSelection]);
+    readonly [value: T, selection: SelectionSnapshot]
+  >([serialize(takeDomSnapshot(document, element)), currentSelection]);
 
   const observer = createMutationObserver(element, () => {
     if (hasFocus) {
       // Mutation to selected DOM may change selection, so restore it.
-      setSelectionToDOM(
-        document,
-        element,
-        currentSelection,
-        isCustomNode,
-        isSingleline
-      );
+      setSelectionToDOM(document, element, currentSelection, isSingleline);
       if (restoreSelectionQueue != null) {
         clearTimeout(restoreSelectionQueue);
         restoreSelectionQueue = null;
@@ -161,22 +155,40 @@ export const editable = (
     }
   });
 
-  const emitChange = (value: string[]) => {
-    onChange(value.join(multiline ? "\n" : ""));
+  const restoreSelectionOnTimeout = () => {
+    // We set updated selection after the next rerender, because it will modify DOM and selection again.
+    // However frameworks may not rerender for optimization in some case, for example if selection is updated but value is the same.
+    // So we also schedule restoring on timeout for safe.
+    const nextSelection = currentSelection;
+    restoreSelectionQueue = setTimeout(() => {
+      setSelectionToDOM(document, element, nextSelection, isSingleline);
+    });
+  };
+
+  const updateState = (
+    dom: DomSnapshot,
+    selection: SelectionSnapshot,
+    prevSelection: SelectionSnapshot
+  ) => {
+    if (!readonly) {
+      if (isSingleline) {
+        [dom, selection] = flatten(dom, selection);
+      }
+      const value = serialize(dom);
+
+      history.set([history.get()[0], prevSelection]);
+      history.push([value, selection]);
+      currentSelection = selection;
+      onChange(value);
+    }
+
+    restoreSelectionOnTimeout();
   };
 
   const syncSelection = () => {
-    currentSelection = getSelectionSnapshot(
-      document,
-      element,
-      isCustomNode,
-      isSingleline
-    );
+    currentSelection = takeSelectionSnapshot(document, element, isSingleline);
   };
 
-  const prepareBeforeChange = () => {
-    observer._accept(true);
-  };
   const flushChanges = () => {
     if (!flushQueued) {
       flushQueued = true;
@@ -189,13 +201,12 @@ export const editable = (
         observer._accept(false);
         if (queue.length) {
           // Get current value and selection from DOM
-          const selection = getSelectionSnapshot(
+          const selection = takeSelectionSnapshot(
             document,
             element,
-            isCustomNode,
             isSingleline
           );
-          const value = serializeDOM(document, element, serializeCustomNode);
+          const value = takeDomSnapshot(document, element);
 
           // Revert DOM
           revertMutations(queue);
@@ -210,57 +221,42 @@ export const editable = (
             document,
             element,
             prevSelection,
-            isCustomNode,
             isSingleline
           );
 
-          if (!readonly) {
-            history.set([history.get()[0], prevSelection]);
-            history.push([value, selection]);
-            currentSelection = selection;
-            emitChange(value);
-          }
-
-          // We set updated selection after the next rerender, because it will modify DOM and selection again.
-          // However frameworks may not rerender for optimization in some case, for example if selection is updated but value is the same.
-          // So we also schedule restoring on timeout for safe.
-          const nextSelection = currentSelection;
-          restoreSelectionQueue = setTimeout(() => {
-            setSelectionToDOM(
-              document,
-              element,
-              nextSelection,
-              isCustomNode,
-              isSingleline
-            );
-          });
+          updateState(value, selection, prevSelection);
         }
       });
     }
   };
 
-  const insertText = (text: string) => {
-    const shouldDelete = !getDOMSelection(element).isCollapsed;
-
-    prepareBeforeChange();
-
-    // https://w3c.github.io/editing/docs/execCommand/#the-inserttext-command
-    if (shouldDelete) {
-      document.execCommand("delete", false);
-    }
-    document.execCommand("insertText", false, text);
-
-    flushChanges();
-  };
-
-  const copyText = (clipboardData: DataTransfer) => {
+  const copySelectedDOM = (clipboardData: DataTransfer) => {
     const selected = getSelectedElements(element);
     if (!selected) return;
 
     clipboardData.setData(
       "text/plain",
-      serializeDOM(document, selected, serializeCustomNode).join("\n")
+      toString(takeDomSnapshot(document, selected))
     );
+  };
+
+  const execCommand = <const A extends unknown[]>(
+    fn: (
+      doc: DomSnapshot,
+      sel: SelectionSnapshot,
+      ...args: A
+    ) => [DomSnapshot, SelectionSnapshot],
+    ...args: A
+  ) => {
+    const selection = currentSelection;
+
+    const [updated, updatedSelection] = fn(
+      takeDomSnapshot(document, element),
+      selection,
+      ...args
+    );
+
+    updateState(updated, updatedSelection, selection);
   };
 
   const doUndoOrRedo = (isRedo: boolean) => {
@@ -271,7 +267,9 @@ export const editable = (
     if (nextHistory) {
       observer._accept(false);
       currentSelection = nextHistory[1];
-      emitChange(nextHistory[0]);
+      onChange(nextHistory[0]);
+
+      restoreSelectionOnTimeout();
     }
   };
 
@@ -307,7 +305,7 @@ export const editable = (
       }
     }
 
-    prepareBeforeChange();
+    observer._accept(true);
   };
   const onCompositionStart = () => {
     isComposing = true;
@@ -329,17 +327,19 @@ export const editable = (
 
   const onCopy = (e: ClipboardEvent) => {
     e.preventDefault();
-    copyText(e.clipboardData!);
+    copySelectedDOM(e.clipboardData!);
   };
   const onCut = (e: ClipboardEvent) => {
     e.preventDefault();
-    copyText(e.clipboardData!);
-    insertText("");
+    copySelectedDOM(e.clipboardData!);
+    execCommand(deleteText);
   };
   const onPaste = (e: ClipboardEvent) => {
     e.preventDefault();
 
-    insertText(e.clipboardData!.getData("text/plain"));
+    const clipboardData = e.clipboardData!;
+
+    execCommand(insertText, clipboardData.getData("text/plain"));
   };
 
   const onFocus = () => {
@@ -400,7 +400,6 @@ export const editable = (
     element.removeEventListener("dragstart", onDragStart);
     element.removeEventListener("dragend", onDragEnd);
   };
-  handle.insert = insertText;
   handle.readonly = (value: boolean) => {
     readonly = value;
     updateReadonly();
