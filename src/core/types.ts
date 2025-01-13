@@ -1,3 +1,7 @@
+export type NodeRef = string | Element;
+
+export type DomSnapshot = readonly (readonly NodeRef[])[];
+
 /**
  * @internal
  */

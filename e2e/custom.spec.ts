@@ -30,7 +30,7 @@ test.describe("smoke node", () => {
 
     // type just before node
     await loop(nodeOffset, () => page.keyboard.press("ArrowRight"));
-    expect(await getSelection(editable)).toEqual(
+    expect(await getSelection(editable, true)).toEqual(
       createSelection({ offset: nodeOffset })
     );
     {
@@ -39,7 +39,7 @@ test.describe("smoke node", () => {
 
       const value = await getText(editable);
       expect(value).toEqual(insertAt(initialValue, char, [0, nodeOffset]));
-      expect(await getSelection(editable)).toEqual(
+      expect(await getSelection(editable, true)).toEqual(
         createSelection({ offset: nodeOffset + 1 })
       );
     }
@@ -48,14 +48,14 @@ test.describe("smoke node", () => {
       await page.keyboard.press("Backspace");
       const value = await getText(editable);
       expect(value).toEqual(initialValue);
-      expect(await getSelection(editable)).toEqual(
+      expect(await getSelection(editable, true)).toEqual(
         createSelection({ offset: nodeOffset })
       );
     }
 
     // type just after node
     await page.keyboard.press("ArrowRight");
-    expect(await getSelection(editable)).toEqual(
+    expect(await getSelection(editable, true)).toEqual(
       createSelection({ offset: nodeOffset + 1 })
     );
     {
@@ -64,7 +64,7 @@ test.describe("smoke node", () => {
 
       const value = await getText(editable);
       expect(value).toEqual(insertAt(initialValue, char, [0, nodeOffset + 1]));
-      expect(await getSelection(editable)).toEqual(
+      expect(await getSelection(editable, true)).toEqual(
         createSelection({ offset: nodeOffset + 2 })
       );
     }
@@ -73,7 +73,7 @@ test.describe("smoke node", () => {
       await page.keyboard.press("Backspace");
       const value = await getText(editable);
       expect(value).toEqual(initialValue);
-      expect(await getSelection(editable)).toEqual(
+      expect(await getSelection(editable, true)).toEqual(
         createSelection({ offset: nodeOffset + 1 })
       );
     }
@@ -82,7 +82,7 @@ test.describe("smoke node", () => {
     await page.keyboard.press("Backspace");
     const value = await getText(editable);
     expect(value).toEqual(deleteAt(initialValue, 1, [0, nodeOffset]));
-    expect(await getSelection(editable)).toEqual(
+    expect(await getSelection(editable, true)).toEqual(
       createSelection({ offset: nodeOffset })
     );
   });

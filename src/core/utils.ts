@@ -1,3 +1,5 @@
+import { Point } from "./types";
+
 /**
  * @internal
  */
@@ -12,3 +14,10 @@ export const microtask: (fn: () => void) => void =
     : (fn) => {
         Promise.resolve().then(fn);
       };
+
+/**
+ * @internal
+ */
+export const isSamePoint = (start: Point, end: Point): boolean => {
+  return start[0] === end[0] && start[1] === end[1];
+};
