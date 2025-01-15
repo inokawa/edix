@@ -4,7 +4,11 @@
 
 # Function: editable()
 
-> **editable**(`element`, `__namedParameters`): [`EditableHandle`](../interfaces/EditableHandle.md)
+> **editable**\<`T`\>(`element`, `__namedParameters`): [`EditableHandle`](../interfaces/EditableHandle.md)
+
+## Type Parameters
+
+• **T** = `string`
 
 ## Parameters
 
@@ -14,7 +18,7 @@
 
 ### \_\_namedParameters
 
-[`EditableOptions`](../interfaces/EditableOptions.md)
+[`EditableOptions`](../interfaces/EditableOptions.md)\<`T`\>
 
 ## Returns
 
@@ -22,4 +26,4 @@
 
 ## Defined in
 
-[editable.ts:84](https://github.com/inokawa/edix/blob/d12ce9aa272b606f6a70f27bbca028b978a9489c/src/core/editable.ts#L84)
+[editable.ts:98](https://github.com/inokawa/edix/blob/05358723394351ed6536b048f371ce8e4ff172ed/src/core/editable.ts#L98)

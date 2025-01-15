@@ -2,7 +2,11 @@
 
 ***
 
-# Interface: EditableOptions
+# Interface: EditableOptions\<T\>
+
+## Type Parameters
+
+• **T**
 
 ## Properties
 
@@ -12,7 +16,7 @@
 
 #### Defined in
 
-[editable.ts:72](https://github.com/inokawa/edix/blob/d12ce9aa272b606f6a70f27bbca028b978a9489c/src/core/editable.ts#L72)
+[editable.ts:87](https://github.com/inokawa/edix/blob/05358723394351ed6536b048f371ce8e4ff172ed/src/core/editable.ts#L87)
 
 ***
 
@@ -22,17 +26,17 @@
 
 #### Defined in
 
-[editable.ts:73](https://github.com/inokawa/edix/blob/d12ce9aa272b606f6a70f27bbca028b978a9489c/src/core/editable.ts#L73)
+[editable.ts:88](https://github.com/inokawa/edix/blob/05358723394351ed6536b048f371ce8e4ff172ed/src/core/editable.ts#L88)
 
 ***
 
-### nodes?
+### serializer?
 
-> `optional` **nodes**: [`CustomEditableNode`](CustomEditableNode.md)[]
+> `optional` **serializer**: [`EditableSerializer`](EditableSerializer.md)\<`T`\>
 
 #### Defined in
 
-[editable.ts:74](https://github.com/inokawa/edix/blob/d12ce9aa272b606f6a70f27bbca028b978a9489c/src/core/editable.ts#L74)
+[editable.ts:89](https://github.com/inokawa/edix/blob/05358723394351ed6536b048f371ce8e4ff172ed/src/core/editable.ts#L89)
 
 ***
 
@@ -44,7 +48,7 @@
 
 ##### value
 
-`string`
+`T`
 
 #### Returns
 
@@ -52,4 +56,4 @@
 
 #### Defined in
 
-[editable.ts:75](https://github.com/inokawa/edix/blob/d12ce9aa272b606f6a70f27bbca028b978a9489c/src/core/editable.ts#L75)
+[editable.ts:90](https://github.com/inokawa/edix/blob/05358723394351ed6536b048f371ce8e4ff172ed/src/core/editable.ts#L90)
