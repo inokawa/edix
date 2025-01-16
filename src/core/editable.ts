@@ -10,7 +10,7 @@ import {
 import { createMutationObserver, revertMutations } from "./mutation";
 import { DomSnapshot, SelectionSnapshot } from "./types";
 import { microtask } from "./utils";
-import { deleteText, flatten, insertText } from "./commands";
+import { deleteText, EditableCommand, flatten, insertText } from "./commands";
 
 /**
  * https://www.w3.org/TR/input-events-1/#interface-InputEvent-Attributes
@@ -124,11 +124,14 @@ export const editable = <T = string>(
   let disposed = false;
   let selectionReverted = false;
   let currentSelection: SelectionSnapshot = getEmptySelectionSnapshot();
-  let flushQueued = false;
+  let flushing = false;
+  let commandExecuting = false;
   let restoreSelectionQueue: ReturnType<typeof setTimeout> | null = null;
   let isComposing = false;
   let hasFocus = false;
   let isDragging = false;
+
+  const commands: [EditableCommand<any[]>, args: unknown[]][] = [];
 
   const isSingleline = !multiline;
   const { data: serialize, plain: toString = serializeToString } = serializer;
@@ -190,11 +193,11 @@ export const editable = <T = string>(
   };
 
   const flushChanges = () => {
-    if (!flushQueued) {
-      flushQueued = true;
+    if (!flushing) {
+      flushing = true;
 
       microtask(() => {
-        flushQueued = false;
+        flushing = false;
 
         const queue = observer._flush();
 
@@ -240,23 +243,31 @@ export const editable = <T = string>(
     );
   };
 
-  const execCommand = <const A extends unknown[]>(
-    fn: (
-      doc: DomSnapshot,
-      sel: SelectionSnapshot,
-      ...args: A
-    ) => [DomSnapshot, SelectionSnapshot],
+  const execCommand = <A extends unknown[]>(
+    fn: EditableCommand<A>,
     ...args: A
   ) => {
-    const selection = currentSelection;
+    commands.unshift([fn, args]);
 
-    const [updated, updatedSelection] = fn(
-      takeDomSnapshot(document, element),
-      selection,
-      ...args
-    );
+    if (!commandExecuting) {
+      commandExecuting = true;
 
-    updateState(updated, updatedSelection, selection);
+      microtask(() => {
+        commandExecuting = false;
+
+        if (commands.length) {
+          const prevSelection = currentSelection;
+          let selection = currentSelection;
+          let dom = takeDomSnapshot(document, element);
+
+          let command: (typeof commands)[number] | undefined;
+          while ((command = commands.pop())) {
+            [dom, selection] = command[0](dom, selection, ...command[1]);
+          }
+          updateState(dom, selection, prevSelection);
+        }
+      });
+    }
   };
 
   const doUndoOrRedo = (isRedo: boolean) => {

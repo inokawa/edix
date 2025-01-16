@@ -88,11 +88,20 @@ const insertLines = (
 /**
  * @internal
  */
-export const insertText = (
+export type EditableCommand<T extends unknown[]> = (
   current: DomSnapshot,
-  [start, end]: SelectionSnapshot,
-  text: string
-): [DomSnapshot, SelectionSnapshot] => {
+  selection: SelectionSnapshot,
+  ...args: T
+) => readonly [DomSnapshot, SelectionSnapshot];
+
+/**
+ * @internal
+ */
+export const insertText: EditableCommand<[text: string]> = (
+  current,
+  [start, end],
+  text
+) => {
   const next: Writeable<DomSnapshot> = current.map((row) => [...row]);
 
   let nextPoint: Point;
@@ -120,10 +129,7 @@ export const insertText = (
 /**
  * @internal
  */
-export const deleteText = (
-  current: DomSnapshot,
-  selection: SelectionSnapshot
-): [DomSnapshot, SelectionSnapshot] => {
+export const deleteText: EditableCommand<[]> = (current, selection) => {
   if (isSamePoint(selection[0], selection[1])) {
     return [current, selection];
   } else {
@@ -134,10 +140,10 @@ export const deleteText = (
 /**
  * @internal
  */
-export const flatten = (
-  current: DomSnapshot,
-  [[startLine, startOffset], [endLine, endOffset]]: SelectionSnapshot
-): [DomSnapshot, SelectionSnapshot] => {
+export const flatten: EditableCommand<[]> = (
+  current,
+  [[startLine, startOffset], [endLine, endOffset]]
+) => {
   const row: NodeRef[] = [];
   let offsetBeforeStart = 0;
   let offsetBeforeEnd = 0;
