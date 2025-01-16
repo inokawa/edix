@@ -233,16 +233,6 @@ export const editable = <T = string>(
     }
   };
 
-  const copySelectedDOM = (clipboardData: DataTransfer) => {
-    const selected = getSelectedElements(element);
-    if (!selected) return;
-
-    clipboardData.setData(
-      "text/plain",
-      toString(takeDomSnapshot(document, selected))
-    );
-  };
-
   const execCommand = <A extends unknown[]>(
     fn: EditableCommand<A>,
     ...args: A
@@ -270,26 +260,23 @@ export const editable = <T = string>(
     }
   };
 
-  const doUndoOrRedo = (isRedo: boolean) => {
-    if (readonly) return;
-
-    const nextHistory = isRedo ? history.redo() : history.undo();
-
-    if (nextHistory) {
-      observer._accept(false);
-      currentSelection = nextHistory[1];
-      onChange(nextHistory[0]);
-
-      restoreSelectionOnTimeout();
-    }
-  };
-
   const onKeyDown = (e: KeyboardEvent) => {
     if (isComposing) return;
+
     if ((e.metaKey || e.ctrlKey) && !e.altKey && e.code === "KeyZ") {
       e.preventDefault();
 
-      doUndoOrRedo(e.shiftKey);
+      if (!readonly) {
+        const nextHistory = e.shiftKey ? history.redo() : history.undo();
+
+        if (nextHistory) {
+          observer._accept(false);
+          currentSelection = nextHistory[1];
+          onChange(nextHistory[0]);
+
+          restoreSelectionOnTimeout();
+        }
+      }
     }
   };
 
@@ -334,6 +321,16 @@ export const editable = <T = string>(
     if (hasFocus && !isComposing && !isDragging) {
       syncSelection();
     }
+  };
+
+  const copySelectedDOM = (clipboardData: DataTransfer) => {
+    const selected = getSelectedElements(element);
+    if (!selected) return;
+
+    clipboardData.setData(
+      "text/plain",
+      toString(takeDomSnapshot(document, selected))
+    );
   };
 
   const onCopy = (e: ClipboardEvent) => {
