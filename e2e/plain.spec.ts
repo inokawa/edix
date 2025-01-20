@@ -270,7 +270,7 @@ test.describe("replace range", () => {
     // Expand selection
     await page.keyboard.press("Shift+ArrowDown");
     expect(await getSelection(editable)).toEqual(
-      createSelection({ start: [0, len], end: [1, len] })
+      createSelection({ anchor: [0, len], focus: [1, len] })
     );
 
     // Input
@@ -302,8 +302,8 @@ test.describe("replace range", () => {
     await page.keyboard.press(`ControlOrMeta+A`);
     expect(await getSelection(editable)).toEqual(
       createSelection({
-        start: [0, 0],
-        end: [
+        anchor: [0, 0],
+        focus: [
           initialValue.length - 1,
           initialValue[initialValue.length - 1].length,
         ],
@@ -528,7 +528,7 @@ test.describe("Keydown", () => {
       // Expand selection
       await page.keyboard.press("Shift+ArrowDown");
       expect(await getSelection(editable)).toEqual(
-        createSelection({ start: [0, len], end: [1, len] })
+        createSelection({ anchor: [0, len], focus: [1, len] })
       );
 
       // delete
@@ -558,8 +558,8 @@ test.describe("Keydown", () => {
       await page.keyboard.press(`ControlOrMeta+A`);
       expect(await getSelection(editable)).toEqual(
         createSelection({
-          start: [0, 0],
-          end: [
+          anchor: [0, 0],
+          focus: [
             initialValue.length - 1,
             initialValue[initialValue.length - 1].length,
           ],
@@ -655,7 +655,7 @@ test.describe("Keydown", () => {
       // Expand selection
       await page.keyboard.press("Shift+ArrowDown");
       expect(await getSelection(editable)).toEqual(
-        createSelection({ start: [0, len], end: [1, len] })
+        createSelection({ anchor: [0, len], focus: [1, len] })
       );
 
       // delete
@@ -685,8 +685,8 @@ test.describe("Keydown", () => {
       await page.keyboard.press(`ControlOrMeta+A`);
       expect(await getSelection(editable)).toEqual(
         createSelection({
-          start: [0, 0],
-          end: [
+          anchor: [0, 0],
+          focus: [
             initialValue.length - 1,
             initialValue[initialValue.length - 1].length,
           ],
@@ -783,7 +783,7 @@ test.describe("Cut", () => {
     // Expand selection
     await page.keyboard.press("Shift+ArrowDown");
     expect(await getSelection(editable)).toEqual(
-      createSelection({ start: [0, len], end: [1, len] })
+      createSelection({ anchor: [0, len], focus: [1, len] })
     );
 
     // cut
@@ -813,8 +813,8 @@ test.describe("Cut", () => {
     await page.keyboard.press(`ControlOrMeta+A`);
     expect(await getSelection(editable)).toEqual(
       createSelection({
-        start: [0, 0],
-        end: [
+        anchor: [0, 0],
+        focus: [
           initialValue.length - 1,
           initialValue[initialValue.length - 1].length,
         ],
