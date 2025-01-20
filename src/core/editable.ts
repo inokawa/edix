@@ -10,7 +10,13 @@ import {
 import { createMutationObserver, revertMutations } from "./mutation";
 import { DomSnapshot, SelectionSnapshot } from "./types";
 import { microtask } from "./utils";
-import { deleteText, EditableCommand, flatten, insertText } from "./commands";
+import {
+  deleteText,
+  EditableCommand,
+  flatten,
+  insertDom,
+  insertText,
+} from "./commands";
 
 /**
  * https://www.w3.org/TR/input-events-1/#interface-InputEvent-Attributes
@@ -327,6 +333,9 @@ export const editable = <T = string>(
     const selected = getSelectedElements(element);
     if (!selected) return;
 
+    const wrapper = document.createElement("div");
+    wrapper.appendChild(selected);
+    dataTransfer.setData("text/html", wrapper.innerHTML);
     dataTransfer.setData(
       "text/plain",
       toString(takeDomSnapshot(document, selected))
@@ -344,8 +353,24 @@ export const editable = <T = string>(
   };
   const onPaste = (e: ClipboardEvent) => {
     e.preventDefault();
-
     const clipboardData = e.clipboardData!;
+
+    const html = clipboardData.getData("text/html");
+    if (html) {
+      try {
+        execCommand(
+          insertDom,
+          takeDomSnapshot(
+            document,
+            new DOMParser().parseFromString(html, "text/html").body,
+            true
+          )
+        );
+        return;
+      } catch {
+        // NOP
+      }
+    }
 
     execCommand(insertText, clipboardData.getData("text/plain"));
   };
