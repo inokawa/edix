@@ -103,7 +103,7 @@ export type EditableCommand<T extends unknown[]> = (
 /**
  * @internal
  */
-export const insertDom: EditableCommand<[DomSnapshot]> = (
+export const insertDom: EditableCommand<[dom: DomSnapshot]> = (
   current,
   [anchor, focus],
   lines
@@ -112,8 +112,7 @@ export const insertDom: EditableCommand<[DomSnapshot]> = (
 
   let nextPos: Position;
   if (isSamePosition(anchor, focus)) {
-    const [before, after] = splitRow(next, anchor);
-    nextPos = insertLines(next, before, after, anchor, lines);
+    nextPos = insertLines(next, ...splitRow(next, anchor), anchor, lines);
   } else {
     const backward = isBackward(anchor, focus);
     const start = backward ? focus : anchor;
@@ -121,10 +120,13 @@ export const insertDom: EditableCommand<[DomSnapshot]> = (
     const startLine = start[0];
     const endLine = end[0];
 
-    const [beforeStart] = splitRow(next, start);
-    const [, afterEnd] = splitRow(next, end);
-
-    nextPos = insertLines(next, beforeStart, afterEnd, start, lines);
+    nextPos = insertLines(
+      next,
+      splitRow(next, start)[0],
+      splitRow(next, end)[1],
+      start,
+      lines
+    );
 
     if (startLine !== endLine) {
       next.splice(startLine + lines.length, endLine - startLine);
@@ -137,7 +139,7 @@ export const insertDom: EditableCommand<[DomSnapshot]> = (
 /**
  * @internal
  */
-export const insertText: EditableCommand<[string]> = (
+export const insertText: EditableCommand<[text: string]> = (
   current,
   selection,
   text
