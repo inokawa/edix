@@ -1,5 +1,3 @@
-import { Position } from "./types";
-
 /**
  * @internal
  */
@@ -14,10 +12,3 @@ export const microtask: (fn: () => void) => void =
     : (fn) => {
         Promise.resolve().then(fn);
       };
-
-/**
- * @internal
- */
-export const isSamePosition = (start: Position, end: Position): boolean => {
-  return start[0] === end[0] && start[1] === end[1];
-};

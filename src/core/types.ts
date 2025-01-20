@@ -10,8 +10,4 @@ export type Position = readonly [line: number, offset: number];
 /**
  * @internal
  */
-export type SelectionSnapshot = readonly [
-  start: Position,
-  end: Position,
-  backward: boolean
-];
+export type SelectionSnapshot = readonly [anchor: Position, focus: Position];

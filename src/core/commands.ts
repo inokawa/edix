@@ -4,7 +4,7 @@ import type {
   NodeRef,
   SelectionSnapshot,
 } from "./types";
-import { isSamePosition } from "./utils";
+import { isBackward, isSamePosition } from "./position";
 
 type Writeable<T> = T extends Record<string, unknown> | readonly unknown[]
   ? {
@@ -104,16 +104,19 @@ export type EditableCommand<T extends unknown[]> = (
  */
 export const insertText: EditableCommand<[text: string]> = (
   current,
-  [start, end],
+  [anchor, focus],
   text
 ) => {
   const next: Writeable<DomSnapshot> = current.map((row) => [...row]);
 
   let nextPos: Position;
-  if (isSamePosition(start, end)) {
-    const [before, after] = splitRow(next, start);
-    nextPos = insertLines(next, before, after, start, text);
+  if (isSamePosition(anchor, focus)) {
+    const [before, after] = splitRow(next, anchor);
+    nextPos = insertLines(next, before, after, anchor, text);
   } else {
+    const backward = isBackward(anchor, focus);
+    const start = backward ? focus : anchor;
+    const end = backward ? anchor : focus;
     const startLine = start[0];
     const endLine = end[0];
 
@@ -128,7 +131,7 @@ export const insertText: EditableCommand<[text: string]> = (
     }
   }
 
-  return [next, [nextPos, nextPos, false]];
+  return [next, [nextPos, nextPos]];
 };
 
 /**
@@ -147,22 +150,22 @@ export const deleteText: EditableCommand<[]> = (current, selection) => {
  */
 export const flatten: EditableCommand<[]> = (
   current,
-  [[startLine, startOffset], [endLine, endOffset]]
+  [[anchorLine, anchorOffset], [focusLine, focusOffset]]
 ) => {
   const row: NodeRef[] = [];
-  let offsetBeforeStart = 0;
-  let offsetBeforeEnd = 0;
+  let offsetBeforeAnchor = 0;
+  let offsetBeforeFocus = 0;
 
   for (let i = 0; i < current.length; i++) {
     for (const node of current[i]!) {
       row.push(node);
 
       const length = getNodeLength(node);
-      if (i < startLine) {
-        offsetBeforeStart += length;
+      if (i < anchorLine) {
+        offsetBeforeAnchor += length;
       }
-      if (i < endLine) {
-        offsetBeforeEnd += length;
+      if (i < focusLine) {
+        offsetBeforeFocus += length;
       }
     }
   }
@@ -170,9 +173,8 @@ export const flatten: EditableCommand<[]> = (
   return [
     [normalizeRow(row)],
     [
-      [0, offsetBeforeStart + startOffset],
-      [0, offsetBeforeEnd + endOffset],
-      false,
+      [0, offsetBeforeAnchor + anchorOffset],
+      [0, offsetBeforeFocus + focusOffset],
     ],
   ];
 };

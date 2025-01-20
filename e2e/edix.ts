@@ -92,14 +92,17 @@ export const createSelection = (
         offset?: number;
         extent?: number;
       }
-    | { start: [number, number]; end: [number, number] } = {}
+    | { anchor: [number, number]; focus: [number, number] } = {}
 ): SelectionSnapshot => {
-  if ("start" in opts) {
-    return [opts.start, opts.end, false];
+  if ("anchor" in opts) {
+    return [opts.anchor, opts.focus];
   }
 
   const line = opts.line ?? 0;
-  const startOffset = opts.offset ?? 0;
-  const endOffset = startOffset + (opts.extent ?? 0);
-  return [[line, startOffset], [line, endOffset], false];
+  const anchorOffset = opts.offset ?? 0;
+  const focusOffset = anchorOffset + (opts.extent ?? 0);
+  return [
+    [line, anchorOffset],
+    [line, focusOffset],
+  ];
 };

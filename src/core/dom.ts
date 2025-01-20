@@ -1,5 +1,6 @@
+import { isBackward, isSamePosition } from "./position";
 import { DomSnapshot, Position, NodeRef, SelectionSnapshot } from "./types";
-import { isSamePosition, min } from "./utils";
+import { min } from "./utils";
 
 const ELEMENT_NODE = 1;
 const TEXT_NODE = 3;
@@ -164,9 +165,12 @@ const findNextNode = (
 export const setSelectionToDOM = (
   document: Document,
   root: Element,
-  [start, end, backward]: SelectionSnapshot,
+  [anchor, focus]: SelectionSnapshot,
   isSingleline: boolean
 ): boolean => {
+  const backward = isBackward(anchor, focus);
+  const start = backward ? focus : anchor;
+  const end = backward ? anchor : focus;
   // special path for empty content with empty selection, necessary for placeholder
   if (
     start[0] === 0 &&
@@ -335,7 +339,10 @@ const serializePosition = (
  * @internal
  */
 export const getEmptySelectionSnapshot = (): SelectionSnapshot => {
-  return [[0, 0], [0, 0], false];
+  return [
+    [0, 0],
+    [0, 0],
+  ];
 };
 
 /**
@@ -352,6 +359,7 @@ export const takeSelectionSnapshot = (
     return getEmptySelectionSnapshot();
   }
 
+  const backward = isSelectionBackward(selection);
   const { startOffset, startContainer, endOffset, endContainer } = range;
 
   let start: Position;
@@ -391,7 +399,7 @@ export const takeSelectionSnapshot = (
     );
   }
 
-  return [start, end, isSelectionBackward(selection)];
+  return [backward ? end : start, backward ? start : end];
 };
 
 /**
