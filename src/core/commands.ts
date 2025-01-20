@@ -15,6 +15,8 @@ type Writeable<T> = T extends Record<string, unknown> | readonly unknown[]
 const isTextNode = (node: NodeRef) => typeof node === "string";
 const getNodeLength = (node: NodeRef): number =>
   isTextNode(node) ? node.length : 1;
+const getRowLength = (nodes: readonly NodeRef[]): number =>
+  nodes.reduce((acc, n) => acc + getNodeLength(n), 0);
 
 const normalizeRow = (row: NodeRef[]): NodeRef[] => {
   for (let i = 0; i < row.length - 1; ) {
@@ -65,28 +67,27 @@ const insertLines = (
   before: NodeRef[],
   after: NodeRef[],
   pos: Position,
-  text: string
+  lines: DomSnapshot
 ): Position => {
-  const lines = text.split("\n");
   const lineLength = lines.length;
   const [line, offset] = pos;
 
   if (lineLength === 1) {
-    doc[line] = normalizeRow([...before, text, ...after]);
-    return [line, offset + text.length];
+    doc[line] = normalizeRow([...before, ...lines[0]!, ...after]);
+    return [line, offset + getRowLength(lines[0]!)];
   } else {
     const mid: NodeRef[][] = [];
     const last = lines[lineLength - 1]!;
-    doc[line] = normalizeRow([...before, lines[0]!]);
+    doc[line] = normalizeRow([...before, ...lines[0]!]);
 
     for (let i = 1; i < lineLength - 1; i++) {
-      mid.push([lines[i]!]);
+      mid.push([...lines[i]!]);
     }
     doc.splice(line + 1, 0, ...mid);
 
-    doc.splice(line + lineLength - 1, 0, normalizeRow([last, ...after]));
+    doc.splice(line + lineLength - 1, 0, normalizeRow([...last, ...after]));
 
-    return [line + lineLength - 1, last.length];
+    return [line + lineLength - 1, getRowLength(last)];
   }
 };
 
@@ -102,17 +103,17 @@ export type EditableCommand<T extends unknown[]> = (
 /**
  * @internal
  */
-export const insertText: EditableCommand<[text: string]> = (
+export const insertDom: EditableCommand<[DomSnapshot]> = (
   current,
   [anchor, focus],
-  text
+  lines
 ) => {
   const next: Writeable<DomSnapshot> = current.map((row) => [...row]);
 
   let nextPos: Position;
   if (isSamePosition(anchor, focus)) {
     const [before, after] = splitRow(next, anchor);
-    nextPos = insertLines(next, before, after, anchor, text);
+    nextPos = insertLines(next, before, after, anchor, lines);
   } else {
     const backward = isBackward(anchor, focus);
     const start = backward ? focus : anchor;
@@ -123,15 +124,29 @@ export const insertText: EditableCommand<[text: string]> = (
     const [beforeStart] = splitRow(next, start);
     const [, afterEnd] = splitRow(next, end);
 
-    nextPos = insertLines(next, beforeStart, afterEnd, start, text);
+    nextPos = insertLines(next, beforeStart, afterEnd, start, lines);
 
     if (startLine !== endLine) {
-      const lines = text.split("\n");
       next.splice(startLine + lines.length, endLine - startLine);
     }
   }
 
   return [next, [nextPos, nextPos]];
+};
+
+/**
+ * @internal
+ */
+export const insertText: EditableCommand<[string]> = (
+  current,
+  selection,
+  text
+) => {
+  return insertDom(
+    current,
+    selection,
+    text.split("\n").map((l) => [l])
+  );
 };
 
 /**

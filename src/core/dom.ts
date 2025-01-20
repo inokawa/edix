@@ -18,11 +18,16 @@ const SHOW_TEXT = 0x4;
 const BR_TAG_NAME = "BR";
 const TEMPLATE_TAG_NAME = "TEMPLATE";
 
-const isBrInText = (node: Element): boolean => {
+const isBrInText = (node: Element, isExternalHtml?: boolean): boolean => {
   if (node.tagName !== BR_TAG_NAME) {
     return false;
   }
-  // unexpected br may be inserted expecially with paste in firefox
+  if (isExternalHtml) {
+    return true;
+  }
+  // TODO revisit here
+  // unexpected br may be detected in some case, because of contenteditable
+  // - type in empty row in firefox (e.g. <div>a<br/></div>)
   let hasTextPrev = false;
   let hasTextNext = false;
   let prev: Node = node;
@@ -64,9 +69,9 @@ const isElementNode = (node: Node): node is Element => {
   return node.nodeType === ELEMENT_NODE;
 };
 
-// https://w3c.github.io/editing/docs/execCommand/#single-line-container
-const SINGLE_LINE_CONTAINER_TAG_NAMES = new Set([
-  // non-list
+const PARAGRAPH_TAG_NAMES = new Set([
+  // https://w3c.github.io/editing/docs/execCommand/#single-line-container
+  // non-list single-line container
   "DIV",
   "H1",
   "H2",
@@ -74,14 +79,15 @@ const SINGLE_LINE_CONTAINER_TAG_NAMES = new Set([
   "H4",
   "H5",
   "H6",
-  // "LISTING",
   "P",
   "PRE",
-  // "XMP",
-  // list
+  // list single-line container
   "LI",
   "DT",
   "DD",
+
+  // other elements
+  "TR",
 ]);
 
 const WITHOUT_TEXT_TAG_NAMES = new Set([
@@ -99,6 +105,10 @@ const WITHOUT_TEXT_TAG_NAMES = new Set([
   "IFRAME",
   // TODO support more elements
 ]);
+
+const isParagraphElement = (node: Element | null): boolean => {
+  return !!node && PARAGRAPH_TAG_NAMES.has(node.tagName);
+};
 
 const isUneditableElement = (node: Element): boolean => {
   return (
@@ -407,7 +417,8 @@ export const takeSelectionSnapshot = (
  */
 export const takeDomSnapshot = (
   document: Document,
-  root: Node
+  root: Node,
+  isExternalHtml?: boolean
 ): DomSnapshot => {
   const rows: NodeRef[][] = [];
   const walker = document.createTreeWalker(root, SHOW_TEXT | SHOW_ELEMENT);
@@ -435,29 +446,22 @@ export const takeDomSnapshot = (
   let node: Node | null;
   let row: NodeRef[] | null = null;
   let text = "";
-  let isFirstLine = true;
   let skipChildren = false;
   while ((node = findNextNode(walker, skipChildren))) {
     skipChildren = false;
     if (isTextNode(node)) {
       text += node.data;
     } else if (isElementNode(node)) {
+      // a block next to block, or br
       if (
-        SINGLE_LINE_CONTAINER_TAG_NAMES.has(node.tagName) &&
-        node.parentNode === root
+        (isParagraphElement(node) &&
+          isParagraphElement(node.previousElementSibling)) ||
+        isBrInText(node, isExternalHtml)
       ) {
-        // row
-        if (!isFirstLine) {
-          completeRow();
-        }
-        isFirstLine = false;
-      } else {
-        if (isBrInText(node)) {
-          completeRow();
-        } else if (isUneditableElement(node)) {
-          skipChildren = true;
-          completeNode(node);
-        }
+        completeRow();
+      } else if (isUneditableElement(node)) {
+        skipChildren = true;
+        completeNode(node);
       }
     }
   }

@@ -837,7 +837,7 @@ test.describe("Paste", () => {
     await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   });
 
-  const writeClipboard = async (page: Page, value: string) => {
+  const writeText = async (page: Page, value: string) => {
     await page.evaluate((t) => navigator.clipboard.writeText(t), value);
   };
 
@@ -860,7 +860,7 @@ test.describe("Paste", () => {
 
       // paste
       const pastedText = "Paste text.";
-      await writeClipboard(page, pastedText);
+      await writeText(page, pastedText);
       await page.keyboard.press("ControlOrMeta+V");
 
       const charLength = pastedText.length;
@@ -889,7 +889,7 @@ test.describe("Paste", () => {
 
       // paste
       const pastedText = "Paste \ntext.";
-      await writeClipboard(page, pastedText);
+      await writeText(page, pastedText);
       await page.keyboard.press("ControlOrMeta+V");
 
       const [beforeLineBreak, afterLineBreak] = pastedText.split("\n");
@@ -925,7 +925,7 @@ test.describe("Paste", () => {
 
       // paste
       const pastedText = "Paste text.";
-      await writeClipboard(page, pastedText);
+      await writeText(page, pastedText);
       await page.keyboard.press("ControlOrMeta+V");
 
       const charLength = pastedText.length;
@@ -954,7 +954,7 @@ test.describe("Paste", () => {
 
       // paste
       const pastedText = "Paste \ntext.";
-      await writeClipboard(page, pastedText);
+      await writeText(page, pastedText);
       await page.keyboard.press("ControlOrMeta+V");
 
       const pastedTextWithoutLinebreak = pastedText.split("\n").join("");
