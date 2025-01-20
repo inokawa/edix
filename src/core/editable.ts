@@ -323,11 +323,11 @@ export const editable = <T = string>(
     }
   };
 
-  const copySelectedDOM = (clipboardData: DataTransfer) => {
+  const copySelectedDOM = (dataTransfer: DataTransfer) => {
     const selected = getSelectedElements(element);
     if (!selected) return;
 
-    clipboardData.setData(
+    dataTransfer.setData(
       "text/plain",
       toString(takeDomSnapshot(document, selected))
     );

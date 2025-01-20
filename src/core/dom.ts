@@ -1,5 +1,5 @@
-import { DomSnapshot, Point, NodeRef, SelectionSnapshot } from "./types";
-import { isSamePoint, min } from "./utils";
+import { DomSnapshot, Position, NodeRef, SelectionSnapshot } from "./types";
+import { isSamePosition, min } from "./utils";
 
 const ELEMENT_NODE = 1;
 const TEXT_NODE = 3;
@@ -171,7 +171,7 @@ export const setSelectionToDOM = (
   if (
     start[0] === 0 &&
     start[1] === 0 &&
-    isSamePoint(start, end) &&
+    isSamePosition(start, end) &&
     !root.hasChildNodes()
   ) {
     const range = document.createRange();
@@ -182,12 +182,12 @@ export const setSelectionToDOM = (
     return true;
   }
 
-  const domStart = findBoundaryPoint(document, root, start, isSingleline);
+  const domStart = findPosition(document, root, start, isSingleline);
   if (!domStart) {
     return false;
   }
 
-  const domEnd = findBoundaryPoint(document, root, end, isSingleline);
+  const domEnd = findPosition(document, root, end, isSingleline);
   if (!domEnd) {
     return false;
   }
@@ -225,10 +225,10 @@ export const setSelectionToDOM = (
   return true;
 };
 
-const findBoundaryPoint = (
+const findPosition = (
   document: Document,
   root: Element,
-  [line, targetOffset]: Point,
+  [line, targetOffset]: Position,
   isSingleline: boolean
 ): [node: Text | Element, offsetAtNode: number] | undefined => {
   let offset = 0;
@@ -278,13 +278,13 @@ const isSelectionBackward = (selection: Selection): boolean => {
     : (position & DOCUMENT_POSITION_PRECEDING) !== 0;
 };
 
-const serializeBoundaryPoint = (
+const serializePosition = (
   document: Document,
   root: Element,
   targetNode: Node,
   offsetAtNode: number,
   isSingleline: boolean
-): Point => {
+): Position => {
   let row: Node = targetNode;
   let lineIndex: number;
   if (isSingleline || root.childElementCount === 0) {
@@ -354,8 +354,8 @@ export const takeSelectionSnapshot = (
 
   const { startOffset, startContainer, endOffset, endContainer } = range;
 
-  let start: Point;
-  let end: Point;
+  let start: Position;
+  let end: Position;
   if (root === startContainer && !isSingleline) {
     if (
       startOffset === 0 &&
@@ -364,7 +364,7 @@ export const takeSelectionSnapshot = (
     ) {
       // special case for Ctrl+A in firefox
       start = [0, 0];
-      end = serializeBoundaryPoint(
+      end = serializePosition(
         document,
         root,
         root.lastElementChild!,
@@ -375,14 +375,14 @@ export const takeSelectionSnapshot = (
       return getEmptySelectionSnapshot();
     }
   } else {
-    start = serializeBoundaryPoint(
+    start = serializePosition(
       document,
       root,
       startContainer,
       startOffset,
       isSingleline
     );
-    end = serializeBoundaryPoint(
+    end = serializePosition(
       document,
       root,
       endContainer,

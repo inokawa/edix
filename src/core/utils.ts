@@ -1,4 +1,4 @@
-import { Point } from "./types";
+import { Position } from "./types";
 
 /**
  * @internal
@@ -18,6 +18,6 @@ export const microtask: (fn: () => void) => void =
 /**
  * @internal
  */
-export const isSamePoint = (start: Point, end: Point): boolean => {
+export const isSamePosition = (start: Position, end: Position): boolean => {
   return start[0] === end[0] && start[1] === end[1];
 };

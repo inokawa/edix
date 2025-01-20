@@ -1,5 +1,10 @@
-import type { DomSnapshot, Point, NodeRef, SelectionSnapshot } from "./types";
-import { isSamePoint } from "./utils";
+import type {
+  DomSnapshot,
+  Position,
+  NodeRef,
+  SelectionSnapshot,
+} from "./types";
+import { isSamePosition } from "./utils";
 
 type Writeable<T> = T extends Record<string, unknown> | readonly unknown[]
   ? {
@@ -27,7 +32,7 @@ const normalizeRow = (row: NodeRef[]): NodeRef[] => {
 
 const splitRow = (
   doc: Writeable<DomSnapshot>,
-  [line, offset]: Point
+  [line, offset]: Position
 ): [NodeRef[], NodeRef[]] => {
   const row = doc[line]!;
 
@@ -59,12 +64,12 @@ const insertLines = (
   doc: Writeable<DomSnapshot>,
   before: NodeRef[],
   after: NodeRef[],
-  point: Point,
+  pos: Position,
   text: string
-): Point => {
+): Position => {
   const lines = text.split("\n");
   const lineLength = lines.length;
-  const [line, offset] = point;
+  const [line, offset] = pos;
 
   if (lineLength === 1) {
     doc[line] = normalizeRow([...before, text, ...after]);
@@ -104,10 +109,10 @@ export const insertText: EditableCommand<[text: string]> = (
 ) => {
   const next: Writeable<DomSnapshot> = current.map((row) => [...row]);
 
-  let nextPoint: Point;
-  if (isSamePoint(start, end)) {
+  let nextPos: Position;
+  if (isSamePosition(start, end)) {
     const [before, after] = splitRow(next, start);
-    nextPoint = insertLines(next, before, after, start, text);
+    nextPos = insertLines(next, before, after, start, text);
   } else {
     const startLine = start[0];
     const endLine = end[0];
@@ -115,7 +120,7 @@ export const insertText: EditableCommand<[text: string]> = (
     const [beforeStart] = splitRow(next, start);
     const [, afterEnd] = splitRow(next, end);
 
-    nextPoint = insertLines(next, beforeStart, afterEnd, start, text);
+    nextPos = insertLines(next, beforeStart, afterEnd, start, text);
 
     if (startLine !== endLine) {
       const lines = text.split("\n");
@@ -123,14 +128,14 @@ export const insertText: EditableCommand<[text: string]> = (
     }
   }
 
-  return [next, [nextPoint, nextPoint, false]];
+  return [next, [nextPos, nextPos, false]];
 };
 
 /**
  * @internal
  */
 export const deleteText: EditableCommand<[]> = (current, selection) => {
-  if (isSamePoint(selection[0], selection[1])) {
+  if (isSamePosition(selection[0], selection[1])) {
     return [current, selection];
   } else {
     return insertText(current, selection, "");

@@ -5,13 +5,13 @@ export type DomSnapshot = readonly (readonly NodeRef[])[];
 /**
  * @internal
  */
-export type Point = readonly [line: number, offset: number];
+export type Position = readonly [line: number, offset: number];
 
 /**
  * @internal
  */
 export type SelectionSnapshot = readonly [
-  start: Point,
-  end: Point,
+  start: Position,
+  end: Position,
   backward: boolean
 ];
