@@ -830,19 +830,31 @@ test.describe("Cut", () => {
   });
 });
 
-test.describe("Paste", () => {
+test.describe("Clipboard", () => {
   test.beforeEach(async ({ context, browserName }) => {
     // https://github.com/microsoft/playwright/issues/13037#issuecomment-1078208810
     test.skip(browserName !== "chromium");
     await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   });
 
-  const writeText = async (page: Page, value: string) => {
-    await page.evaluate((t) => navigator.clipboard.writeText(t), value);
-  };
+  test.describe("Copy", () => {
+    const readClipboard = async (
+      page: Page,
+      type: "text/plain" | "text/html"
+    ): Promise<string> => {
+      return await page.evaluate(async (t) => {
+        const contents = await navigator.clipboard.read();
+        for (const item of contents) {
+          if (item.types.includes(t)) {
+            const blob = await item.getType(t);
+            return await blob.text();
+          }
+        }
+        throw new Error(`${t} is not found`);
+      }, type);
+    };
 
-  test.describe("multiline", () => {
-    test("paste text", async ({ page }) => {
+    test("copy all", async ({ page }) => {
       await page.goto(storyUrl("basics-plain--multiline"));
 
       const editable = await getEditable(page);
@@ -852,120 +864,267 @@ test.describe("Paste", () => {
 
       expect(await getSelection(editable)).toEqual(createSelection());
 
-      // Move caret
-      await loop(2, () => page.keyboard.press("ArrowRight"));
-      expect(await getSelection(editable)).toEqual(
-        createSelection({ offset: 2 })
+      await page.keyboard.press("ControlOrMeta+A");
+      await page.keyboard.press("ControlOrMeta+C");
+
+      expect(await readClipboard(page, "text/plain")).toEqual(
+        initialValue.join("\n")
       );
-
-      // paste
-      const pastedText = "Paste text.";
-      await writeText(page, pastedText);
-      await page.keyboard.press("ControlOrMeta+V");
-
-      const charLength = pastedText.length;
-      const value = await getText(editable);
-      expect(value).toEqual(insertAt(initialValue, pastedText, [0, 2]));
-      expect(await getSelection(editable)).toEqual(
-        createSelection({ offset: 2 + charLength })
-      );
-    });
-
-    test("paste linebreak", async ({ page }) => {
-      await page.goto(storyUrl("basics-plain--multiline"));
-
-      const editable = await getEditable(page);
-      const initialValue = await getText(editable);
-
-      await editable.focus();
-
-      expect(await getSelection(editable)).toEqual(createSelection());
-
-      // Move caret
-      await loop(2, () => page.keyboard.press("ArrowRight"));
-      expect(await getSelection(editable)).toEqual(
-        createSelection({ offset: 2 })
-      );
-
-      // paste
-      const pastedText = "Paste \ntext.";
-      await writeText(page, pastedText);
-      await page.keyboard.press("ControlOrMeta+V");
-
-      const [beforeLineBreak, afterLineBreak] = pastedText.split("\n");
-      const value = await getText(editable);
-      expect(value).toEqual(
-        insertLineBreakAt(
-          insertAt(initialValue, beforeLineBreak + afterLineBreak, [0, 2]),
-          [0, 2 + beforeLineBreak.length]
-        )
-      );
-      expect(await getSelection(editable)).toEqual(
-        createSelection({ line: 1, offset: afterLineBreak.length })
+      expect(await readClipboard(page, "text/html")).toEqual(
+        await editable.evaluate((e) => e.innerHTML)
       );
     });
   });
 
-  test.describe("singleline", () => {
-    test("paste text", async ({ page }) => {
-      await page.goto(storyUrl("basics-plain--singleline"));
+  test.describe("Paste", () => {
+    const writeText = async (page: Page, value: string) => {
+      await page.evaluate((t) => navigator.clipboard.writeText(t), value);
+    };
 
-      const editable = await getEditable(page);
-      const initialValue = await getText(editable);
+    test.describe("multiline", () => {
+      test("paste text", async ({ page }) => {
+        await page.goto(storyUrl("basics-plain--multiline"));
 
-      await editable.focus();
+        const editable = await getEditable(page);
+        const initialValue = await getText(editable);
 
-      expect(await getSelection(editable)).toEqual(createSelection());
+        await editable.focus();
 
-      // Move caret
-      await loop(2, () => page.keyboard.press("ArrowRight"));
-      expect(await getSelection(editable)).toEqual(
-        createSelection({ offset: 2 })
-      );
+        expect(await getSelection(editable)).toEqual(createSelection());
 
-      // paste
-      const pastedText = "Paste text.";
-      await writeText(page, pastedText);
-      await page.keyboard.press("ControlOrMeta+V");
+        // Move caret
+        await loop(2, () => page.keyboard.press("ArrowRight"));
+        expect(await getSelection(editable)).toEqual(
+          createSelection({ offset: 2 })
+        );
 
-      const charLength = pastedText.length;
-      const value = await getText(editable);
-      expect(value).toEqual(insertAt(initialValue, pastedText, [0, 2]));
-      expect(await getSelection(editable)).toEqual(
-        createSelection({ offset: 2 + charLength })
-      );
+        // paste
+        const pastedText = "Paste text.";
+        await writeText(page, pastedText);
+        await page.keyboard.press("ControlOrMeta+V");
+
+        const charLength = pastedText.length;
+        const value = await getText(editable);
+        expect(value).toEqual(insertAt(initialValue, pastedText, [0, 2]));
+        expect(await getSelection(editable)).toEqual(
+          createSelection({ offset: 2 + charLength })
+        );
+      });
+
+      test("paste linebreak", async ({ page }) => {
+        await page.goto(storyUrl("basics-plain--multiline"));
+
+        const editable = await getEditable(page);
+        const initialValue = await getText(editable);
+
+        await editable.focus();
+
+        expect(await getSelection(editable)).toEqual(createSelection());
+
+        // Move caret
+        await loop(2, () => page.keyboard.press("ArrowRight"));
+        expect(await getSelection(editable)).toEqual(
+          createSelection({ offset: 2 })
+        );
+
+        // paste
+        const pastedText = "Paste \ntext.";
+        await writeText(page, pastedText);
+        await page.keyboard.press("ControlOrMeta+V");
+
+        const [beforeLineBreak, afterLineBreak] = pastedText.split("\n");
+        const value = await getText(editable);
+        expect(value).toEqual(
+          insertLineBreakAt(
+            insertAt(initialValue, beforeLineBreak + afterLineBreak, [0, 2]),
+            [0, 2 + beforeLineBreak.length]
+          )
+        );
+        expect(await getSelection(editable)).toEqual(
+          createSelection({ line: 1, offset: afterLineBreak.length })
+        );
+      });
     });
 
-    test("paste linebreak", async ({ page }) => {
-      await page.goto(storyUrl("basics-plain--singleline"));
+    test.describe("singleline", () => {
+      test("paste text", async ({ page }) => {
+        await page.goto(storyUrl("basics-plain--singleline"));
+
+        const editable = await getEditable(page);
+        const initialValue = await getText(editable);
+
+        await editable.focus();
+
+        expect(await getSelection(editable)).toEqual(createSelection());
+
+        // Move caret
+        await loop(2, () => page.keyboard.press("ArrowRight"));
+        expect(await getSelection(editable)).toEqual(
+          createSelection({ offset: 2 })
+        );
+
+        // paste
+        const pastedText = "Paste text.";
+        await writeText(page, pastedText);
+        await page.keyboard.press("ControlOrMeta+V");
+
+        const charLength = pastedText.length;
+        const value = await getText(editable);
+        expect(value).toEqual(insertAt(initialValue, pastedText, [0, 2]));
+        expect(await getSelection(editable)).toEqual(
+          createSelection({ offset: 2 + charLength })
+        );
+      });
+
+      test("paste linebreak", async ({ page }) => {
+        await page.goto(storyUrl("basics-plain--singleline"));
+
+        const editable = await getEditable(page);
+        const initialValue = await getText(editable);
+
+        await editable.focus();
+
+        expect(await getSelection(editable)).toEqual(createSelection());
+
+        // Move caret
+        await loop(2, () => page.keyboard.press("ArrowRight"));
+        expect(await getSelection(editable)).toEqual(
+          createSelection({ offset: 2 })
+        );
+
+        // paste
+        const pastedText = "Paste \ntext.";
+        await writeText(page, pastedText);
+        await page.keyboard.press("ControlOrMeta+V");
+
+        const pastedTextWithoutLinebreak = pastedText.split("\n").join("");
+        const charLength = pastedTextWithoutLinebreak.length;
+        const value = await getText(editable);
+        expect(value).toEqual(
+          insertAt(initialValue, pastedTextWithoutLinebreak, [0, 2])
+        );
+        expect(await getSelection(editable)).toEqual(
+          createSelection({ offset: 2 + charLength })
+        );
+      });
+    });
+  });
+
+  test.describe("html paste", () => {
+    const writeHTML = async (page: Page, value: string) => {
+      await page.evaluate(
+        (t) =>
+          navigator.clipboard.write([
+            new ClipboardItem({
+              "text/html": new Blob([t], { type: "text/html" }),
+            }),
+          ]),
+        value
+      );
+    };
+
+    test("single paragraph root", async ({ page }) => {
+      await page.goto(storyUrl("basics-plain--multiline"));
 
       const editable = await getEditable(page);
-      const initialValue = await getText(editable);
 
       await editable.focus();
 
-      expect(await getSelection(editable)).toEqual(createSelection());
+      const plain = `
+export const editable = (
+  element: HTMLElement,
+  { readonly, nodes, onChange }: EditableOptions`;
+      const html = `<meta charset='utf-8'><div><br><div><span>export</span><span> </span><span>const</span><span> </span><span>editable</span><span> </span><span>=</span><span> (</span></div><div><span>  </span><span>element</span><span>:</span><span> </span><span>HTMLElement</span><span>,</span></div><div><span>  { </span><span>readonly</span><span>, </span><span>nodes</span><span>, </span><span>onChange</span><span> }</span><span>:</span><span> </span><span>EditableOptions</span></div></div>`;
 
-      // Move caret
-      await loop(2, () => page.keyboard.press("ArrowRight"));
-      expect(await getSelection(editable)).toEqual(
-        createSelection({ offset: 2 })
-      );
+      await writeHTML(page, html);
 
-      // paste
-      const pastedText = "Paste \ntext.";
-      await writeText(page, pastedText);
-      await page.keyboard.press("ControlOrMeta+V");
+      // Delete all
+      await page.keyboard.press(`ControlOrMeta+A`);
+      await page.keyboard.press(`Backspace`);
 
-      const pastedTextWithoutLinebreak = pastedText.split("\n").join("");
-      const charLength = pastedTextWithoutLinebreak.length;
-      const value = await getText(editable);
-      expect(value).toEqual(
-        insertAt(initialValue, pastedTextWithoutLinebreak, [0, 2])
-      );
-      expect(await getSelection(editable)).toEqual(
-        createSelection({ offset: 2 + charLength })
-      );
+      await page.keyboard.press(`ControlOrMeta+V`);
+      expect((await getText(editable)).join("\n")).toEqual(plain);
+    });
+
+    test("multi paragraph root", async ({ page }) => {
+      await page.goto(storyUrl("basics-plain--multiline"));
+
+      const editable = await getEditable(page);
+
+      await editable.focus();
+
+      const plain = `#17
+#6`;
+      const html = `<meta charset='utf-8'><p>#17</p><p>#6</p>`;
+
+      await writeHTML(page, html);
+
+      // Delete all
+      await page.keyboard.press(`ControlOrMeta+A`);
+      await page.keyboard.press(`Backspace`);
+
+      await page.keyboard.press(`ControlOrMeta+V`);
+      expect((await getText(editable)).join("\n")).toEqual(plain);
+    });
+
+    test("single inline root", async ({ page }) => {
+      await page.goto(storyUrl("basics-plain--multiline"));
+
+      const editable = await getEditable(page);
+
+      await editable.focus();
+
+      const plain = `#17
+#6`;
+      const html = `<meta charset='utf-8'><span>#17<br ><em>#6</em></span>`;
+      await writeHTML(page, html);
+
+      // Delete all
+      await page.keyboard.press(`ControlOrMeta+A`);
+      await page.keyboard.press(`Backspace`);
+
+      await page.keyboard.press(`ControlOrMeta+V`);
+      expect((await getText(editable)).join("\n")).toEqual(plain);
+    });
+
+    test("multi inline root", async ({ page }) => {
+      await page.goto(storyUrl("basics-plain--multiline"));
+
+      const editable = await getEditable(page);
+
+      await editable.focus();
+
+      const plain = `#17
+#6`;
+      const html = `<meta charset='utf-8'><a>#17</a><br ><a>#6</a>`;
+      await writeHTML(page, html);
+
+      // Delete all
+      await page.keyboard.press(`ControlOrMeta+A`);
+      await page.keyboard.press(`Backspace`);
+
+      await page.keyboard.press(`ControlOrMeta+V`);
+      expect((await getText(editable)).join("\n")).toEqual(plain);
+    });
+
+    test("table root", async ({ page }) => {
+      await page.goto(storyUrl("basics-plain--multiline"));
+
+      const editable = await getEditable(page);
+
+      await editable.focus();
+
+      const plain = `    const html = clipboardData.getData("text/html");
+    if (html) {`;
+      const html = `<meta charset='utf-8'><table><tbody><tr><td><span>    <span>const</span> <span>html</span> <span>=</span> <span>clipboardData</span><span>.</span><span>getData</span><span>(</span><span>"text/html"</span><span>)</span><span>;</span></span></td></tr><tr><td></td><td></td><td><button><svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16"><path></path></svg></button><span>    <span>if</span> <span>(</span><span>html</span><span>)</span> <span>{</span></span></td></tr></tbody></table>`;
+      await writeHTML(page, html);
+
+      // Delete all
+      await page.keyboard.press(`ControlOrMeta+A`);
+      await page.keyboard.press(`Backspace`);
+
+      await page.keyboard.press(`ControlOrMeta+V`);
+      expect((await getText(editable)).join("\n")).toEqual(plain);
     });
   });
 });
