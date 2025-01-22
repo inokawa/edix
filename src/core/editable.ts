@@ -333,13 +333,11 @@ export const editable = <T = string>(
     const selected = getSelectedElements(element);
     if (!selected) return;
 
+    const str = toString(takeDomSnapshot(document, selected));
     const wrapper = document.createElement("div");
     wrapper.appendChild(selected);
     dataTransfer.setData("text/html", wrapper.innerHTML);
-    dataTransfer.setData(
-      "text/plain",
-      toString(takeDomSnapshot(document, selected))
-    );
+    dataTransfer.setData("text/plain", str);
   };
 
   const onCopy = (e: ClipboardEvent) => {
