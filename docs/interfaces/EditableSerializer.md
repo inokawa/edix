@@ -26,7 +26,7 @@
 
 #### Defined in
 
-[editable.ts:73](https://github.com/inokawa/edix/blob/360dc0e2059b6b120119edaa498a1603bb0b294d/src/core/editable.ts#L73)
+[editable.ts:73](https://github.com/inokawa/edix/blob/0221f7169064b4e3b1503af85d86c7e3fcc9e65a/src/core/editable.ts#L73)
 
 ***
 
@@ -46,4 +46,4 @@
 
 #### Defined in
 
-[editable.ts:74](https://github.com/inokawa/edix/blob/360dc0e2059b6b120119edaa498a1603bb0b294d/src/core/editable.ts#L74)
+[editable.ts:74](https://github.com/inokawa/edix/blob/0221f7169064b4e3b1503af85d86c7e3fcc9e65a/src/core/editable.ts#L74)
