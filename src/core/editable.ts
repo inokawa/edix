@@ -120,7 +120,13 @@ export const editable = <T = string>(
     ariaReadOnly: prevAriaReadOnly,
   } = element;
   const prevWhiteSpace = element.style.whiteSpace;
-  element.contentEditable = "true";
+
+  const setContentEditable = () => {
+    element.contentEditable = readonly ? "false" : "true";
+    element.ariaReadOnly = readonly ? "true" : null;
+  };
+
+  setContentEditable();
   element.role = "textbox";
   element.style.whiteSpace = "pre-wrap";
   if (multiline) {
@@ -141,11 +147,6 @@ export const editable = <T = string>(
 
   const isSingleline = !multiline;
   const { data: serialize, plain: toString = serializeToString } = serializer;
-
-  const updateReadonly = () => {
-    element.ariaReadOnly = readonly ? "true" : null;
-  };
-  updateReadonly();
 
   const document = getCurrentDocument(element);
 
@@ -435,7 +436,7 @@ export const editable = <T = string>(
   };
   handle.readonly = (value: boolean) => {
     readonly = value;
-    updateReadonly();
+    setContentEditable();
   };
   return handle;
 };
