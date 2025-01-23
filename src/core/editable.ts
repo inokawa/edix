@@ -346,8 +346,10 @@ export const editable = <T = string>(
   };
   const onCut = (e: ClipboardEvent) => {
     e.preventDefault();
-    copySelectedDOM(e.clipboardData!);
-    execCommand(deleteText);
+    if (!readonly) {
+      copySelectedDOM(e.clipboardData!);
+      execCommand(deleteText);
+    }
   };
   const onPaste = (e: ClipboardEvent) => {
     e.preventDefault();
