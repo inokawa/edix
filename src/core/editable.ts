@@ -7,7 +7,7 @@ import {
   getEmptySelectionSnapshot,
   getSelectedElements,
 } from "./dom";
-import { createMutationObserver, revertMutations } from "./mutation";
+import { createMutationObserver } from "./mutation";
 import { DomSnapshot, SelectionSnapshot } from "./types";
 import { microtask } from "./utils";
 import {
@@ -219,7 +219,22 @@ export const editable = <T = string>(
           const value = takeDomSnapshot(document, element);
 
           // Revert DOM
-          revertMutations(queue);
+          let m: MutationRecord | undefined;
+          while ((m = queue.pop())) {
+            if (m.type === "characterData") {
+              (m.target as CharacterData).nodeValue = m.oldValue!;
+            } else if (m.type === "childList") {
+              const { target, removedNodes, addedNodes, nextSibling } = m;
+              for (let i = removedNodes.length - 1; i >= 0; i--) {
+                target.insertBefore(removedNodes[i]!, nextSibling);
+              }
+              for (let i = addedNodes.length - 1; i >= 0; i--) {
+                if (addedNodes[i]!.parentNode) {
+                  target.removeChild(addedNodes[i]!);
+                }
+              }
+            }
+          }
           observer._flush();
 
           const prevSelection = currentSelection;

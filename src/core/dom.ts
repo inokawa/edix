@@ -299,6 +299,10 @@ const serializePosition = (
   offsetAtNode: number,
   isSingleline: boolean
 ): Position => {
+  let offset = 0;
+  let node: Node | null;
+  let skipChildren = false;
+
   let row: Node = targetNode;
   let lineIndex: number;
   if (isSingleline || root.childElementCount === 0) {
@@ -310,9 +314,6 @@ const serializePosition = (
     }
     lineIndex = Array.prototype.indexOf.call(root.children, row);
   }
-  let offset = 0;
-  let node: Node | null;
-  let skipChildren = false;
 
   const isTargetElement = isElementNode(targetNode);
   if (isTargetElement) {
@@ -420,6 +421,11 @@ export const takeDomSnapshot = (
   root: Node,
   isExternalHtml?: boolean
 ): DomSnapshot => {
+  let node: Node | null;
+  let row: NodeRef[] | null = null;
+  let text = "";
+  let skipChildren = false;
+
   const rows: NodeRef[][] = [];
   const walker = document.createTreeWalker(root, SHOW_TEXT | SHOW_ELEMENT);
 
@@ -443,10 +449,6 @@ export const takeDomSnapshot = (
     row = null;
   };
 
-  let node: Node | null;
-  let row: NodeRef[] | null = null;
-  let text = "";
-  let skipChildren = false;
   while ((node = findNextNode(walker, skipChildren))) {
     skipChildren = false;
     if (isTextNode(node)) {
