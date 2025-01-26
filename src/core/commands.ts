@@ -64,11 +64,31 @@ const splitRow = (
 
 const insertLines = (
   doc: Writeable<DomSnapshot>,
-  before: NodeRef[],
-  after: NodeRef[],
-  pos: Position,
+  [anchor, focus]: SelectionSnapshot,
   lines: DomSnapshot
 ): Position => {
+  let pos: Position;
+  let before: NodeRef[];
+  let after: NodeRef[];
+  if (isSamePosition(anchor, focus)) {
+    pos = anchor;
+    [before, after] = splitRow(doc, pos);
+  } else {
+    const backward = isBackward(anchor, focus);
+    const start = backward ? focus : anchor;
+    const end = backward ? anchor : focus;
+    const startLine = start[0];
+    const endLine = end[0];
+    pos = start;
+    before = splitRow(doc, start)[0];
+    after = splitRow(doc, end)[1];
+    if (startLine !== endLine) {
+      // Remove (selected lines - 1) lines here.
+      // The remained 1 line will be removed in the next step.
+      doc.splice(startLine + 1, endLine - startLine);
+    }
+  }
+
   const lineLength = lines.length;
   const [line, offset] = pos;
 
@@ -107,33 +127,11 @@ export type EditableCommand<T extends unknown[]> = (
  */
 export const insertDom: EditableCommand<[dom: DomSnapshot]> = (
   current,
-  [anchor, focus],
+  selection,
   lines
 ) => {
   const next: Writeable<DomSnapshot> = current.map((row) => [...row]);
-
-  let nextPos: Position;
-  if (isSamePosition(anchor, focus)) {
-    nextPos = insertLines(next, ...splitRow(next, anchor), anchor, lines);
-  } else {
-    const backward = isBackward(anchor, focus);
-    const start = backward ? focus : anchor;
-    const end = backward ? anchor : focus;
-    const startLine = start[0];
-    const endLine = end[0];
-
-    nextPos = insertLines(
-      next,
-      splitRow(next, start)[0],
-      splitRow(next, end)[1],
-      start,
-      lines
-    );
-
-    if (startLine !== endLine) {
-      next.splice(startLine + lines.length, endLine - startLine);
-    }
-  }
+  const nextPos = insertLines(next, selection, lines);
 
   return [next, [nextPos, nextPos]];
 };
