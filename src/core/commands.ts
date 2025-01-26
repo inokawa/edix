@@ -6,9 +6,23 @@ import type {
 } from "./types";
 import { isBackward, isSamePosition } from "./position";
 
-type Writeable<T> = T extends Record<string, unknown> | readonly unknown[]
+/**
+ * @internal
+ */
+export type EditableCommand<T extends unknown[]> = (
+  doc: Writeable<DomSnapshot>,
+  selection: Writeable<SelectionSnapshot>,
+  ...args: T
+) => void;
+
+/**
+ * @internal
+ */
+export type Writeable<T> = T extends
+  | Record<string, unknown>
+  | readonly unknown[]
   ? {
-      -readonly [key in keyof T]: Writeable<T[key]>;
+      -readonly [key in keyof T]: T[key];
     }
   : T;
 
@@ -20,10 +34,10 @@ const getRowLength = (nodes: readonly NodeRef[]): number =>
 
 const normalizeRow = (row: NodeRef[]): NodeRef[] => {
   for (let i = 0; i < row.length - 1; ) {
-    const current = row[i]!;
+    const doc = row[i]!;
     const next = row[i + 1];
-    if (isTextNode(current) && next != null && isTextNode(next)) {
-      row[i] = current + next;
+    if (isTextNode(doc) && next != null && isTextNode(next)) {
+      row[i] = doc + next;
       row.splice(i + 1, 1);
     } else {
       i++;
@@ -35,7 +49,7 @@ const normalizeRow = (row: NodeRef[]): NodeRef[] => {
 const splitRow = (
   doc: Writeable<DomSnapshot>,
   [line, offset]: Position
-): [NodeRef[], NodeRef[]] => {
+): [readonly NodeRef[], readonly NodeRef[]] => {
   const row = doc[line]!;
 
   for (let i = 0; i < row.length; i++) {
@@ -62,14 +76,18 @@ const splitRow = (
   return [row, []];
 };
 
-const insertLines = (
-  doc: Writeable<DomSnapshot>,
-  [anchor, focus]: SelectionSnapshot,
-  lines: DomSnapshot
-): Position => {
+/**
+ * @internal
+ */
+export const insertLines: EditableCommand<[lines: DomSnapshot]> = (
+  doc,
+  selection,
+  lines
+) => {
+  const [anchor, focus] = selection;
   let pos: Position;
-  let before: NodeRef[];
-  let after: NodeRef[];
+  let before: readonly NodeRef[];
+  let after: readonly NodeRef[];
   if (isSamePosition(anchor, focus)) {
     pos = anchor;
     [before, after] = splitRow(doc, pos);
@@ -94,7 +112,7 @@ const insertLines = (
 
   if (lineLength === 1) {
     doc[line] = normalizeRow([...before, ...lines[0]!, ...after]);
-    return [line, offset + getRowLength(lines[0]!)];
+    selection[0] = selection[1] = [line, offset + getRowLength(lines[0]!)];
   } else {
     const mid: NodeRef[][] = [];
     const last = lines[lineLength - 1]!;
@@ -108,44 +126,20 @@ const insertLines = (
       ...mid,
       normalizeRow([...last, ...after])
     );
-
-    return [line + lineLength - 1, getRowLength(last)];
+    selection[0] = selection[1] = [line + lineLength - 1, getRowLength(last)];
   }
 };
 
 /**
  * @internal
  */
-export type EditableCommand<T extends unknown[]> = (
-  current: DomSnapshot,
-  selection: SelectionSnapshot,
-  ...args: T
-) => readonly [DomSnapshot, SelectionSnapshot];
-
-/**
- * @internal
- */
-export const insertDom: EditableCommand<[dom: DomSnapshot]> = (
-  current,
-  selection,
-  lines
-) => {
-  const next: Writeable<DomSnapshot> = current.map((row) => [...row]);
-  const nextPos = insertLines(next, selection, lines);
-
-  return [next, [nextPos, nextPos]];
-};
-
-/**
- * @internal
- */
 export const insertText: EditableCommand<[text: string]> = (
-  current,
+  doc,
   selection,
   text
 ) => {
-  return insertDom(
-    current,
+  insertLines(
+    doc,
     selection,
     text.split("\n").map((l) => [l])
   );
@@ -154,27 +148,27 @@ export const insertText: EditableCommand<[text: string]> = (
 /**
  * @internal
  */
-export const deleteText: EditableCommand<[]> = (current, selection) => {
+export const deleteText: EditableCommand<[]> = (doc, selection) => {
   if (isSamePosition(selection[0], selection[1])) {
-    return [current, selection];
+    // TODO reconsider
   } else {
-    return insertText(current, selection, "");
+    insertText(doc, selection, "");
   }
 };
 
 /**
  * @internal
  */
-export const flatten: EditableCommand<[]> = (
-  current,
-  [[anchorLine, anchorOffset], [focusLine, focusOffset]]
-) => {
+export const flatten = (
+  doc: DomSnapshot,
+  [[anchorLine, anchorOffset], [focusLine, focusOffset]]: SelectionSnapshot
+): [DomSnapshot, SelectionSnapshot] => {
   const row: NodeRef[] = [];
   let offsetBeforeAnchor = 0;
   let offsetBeforeFocus = 0;
 
-  for (let i = 0; i < current.length; i++) {
-    for (const node of current[i]!) {
+  for (let i = 0; i < doc.length; i++) {
+    for (const node of doc[i]!) {
       row.push(node);
 
       const length = getNodeLength(node);
