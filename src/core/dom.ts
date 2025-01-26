@@ -181,11 +181,12 @@ export const setSelectionToDOM = (
   const backward = isBackward(anchor, focus);
   const start = backward ? focus : anchor;
   const end = backward ? anchor : focus;
+  const isCollapsed = isSamePosition(start, end);
   // special path for empty content with empty selection, necessary for placeholder
   if (
     start[0] === 0 &&
     start[1] === 0 &&
-    isSamePosition(start, end) &&
+    isCollapsed &&
     !root.hasChildNodes()
   ) {
     const range = document.createRange();
@@ -201,7 +202,9 @@ export const setSelectionToDOM = (
     return false;
   }
 
-  const domEnd = findPosition(document, root, end, isSingleline);
+  const domEnd = isCollapsed
+    ? domStart
+    : findPosition(document, root, end, isSingleline);
   if (!domEnd) {
     return false;
   }
@@ -401,13 +404,15 @@ export const takeSelectionSnapshot = (
       startOffset,
       isSingleline
     );
-    end = serializePosition(
-      document,
-      root,
-      endContainer,
-      endOffset,
-      isSingleline
-    );
+    end = selection.isCollapsed
+      ? start
+      : serializePosition(
+          document,
+          root,
+          endContainer,
+          endOffset,
+          isSingleline
+        );
   }
 
   return [backward ? end : start, backward ? start : end];
