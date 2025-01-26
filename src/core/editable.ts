@@ -14,8 +14,9 @@ import {
   deleteText,
   EditableCommand,
   flatten,
-  insertDom,
   insertText,
+  insertLines,
+  Writeable,
 } from "./commands";
 
 /**
@@ -269,12 +270,15 @@ export const editable = <T = string>(
 
         if (commands.length) {
           const prevSelection = currentSelection;
-          let selection = currentSelection;
-          let dom = takeDomSnapshot(document, element);
+          const selection: Writeable<SelectionSnapshot> = [...currentSelection];
+          const dom: Writeable<DomSnapshot> = takeDomSnapshot(
+            document,
+            element
+          ) as Writeable<DomSnapshot>; // TODO improve type
 
           let command: (typeof commands)[number] | undefined;
           while ((command = commands.pop())) {
-            [dom, selection] = command[0](dom, selection, ...command[1]);
+            command[0](dom, selection, ...command[1]);
           }
           updateState(dom, selection, prevSelection);
         }
@@ -375,7 +379,7 @@ export const editable = <T = string>(
     if (html) {
       try {
         execCommand(
-          insertDom,
+          insertLines,
           takeDomSnapshot(
             document,
             new DOMParser().parseFromString(html, "text/html").body,
