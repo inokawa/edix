@@ -78,14 +78,16 @@ const insertLines = (
   } else {
     const mid: NodeRef[][] = [];
     const last = lines[lineLength - 1]!;
-    doc[line] = normalizeRow([...before, ...lines[0]!]);
-
     for (let i = 1; i < lineLength - 1; i++) {
       mid.push([...lines[i]!]);
     }
-    doc.splice(line + 1, 0, ...mid);
-
-    doc.splice(line + lineLength - 1, 0, normalizeRow([...last, ...after]));
+    doc.splice(
+      line,
+      1,
+      normalizeRow([...before, ...lines[0]!]),
+      ...mid,
+      normalizeRow([...last, ...after])
+    );
 
     return [line + lineLength - 1, getRowLength(last)];
   }
