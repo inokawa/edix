@@ -32,15 +32,25 @@ const getNodeLength = (node: NodeRef): number =>
 const getRowLength = (nodes: readonly NodeRef[]): number =>
   nodes.reduce((acc, n) => acc + getNodeLength(n), 0);
 
-const normalizeRow = (row: NodeRef[]): NodeRef[] => {
-  for (let i = 0; i < row.length - 1; ) {
-    const doc = row[i]!;
-    const next = row[i + 1];
-    if (isTextNode(doc) && next != null && isTextNode(next)) {
-      row[i] = doc + next;
-      row.splice(i + 1, 1);
+const insertNodeAfter = (row: NodeRef[], index: number, node: NodeRef) => {
+  const target = row[index]!;
+  if (isTextNode(node) && isTextNode(target)) {
+    row[index] = target + node;
+  } else {
+    row.splice(index + 1, 0, node);
+  }
+};
+
+const joinRows = (...rows: (readonly NodeRef[])[]): readonly NodeRef[] => {
+  const row: NodeRef[] = [];
+  for (let i = 0; i < rows.length; i++) {
+    const current = rows[i]!;
+    if (i === 0) {
+      row.push(...current);
     } else {
-      i++;
+      for (const node of current) {
+        insertNodeAfter(row, row.length - 1, node);
+      }
     }
   }
   return row;
@@ -111,7 +121,7 @@ export const insertLines: EditableCommand<[lines: DomSnapshot]> = (
   const [line, offset] = pos;
 
   if (lineLength === 1) {
-    doc[line] = normalizeRow([...before, ...lines[0]!, ...after]);
+    doc[line] = joinRows(before, lines[0]!, after);
     selection[0] = selection[1] = [line, offset + getRowLength(lines[0]!)];
   } else {
     const mid: NodeRef[][] = [];
@@ -122,9 +132,9 @@ export const insertLines: EditableCommand<[lines: DomSnapshot]> = (
     doc.splice(
       line,
       1,
-      normalizeRow([...before, ...lines[0]!]),
+      joinRows(before, lines[0]!),
       ...mid,
-      normalizeRow([...last, ...after])
+      joinRows(last, after)
     );
     selection[0] = selection[1] = [line + lineLength - 1, getRowLength(last)];
   }
@@ -163,14 +173,11 @@ export const flatten = (
   doc: DomSnapshot,
   [[anchorLine, anchorOffset], [focusLine, focusOffset]]: SelectionSnapshot
 ): [DomSnapshot, SelectionSnapshot] => {
-  const row: NodeRef[] = [];
   let offsetBeforeAnchor = 0;
   let offsetBeforeFocus = 0;
 
   for (let i = 0; i < doc.length; i++) {
     for (const node of doc[i]!) {
-      row.push(node);
-
       const length = getNodeLength(node);
       if (i < anchorLine) {
         offsetBeforeAnchor += length;
@@ -182,7 +189,7 @@ export const flatten = (
   }
 
   return [
-    [normalizeRow(row)],
+    [joinRows(...doc)],
     [
       [0, offsetBeforeAnchor + anchorOffset],
       [0, offsetBeforeFocus + focusOffset],
