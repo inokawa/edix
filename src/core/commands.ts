@@ -124,10 +124,10 @@ export const insertLines: EditableCommand<[lines: DomSnapshot]> = (
     doc[line] = joinRows(before, lines[0]!, after);
     selection[0] = selection[1] = [line, offset + getRowLength(lines[0]!)];
   } else {
-    const mid: NodeRef[][] = [];
+    const mid: (readonly NodeRef[])[] = [];
     const last = lines[lineLength - 1]!;
     for (let i = 1; i < lineLength - 1; i++) {
-      mid.push([...lines[i]!]);
+      mid.push(lines[i]!);
     }
     doc.splice(
       line,
@@ -159,9 +159,7 @@ export const insertText: EditableCommand<[text: string]> = (
  * @internal
  */
 export const deleteText: EditableCommand<[]> = (doc, selection) => {
-  if (isSamePosition(selection[0], selection[1])) {
-    // TODO reconsider
-  } else {
+  if (!isSamePosition(selection[0], selection[1])) {
     insertText(doc, selection, "");
   }
 };
