@@ -11,11 +11,11 @@ import { createMutationObserver } from "./mutation";
 import { DomSnapshot, SelectionSnapshot } from "./types";
 import { microtask } from "./utils";
 import {
-  deleteText,
+  deleteSelection,
   EditableCommand,
   flatten,
   insertText,
-  insertLines,
+  replaceSelection,
   Writeable,
 } from "./commands";
 
@@ -368,7 +368,7 @@ export const editable = <T = string>(
     e.preventDefault();
     if (!readonly) {
       copySelectedDOM(e.clipboardData!);
-      execCommand(deleteText);
+      execCommand(deleteSelection);
     }
   };
   const onPaste = (e: ClipboardEvent) => {
@@ -379,7 +379,7 @@ export const editable = <T = string>(
     if (html) {
       try {
         execCommand(
-          insertLines,
+          replaceSelection,
           takeDomSnapshot(
             document,
             new DOMParser().parseFromString(html, "text/html").body,
