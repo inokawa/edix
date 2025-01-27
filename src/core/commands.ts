@@ -89,33 +89,35 @@ const splitRow = (
 /**
  * @internal
  */
-export const insertLines: EditableCommand<[lines: DomSnapshot]> = (
-  doc,
-  selection,
-  lines
-) => {
+export const deleteSelection: EditableCommand<[]> = (doc, selection) => {
   const [anchor, focus] = selection;
-  let pos: Position;
-  let before: readonly NodeRef[];
-  let after: readonly NodeRef[];
-  if (isSamePosition(anchor, focus)) {
-    pos = anchor;
-    [before, after] = splitRow(doc, pos);
-  } else {
+  if (!isSamePosition(anchor, focus)) {
     const backward = isBackward(anchor, focus);
     const start = backward ? focus : anchor;
     const end = backward ? anchor : focus;
     const startLine = start[0];
     const endLine = end[0];
-    pos = start;
-    before = splitRow(doc, start)[0];
-    after = splitRow(doc, end)[1];
-    if (startLine !== endLine) {
-      // Remove (selected lines - 1) lines here.
-      // The remained 1 line will be removed in the next step.
-      doc.splice(startLine + 1, endLine - startLine);
-    }
+    const before = splitRow(doc, start)[0];
+    const after = splitRow(doc, end)[1];
+
+    doc.splice(startLine, endLine - startLine + 1, joinRows(before, after));
+    selection[0] = selection[1] = start;
   }
+};
+
+/**
+ * @internal
+ */
+export const replaceSelection: EditableCommand<[lines: DomSnapshot]> = (
+  doc,
+  selection,
+  lines
+) => {
+  deleteSelection(doc, selection);
+
+  // selection was collapsed with deleteSelection command
+  const pos = selection[0];
+  const [before, after] = splitRow(doc, pos);
 
   const lineLength = lines.length;
   const [line, offset] = pos;
@@ -148,20 +150,11 @@ export const insertText: EditableCommand<[text: string]> = (
   selection,
   text
 ) => {
-  insertLines(
+  replaceSelection(
     doc,
     selection,
     text.split("\n").map((l) => [l])
   );
-};
-
-/**
- * @internal
- */
-export const deleteText: EditableCommand<[]> = (doc, selection) => {
-  if (!isSamePosition(selection[0], selection[1])) {
-    insertText(doc, selection, "");
-  }
 };
 
 /**
