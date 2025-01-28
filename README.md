@@ -153,6 +153,6 @@ If you find a problem, feel free to create an [issue](https://github.com/inokawa
 
 - [rich-textarea](https://github.com/inokawa/rich-textarea) (my early work)
 - [use-editable](https://github.com/FormidableLabs/use-editable)
-- Some great text editor libraries ([prosemirror](https://prosemirror.net/), [lexical](https://github.com/facebook/lexical), [slate](https://github.com/ianstormtaylor/slate), etc.)
+- Some great text editor libraries ([ProseMirror](https://prosemirror.net/), [Lexical](https://github.com/facebook/lexical), [Slate.js](https://github.com/ianstormtaylor/slate), [Draft.js](https://github.com/facebookarchive/draft-js), etc.)
 - Proposed [EditContext API](https://github.com/w3c/edit-context)
 - Proposed [Richer Text Fields](https://open-ui.org/components/richer-text-fields.explainer/) in [Open UI](https://open-ui.org/)
