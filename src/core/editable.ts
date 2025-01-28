@@ -137,8 +137,6 @@ export const editable = <T = string>(
   let disposed = false;
   let selectionReverted = false;
   let currentSelection: SelectionSnapshot = getEmptySelectionSnapshot();
-  let flushing = false;
-  let commandExecuting = false;
   let restoreSelectionQueue: ReturnType<typeof setTimeout> | null = null;
   let isComposing = false;
   let hasFocus = false;
@@ -165,6 +163,19 @@ export const editable = <T = string>(
       }
     }
   });
+
+  const tasks = new Set<() => void>();
+
+  const queueTask = (fn: () => void) => {
+    if (!tasks.has(fn)) {
+      tasks.add(fn);
+
+      microtask(() => {
+        tasks.delete(fn);
+        fn();
+      });
+    }
+  };
 
   const restoreSelectionOnTimeout = () => {
     // We set updated selection after the next rerender, because it will modify DOM and selection again.
@@ -200,59 +211,64 @@ export const editable = <T = string>(
     currentSelection = takeSelectionSnapshot(document, element, isSingleline);
   };
 
-  const flushChanges = () => {
-    if (!flushing) {
-      flushing = true;
+  const flushInput = () => {
+    const queue = observer._flush();
 
-      microtask(() => {
-        flushing = false;
+    observer._accept(false);
+    if (queue.length) {
+      // Get current value and selection from DOM
+      const selection = takeSelectionSnapshot(document, element, isSingleline);
+      const value = takeDomSnapshot(document, element);
 
-        const queue = observer._flush();
-
-        observer._accept(false);
-        if (queue.length) {
-          // Get current value and selection from DOM
-          const selection = takeSelectionSnapshot(
-            document,
-            element,
-            isSingleline
-          );
-          const value = takeDomSnapshot(document, element);
-
-          // Revert DOM
-          let m: MutationRecord | undefined;
-          while ((m = queue.pop())) {
-            if (m.type === "characterData") {
-              (m.target as CharacterData).nodeValue = m.oldValue!;
-            } else if (m.type === "childList") {
-              const { target, removedNodes, addedNodes, nextSibling } = m;
-              for (let i = removedNodes.length - 1; i >= 0; i--) {
-                target.insertBefore(removedNodes[i]!, nextSibling);
-              }
-              for (let i = addedNodes.length - 1; i >= 0; i--) {
-                if (addedNodes[i]!.parentNode) {
-                  target.removeChild(addedNodes[i]!);
-                }
-              }
+      // Revert DOM
+      let m: MutationRecord | undefined;
+      while ((m = queue.pop())) {
+        if (m.type === "characterData") {
+          (m.target as CharacterData).nodeValue = m.oldValue!;
+        } else if (m.type === "childList") {
+          const { target, removedNodes, addedNodes, nextSibling } = m;
+          for (let i = removedNodes.length - 1; i >= 0; i--) {
+            target.insertBefore(removedNodes[i]!, nextSibling);
+          }
+          for (let i = addedNodes.length - 1; i >= 0; i--) {
+            if (addedNodes[i]!.parentNode) {
+              target.removeChild(addedNodes[i]!);
             }
           }
-          observer._flush();
-
-          const prevSelection = currentSelection;
-
-          // Restore previous selection
-          // Updating selection may schedule the next selectionchange event
-          // It should be ignored especially in firefox not to confuse editor state
-          selectionReverted = setSelectionToDOM(
-            document,
-            element,
-            prevSelection,
-            isSingleline
-          );
-
-          updateState(value, selection, prevSelection);
         }
-      });
+      }
+      observer._flush();
+
+      const prevSelection = currentSelection;
+
+      // Restore previous selection
+      // Updating selection may schedule the next selectionchange event
+      // It should be ignored especially in firefox not to confuse editor state
+      selectionReverted = setSelectionToDOM(
+        document,
+        element,
+        prevSelection,
+        isSingleline
+      );
+
+      updateState(value, selection, prevSelection);
+    }
+  };
+
+  const flushCommand = () => {
+    if (commands.length) {
+      const prevSelection = currentSelection;
+      const selection: Writeable<SelectionSnapshot> = [...currentSelection];
+      const dom: Writeable<DomSnapshot> = takeDomSnapshot(
+        document,
+        element
+      ) as Writeable<DomSnapshot>; // TODO improve type
+
+      let command: (typeof commands)[number] | undefined;
+      while ((command = commands.pop())) {
+        command[0](dom, selection, ...command[1]);
+      }
+      updateState(dom, selection, prevSelection);
     }
   };
 
@@ -262,28 +278,7 @@ export const editable = <T = string>(
   ) => {
     commands.unshift([fn, args]);
 
-    if (!commandExecuting) {
-      commandExecuting = true;
-
-      microtask(() => {
-        commandExecuting = false;
-
-        if (commands.length) {
-          const prevSelection = currentSelection;
-          const selection: Writeable<SelectionSnapshot> = [...currentSelection];
-          const dom: Writeable<DomSnapshot> = takeDomSnapshot(
-            document,
-            element
-          ) as Writeable<DomSnapshot>; // TODO improve type
-
-          let command: (typeof commands)[number] | undefined;
-          while ((command = commands.pop())) {
-            command[0](dom, selection, ...command[1]);
-          }
-          updateState(dom, selection, prevSelection);
-        }
-      });
-    }
+    queueTask(flushCommand);
   };
 
   const onKeyDown = (e: KeyboardEvent) => {
@@ -308,7 +303,7 @@ export const editable = <T = string>(
 
   const onInput = (() => {
     if (isComposing || isDragging) return;
-    flushChanges();
+    queueTask(flushInput);
   }) as (e: Event) => void;
   const onBeforeInput = (e: InputEvent) => {
     switch (e.inputType as InputType) {
@@ -336,7 +331,7 @@ export const editable = <T = string>(
   };
   const onCompositionEnd = () => {
     isComposing = false;
-    flushChanges();
+    queueTask(flushInput);
   };
 
   const onSelectionChange = () => {
@@ -409,7 +404,7 @@ export const editable = <T = string>(
   const onDragEnd = () => {
     if (isDragging) {
       isDragging = false;
-      flushChanges();
+      queueTask(flushInput);
     }
   };
 
