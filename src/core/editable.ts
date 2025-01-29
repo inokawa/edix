@@ -231,9 +231,7 @@ export const editable = <T = string>(
             target.insertBefore(removedNodes[i]!, nextSibling);
           }
           for (let i = addedNodes.length - 1; i >= 0; i--) {
-            if (addedNodes[i]!.parentNode) {
-              target.removeChild(addedNodes[i]!);
-            }
+            target.removeChild(addedNodes[i]!);
           }
         }
       }

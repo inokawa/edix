@@ -312,8 +312,12 @@ const serializePosition = (
     row = root;
     lineIndex = 0;
   } else {
-    while (row.parentNode !== root) {
-      row = row.parentNode!;
+    while (true) {
+      const parent = row.parentElement!;
+      if (parent === root) {
+        break;
+      }
+      row = parent;
     }
     lineIndex = Array.prototype.indexOf.call(root.children, row);
   }
