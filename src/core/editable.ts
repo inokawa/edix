@@ -237,25 +237,22 @@ export const editable = <T = string>(
       }
       observer._flush();
 
-      const prevSelection = currentSelection;
-
       // Restore previous selection
       // Updating selection may schedule the next selectionchange event
       // It should be ignored especially in firefox not to confuse editor state
       selectionReverted = setSelectionToDOM(
         document,
         element,
-        prevSelection,
+        currentSelection,
         isSingleline
       );
 
-      updateState(value, selection, prevSelection);
+      updateState(value, selection, currentSelection);
     }
   };
 
   const flushCommand = () => {
     if (commands.length) {
-      const prevSelection = currentSelection;
       const selection: Writeable<SelectionSnapshot> = [...currentSelection];
       const dom: Writeable<DomSnapshot> = takeDomSnapshot(
         document,
@@ -266,7 +263,7 @@ export const editable = <T = string>(
       while ((command = commands.pop())) {
         command[0](dom, selection, ...command[1]);
       }
-      updateState(dom, selection, prevSelection);
+      updateState(dom, selection, currentSelection);
     }
   };
 
