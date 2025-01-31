@@ -178,10 +178,10 @@ export const setSelectionToDOM = (
   [anchor, focus]: SelectionSnapshot,
   isSingleline: boolean
 ): boolean => {
+  const isCollapsed = isSamePosition(anchor, focus);
   const backward = isBackward(anchor, focus);
   const start = backward ? focus : anchor;
   const end = backward ? anchor : focus;
-  const isCollapsed = isSamePosition(start, end);
   // special path for empty content with empty selection, necessary for placeholder
   if (
     start[0] === 0 &&
