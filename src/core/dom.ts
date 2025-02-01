@@ -321,12 +321,12 @@ const serializePosition = (
     lineIndex = Array.prototype.indexOf.call(root.children, row);
   }
 
-  const isTargetElement = isElementNode(targetNode);
-  if (isTargetElement) {
+  if (isElementNode(targetNode)) {
     // If anchor/focus of selection is not selectable node, it will have offset relative to its parent
     //      0  1       2               3
     // <div>aaaa<img /><span>bbbb</span></div>
     targetNode = targetNode.childNodes[offsetAtNode]!;
+    offsetAtNode = 0;
   }
 
   const walker = document.createTreeWalker(row, SHOW_TEXT | SHOW_ELEMENT);
@@ -334,7 +334,6 @@ const serializePosition = (
   while ((node = findNextNode(walker, skipChildren))) {
     skipChildren = false;
     if (node === targetNode) {
-      offset += isTargetElement ? 0 : offsetAtNode;
       break;
     }
     if (isTextNode(node)) {
@@ -349,7 +348,7 @@ const serializePosition = (
       }
     }
   }
-  return [lineIndex, offset];
+  return [lineIndex, offset + offsetAtNode];
 };
 
 /**
