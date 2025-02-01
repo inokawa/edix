@@ -245,10 +245,9 @@ export const setSelectionToDOM = (
 const findPosition = (
   document: Document,
   root: Element,
-  [line, targetOffset]: Position,
+  [line, offset]: Position,
   isSingleline: boolean
-): [node: Text | Element, offsetAtNode: number] | undefined => {
-  let offset = 0;
+): [node: Text | Element, offsetAtNode: number] | void => {
   let node: Node | null;
   let skipChildren = false;
 
@@ -258,30 +257,30 @@ const findPosition = (
 
   while ((node = findNextNode(walker, skipChildren))) {
     skipChildren = false;
+
     if (isTextNode(node)) {
       const textLength = node.data.length;
-      if (offset + textLength >= targetOffset) {
-        return [node, targetOffset - offset];
+      if (offset <= textLength) {
+        return [node, offset];
       }
 
-      offset += textLength;
+      offset -= textLength;
     } else if (isElementNode(node)) {
       if (node.tagName === BR_TAG_NAME) {
-        if (offset + 1 >= targetOffset) {
+        if (offset <= 1) {
           return [node, 0];
         }
 
-        offset++;
+        offset--;
       } else if (isUneditableElement(node)) {
         skipChildren = true;
-        if (offset + 1 >= targetOffset) {
-          return [node, targetOffset - offset];
+        if (offset <= 1) {
+          return [node, offset];
         }
-        offset++;
+        offset--;
       }
     }
   }
-  return;
 };
 
 // https://stackoverflow.com/questions/9180405/detect-direction-of-user-selection-with-javascript
