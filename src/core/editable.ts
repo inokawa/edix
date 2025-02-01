@@ -129,6 +129,7 @@ export const editable = <T = string>(
 
   setContentEditable();
   element.role = "textbox";
+  // https://html.spec.whatwg.org/multipage/interaction.html#best-practices-for-in-page-editors
   element.style.whiteSpace = "pre-wrap";
   if (multiline) {
     element.ariaMultiLine = "true";
