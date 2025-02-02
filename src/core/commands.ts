@@ -97,10 +97,12 @@ export const deleteSelection: EditableCommand<[]> = (doc, selection) => {
     const end = backward ? anchor : focus;
     const startLine = start[0];
     const endLine = end[0];
-    const before = splitRow(doc, start)[0];
-    const after = splitRow(doc, end)[1];
 
-    doc.splice(startLine, endLine - startLine + 1, joinRows(before, after));
+    doc.splice(
+      startLine,
+      endLine - startLine + 1,
+      joinRows(splitRow(doc, start)[0], splitRow(doc, end)[1])
+    );
     selection[0] = selection[1] = start;
   }
 };
@@ -126,15 +128,12 @@ export const replaceSelection: EditableCommand<[lines: DomSnapshot]> = (
     doc[line] = joinRows(before, lines[0]!, after);
     selection[0] = selection[1] = [line, offset + getRowLength(lines[0]!)];
   } else {
-    const mid: (readonly NodeRef[])[] = [];
-    const last = lines[lineLength - 1]!;
-    for (let i = 1; i < lineLength - 1; i++) {
-      mid.push(lines[i]!);
-    }
+    const [first, ...mid] = lines;
+    const last = mid.pop()!;
     doc.splice(
       line,
       1,
-      joinRows(before, lines[0]!),
+      joinRows(before, first!),
       ...mid,
       joinRows(last, after)
     );
