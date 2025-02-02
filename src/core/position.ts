@@ -2,22 +2,17 @@ import type { Position } from "./types";
 
 /**
  * @internal
+ * 0 : same
+ * 1 : A is before B (forward)
+ * -1: A is after B (backward)
  */
-export const isSamePosition = (a: Position, b: Position): boolean => {
-  return a[0] === b[0] && a[1] === b[1];
-};
-
-/**
- * @internal
- */
-export const isBackward = (
-  [anchorLine, anchorOffset]: Position,
-  [focusLine, focusOffset]: Position
-): boolean => {
-  if (anchorLine === focusLine) {
-    return anchorOffset > focusOffset;
+export const comparePosition = (
+  [posAline, posAoffset]: Position,
+  [posBline, posBoffset]: Position
+): 0 | 1 | -1 => {
+  if (posAline === posBline) {
+    return posAoffset === posBoffset ? 0 : posAoffset < posBoffset ? 1 : -1;
   } else {
-    return anchorLine > focusLine;
+    return posAline < posBline ? 1 : -1;
   }
 };
-

@@ -4,7 +4,7 @@ import type {
   NodeRef,
   SelectionSnapshot,
 } from "./types";
-import { isBackward, isSamePosition } from "./position";
+import { comparePosition } from "./position";
 
 /**
  * @internal
@@ -91,8 +91,9 @@ const splitRow = (
  */
 export const deleteSelection: EditableCommand<[]> = (doc, selection) => {
   const [anchor, focus] = selection;
-  if (!isSamePosition(anchor, focus)) {
-    const backward = isBackward(anchor, focus);
+  const posDiff = comparePosition(anchor, focus);
+  if (posDiff !== 0) {
+    const backward = posDiff === -1;
     const start = backward ? focus : anchor;
     const end = backward ? anchor : focus;
     const startLine = start[0];

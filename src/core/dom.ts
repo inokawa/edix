@@ -1,4 +1,4 @@
-import { isBackward, isSamePosition } from "./position";
+import { comparePosition } from "./position";
 import { DomSnapshot, Position, NodeRef, SelectionSnapshot } from "./types";
 import { min } from "./utils";
 
@@ -178,8 +178,9 @@ export const setSelectionToDOM = (
   [anchor, focus]: SelectionSnapshot,
   isSingleline: boolean
 ): boolean => {
-  const isCollapsed = isSamePosition(anchor, focus);
-  const backward = isBackward(anchor, focus);
+  const posDiff = comparePosition(anchor, focus);
+  const isCollapsed = posDiff === 0;
+  const backward = posDiff === -1;
   const start = backward ? focus : anchor;
   const end = backward ? anchor : focus;
   // special path for empty content with empty selection, necessary for placeholder
