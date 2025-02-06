@@ -284,17 +284,6 @@ const findPosition = (
   }
 };
 
-// https://stackoverflow.com/questions/9180405/detect-direction-of-user-selection-with-javascript
-const isSelectionBackward = (selection: Selection): boolean => {
-  const position = selection.anchorNode!.compareDocumentPosition(
-    selection.focusNode!
-  );
-  // position == 0 if nodes are the same
-  return position === 0
-    ? selection.anchorOffset > selection.focusOffset
-    : (position & DOCUMENT_POSITION_PRECEDING) !== 0;
-};
-
 const serializePosition = (
   document: Document,
   root: Element,
@@ -376,8 +365,15 @@ export const takeSelectionSnapshot = (
     return getEmptySelectionSnapshot();
   }
 
-  const backward = isSelectionBackward(selection);
   const { startOffset, startContainer, endOffset, endContainer } = range;
+
+  // https://stackoverflow.com/questions/9180405/detect-direction-of-user-selection-with-javascript
+  const backward =
+    startContainer === endContainer
+      ? selection.anchorOffset > selection.focusOffset
+      : (selection.anchorNode!.compareDocumentPosition(selection.focusNode!) &
+          DOCUMENT_POSITION_PRECEDING) !==
+        0;
 
   let start: Position;
   let end: Position;
