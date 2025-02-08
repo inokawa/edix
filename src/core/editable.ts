@@ -13,11 +13,10 @@ import { microtask } from "./utils";
 import {
   deleteSelection,
   EditableCommand,
-  flatten,
   insertText,
   replaceSelection,
-  Writeable,
 } from "./commands";
+import { Writeable, flatten } from "./edit";
 
 /**
  * https://www.w3.org/TR/input-events-1/#interface-InputEvent-Attributes
