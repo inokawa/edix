@@ -42,13 +42,14 @@ export const replaceSelection: EditableCommand<[lines: DomSnapshot]> = (
 
   const lineLength = lines.length;
   const [line, offset] = pos;
+  const lastLineLength = getRowLength(lines[lineLength - 1]!);
 
   insertAt(doc, lines, pos);
   moveTo(
     selection,
     lineLength === 1
-      ? [line, offset + getRowLength(lines[0]!)]
-      : [line + lineLength - 1, getRowLength(lines[lineLength - 1]!)]
+      ? [line, offset + lastLineLength]
+      : [line + lineLength - 1, lastLineLength]
   );
 };
 
