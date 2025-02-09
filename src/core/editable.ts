@@ -8,7 +8,7 @@ import {
   getSelectedElements,
 } from "./dom";
 import { createMutationObserver } from "./mutation";
-import { DomSnapshot, SelectionSnapshot } from "./types";
+import { DomSnapshot, SelectionSnapshot, Writeable } from "./types";
 import { microtask } from "./utils";
 import {
   deleteSelection,
@@ -16,7 +16,7 @@ import {
   insertText,
   replaceSelection,
 } from "./commands";
-import { Writeable, flatten } from "./edit";
+import { flatten } from "./edit";
 
 /**
  * https://www.w3.org/TR/input-events-1/#interface-InputEvent-Attributes

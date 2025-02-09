@@ -1,15 +1,10 @@
-import { DomSnapshot, NodeRef, Position, SelectionSnapshot } from "./types";
-
-/**
- * @internal
- */
-export type Writeable<T> = T extends
-  | Record<string, unknown>
-  | readonly unknown[]
-  ? {
-      -readonly [key in keyof T]: T[key];
-    }
-  : T;
+import {
+  DomSnapshot,
+  NodeRef,
+  Position,
+  SelectionSnapshot,
+  Writeable,
+} from "./types";
 
 const isTextNode = (node: NodeRef) => typeof node === "string";
 const getNodeLength = (node: NodeRef): number =>

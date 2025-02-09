@@ -1,6 +1,6 @@
-import type { DomSnapshot, SelectionSnapshot } from "./types";
+import type { DomSnapshot, SelectionSnapshot, Writeable } from "./types";
 import { comparePosition } from "./position";
-import { deleteAt, getRowLength, insertAt, moveTo, Writeable } from "./edit";
+import { deleteAt, getRowLength, insertAt, moveTo } from "./edit";
 
 /**
  * @internal
