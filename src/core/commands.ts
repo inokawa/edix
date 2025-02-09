@@ -1,20 +1,38 @@
-import type { DomSnapshot, SelectionSnapshot } from "./types";
+import type { DomSnapshot, Position, SelectionSnapshot } from "./types";
 import { comparePosition } from "./position";
-import { deleteAt, getRowLength, insertAt, moveTo, Writeable } from "./edit";
+import { deleteEdit, Edit, getRowLength, insertEdit, moveEdit } from "./edit";
 
 /**
  * @internal
  */
 export type EditableCommand<T extends unknown[]> = (
-  doc: Writeable<DomSnapshot>,
-  selection: Writeable<SelectionSnapshot>,
+  doc: DomSnapshot,
+  selection: SelectionSnapshot,
+  apply: (...edit: Edit[]) => void,
   ...args: T
 ) => void;
 
 /**
  * @internal
  */
-export const deleteSelection: EditableCommand<[]> = (doc, selection) => {
+export const setInput: EditableCommand<
+  [doc: DomSnapshot, selection: SelectionSnapshot]
+> = (doc, __, apply, nextDoc, nextSelection) => {
+  const lastLine = doc.length - 1;
+  const origin: Position = [0, 0];
+
+  // TODO optimize
+  apply(
+    deleteEdit(origin, [lastLine, getRowLength(doc[lastLine]!)]),
+    insertEdit(origin, nextDoc),
+    moveEdit(nextSelection[0], nextSelection[1])
+  );
+};
+
+/**
+ * @internal
+ */
+export const deleteSelection: EditableCommand<[]> = (_, selection, apply) => {
   const [anchor, focus] = selection;
   const posDiff = comparePosition(anchor, focus);
   if (posDiff !== 0) {
@@ -22,8 +40,7 @@ export const deleteSelection: EditableCommand<[]> = (doc, selection) => {
     const start = backward ? focus : anchor;
     const end = backward ? anchor : focus;
 
-    deleteAt(doc, start, end);
-    moveTo(selection, start);
+    apply(deleteEdit(start, end), moveEdit(start));
   }
 };
 
@@ -33,9 +50,10 @@ export const deleteSelection: EditableCommand<[]> = (doc, selection) => {
 export const replaceSelection: EditableCommand<[lines: DomSnapshot]> = (
   doc,
   selection,
+  apply,
   lines
 ) => {
-  deleteSelection(doc, selection);
+  deleteSelection(doc, selection, apply);
 
   // selection was collapsed with deleteSelection command
   const pos = selection[0];
@@ -44,12 +62,13 @@ export const replaceSelection: EditableCommand<[lines: DomSnapshot]> = (
   const [line, offset] = pos;
   const lastLineLength = getRowLength(lines[lineLength - 1]!);
 
-  insertAt(doc, lines, pos);
-  moveTo(
-    selection,
-    lineLength === 1
-      ? [line, offset + lastLineLength]
-      : [line + lineLength - 1, lastLineLength]
+  apply(
+    insertEdit(pos, lines),
+    moveEdit(
+      lineLength === 1
+        ? [line, offset + lastLineLength]
+        : [line + lineLength - 1, lastLineLength]
+    )
   );
 };
 
@@ -59,11 +78,13 @@ export const replaceSelection: EditableCommand<[lines: DomSnapshot]> = (
 export const insertText: EditableCommand<[text: string]> = (
   doc,
   selection,
+  apply,
   text
 ) => {
   replaceSelection(
     doc,
     selection,
+    apply,
     text.split("\n").map((l) => [l])
   );
 };

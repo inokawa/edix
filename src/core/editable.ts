@@ -8,15 +8,16 @@ import {
   getSelectedElements,
 } from "./dom";
 import { createMutationObserver } from "./mutation";
-import { DomSnapshot, SelectionSnapshot } from "./types";
+import { DomSnapshot, SelectionSnapshot, Writeable } from "./types";
 import { microtask } from "./utils";
 import {
   deleteSelection,
   EditableCommand,
   insertText,
   replaceSelection,
+  setInput,
 } from "./commands";
-import { Writeable, flatten } from "./edit";
+import { applyEdit, Edit, flatten } from "./edit";
 
 /**
  * https://www.w3.org/TR/input-events-1/#interface-InputEvent-Attributes
@@ -187,26 +188,6 @@ export const editable = <T = string>(
     });
   };
 
-  const updateState = (
-    dom: DomSnapshot,
-    selection: SelectionSnapshot,
-    prevSelection: SelectionSnapshot
-  ) => {
-    if (!readonly) {
-      if (isSingleline) {
-        [dom, selection] = flatten(dom, selection);
-      }
-      const value = serialize(dom);
-
-      history.set([history.get()[0], prevSelection]);
-      history.push([value, selection]);
-      currentSelection = selection;
-      onChange(value);
-    }
-
-    restoreSelectionOnTimeout();
-  };
-
   const syncSelection = () => {
     currentSelection = takeSelectionSnapshot(document, element, isSingleline);
   };
@@ -247,23 +228,43 @@ export const editable = <T = string>(
         isSingleline
       );
 
-      updateState(value, selection, currentSelection);
+      execCommand(setInput, value, selection);
     }
   };
 
   const flushCommand = () => {
     if (commands.length) {
-      const selection: Writeable<SelectionSnapshot> = [...currentSelection];
-      const dom: Writeable<DomSnapshot> = takeDomSnapshot(
+      let selection: Writeable<SelectionSnapshot> = [...currentSelection];
+      let dom: Writeable<DomSnapshot> = takeDomSnapshot(
         document,
         element
       ) as Writeable<DomSnapshot>; // TODO improve type
 
+      const apply = (...edits: Edit[]) => {
+        edits.forEach((edit) => {
+          applyEdit(dom, selection, edit);
+        });
+      };
+
       let command: (typeof commands)[number] | undefined;
       while ((command = commands.pop())) {
-        command[0](dom, selection, ...command[1]);
+        command[0](dom, selection, apply, ...command[1]);
       }
-      updateState(dom, selection, currentSelection);
+
+      // TODO check value is updated
+      if (!readonly) {
+        if (isSingleline) {
+          [dom, selection] = flatten(dom, selection);
+        }
+        const value = serialize(dom);
+
+        history.set([history.get()[0], currentSelection]);
+        history.push([value, selection]);
+        currentSelection = selection;
+        onChange(value);
+      }
+
+      restoreSelectionOnTimeout();
     }
   };
 
