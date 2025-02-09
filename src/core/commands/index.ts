@@ -1,4 +1,9 @@
-import type { DomSnapshot, SelectionSnapshot, Writeable } from "../types";
+import type {
+  DomSnapshot,
+  Position,
+  SelectionSnapshot,
+  Writeable,
+} from "../types";
 import { comparePosition } from "../position";
 import { deleteEdit, insertEdit } from "./edit";
 
@@ -14,8 +19,11 @@ export type EditableCommand<T extends unknown[]> = (
 /**
  * @internal
  */
-export const Delete: EditableCommand<[]> = (doc, selection) => {
-  const [anchor, focus] = selection;
+export const Delete: EditableCommand<[range?: SelectionSnapshot]> = (
+  doc,
+  selection,
+  [anchor, focus] = selection
+) => {
   const posDiff = comparePosition(anchor, focus);
   if (posDiff !== 0) {
     const backward = posDiff === -1;
@@ -61,4 +69,15 @@ export const InsertText: EditableCommand<[text: string]> = (
     selection,
     text.split("\n").map((l) => [l])
   );
+};
+
+/**
+ * @internal
+ */
+export const MoveTo: EditableCommand<[position: Position]> = (
+  _doc,
+  selection,
+  position
+) => {
+  selection[0] = selection[1] = position;
 };

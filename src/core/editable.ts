@@ -6,6 +6,7 @@ import {
   takeDomSnapshot,
   getEmptySelectionSnapshot,
   getSelectedElements,
+  getPointedCaretPosition,
 } from "./dom";
 import { createMutationObserver } from "./mutation";
 import { DomSnapshot, SelectionSnapshot, Writeable } from "./types";
@@ -15,6 +16,7 @@ import {
   EditableCommand,
   InsertText,
   InsertFragment,
+  MoveTo,
 } from "./commands";
 import { flatten } from "./commands/edit";
 import { EditableSchema } from "./schema";
@@ -300,7 +302,7 @@ export const editable = <T>(
   };
 
   const onInput = (() => {
-    if (isComposing || isDragging) return;
+    if (isComposing) return;
     queueTask(flushInput);
   }) as (e: Event) => void;
   const onBeforeInput = (e: InputEvent) => {
@@ -332,11 +334,20 @@ export const editable = <T>(
     queueTask(flushInput);
   };
 
+  const onFocus = () => {
+    hasFocus = true;
+    syncSelection();
+  };
+  const onBlur = () => {
+    hasFocus = false;
+  };
+
   const onSelectionChange = () => {
     if (selectionReverted) {
       selectionReverted = false;
       return;
     }
+    // Safari may dispatch selectionchange event after dragstart
     if (hasFocus && !isComposing && !isDragging) {
       syncSelection();
     }
@@ -347,6 +358,15 @@ export const editable = <T>(
     if (!selected) return;
 
     copy(dataTransfer, takeDomSnapshot(document, selected), selected);
+  };
+
+  const insertData = (dataTransfer: DataTransfer) => {
+    const data = getPastableData(dataTransfer);
+    if (typeof data === "string") {
+      execCommand(InsertText, data);
+    } else {
+      execCommand(InsertFragment, takeDomSnapshot(document, data));
+    }
   };
 
   const onCopy = (e: ClipboardEvent) => {
@@ -362,30 +382,36 @@ export const editable = <T>(
   };
   const onPaste = (e: ClipboardEvent) => {
     e.preventDefault();
-    const data = getPastableData(e.clipboardData!);
-    if (typeof data === "string") {
-      execCommand(InsertText, data);
-    } else {
-      execCommand(InsertFragment, takeDomSnapshot(document, data));
+    insertData(e.clipboardData!);
+  };
+
+  const onDrop = (e: DragEvent) => {
+    e.preventDefault();
+
+    const dataTransfer = e.dataTransfer;
+    const droppedPosition = getPointedCaretPosition(
+      document,
+      element,
+      e,
+      isSingleline
+    );
+    if (dataTransfer && droppedPosition) {
+      // move selection first to keep selection after modifications
+      execCommand(MoveTo, droppedPosition);
+      if (isDragging) {
+        execCommand(Delete, currentSelection);
+      } else {
+        element.focus();
+      }
+      insertData(dataTransfer);
     }
   };
-
-  const onFocus = () => {
-    hasFocus = true;
-    syncSelection();
-  };
-  const onBlur = () => {
-    hasFocus = false;
-  };
-
-  const onDragStart = () => {
+  const onDragStart = (e: DragEvent) => {
     isDragging = true;
+    copySelectedDOM(e.dataTransfer!);
   };
   const onDragEnd = () => {
-    if (isDragging) {
-      isDragging = false;
-      queueTask(flushInput);
-    }
+    isDragging = false;
   };
 
   document.addEventListener("selectionchange", onSelectionChange);
@@ -394,11 +420,12 @@ export const editable = <T>(
   element.addEventListener("beforeinput", onBeforeInput);
   element.addEventListener("compositionstart", onCompositionStart);
   element.addEventListener("compositionend", onCompositionEnd);
+  element.addEventListener("focus", onFocus);
+  element.addEventListener("blur", onBlur);
   element.addEventListener("copy", onCopy);
   element.addEventListener("cut", onCut);
   element.addEventListener("paste", onPaste);
-  element.addEventListener("focus", onFocus);
-  element.addEventListener("blur", onBlur);
+  element.addEventListener("drop", onDrop);
   element.addEventListener("dragstart", onDragStart);
   element.addEventListener("dragend", onDragEnd);
 
@@ -421,11 +448,12 @@ export const editable = <T>(
       element.removeEventListener("beforeinput", onBeforeInput);
       element.removeEventListener("compositionstart", onCompositionStart);
       element.removeEventListener("compositionend", onCompositionEnd);
+      element.removeEventListener("focus", onFocus);
+      element.removeEventListener("blur", onBlur);
       element.removeEventListener("copy", onCopy);
       element.removeEventListener("cut", onCut);
       element.removeEventListener("paste", onPaste);
-      element.removeEventListener("focus", onFocus);
-      element.removeEventListener("blur", onBlur);
+      element.removeEventListener("drop", onDrop);
       element.removeEventListener("dragstart", onDragStart);
       element.removeEventListener("dragend", onDragEnd);
     },

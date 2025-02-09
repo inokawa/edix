@@ -342,3 +342,43 @@ export const getSelectedElements = (root: Element): Node | undefined => {
   if (!range) return;
   return range.cloneContents();
 };
+
+/**
+ * @internal
+ */
+export const getPointedCaretPosition = (
+  document: Document,
+  root: Element,
+  { clientX, clientY }: MouseEvent,
+  isSingleline: boolean
+): Position | void => {
+  // https://developer.mozilla.org/en-US/docs/Web/API/Document/caretPositionFromPoint
+  // https://developer.mozilla.org/en-US/docs/Web/API/Document/caretRangeFromPoint
+  //          caretPositionFromPoint caretRangeFromPoint
+  // Chrome:  128                    4
+  // Firefox: 20                     -
+  // Safari:  -                      5
+  if (document.caretPositionFromPoint) {
+    const position = document.caretPositionFromPoint(clientX, clientY);
+    if (position) {
+      return serializePosition(
+        document,
+        root,
+        position.offsetNode,
+        position.offset,
+        isSingleline
+      );
+    }
+  } else if (document.caretRangeFromPoint) {
+    const range = document.caretRangeFromPoint(clientX, clientY);
+    if (range) {
+      return serializePosition(
+        document,
+        root,
+        range.startContainer,
+        range.startOffset,
+        isSingleline
+      );
+    }
+  }
+};
