@@ -1,6 +1,18 @@
-import type { DomSnapshot, SelectionSnapshot, Writeable } from "./types";
+import type {
+  DomSnapshot,
+  Position,
+  SelectionSnapshot,
+  Writeable,
+} from "./types";
 import { comparePosition } from "./position";
-import { deleteAt, getRowLength, insertAt, moveTo } from "./edit";
+import {
+  calcPositionDiff,
+  deleteAt,
+  getRowLength,
+  insertAt,
+  movePosition,
+  moveTo,
+} from "./edit";
 
 /**
  * @internal
@@ -66,4 +78,22 @@ export const insertText: EditableCommand<[text: string]> = (
     selection,
     text.split("\n").map((l) => [l])
   );
+};
+
+/**
+ * @internal
+ */
+export const dropMove: EditableCommand<
+  [position: Position, deleteByDrag: boolean]
+> = (doc, selection, position, deleteByDrag) => {
+  if (deleteByDrag) {
+    deleteSelection(doc, selection);
+
+    position = movePosition(
+      doc,
+      position,
+      calcPositionDiff(selection[0], selection[1], doc)
+    );
+  }
+  moveTo(selection, position);
 };

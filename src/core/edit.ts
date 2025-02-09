@@ -1,3 +1,4 @@
+import { comparePosition } from "./position";
 import {
   DomSnapshot,
   NodeRef,
@@ -14,6 +15,74 @@ const getNodeLength = (node: NodeRef): number =>
  */
 export const getRowLength = (nodes: readonly NodeRef[]): number =>
   nodes.reduce((acc, n) => acc + getNodeLength(n), 0);
+
+/**
+ * @internal
+ */
+export const calcPositionDiff = (
+  pos1: Position,
+  pos2: Position,
+  doc: DomSnapshot
+): number => {
+  const isBackward = comparePosition(pos1, pos2) === -1;
+  const [startLine, startOffset] = isBackward ? pos2 : pos1;
+  const [endLine, endOffset] = isBackward ? pos1 : pos2;
+  let offset = 0;
+  if (endLine - startLine === 0) {
+    offset = endOffset - startOffset;
+  } else {
+    for (let i = startLine; i <= endLine; i++) {
+      let offsetAtLine = 0;
+      for (const node of doc[i]!) {
+        const length = getNodeLength(node);
+        if (
+          (i === startLine && offsetAtLine + length >= startOffset) ||
+          (i === endLine && offsetAtLine + length <= endOffset)
+        ) {
+          // skip
+        } else {
+          offsetAtLine += length;
+        }
+      }
+      offset += offsetAtLine;
+    }
+  }
+  return isBackward ? -offset : offset;
+};
+
+/**
+ * @internal
+ */
+export const movePosition = (
+  doc: DomSnapshot,
+  [line, offset]: Position,
+  dist: number
+): Position => {
+  while (dist !== 0) {
+    if (dist > 0) {
+      const rowLength = getRowLength(doc[line]!) - offset;
+      if (dist <= rowLength) {
+        offset += dist;
+        dist = 0;
+      } else {
+        dist -= rowLength;
+        offset = 0;
+        line++;
+      }
+    } else {
+      if (offset + dist >= 0) {
+        offset += dist;
+        dist = 0;
+      } else {
+        dist += offset;
+        offset = getRowLength(doc[line]!);
+        line--;
+      }
+    }
+  }
+
+  return [line, offset];
+};
 
 const insertNodeAfter = (row: NodeRef[], index: number, node: NodeRef) => {
   const target = row[index]!;
@@ -129,28 +198,15 @@ export const moveTo = (
  */
 export const flatten = (
   doc: DomSnapshot,
-  [[anchorLine, anchorOffset], [focusLine, focusOffset]]: SelectionSnapshot
+  [anchor, focus]: SelectionSnapshot
 ): [DomSnapshot, SelectionSnapshot] => {
-  let offsetBeforeAnchor = 0;
-  let offsetBeforeFocus = 0;
-
-  for (let i = 0; i < doc.length; i++) {
-    for (const node of doc[i]!) {
-      const length = getNodeLength(node);
-      if (i < anchorLine) {
-        offsetBeforeAnchor += length;
-      }
-      if (i < focusLine) {
-        offsetBeforeFocus += length;
-      }
-    }
-  }
+  const origin: Position = [0, 0];
 
   return [
     [joinRows(...doc)],
     [
-      [0, offsetBeforeAnchor + anchorOffset],
-      [0, offsetBeforeFocus + focusOffset],
+      [0, calcPositionDiff(origin, anchor, doc)],
+      [0, calcPositionDiff(origin, focus, doc)],
     ],
   ];
 };
