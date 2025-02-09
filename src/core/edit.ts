@@ -1,15 +1,10 @@
-import { DomSnapshot, NodeRef, Position, SelectionSnapshot } from "./types";
-
-/**
- * @internal
- */
-export type Writeable<T> = T extends
-  | Record<string, unknown>
-  | readonly unknown[]
-  ? {
-      -readonly [key in keyof T]: T[key];
-    }
-  : T;
+import {
+  DomSnapshot,
+  NodeRef,
+  Position,
+  SelectionSnapshot,
+  Writeable,
+} from "./types";
 
 const isTextNode = (node: NodeRef) => typeof node === "string";
 const getNodeLength = (node: NodeRef): number =>
@@ -74,59 +69,103 @@ const splitRow = (
   return [row, []];
 };
 
+const INSERT_EDIT = 1;
+type InsertEdit = readonly [
+  type: typeof INSERT_EDIT,
+  payload: readonly [pos: Position, node: DomSnapshot]
+];
+
+const DELETE_EDIT = 2;
+type DeleteEdit = readonly [
+  type: typeof DELETE_EDIT,
+  payload: readonly [start: Position, end: Position]
+];
+
+const MOVE_EDIT = 3;
+type MoveEdit = readonly [
+  type: typeof MOVE_EDIT,
+  payload: readonly [anchor: Position, focus?: Position]
+];
+
 /**
  * @internal
  */
-export const insertAt = (
+export type Edit = InsertEdit | DeleteEdit | MoveEdit;
+
+/**
+ * @internal
+ */
+export const insertEdit = (pos: Position, node: DomSnapshot): InsertEdit => [
+  INSERT_EDIT,
+  [pos, node],
+];
+
+/**
+ * @internal
+ */
+export const deleteEdit = (start: Position, end: Position): DeleteEdit => [
+  DELETE_EDIT,
+  [start, end],
+];
+
+/**
+ * @internal
+ */
+export const moveEdit = (anchor: Position, focus?: Position): MoveEdit => [
+  MOVE_EDIT,
+  [anchor, focus],
+];
+
+/**
+ * @internal
+ */
+export const applyEdit = (
   doc: Writeable<DomSnapshot>,
-  lines: DomSnapshot,
-  pos: Position
-) => {
-  const [before, after] = splitRow(doc, pos);
-
-  const lineLength = lines.length;
-  const [line] = pos;
-
-  if (lineLength === 1) {
-    doc[line] = joinRows(before, lines[0]!, after);
-  } else {
-    const [first, ...mid] = lines;
-    const last = mid.pop()!;
-    doc.splice(
-      line,
-      1,
-      joinRows(before, first!),
-      ...mid,
-      joinRows(last, after)
-    );
-  }
-};
-
-/**
- * @internal
- */
-export const deleteAt = (
-  doc: Writeable<DomSnapshot>,
-  start: Position,
-  end: Position
-) => {
-  const startLine = start[0];
-  const endLine = end[0];
-  doc.splice(
-    startLine,
-    endLine - startLine + 1,
-    joinRows(splitRow(doc, start)[0], splitRow(doc, end)[1])
-  );
-};
-
-/**
- * @internal
- */
-export const moveTo = (
   selection: Writeable<SelectionSnapshot>,
-  pos: Position
+  [type, payload]: Edit
 ) => {
-  selection[0] = selection[1] = pos;
+  switch (type) {
+    case INSERT_EDIT: {
+      const [pos, lines] = payload;
+
+      const [before, after] = splitRow(doc, pos);
+
+      const lineLength = lines.length;
+      const [line] = pos;
+
+      if (lineLength === 1) {
+        doc[line] = joinRows(before, lines[0]!, after);
+      } else {
+        const [first, ...mid] = lines;
+        const last = mid.pop()!;
+        doc.splice(
+          line,
+          1,
+          joinRows(before, first!),
+          ...mid,
+          joinRows(last, after)
+        );
+      }
+      break;
+    }
+    case DELETE_EDIT: {
+      const [start, end] = payload;
+
+      const startLine = start[0];
+      const endLine = end[0];
+      doc.splice(
+        startLine,
+        endLine - startLine + 1,
+        joinRows(splitRow(doc, start)[0], splitRow(doc, end)[1])
+      );
+      break;
+    }
+    case MOVE_EDIT: {
+      selection[0] = payload[0];
+      selection[1] = payload[1] || payload[0];
+      break;
+    }
+  }
 };
 
 /**
@@ -135,7 +174,7 @@ export const moveTo = (
 export const flatten = (
   doc: DomSnapshot,
   [[anchorLine, anchorOffset], [focusLine, focusOffset]]: SelectionSnapshot
-): [DomSnapshot, SelectionSnapshot] => {
+): [Writeable<DomSnapshot>, Writeable<SelectionSnapshot>] => {
   let offsetBeforeAnchor = 0;
   let offsetBeforeFocus = 0;
 
