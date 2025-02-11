@@ -29,8 +29,9 @@ test.describe("type word", () => {
       // Input
       const text = "test";
       await input(editable, text);
-      const value = await getText(editable);
-      expect(value).toEqual(insertAt(initialValue, text, [0, 0]));
+      expect(await getText(editable)).toEqual(
+        insertAt(initialValue, text, [0, 0])
+      );
       const textLength = text.length;
       expect(await getSelection(editable)).toEqual(
         createSelection({ offset: textLength })
@@ -56,8 +57,9 @@ test.describe("type word", () => {
       // Input
       const text = "test";
       await input(editable, text);
-      const value = await getText(editable);
-      expect(value).toEqual(insertAt(initialValue, text, [0, 1]));
+      expect(await getText(editable)).toEqual(
+        insertAt(initialValue, text, [0, 1])
+      );
       const textLength = text.length;
       expect(await getSelection(editable)).toEqual(
         createSelection({ offset: 1 + textLength })
@@ -84,8 +86,9 @@ test.describe("type word", () => {
       // Input
       const text = "test";
       await input(editable, text);
-      const value = await getText(editable);
-      expect(value).toEqual(insertAt(initialValue, text, [1, 1]));
+      expect(await getText(editable)).toEqual(
+        insertAt(initialValue, text, [1, 1])
+      );
       const textLength = text.length;
       expect(await getSelection(editable)).toEqual(
         createSelection({ line: 1, offset: 1 + textLength })
@@ -119,8 +122,9 @@ test.describe("type word", () => {
         text: "😂😭",
       });
 
-      const value = await getText(editable);
-      expect(value).toEqual(insertAt(initialValue, "😂😭", [0, 0]));
+      expect(await getText(editable)).toEqual(
+        insertAt(initialValue, "😂😭", [0, 0])
+      );
       const textLength = "😂😭".length;
       expect(await getSelection(editable)).toEqual(
         createSelection({ offset: textLength })
@@ -142,8 +146,9 @@ test.describe("type word", () => {
       // Input
       const text = "test";
       await input(editable, text);
-      const value = await getText(editable);
-      expect(value).toEqual(insertAt(initialValue, text, [0, 0]));
+      expect(await getText(editable)).toEqual(
+        insertAt(initialValue, text, [0, 0])
+      );
       const textLength = text.length;
       expect(await getSelection(editable, true)).toEqual(
         createSelection({ offset: textLength })
@@ -169,8 +174,9 @@ test.describe("type word", () => {
       // Input
       const text = "test";
       await input(editable, text);
-      const value = await getText(editable);
-      expect(value).toEqual(insertAt(initialValue, text, [0, 1]));
+      expect(await getText(editable)).toEqual(
+        insertAt(initialValue, text, [0, 1])
+      );
       const textLength = text.length;
       expect(await getSelection(editable, true)).toEqual(
         createSelection({ offset: 1 + textLength })
@@ -204,8 +210,9 @@ test.describe("type word", () => {
         text: "😂😭",
       });
 
-      const value = await getText(editable);
-      expect(value).toEqual(insertAt(initialValue, "😂😭", [0, 0]));
+      expect(await getText(editable)).toEqual(
+        insertAt(initialValue, "😂😭", [0, 0])
+      );
       const textLength = "😂😭".length;
       expect(await getSelection(editable, true)).toEqual(
         createSelection({ offset: textLength })
@@ -242,8 +249,7 @@ test.describe("replace range", () => {
     const char = "a";
     const charLength = char.length;
     await input(editable, char);
-    const value = await getText(editable);
-    expect(value).toEqual(
+    expect(await getText(editable)).toEqual(
       insertAt(deleteAt(initialValue, selLength, [0, 1]), char, [0, 1])
     );
     expect(await getSelection(editable)).toEqual(
@@ -278,8 +284,7 @@ test.describe("replace range", () => {
     const charLength = char.length;
     await input(editable, char);
 
-    const value = await getText(editable);
-    expect(value).toEqual([
+    expect(await getText(editable)).toEqual([
       initialValue[0].slice(0, len) + char + initialValue[1].slice(len),
       ...initialValue.slice(2),
     ]);
@@ -315,8 +320,7 @@ test.describe("replace range", () => {
     const charLength = char.length;
     await input(editable, char);
 
-    const value = await getText(editable);
-    expect(value).toEqual([char]);
+    expect(await getText(editable)).toEqual([char]);
     expect(await getSelection(editable)).toEqual(
       createSelection({ offset: charLength })
     );
@@ -402,26 +406,22 @@ test.describe("Keydown", () => {
       // Press enter
       await page.keyboard.press("Enter");
 
-      {
-        const value = await getText(editable);
-        expect(value).toEqual(insertLineBreakAt(initialValue, [0, 2]));
-        expect(await getSelection(editable)).toEqual(
-          createSelection({ line: 1 })
-        );
-      }
+      const splittedValue = insertLineBreakAt(initialValue, [0, 2]);
+
+      expect(await getText(editable)).toEqual(splittedValue);
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ line: 1 })
+      );
 
       // Press enter again
       await page.keyboard.press("Enter");
 
-      {
-        const value = await getText(editable);
-        expect(value).toEqual(
-          insertLineBreakAt(insertLineBreakAt(initialValue, [0, 2]), [1, 0])
-        );
-        expect(await getSelection(editable)).toEqual(
-          createSelection({ line: 2 })
-        );
-      }
+      expect(await getText(editable)).toEqual(
+        insertLineBreakAt(splittedValue, [1, 0])
+      );
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ line: 2 })
+      );
     });
 
     test("singleline", async ({ page }) => {
@@ -470,8 +470,9 @@ test.describe("Keydown", () => {
       // delete
       await page.keyboard.press("Backspace");
 
-      const value = await getText(editable);
-      expect(value).toEqual(deleteAt(initialValue, 1, [0, 1]));
+      expect(await getText(editable)).toEqual(
+        deleteAt(initialValue, 1, [0, 1])
+      );
       expect(await getSelection(editable)).toEqual(
         createSelection({ offset: 1 })
       );
@@ -502,8 +503,9 @@ test.describe("Keydown", () => {
       // delete
       await page.keyboard.press("Backspace");
 
-      const value = await getText(editable);
-      expect(value).toEqual(deleteAt(initialValue, selLength, [0, 1]));
+      expect(await getText(editable)).toEqual(
+        deleteAt(initialValue, selLength, [0, 1])
+      );
       expect(await getSelection(editable)).toEqual(
         createSelection({ offset: 1 })
       );
@@ -534,8 +536,7 @@ test.describe("Keydown", () => {
       // delete
       await page.keyboard.press("Backspace");
 
-      const value = await getText(editable);
-      expect(value).toEqual([
+      expect(await getText(editable)).toEqual([
         initialValue[0].slice(0, len) + initialValue[1].slice(len),
         ...initialValue.slice(2),
       ]);
@@ -569,8 +570,7 @@ test.describe("Keydown", () => {
       // delete
       await page.keyboard.press("Backspace");
 
-      const value = await getText(editable);
-      expect(value).toEqual([""]);
+      expect(await getText(editable)).toEqual([""]);
       expect(await getSelection(editable)).toEqual(createSelection());
     });
   });
@@ -595,8 +595,9 @@ test.describe("Keydown", () => {
       // delete
       await page.keyboard.press("Delete");
 
-      const value = await getText(editable);
-      expect(value).toEqual(deleteAt(initialValue, 1, [0, 2]));
+      expect(await getText(editable)).toEqual(
+        deleteAt(initialValue, 1, [0, 2])
+      );
       expect(await getSelection(editable)).toEqual(
         createSelection({ offset: 2 })
       );
@@ -629,8 +630,9 @@ test.describe("Keydown", () => {
       // delete
       await page.keyboard.press("Delete");
 
-      const value = await getText(editable);
-      expect(value).toEqual(deleteAt(initialValue, selLength, [0, 1]));
+      expect(await getText(editable)).toEqual(
+        deleteAt(initialValue, selLength, [0, 1])
+      );
       expect(await getSelection(editable)).toEqual(
         createSelection({ offset: 1 })
       );
@@ -661,8 +663,7 @@ test.describe("Keydown", () => {
       // delete
       await page.keyboard.press("Delete");
 
-      const value = await getText(editable);
-      expect(value).toEqual([
+      expect(await getText(editable)).toEqual([
         initialValue[0].slice(0, len) + initialValue[1].slice(len),
         ...initialValue.slice(2),
       ]);
@@ -696,8 +697,7 @@ test.describe("Keydown", () => {
       // delete
       await page.keyboard.press("Delete");
 
-      const value = await getText(editable);
-      expect(value).toEqual([""]);
+      expect(await getText(editable)).toEqual([""]);
       expect(await getSelection(editable)).toEqual(createSelection());
     });
   });
@@ -723,8 +723,7 @@ test.describe("Cut", () => {
     // cut
     await page.keyboard.press("ControlOrMeta+X");
 
-    const value = await getText(editable);
-    expect(value).toEqual(initialValue);
+    expect(await getText(editable)).toEqual(initialValue);
     expect(await getSelection(editable)).toEqual(
       createSelection({ offset: 2 })
     );
@@ -757,8 +756,9 @@ test.describe("Cut", () => {
     // cut
     await page.keyboard.press("ControlOrMeta+X");
 
-    const value = await getText(editable);
-    expect(value).toEqual(deleteAt(initialValue, selLength, [0, 1]));
+    expect(await getText(editable)).toEqual(
+      deleteAt(initialValue, selLength, [0, 1])
+    );
     expect(await getSelection(editable)).toEqual(
       createSelection({ offset: 1 })
     );
@@ -789,8 +789,7 @@ test.describe("Cut", () => {
     // cut
     await page.keyboard.press("ControlOrMeta+X");
 
-    const value = await getText(editable);
-    expect(value).toEqual([
+    expect(await getText(editable)).toEqual([
       initialValue[0].slice(0, len) + initialValue[1].slice(len),
       ...initialValue.slice(2),
     ]);
@@ -824,8 +823,7 @@ test.describe("Cut", () => {
     // cut
     await page.keyboard.press("ControlOrMeta+X");
 
-    const value = await getText(editable);
-    expect(value).toEqual([""]);
+    expect(await getText(editable)).toEqual([""]);
     expect(await getSelection(editable)).toEqual(createSelection());
   });
 });
@@ -909,8 +907,9 @@ test.describe("Paste", () => {
       await page.keyboard.press("ControlOrMeta+V");
 
       const charLength = pastedText.length;
-      const value = await getText(editable);
-      expect(value).toEqual(insertAt(initialValue, pastedText, [0, 2]));
+      expect(await getText(editable)).toEqual(
+        insertAt(initialValue, pastedText, [0, 2])
+      );
       expect(await getSelection(editable)).toEqual(
         createSelection({ offset: 2 + charLength })
       );
@@ -938,8 +937,7 @@ test.describe("Paste", () => {
       await page.keyboard.press("ControlOrMeta+V");
 
       const [beforeLineBreak, afterLineBreak] = pastedText.split("\n");
-      const value = await getText(editable);
-      expect(value).toEqual(
+      expect(await getText(editable)).toEqual(
         insertLineBreakAt(
           insertAt(initialValue, beforeLineBreak + afterLineBreak, [0, 2]),
           [0, 2 + beforeLineBreak.length]
@@ -974,8 +972,9 @@ test.describe("Paste", () => {
       await page.keyboard.press("ControlOrMeta+V");
 
       const charLength = pastedText.length;
-      const value = await getText(editable);
-      expect(value).toEqual(insertAt(initialValue, pastedText, [0, 2]));
+      expect(await getText(editable)).toEqual(
+        insertAt(initialValue, pastedText, [0, 2])
+      );
       expect(await getSelection(editable)).toEqual(
         createSelection({ offset: 2 + charLength })
       );
@@ -1004,8 +1003,7 @@ test.describe("Paste", () => {
 
       const pastedTextWithoutLinebreak = pastedText.split("\n").join("");
       const charLength = pastedTextWithoutLinebreak.length;
-      const value = await getText(editable);
-      expect(value).toEqual(
+      expect(await getText(editable)).toEqual(
         insertAt(initialValue, pastedTextWithoutLinebreak, [0, 2])
       );
       expect(await getSelection(editable)).toEqual(
@@ -1146,8 +1144,9 @@ test.describe("undo and redo", () => {
 
     const text = "z";
     await input(editable, text);
-    const value = await getText(editable);
-    expect(value).toEqual(insertAt(initialValue, text, [0, 0]));
+
+    const editedValue = insertAt(initialValue, text, [0, 0]);
+    expect(await getText(editable)).toEqual(editedValue);
 
     // undo
     await page.keyboard.press(`ControlOrMeta+Z`);
@@ -1155,7 +1154,7 @@ test.describe("undo and redo", () => {
 
     // redo
     await page.keyboard.press(`ControlOrMeta+Shift+Z`);
-    expect(value).toEqual(insertAt(initialValue, text, [0, 0]));
+    expect(await getText(editable)).toEqual(editedValue);
   });
 });
 
@@ -1177,9 +1176,10 @@ test("rtl", async ({ page }) => {
     // Input
     const text = "test";
     await input(editable, text);
-    const value = await getText(editable);
     const textLength = text.length;
-    expect(value).toEqual(insertAt(initialValue, text, [0, 1]));
+    expect(await getText(editable)).toEqual(
+      insertAt(initialValue, text, [0, 1])
+    );
     expect(await getSelection(editable)).toEqual(
       createSelection({ offset: 1 + textLength })
     );
@@ -1215,8 +1215,7 @@ test("readonly", async ({ page, browserName }) => {
   //   // Input should be ignored
   //   const text = "test";
   //   await input(editable, text);
-  //   const value = await getText(editable);
-  //   expect(value).toEqual(initialValue);
+  //   expect(await getText(editable)).toEqual(initialValue);
   //   expect(await getSelection(editable)).toEqual(
   //     createSelection({ offset: 1 })
   //   );
@@ -1238,8 +1237,7 @@ test("readonly", async ({ page, browserName }) => {
   //   await client.send("Input.insertText", {
   //     text: "😂😭",
   //   });
-  //   const value = await getText(editable);
-  //   expect(value).toEqual(initialValue);
+  //   expect(await getText(editable)).toEqual(initialValue);
   //   expect(await getSelection(editable)).toEqual(
   //     createSelection({ offset: 1 })
   //   );
@@ -1303,79 +1301,66 @@ test.describe("keep state on render", () => {
     expect(await getSelection(editable)).toEqual(
       createSelection({ offset: markedOffset })
     );
-    {
-      // insert
-      await input(editable, char);
 
-      const value = await getText(editable);
-      expect(value).toEqual(insertAt(initialValue, char, [0, markedOffset]));
-      expect(await getSelection(editable)).toEqual(
-        createSelection({ offset: markedOffset + 1 })
-      );
-    }
-    {
-      // delete
-      await page.keyboard.press("Backspace");
-      const value = await getText(editable);
-      expect(value).toEqual(initialValue);
-      expect(await getSelection(editable)).toEqual(
-        createSelection({ offset: markedOffset })
-      );
-    }
+    // insert
+    await input(editable, char);
+    expect(await getText(editable)).toEqual(
+      insertAt(initialValue, char, [0, markedOffset])
+    );
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: markedOffset + 1 })
+    );
+
+    // delete
+    await page.keyboard.press("Backspace");
+    expect(await getText(editable)).toEqual(initialValue);
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: markedOffset })
+    );
 
     // type on node
     await page.keyboard.press("ArrowRight");
     expect(await getSelection(editable)).toEqual(
       createSelection({ offset: markedOffset + 1 })
     );
-    {
-      // insert
-      await input(editable, char);
 
-      const value = await getText(editable);
-      expect(value).toEqual(
-        insertAt(initialValue, char, [0, markedOffset + 1])
-      );
-      expect(await getSelection(editable)).toEqual(
-        createSelection({ offset: markedOffset + 2 })
-      );
-    }
-    {
-      // delete
-      await page.keyboard.press("Backspace");
-      const value = await getText(editable);
-      expect(value).toEqual(initialValue);
-      expect(await getSelection(editable)).toEqual(
-        createSelection({ offset: markedOffset + 1 })
-      );
-    }
+    // insert
+    await input(editable, char);
+    expect(await getText(editable)).toEqual(
+      insertAt(initialValue, char, [0, markedOffset + 1])
+    );
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: markedOffset + 2 })
+    );
+
+    // delete
+    await page.keyboard.press("Backspace");
+    expect(await getText(editable)).toEqual(initialValue);
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: markedOffset + 1 })
+    );
 
     // type just after node
     await loop(searchValueLength - 1, () => page.keyboard.press("ArrowRight"));
     expect(await getSelection(editable)).toEqual(
       createSelection({ offset: markedOffset + searchValueLength })
     );
-    {
-      // insert
-      await input(editable, char);
 
-      const value = await getText(editable);
-      expect(value).toEqual(
-        insertAt(initialValue, char, [0, markedOffset + searchValueLength])
-      );
-      expect(await getSelection(editable)).toEqual(
-        createSelection({ offset: markedOffset + searchValueLength + 1 })
-      );
-    }
-    {
-      // delete
-      await page.keyboard.press("Backspace");
-      const value = await getText(editable);
-      expect(value).toEqual(initialValue);
-      expect(await getSelection(editable)).toEqual(
-        createSelection({ offset: markedOffset + searchValueLength })
-      );
-    }
+    // insert
+    await input(editable, char);
+    expect(await getText(editable)).toEqual(
+      insertAt(initialValue, char, [0, markedOffset + searchValueLength])
+    );
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: markedOffset + searchValueLength + 1 })
+    );
+
+    // delete
+    await page.keyboard.press("Backspace");
+    expect(await getText(editable)).toEqual(initialValue);
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: markedOffset + searchValueLength })
+    );
   });
 
   test("async", async ({ page }) => {
@@ -1411,52 +1396,44 @@ test.describe("keep state on render", () => {
     expect(await getSelection(editable)).toEqual(
       createSelection({ offset: markedOffset })
     );
-    {
-      // insert
-      await input(editable, char);
 
-      const value = await getText(editable);
-      expect(value).toEqual(insertAt(initialValue, char, [0, markedOffset]));
-      expect(await getSelection(editable)).toEqual(
-        createSelection({ offset: markedOffset + 1 })
-      );
-    }
-    {
-      // delete
-      await page.keyboard.press("Backspace");
-      const value = await getText(editable);
-      expect(value).toEqual(initialValue);
-      expect(await getSelection(editable)).toEqual(
-        createSelection({ offset: markedOffset })
-      );
-    }
+    // insert
+    await input(editable, char);
+    expect(await getText(editable)).toEqual(
+      insertAt(initialValue, char, [0, markedOffset])
+    );
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: markedOffset + 1 })
+    );
+
+    // delete
+    await page.keyboard.press("Backspace");
+    expect(await getText(editable)).toEqual(initialValue);
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: markedOffset })
+    );
 
     // type just after node
     await page.keyboard.press("ArrowRight");
     expect(await getSelection(editable)).toEqual(
       createSelection({ offset: markedOffset + 1 })
     );
-    {
-      // insert
-      await input(editable, char);
 
-      const value = await getText(editable);
-      expect(value).toEqual(
-        insertAt(initialValue, char, [0, markedOffset + 1])
-      );
-      expect(await getSelection(editable)).toEqual(
-        createSelection({ offset: markedOffset + 2 })
-      );
-    }
-    {
-      // delete
-      await page.keyboard.press("Backspace");
-      const value = await getText(editable);
-      expect(value).toEqual(initialValue);
-      expect(await getSelection(editable)).toEqual(
-        createSelection({ offset: markedOffset + 1 })
-      );
-    }
+    // insert
+    await input(editable, char);
+    expect(await getText(editable)).toEqual(
+      insertAt(initialValue, char, [0, markedOffset + 1])
+    );
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: markedOffset + 2 })
+    );
+
+    // delete
+    await page.keyboard.press("Backspace");
+    expect(await getText(editable)).toEqual(initialValue);
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: markedOffset + 1 })
+    );
   });
 });
 
@@ -1482,8 +1459,7 @@ test("new window", async ({ page, context }) => {
   // Input
   const text = "test";
   await input(editable, text);
-  const value = await getText(editable);
-  expect(value).toEqual(insertAt(initialValue, text, [0, 1]));
+  expect(await getText(editable)).toEqual(insertAt(initialValue, text, [0, 1]));
   const textLength = text.length;
   expect(await getSelection(editable)).toEqual(
     createSelection({ offset: 1 + textLength })
