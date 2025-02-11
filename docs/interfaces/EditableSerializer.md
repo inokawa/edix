@@ -4,6 +4,8 @@
 
 # Interface: EditableSerializer\<T\>
 
+Defined in: [editable.ts:72](https://github.com/inokawa/edix/blob/de39f463e87325bf95c113d2dbd6f8003d78b892/src/core/editable.ts#L72)
+
 ## Type Parameters
 
 • **T**
@@ -13,6 +15,8 @@
 ### data()
 
 > **data**: (`snapshot`) => `T`
+
+Defined in: [editable.ts:73](https://github.com/inokawa/edix/blob/de39f463e87325bf95c113d2dbd6f8003d78b892/src/core/editable.ts#L73)
 
 #### Parameters
 
@@ -24,15 +28,13 @@
 
 `T`
 
-#### Defined in
-
-[editable.ts:73](https://github.com/inokawa/edix/blob/f7ddd3cd390de3a5397595ebddd00493dee1ed65/src/core/editable.ts#L73)
-
 ***
 
 ### plain()?
 
 > `optional` **plain**: (`snapshot`) => `string`
+
+Defined in: [editable.ts:74](https://github.com/inokawa/edix/blob/de39f463e87325bf95c113d2dbd6f8003d78b892/src/core/editable.ts#L74)
 
 #### Parameters
 
@@ -43,7 +45,3 @@
 #### Returns
 
 `string`
-
-#### Defined in
-
-[editable.ts:74](https://github.com/inokawa/edix/blob/f7ddd3cd390de3a5397595ebddd00493dee1ed65/src/core/editable.ts#L74)

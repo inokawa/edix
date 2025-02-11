@@ -4,6 +4,8 @@
 
 # Interface: EditableOptions\<T\>
 
+Defined in: [editable.ts:92](https://github.com/inokawa/edix/blob/de39f463e87325bf95c113d2dbd6f8003d78b892/src/core/editable.ts#L92)
+
 ## Type Parameters
 
 • **T**
@@ -14,9 +16,7 @@
 
 > `optional` **multiline**: `boolean`
 
-#### Defined in
-
-[editable.ts:93](https://github.com/inokawa/edix/blob/f7ddd3cd390de3a5397595ebddd00493dee1ed65/src/core/editable.ts#L93)
+Defined in: [editable.ts:93](https://github.com/inokawa/edix/blob/de39f463e87325bf95c113d2dbd6f8003d78b892/src/core/editable.ts#L93)
 
 ***
 
@@ -24,9 +24,7 @@
 
 > `optional` **readonly**: `boolean`
 
-#### Defined in
-
-[editable.ts:94](https://github.com/inokawa/edix/blob/f7ddd3cd390de3a5397595ebddd00493dee1ed65/src/core/editable.ts#L94)
+Defined in: [editable.ts:94](https://github.com/inokawa/edix/blob/de39f463e87325bf95c113d2dbd6f8003d78b892/src/core/editable.ts#L94)
 
 ***
 
@@ -34,15 +32,15 @@
 
 > `optional` **serializer**: [`EditableSerializer`](EditableSerializer.md)\<`T`\>
 
-#### Defined in
-
-[editable.ts:95](https://github.com/inokawa/edix/blob/f7ddd3cd390de3a5397595ebddd00493dee1ed65/src/core/editable.ts#L95)
+Defined in: [editable.ts:95](https://github.com/inokawa/edix/blob/de39f463e87325bf95c113d2dbd6f8003d78b892/src/core/editable.ts#L95)
 
 ***
 
 ### onChange()
 
 > **onChange**: (`value`) => `void`
+
+Defined in: [editable.ts:96](https://github.com/inokawa/edix/blob/de39f463e87325bf95c113d2dbd6f8003d78b892/src/core/editable.ts#L96)
 
 #### Parameters
 
@@ -53,7 +51,3 @@
 #### Returns
 
 `void`
-
-#### Defined in
-
-[editable.ts:96](https://github.com/inokawa/edix/blob/f7ddd3cd390de3a5397595ebddd00493dee1ed65/src/core/editable.ts#L96)
