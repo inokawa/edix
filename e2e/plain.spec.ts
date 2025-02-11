@@ -388,8 +388,108 @@ test.describe("Keydown", () => {
   });
 
   test.describe("Enter", () => {
-    test("multiline", async ({ page }) => {
-      await page.goto(storyUrl("basics-plain--multiline"));
+    test.describe("split text", () => {
+      test("mid", async ({ page }) => {
+        await page.goto(storyUrl("basics-plain--multiline"));
+
+        const editable = await getEditable(page);
+        const initialValue = await getText(editable);
+
+        await editable.focus();
+
+        expect(await getSelection(editable)).toEqual(createSelection());
+
+        const offset = 2;
+
+        await loop(offset, () => page.keyboard.press("ArrowRight"));
+        expect(await getSelection(editable)).toEqual(
+          createSelection({ offset: offset })
+        );
+
+        // Split
+        await page.keyboard.press("Enter");
+        const splittedValue = insertLineBreakAt(initialValue, [0, offset]);
+        expect(await getText(editable)).toEqual(splittedValue);
+        expect(await getSelection(editable)).toEqual(
+          createSelection({ line: 1 })
+        );
+
+        // Split again
+        await page.keyboard.press("Enter");
+        expect(await getText(editable)).toEqual(
+          insertLineBreakAt(splittedValue, [1, 0])
+        );
+        expect(await getSelection(editable)).toEqual(
+          createSelection({ line: 2 })
+        );
+
+        // Join
+        await page.keyboard.press("Backspace");
+        expect(await getText(editable)).toEqual(splittedValue);
+        expect(await getSelection(editable)).toEqual(
+          createSelection({ line: 1 })
+        );
+
+        // Join again
+        await page.keyboard.press("Backspace");
+        expect(await getText(editable)).toEqual(initialValue);
+        expect(await getSelection(editable)).toEqual(
+          createSelection({ offset: offset })
+        );
+      });
+
+      test("end of line", async ({ page }) => {
+        await page.goto(storyUrl("basics-plain--multiline"));
+
+        const editable = await getEditable(page);
+        const initialValue = await getText(editable);
+
+        await editable.focus();
+
+        expect(await getSelection(editable)).toEqual(createSelection());
+
+        const lineLength = initialValue[0].length;
+
+        await loop(lineLength, () => page.keyboard.press("ArrowRight"));
+        expect(await getSelection(editable)).toEqual(
+          createSelection({ offset: lineLength })
+        );
+
+        // Split
+        await page.keyboard.press("Enter");
+        const splittedValue = insertLineBreakAt(initialValue, [0, lineLength]);
+        expect(await getText(editable)).toEqual(splittedValue);
+        expect(await getSelection(editable)).toEqual(
+          createSelection({ line: 1 })
+        );
+
+        // Split again
+        await page.keyboard.press("Enter");
+        expect(await getText(editable)).toEqual(
+          insertLineBreakAt(splittedValue, [1, 0])
+        );
+        expect(await getSelection(editable)).toEqual(
+          createSelection({ line: 2 })
+        );
+
+        // Join
+        await page.keyboard.press("Backspace");
+        expect(await getText(editable)).toEqual(splittedValue);
+        expect(await getSelection(editable)).toEqual(
+          createSelection({ line: 1 })
+        );
+
+        // Join again
+        await page.keyboard.press("Backspace");
+        expect(await getText(editable)).toEqual(initialValue);
+        expect(await getSelection(editable)).toEqual(
+          createSelection({ offset: lineLength })
+        );
+      });
+    });
+
+    test("split span", async ({ page }) => {
+      await page.goto(storyUrl("basics-plain--highlight"));
 
       const editable = await getEditable(page);
       const initialValue = await getText(editable);
@@ -398,29 +498,42 @@ test.describe("Keydown", () => {
 
       expect(await getSelection(editable)).toEqual(createSelection());
 
-      await loop(2, () => page.keyboard.press("ArrowRight"));
+      const offset = 2;
+
+      await loop(offset, () => page.keyboard.press("ArrowRight"));
       expect(await getSelection(editable)).toEqual(
-        createSelection({ offset: 2 })
+        createSelection({ offset: offset })
       );
 
-      // Press enter
+      // Split
       await page.keyboard.press("Enter");
-
-      const splittedValue = insertLineBreakAt(initialValue, [0, 2]);
-
+      const splittedValue = insertLineBreakAt(initialValue, [0, offset]);
       expect(await getText(editable)).toEqual(splittedValue);
       expect(await getSelection(editable)).toEqual(
         createSelection({ line: 1 })
       );
 
-      // Press enter again
+      // Split again
       await page.keyboard.press("Enter");
-
       expect(await getText(editable)).toEqual(
         insertLineBreakAt(splittedValue, [1, 0])
       );
       expect(await getSelection(editable)).toEqual(
         createSelection({ line: 2 })
+      );
+
+      // Join
+      await page.keyboard.press("Backspace");
+      expect(await getText(editable)).toEqual(splittedValue);
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ line: 1 })
+      );
+
+      // Join again
+      await page.keyboard.press("Backspace");
+      expect(await getText(editable)).toEqual(initialValue);
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ offset: offset })
       );
     });
 
