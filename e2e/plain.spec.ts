@@ -239,7 +239,6 @@ test.describe("replace range", () => {
     );
     // Expand selection
     const selLength = 3;
-
     await loop(selLength, () => page.keyboard.press("Shift+ArrowRight"));
     expect(await getSelection(editable)).toEqual(
       createSelection({ offset: 1, extent: selLength })
@@ -716,9 +715,7 @@ test.describe("Keydown", () => {
       );
       // Expand selection
       const selLength = 3;
-      for (let i = 1; i <= selLength; i++) {
-        await page.keyboard.press("Shift+ArrowRight");
-      }
+      await loop(selLength, () => page.keyboard.press("Shift+ArrowRight"));
       expect(await getSelection(editable)).toEqual(
         createSelection({ offset: 1, extent: selLength })
       );
@@ -842,9 +839,7 @@ test.describe("Cut", () => {
     );
     // Expand selection
     const selLength = 3;
-    for (let i = 1; i <= selLength; i++) {
-      await page.keyboard.press("Shift+ArrowRight");
-    }
+    await loop(selLength, () => page.keyboard.press("Shift+ArrowRight"));
     expect(await getSelection(editable)).toEqual(
       createSelection({ offset: 1, extent: selLength })
     );
