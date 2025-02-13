@@ -1,9 +1,17 @@
+import {
+  NodeType,
+  parse,
+  getNodeSize,
+  getDomNode,
+  isElementNode,
+  TYPE_TEXT,
+  TYPE_UNEDITABLE_NODE,
+  TYPE_SOFT_BREAK,
+  TYPE_HARD_BREAK,
+} from "./parser";
 import { comparePosition } from "./position";
 import { DomSnapshot, Position, NodeRef, SelectionSnapshot } from "./types";
 import { min } from "./utils";
-
-const ELEMENT_NODE = 1;
-const TEXT_NODE = 3;
 
 // const DOCUMENT_POSITION_DISCONNECTED = 0x01;
 const DOCUMENT_POSITION_PRECEDING = 0x02;
@@ -12,110 +20,11 @@ const DOCUMENT_POSITION_PRECEDING = 0x02;
 // const DOCUMENT_POSITION_CONTAINED_BY = 0x10;
 // const DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20;
 
-const SHOW_ELEMENT = 0x1;
-const SHOW_TEXT = 0x4;
-
-const BR_TAG_NAME = "BR";
-const TEMPLATE_TAG_NAME = "TEMPLATE";
-
-const isBrInText = (node: Element, isExternalHtml?: boolean): boolean => {
-  if (node.tagName !== BR_TAG_NAME) {
-    return false;
-  }
-  if (isExternalHtml) {
-    return true;
-  }
-  // TODO revisit here
-  // unexpected br may be detected in some case, because of contenteditable
-  // - type in empty row in firefox (e.g. <div>a<br/></div>)
-  let hasTextPrev = false;
-  let hasTextNext = false;
-  let prev: Node = node;
-  while ((prev = prev.previousSibling!)) {
-    if (isTextNode(prev)) {
-      hasTextPrev = true;
-      break;
-    } else if (isElementNode(prev)) {
-      if (prev.tagName !== TEMPLATE_TAG_NAME) {
-        return false;
-      }
-    }
-  }
-  let next: Node = node;
-  while ((next = next.nextSibling!)) {
-    if (isTextNode(next)) {
-      hasTextNext = true;
-      break;
-    } else if (isElementNode(next)) {
-      if (next.tagName !== TEMPLATE_TAG_NAME) {
-        return false;
-      }
-    }
-  }
-  return hasTextPrev && hasTextNext;
-};
-
 /**
  * @internal
  */
 export const getCurrentDocument = (node: Element): Document =>
   node.ownerDocument;
-
-const isTextNode = (node: Node): node is Text => {
-  return node.nodeType === TEXT_NODE;
-};
-
-const isElementNode = (node: Node): node is Element => {
-  return node.nodeType === ELEMENT_NODE;
-};
-
-const PARAGRAPH_TAG_NAMES = new Set([
-  // https://w3c.github.io/editing/docs/execCommand/#single-line-container
-  // non-list single-line container
-  "DIV",
-  "H1",
-  "H2",
-  "H3",
-  "H4",
-  "H5",
-  "H6",
-  "P",
-  "PRE",
-  // list single-line container
-  "LI",
-  "DT",
-  "DD",
-
-  // other elements
-  "TR",
-]);
-
-const WITHOUT_TEXT_TAG_NAMES = new Set([
-  // void elements
-  // https://developer.mozilla.org/en-US/docs/Glossary/Void_element
-  "EMBED",
-  "IMG",
-  // others
-  "PICTURE",
-  "AUDIO",
-  "VIDEO",
-  "MAP",
-  "SVG",
-  "CANVAS",
-  "IFRAME",
-  // TODO support more elements
-]);
-
-const isParagraphElement = (node: Element | null): boolean => {
-  return !!node && PARAGRAPH_TAG_NAMES.has(node.tagName);
-};
-
-const isUneditableElement = (node: Element): boolean => {
-  return (
-    (node as HTMLElement).contentEditable === "false" ||
-    WITHOUT_TEXT_TAG_NAMES.has(node.tagName)
-  );
-};
 
 const getDOMSelection = (element: Element): Selection => {
   // TODO support ShadowRoot
@@ -148,25 +57,6 @@ const setRangeToSelection = (
     selection.collapseToEnd();
     selection.extend(range.startContainer, range.startOffset);
   }
-};
-
-const findNextNode = (
-  walker: TreeWalker,
-  skipChildren: boolean
-): Node | null => {
-  if (skipChildren) {
-    const current = walker.currentNode;
-    let node: Node | null;
-    // don't use TreeWalker.nextSibling() to support case like <body><p><a><img /></a></p><p>hello</p></body>
-    while ((node = walker.nextNode())) {
-      if (!current.contains(node)) {
-        break;
-      }
-    }
-    return node;
-  }
-
-  return walker.nextNode();
 };
 
 /**
@@ -243,45 +133,27 @@ export const setSelectionToDOM = (
   return true;
 };
 
+type DOMPosition = [node: Text | Element, offsetAtNode: number];
+
 const findPosition = (
   document: Document,
   root: Element,
   [line, offset]: Position,
   isSingleline: boolean
-): [node: Text | Element, offsetAtNode: number] | void => {
-  let node: Node | null;
-  let skipChildren = false;
-
-  const row =
-    isSingleline || root.childElementCount === 0 ? root : root.children[line]!;
-  const walker = document.createTreeWalker(row, SHOW_TEXT | SHOW_ELEMENT);
-
-  while ((node = findNextNode(walker, skipChildren))) {
-    skipChildren = false;
-
-    if (isTextNode(node)) {
-      const textLength = node.data.length;
-      if (offset <= textLength) {
-        return [node, offset];
-      }
-
-      offset -= textLength;
-    } else if (isElementNode(node)) {
-      if (node.tagName === BR_TAG_NAME) {
-        if (offset <= 1) {
-          return [node, 0];
+): DOMPosition | void => {
+  return parse(
+    (readNext): DOMPosition | void => {
+      while (readNext()) {
+        const length = getNodeSize();
+        if (offset <= length) {
+          return [getDomNode(), offset];
         }
-
-        offset--;
-      } else if (isUneditableElement(node)) {
-        skipChildren = true;
-        if (offset <= 1) {
-          return [node, offset];
-        }
-        offset--;
+        offset -= length;
       }
-    }
-  }
+    },
+    document,
+    isSingleline || root.childElementCount === 0 ? root : root.children[line]!
+  );
 };
 
 const serializePosition = (
@@ -291,10 +163,6 @@ const serializePosition = (
   offsetAtNode: number,
   isSingleline: boolean
 ): Position => {
-  let offset = 0;
-  let node: Node | null;
-  let skipChildren = false;
-
   let row: Node = targetNode;
   let lineIndex: number;
   if (isSingleline || root.childElementCount === 0) {
@@ -319,26 +187,24 @@ const serializePosition = (
     offsetAtNode = 0;
   }
 
-  const walker = document.createTreeWalker(row, SHOW_TEXT | SHOW_ELEMENT);
+  return parse(
+    (readNext) => {
+      let type: NodeType | void;
+      let offset = 0;
 
-  while ((node = findNextNode(walker, skipChildren))) {
-    skipChildren = false;
-    if (node === targetNode) {
-      break;
-    }
-    if (isTextNode(node)) {
-      offset += node.data.length;
-    } else if (isElementNode(node)) {
-      if (isBrInText(node)) {
-        lineIndex++;
-        offset = 0;
-      } else if (isUneditableElement(node)) {
-        skipChildren = true;
-        offset++;
+      while ((type = readNext(targetNode))) {
+        if (type === TYPE_SOFT_BREAK) {
+          lineIndex++;
+          offset = 0;
+        } else {
+          offset += getNodeSize();
+        }
       }
-    }
-  }
-  return [lineIndex, offset + offsetAtNode];
+      return [lineIndex, offset + offsetAtNode];
+    },
+    document,
+    row
+  );
 };
 
 /**
@@ -425,55 +291,51 @@ export const takeDomSnapshot = (
   root: Node,
   isExternalHtml?: boolean
 ): DomSnapshot => {
-  let node: Node | null;
-  let row: NodeRef[] | null = null;
-  let text = "";
-  let skipChildren = false;
+  return parse(
+    (readNext) => {
+      let type: NodeType | void;
+      let row: NodeRef[] | null = null;
+      let text = "";
 
-  const rows: NodeRef[][] = [];
-  const walker = document.createTreeWalker(root, SHOW_TEXT | SHOW_ELEMENT);
+      const rows: NodeRef[][] = [];
 
-  const completeNode = (element?: Element) => {
-    if (!row) {
-      row = [];
-    }
-    if (text) {
-      row.push(text);
-      text = "";
-    }
-    if (element) {
-      row.push(element);
-    }
-  };
-  const completeRow = () => {
-    completeNode();
-    if (row) {
-      rows.push(row);
-    }
-    row = null;
-  };
+      const completeNode = (element?: Element) => {
+        if (!row) {
+          row = [];
+        }
+        if (text) {
+          row.push(text);
+          text = "";
+        }
+        if (element) {
+          row.push(element);
+        }
+      };
+      const completeRow = () => {
+        completeNode();
+        if (row) {
+          rows.push(row);
+        }
+        row = null;
+      };
 
-  while ((node = findNextNode(walker, skipChildren))) {
-    skipChildren = false;
-    if (isTextNode(node)) {
-      text += node.data;
-    } else if (isElementNode(node)) {
-      // a block next to block, or br
-      if (
-        (isParagraphElement(node) &&
-          isParagraphElement(node.previousElementSibling)) ||
-        isBrInText(node, isExternalHtml)
-      ) {
-        completeRow();
-      } else if (isUneditableElement(node)) {
-        skipChildren = true;
-        completeNode(node);
+      while ((type = readNext())) {
+        if (type === TYPE_TEXT) {
+          text += getDomNode<typeof type>().data;
+        } else if (type === TYPE_UNEDITABLE_NODE) {
+          completeNode(getDomNode<typeof type>());
+        } else if (type === TYPE_SOFT_BREAK || type === TYPE_HARD_BREAK) {
+          completeRow();
+        }
       }
-    }
-  }
-  completeRow();
+      completeRow();
 
-  return rows;
+      return rows;
+    },
+    document,
+    root,
+    isExternalHtml
+  );
 };
 
 /**
