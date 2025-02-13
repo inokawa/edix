@@ -3,7 +3,6 @@ let node: Node | null;
 let nodeType: NodeType | null;
 let skipChildren = false;
 let isBrDetected = false;
-let isExternalHtml: boolean | undefined;
 
 const SHOW_ELEMENT = 0x1;
 const SHOW_TEXT = 0x4;
@@ -164,7 +163,7 @@ const readNext = (endNode?: Node): NodeType | void => {
         const isBr = isBrDetected;
         isBrDetected = true;
         // Especially Shift+Enter in Firefox
-        if (isExternalHtml || isValidSoftBreak(node)) {
+        if (isValidSoftBreak(node)) {
           return (nodeType = TYPE_SOFT_BREAK);
         } else {
           if (!isBr) {
@@ -194,17 +193,14 @@ const readNext = (endNode?: Node): NodeType | void => {
 export const parse = <T>(
   scopeFn: (read: typeof readNext) => T,
   document: Document,
-  root: Node,
-  isExternalHtmlOption?: boolean
+  root: Node
 ): T => {
   try {
-    isExternalHtml = isExternalHtmlOption;
-
     walker = document.createTreeWalker(root, SHOW_TEXT | SHOW_ELEMENT);
 
     return scopeFn(readNext);
   } finally {
     walker = node = nodeType = null;
-    skipChildren = isBrDetected = isExternalHtml = false;
+    skipChildren = isBrDetected = false;
   }
 };

@@ -288,8 +288,7 @@ export const takeSelectionSnapshot = (
  */
 export const takeDomSnapshot = (
   document: Document,
-  root: Node,
-  isExternalHtml?: boolean
+  root: Node
 ): DomSnapshot => {
   return parse(
     (readNext) => {
@@ -333,8 +332,7 @@ export const takeDomSnapshot = (
       return rows;
     },
     document,
-    root,
-    isExternalHtml
+    root
   );
 };
 

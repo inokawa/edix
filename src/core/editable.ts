@@ -372,8 +372,7 @@ export const editable = <T = string>(
           replaceSelection,
           takeDomSnapshot(
             document,
-            new DOMParser().parseFromString(html, "text/html").body,
-            true
+            new DOMParser().parseFromString(html, "text/html").body
           )
         );
         return;
