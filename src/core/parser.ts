@@ -146,7 +146,7 @@ const readNext = (endNode?: Node): NodeType | void => {
     skipChildren = false;
 
     if (!node || (endNode && node === endNode)) {
-      return;
+      break;
     }
 
     if (isTextNode(node)) {
@@ -159,7 +159,8 @@ const readNext = (endNode?: Node): NodeType | void => {
         return (nodeType = TYPE_TEXT);
       }
     } else if (isElementNode(node)) {
-      if (node.tagName === "BR") {
+      const tagName = node.tagName;
+      if (tagName === "BR") {
         const isBr = isBrDetected;
         isBrDetected = true;
         // Especially Shift+Enter in Firefox
@@ -173,11 +174,11 @@ const readNext = (endNode?: Node): NodeType | void => {
         }
       } else if (
         (node as HTMLElement).contentEditable === "false" ||
-        WITHOUT_TEXT_TAG_NAMES.has(node.tagName)
+        WITHOUT_TEXT_TAG_NAMES.has(tagName)
       ) {
         skipChildren = true;
         return (nodeType = TYPE_UNEDITABLE_NODE);
-      } else if (PARAGRAPH_TAG_NAMES.has(node.tagName)) {
+      } else if (PARAGRAPH_TAG_NAMES.has(tagName)) {
         const prev = node.previousElementSibling;
         if (prev && PARAGRAPH_TAG_NAMES.has(prev.tagName)) {
           return (nodeType = TYPE_HARD_BREAK);
