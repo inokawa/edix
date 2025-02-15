@@ -34,15 +34,13 @@ const getDOMSelection = (element: Element): Selection => {
 const getSelectionRangeInEditor = (
   selection: Selection,
   root: Element
-): Range | undefined => {
-  if (!selection.rangeCount) {
-    return;
+): Range | void => {
+  if (selection.rangeCount) {
+    const range = selection.getRangeAt(0);
+    if (root.contains(range.commonAncestorContainer)) {
+      return range;
+    }
   }
-  const range = selection.getRangeAt(0);
-  if (!root.contains(range.commonAncestorContainer)) {
-    return;
-  }
-  return range;
 };
 
 const setRangeToSelection = (
