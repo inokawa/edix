@@ -1379,7 +1379,7 @@ test.describe("emoji", () => {
 
     const char = "a";
 
-    const emoji = "😝";
+    const emoji = "👍";
     const offset = grapheme(initialValue[2]).indexOf(emoji);
     expect(offset).toBeGreaterThan(-1);
 

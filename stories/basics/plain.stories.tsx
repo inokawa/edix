@@ -10,7 +10,7 @@ export const Multiline: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
     const [value, setValue] = useState(
-      "Hello World.\nこんにちは。\n👍😝❤️🧑‍🧑‍🧒"
+      "Hello World.\nこんにちは。\n👍❤️🧑‍🧑‍🧒"
     );
     useEffect(() => {
       if (!ref.current) return;
