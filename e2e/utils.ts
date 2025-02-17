@@ -31,3 +31,9 @@ export const loop = async (count: number, fn: () => Promise<void>) => {
     await fn();
   }
 };
+
+export const segment = (str: string): string[] => {
+  return [
+    ...new Intl.Segmenter("en", { granularity: "grapheme" }).segment(str),
+  ].map((s) => s.segment);
+};
