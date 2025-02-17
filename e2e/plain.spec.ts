@@ -8,7 +8,7 @@ import {
   insertAt,
   insertLineBreakAt,
 } from "./edix";
-import { getEditable, input, loop, segment, storyUrl } from "./utils";
+import { getEditable, input, loop, grapheme, storyUrl } from "./utils";
 
 test.beforeEach(async ({ context }) => {
   await initEdixHelpers(context);
@@ -1380,7 +1380,7 @@ test.describe("emoji", () => {
     const char = "a";
 
     const emoji = "😝";
-    const offset = segment(initialValue[2]).indexOf(emoji);
+    const offset = grapheme(initialValue[2]).indexOf(emoji);
     expect(offset).toBeGreaterThan(-1);
 
     const afterOffset = offset + 1;
@@ -1419,7 +1419,7 @@ test.describe("emoji", () => {
     const char = "a";
 
     const emoji = "❤️";
-    const offset = segment(initialValue[2]).indexOf(emoji);
+    const offset = grapheme(initialValue[2]).indexOf(emoji);
     expect(offset).toBeGreaterThan(-1);
 
     const afterOffset = offset + 1;
@@ -1458,7 +1458,7 @@ test.describe("emoji", () => {
     const char = "a";
 
     const emoji = "🧑‍🧑‍🧒";
-    const offset = segment(initialValue[2]).indexOf(emoji);
+    const offset = grapheme(initialValue[2]).indexOf(emoji);
     expect(offset).toBeGreaterThan(-1);
 
     const afterOffset = offset + 1;

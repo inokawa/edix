@@ -32,7 +32,7 @@ export const loop = async (count: number, fn: () => Promise<void>) => {
   }
 };
 
-export const segment = (str: string): string[] => {
+export const grapheme = (str: string): string[] => {
   return [
     ...new Intl.Segmenter("en", { granularity: "grapheme" }).segment(str),
   ].map((s) => s.segment);
