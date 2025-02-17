@@ -8,7 +8,7 @@ import {
   insertAt,
   insertLineBreakAt,
 } from "./edix";
-import { getEditable, input, loop, storyUrl } from "./utils";
+import { getEditable, input, loop, segment, storyUrl } from "./utils";
 
 test.beforeEach(async ({ context }) => {
   await initEdixHelpers(context);
@@ -1364,6 +1364,125 @@ test("rtl", async ({ page }) => {
       createSelection({ offset: 1 + textLength })
     );
   }
+});
+
+test.describe("emoji", () => {
+  test("surrogate pair", async ({ page }) => {
+    await page.goto(storyUrl("basics-plain--multiline"));
+
+    const editable = await getEditable(page);
+    const initialValue = await getText(editable);
+
+    await editable.focus();
+
+    expect(await getSelection(editable)).toEqual(createSelection());
+
+    const char = "a";
+
+    const emoji = "😝";
+    const offset = segment(initialValue[2]).indexOf(emoji);
+    expect(offset).toBeGreaterThan(-1);
+
+    const afterOffset = offset + 1;
+
+    // move to after emoji
+    await loop(afterOffset, () => page.keyboard.press("ArrowRight"));
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: afterOffset })
+    );
+    // insert
+    await input(editable, char);
+    expect(await getText(editable)).toEqual(
+      insertAt(initialValue, char, [0, afterOffset])
+    );
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: afterOffset + 1 })
+    );
+    // delete
+    await page.keyboard.press("Backspace");
+    expect(await getText(editable)).toEqual(initialValue);
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: afterOffset })
+    );
+  });
+
+  test("variation selector", async ({ page }) => {
+    await page.goto(storyUrl("basics-plain--multiline"));
+
+    const editable = await getEditable(page);
+    const initialValue = await getText(editable);
+
+    await editable.focus();
+
+    expect(await getSelection(editable)).toEqual(createSelection());
+
+    const char = "a";
+
+    const emoji = "❤️";
+    const offset = segment(initialValue[2]).indexOf(emoji);
+    expect(offset).toBeGreaterThan(-1);
+
+    const afterOffset = offset + 1;
+
+    // move to after emoji
+    await loop(afterOffset, () => page.keyboard.press("ArrowRight"));
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: afterOffset })
+    );
+    // insert
+    await input(editable, char);
+    expect(await getText(editable)).toEqual(
+      insertAt(initialValue, char, [0, afterOffset])
+    );
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: afterOffset + 1 })
+    );
+    // delete
+    await page.keyboard.press("Backspace");
+    expect(await getText(editable)).toEqual(initialValue);
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: afterOffset })
+    );
+  });
+
+  test("zero width joiner", async ({ page }) => {
+    await page.goto(storyUrl("basics-plain--multiline"));
+
+    const editable = await getEditable(page);
+    const initialValue = await getText(editable);
+
+    await editable.focus();
+
+    expect(await getSelection(editable)).toEqual(createSelection());
+
+    const char = "a";
+
+    const emoji = "🧑‍🧑‍🧒";
+    const offset = segment(initialValue[2]).indexOf(emoji);
+    expect(offset).toBeGreaterThan(-1);
+
+    const afterOffset = offset + 1;
+
+    // move to after emoji
+    await loop(afterOffset, () => page.keyboard.press("ArrowRight"));
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: afterOffset })
+    );
+    // insert
+    await input(editable, char);
+    expect(await getText(editable)).toEqual(
+      insertAt(initialValue, char, [0, afterOffset])
+    );
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: afterOffset + 1 })
+    );
+    // delete
+    await page.keyboard.press("Backspace");
+    expect(await getText(editable)).toEqual(initialValue);
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: afterOffset })
+    );
+  });
 });
 
 test("readonly", async ({ page, browserName }) => {
