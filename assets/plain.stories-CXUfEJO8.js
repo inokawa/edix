@@ -1,6 +1,6 @@
 import{e as i,j as e}from"./editable-B9GwdCl1.js";import{r}from"./index-RYns6xqu.js";const A={component:i},c={render:()=>{const n=r.useRef(null),[a,l]=r.useState(`Hello World.
 こんにちは。
-👍❤️🧑‍🧑‍🧒`);return r.useEffect(()=>{if(n.current)return i(n.current,{multiline:!0,onChange:l})},[]),e.jsx("div",{ref:n,style:{backgroundColor:"white",border:"solid 1px darkgray",padding:8},children:a.split(`
+👍😝❤️🧑‍🧑‍🧒`);return r.useEffect(()=>{if(n.current)return i(n.current,{multiline:!0,onChange:l})},[]),e.jsx("div",{ref:n,style:{backgroundColor:"white",border:"solid 1px darkgray",padding:8},children:a.split(`
 `).map((t,s)=>e.jsx("div",{children:t||e.jsx("br",{})},s))})}},d={render:()=>{const n=r.useRef(null),[a,l]=r.useState("Hello World.");return r.useEffect(()=>{if(n.current)return i(n.current,{onChange:l})},[]),e.jsx("div",{ref:n,style:{backgroundColor:"white",border:"solid 1px darkgray",padding:8},children:a||e.jsx("br",{})})}},f={render:()=>{const n=r.useRef(null),[a,l]=r.useState("Hello world."),[t,s]=r.useState(!1),o=r.useRef(null);return r.useEffect(()=>{if(n.current)return o.current=i(n.current,{onChange:l})},[]),e.jsxs("div",{children:[e.jsx("div",{children:e.jsx("button",{onClick:()=>{if(!o.current)return;const u=!t;o.current.readonly(u),s(u)},children:t?"editable":"readonly"})}),e.jsx("div",{ref:n,style:{background:"white",color:t?"gray":void 0},children:a||e.jsx("br",{})})]})}},p={render:()=>{const n=r.useRef(null),[a,l]=r.useState("");return r.useEffect(()=>{if(n.current)return i(n.current,{onChange:l})},[]),e.jsxs(e.Fragment,{children:[e.jsx("div",{ref:n,style:{backgroundColor:"white",border:"solid 1px darkgray",padding:8},"aria-placeholder":"Enter some text...",children:a}),e.jsx("style",{children:`
 [contenteditable]:empty:before {
   content: attr(aria-placeholder) / "";
@@ -18,7 +18,7 @@ two !
 `).map((u,U)=>e.jsx("div",{children:u?(o?u.split(o):[u]).map((g,$)=>e.jsx("span",{style:{background:g===t?"yellow":void 0},children:g},$)):e.jsx("br",{})},U))})]})}};var b,x,y;c.parameters={...c.parameters,docs:{...(b=c.parameters)==null?void 0:b.docs,source:{originalSource:`{
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
-    const [value, setValue] = useState("Hello World.\\nこんにちは。\\n👍❤️🧑‍🧑‍🧒");
+    const [value, setValue] = useState("Hello World.\\nこんにちは。\\n👍😝❤️🧑‍🧑‍🧒");
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
