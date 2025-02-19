@@ -1308,6 +1308,30 @@ export const editable = (
       await page.keyboard.press(`ControlOrMeta+V`);
       expect((await getText(editable)).join("\n")).toEqual(plain);
     });
+
+    test("copy in windows", async ({ page }) => {
+      await page.goto(storyUrl("basics-plain--multiline"));
+
+      const editable = await getEditable(page);
+
+      await editable.focus();
+
+      const plain = `World`;
+      const html = `<html>
+<body>
+<!--StartFragment-->World<!--EndFragment-->
+</body>
+</html>`;
+
+      await writeHTML(page, html);
+
+      // Delete all
+      await page.keyboard.press(`ControlOrMeta+A`);
+      await page.keyboard.press(`Backspace`);
+
+      await page.keyboard.press(`ControlOrMeta+V`);
+      expect((await getText(editable)).join("\n")).toEqual(plain);
+    });
   });
 });
 

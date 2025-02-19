@@ -17,6 +17,7 @@ import {
   replaceSelection,
 } from "./commands";
 import { flatten } from "./edit";
+import { isCommentNode } from "./parser";
 
 /**
  * https://www.w3.org/TR/input-events-1/#interface-InputEvent-Attributes
@@ -367,14 +368,23 @@ export const editable = <T = string>(
 
     const html = clipboardData.getData("text/html");
     if (html) {
+      let dom: Node = new DOMParser().parseFromString(html, "text/html").body;
+      let isWindowsCopy = false;
+      // https://github.com/w3c/clipboard-apis/issues/193
+      for (const n of [...dom.childNodes]) {
+        if (isCommentNode(n)) {
+          if (n.data === "StartFragment") {
+            isWindowsCopy = true;
+            dom = new DocumentFragment();
+          } else if (n.data === "EndFragment") {
+            isWindowsCopy = false;
+          }
+        } else if (isWindowsCopy) {
+          dom.appendChild(n);
+        }
+      }
       try {
-        execCommand(
-          replaceSelection,
-          takeDomSnapshot(
-            document,
-            new DOMParser().parseFromString(html, "text/html").body
-          )
-        );
+        execCommand(replaceSelection, takeDomSnapshot(document, dom));
         return;
       } catch {
         // NOP
