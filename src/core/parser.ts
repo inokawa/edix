@@ -53,7 +53,7 @@ export const isCommentNode = (node: Node): node is Comment => {
   return node.nodeType === COMMENT_NODE;
 };
 
-const PARAGRAPH_TAG_NAMES = new Set([
+const SINGLE_LINE_CONTAINER_NAMES = new Set([
   // https://w3c.github.io/editing/docs/execCommand/#single-line-container
   // non-list single-line container
   "DIV",
@@ -70,7 +70,7 @@ const PARAGRAPH_TAG_NAMES = new Set([
   "DT",
   "DD",
 
-  // other elements
+  // other elements for HTML paste
   "TR",
 ]);
 
@@ -186,9 +186,9 @@ const readNext = (endNode?: Node): NodeType | void => {
       ) {
         skipChildren = true;
         return (nodeType = TYPE_UNEDITABLE_NODE);
-      } else if (PARAGRAPH_TAG_NAMES.has(tagName)) {
+      } else if (SINGLE_LINE_CONTAINER_NAMES.has(tagName)) {
         const prev = node.previousElementSibling;
-        if (prev && PARAGRAPH_TAG_NAMES.has(prev.tagName)) {
+        if (prev && SINGLE_LINE_CONTAINER_NAMES.has(prev.tagName)) {
           return (nodeType = TYPE_HARD_BREAK);
         }
       }
