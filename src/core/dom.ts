@@ -5,7 +5,7 @@ import {
   getDomNode,
   isElementNode,
   TYPE_TEXT,
-  TYPE_UNEDITABLE_NODE,
+  TYPE_VOID,
   TYPE_SOFT_BREAK,
   TYPE_HARD_BREAK,
 } from "./parser";
@@ -319,7 +319,7 @@ export const takeDomSnapshot = (
       while ((type = readNext())) {
         if (type === TYPE_TEXT) {
           text += getDomNode<typeof type>().data;
-        } else if (type === TYPE_UNEDITABLE_NODE) {
+        } else if (type === TYPE_VOID) {
           completeNode(getDomNode<typeof type>());
         } else if (type === TYPE_SOFT_BREAK || type === TYPE_HARD_BREAK) {
           completeRow();

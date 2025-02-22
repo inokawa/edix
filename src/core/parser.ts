@@ -10,23 +10,23 @@ const SHOW_TEXT = 0x4;
 /** @internal */
 export const TYPE_TEXT = 1;
 /** @internal */
-export const TYPE_UNEDITABLE_NODE = 2;
+export const TYPE_VOID = 2;
 /** @internal */
 export const TYPE_SOFT_BREAK = 3;
 /** @internal */
 export const TYPE_HARD_BREAK = 4;
 /** @internal */
-export const TYPE_EMPTY_BLOCK = 5;
+export const TYPE_EMPTY_BLOCK_ANCHOR = 5;
 
 /**
  * @internal
  */
 export type NodeType =
   | typeof TYPE_TEXT
-  | typeof TYPE_UNEDITABLE_NODE
+  | typeof TYPE_VOID
   | typeof TYPE_SOFT_BREAK
   | typeof TYPE_HARD_BREAK
-  | typeof TYPE_EMPTY_BLOCK;
+  | typeof TYPE_EMPTY_BLOCK_ANCHOR;
 
 const ELEMENT_NODE = 1;
 const TEXT_NODE = 3;
@@ -74,20 +74,19 @@ const SINGLE_LINE_CONTAINER_NAMES = new Set([
   "TR",
 ]);
 
-const WITHOUT_TEXT_TAG_NAMES = new Set([
-  // void elements
-  // https://developer.mozilla.org/en-US/docs/Glossary/Void_element
+// https://developer.mozilla.org/en-US/docs/Web/HTML/Content_categories
+// https://html.spec.whatwg.org/multipage/dom.html#embedded-content-category
+const EMBEDDED_CONTENT_TAG_NAMES = new Set([
   "EMBED",
   "IMG",
-  // others
   "PICTURE",
   "AUDIO",
   "VIDEO",
-  "MAP",
   "SVG",
   "CANVAS",
+  "MATH",
   "IFRAME",
-  // TODO support more elements
+  "OBJECT",
 ]);
 
 /**
@@ -109,7 +108,7 @@ export const getDomNode = <
 export const getNodeSize = (): number => {
   return nodeType === TYPE_TEXT
     ? (node as Text).data.length
-    : nodeType === TYPE_UNEDITABLE_NODE
+    : nodeType === TYPE_VOID
     ? 1
     : 0;
 };
@@ -177,15 +176,15 @@ const readNext = (endNode?: Node): NodeType | void => {
         } else {
           if (!isBr) {
             // Returning <div><br/></div> is necessary to anchor selection
-            return (nodeType = TYPE_EMPTY_BLOCK);
+            return (nodeType = TYPE_EMPTY_BLOCK_ANCHOR);
           }
         }
       } else if (
         (node as HTMLElement).contentEditable === "false" ||
-        WITHOUT_TEXT_TAG_NAMES.has(tagName)
+        EMBEDDED_CONTENT_TAG_NAMES.has(tagName)
       ) {
         skipChildren = true;
-        return (nodeType = TYPE_UNEDITABLE_NODE);
+        return (nodeType = TYPE_VOID);
       } else if (SINGLE_LINE_CONTAINER_NAMES.has(tagName)) {
         const prev = node.previousElementSibling;
         if (prev && SINGLE_LINE_CONTAINER_NAMES.has(prev.tagName)) {
