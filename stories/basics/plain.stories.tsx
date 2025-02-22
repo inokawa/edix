@@ -231,16 +231,13 @@ export const Highlight: StoryObj = {
           {value.split("\n").map((r, i) => (
             <div key={i}>
               {r ? (
-                (reg ? r.split(reg) : [r]).map((t, j) => (
-                  <span
-                    key={j}
-                    style={{
-                      background: t === searchText ? "yellow" : undefined,
-                    }}
-                  >
-                    {t}
-                  </span>
-                ))
+                (reg ? r.split(reg) : [r]).map((t, j) =>
+                  t === searchText ? (
+                    <mark key={j}>{t}</mark>
+                  ) : (
+                    <span key={j}>{t}</span>
+                  )
+                )
               ) : (
                 <br />
               )}
