@@ -5,7 +5,12 @@ export type DomSnapshot = readonly (readonly NodeRef[])[];
 /**
  * @internal
  */
-export type Position = readonly [line: number, offset: number];
+type Path = readonly number[];
+
+/**
+ * @internal
+ */
+export type Position = readonly [path: Path, offset: number];
 
 /**
  * @internal

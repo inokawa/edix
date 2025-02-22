@@ -157,7 +157,7 @@ export const editable = <T = string>(
   const observer = createMutationObserver(element, () => {
     if (hasFocus) {
       // Mutation to selected DOM may change selection, so restore it.
-      setSelectionToDOM(document, element, currentSelection, isSingleline);
+      setSelectionToDOM(document, element, currentSelection);
       if (restoreSelectionQueue != null) {
         clearTimeout(restoreSelectionQueue);
         restoreSelectionQueue = null;
@@ -184,7 +184,7 @@ export const editable = <T = string>(
     // So we also schedule restoring on timeout for safe.
     const nextSelection = currentSelection;
     restoreSelectionQueue = setTimeout(() => {
-      setSelectionToDOM(document, element, nextSelection, isSingleline);
+      setSelectionToDOM(document, element, nextSelection);
     });
   };
 
@@ -209,7 +209,7 @@ export const editable = <T = string>(
   };
 
   const syncSelection = () => {
-    currentSelection = takeSelectionSnapshot(document, element, isSingleline);
+    currentSelection = takeSelectionSnapshot(document, element);
   };
 
   const flushInput = () => {
@@ -218,7 +218,7 @@ export const editable = <T = string>(
     observer._accept(false);
     if (queue.length) {
       // Get current value and selection from DOM
-      const selection = takeSelectionSnapshot(document, element, isSingleline);
+      const selection = takeSelectionSnapshot(document, element);
       const value = takeDomSnapshot(document, element);
 
       // Revert DOM
@@ -244,8 +244,7 @@ export const editable = <T = string>(
       selectionReverted = setSelectionToDOM(
         document,
         element,
-        currentSelection,
-        isSingleline
+        currentSelection
       );
 
       updateState(value, selection, currentSelection);

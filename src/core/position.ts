@@ -1,4 +1,5 @@
 import type { Position } from "./types";
+import { min } from "./utils";
 
 /**
  * @internal
@@ -7,12 +8,17 @@ import type { Position } from "./types";
  * -1: A is after B (backward)
  */
 export const comparePosition = (
-  [posAline, posAoffset]: Position,
-  [posBline, posBoffset]: Position
+  [pathA, offsetA]: Position,
+  [pathB, offsetB]: Position
 ): 0 | 1 | -1 => {
-  if (posAline === posBline) {
-    return posAoffset === posBoffset ? 0 : posAoffset < posBoffset ? 1 : -1;
-  } else {
-    return posAline < posBline ? 1 : -1;
+  const length = min(pathA.length, pathB.length);
+  for (let i = 0; i < length; i++) {
+    const a = pathA[i]!;
+    const b = pathB[i]!;
+    if (a < b) return 1;
+    if (a > b) return -1;
   }
+
+  // same path
+  return offsetA === offsetB ? 0 : offsetA < offsetB ? 1 : -1;
 };

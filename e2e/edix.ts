@@ -1,7 +1,7 @@
 import { BrowserContext, Locator } from "@playwright/test";
 import * as esbuild from "esbuild";
 import * as path from "node:path";
-import { SelectionSnapshot } from "../src/core/types";
+import { Position, SelectionSnapshot } from "../src/core/types";
 
 declare global {
   interface Window {
@@ -40,17 +40,10 @@ export const getText = async (editable: Locator): Promise<string[]> => {
   }, NON_EDITABLE_PLACEHOLDER);
 };
 
-export const getSelection = (
-  editable: Locator,
-  isSingleline: boolean = false
-): Promise<SelectionSnapshot> => {
-  return editable.evaluate((element, isSingleline) => {
-    return window.edix.takeSelectionSnapshot(
-      element.ownerDocument,
-      element,
-      isSingleline
-    );
-  }, isSingleline);
+export const getSelection = (editable: Locator): Promise<SelectionSnapshot> => {
+  return editable.evaluate((element) => {
+    return window.edix.takeSelectionSnapshot(element.ownerDocument, element);
+  });
 };
 
 export const deleteAt = (
@@ -88,11 +81,11 @@ export const insertLineBreakAt = (
 export const createSelection = (
   opts:
     | {
-        line?: number;
+        line?: number | Position[0];
         offset?: number;
         extent?: number;
       }
-    | { anchor: [number, number]; focus: [number, number] } = {}
+    | { anchor: Position; focus: Position } = {}
 ): SelectionSnapshot => {
   if ("anchor" in opts) {
     return [opts.anchor, opts.focus];
@@ -102,7 +95,7 @@ export const createSelection = (
   const anchorOffset = opts.offset ?? 0;
   const focusOffset = anchorOffset + (opts.extent ?? 0);
   return [
-    [line, anchorOffset],
-    [line, focusOffset],
+    [typeof line === "number" ? [line] : line, anchorOffset],
+    [typeof line === "number" ? [line] : line, focusOffset],
   ];
 };

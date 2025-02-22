@@ -7,7 +7,9 @@ import {
   TYPE_TEXT,
   TYPE_VOID,
   TYPE_SOFT_BREAK,
-  TYPE_HARD_BREAK,
+  TYPE_BLOCK,
+  isTextNode,
+  moveToBlock,
 } from "./parser";
 import { comparePosition } from "./position";
 import { DomSnapshot, Position, NodeRef, SelectionSnapshot } from "./types";
@@ -63,8 +65,7 @@ const setRangeToSelection = (
 export const setSelectionToDOM = (
   document: Document,
   root: Element,
-  [anchor, focus]: SelectionSnapshot,
-  isSingleline: boolean
+  [anchor, focus]: SelectionSnapshot
 ): boolean => {
   const posDiff = comparePosition(anchor, focus);
   const isCollapsed = posDiff === 0;
@@ -73,7 +74,7 @@ export const setSelectionToDOM = (
   const end = backward ? anchor : focus;
   // special path for empty content with empty selection, necessary for placeholder
   if (
-    start[0] === 0 &&
+    start[0].length === 0 &&
     start[1] === 0 &&
     isCollapsed &&
     !root.hasChildNodes()
@@ -86,14 +87,12 @@ export const setSelectionToDOM = (
     return true;
   }
 
-  const domStart = findPosition(document, root, start, isSingleline);
+  const domStart = findPosition(document, root, start);
   if (!domStart) {
     return false;
   }
 
-  const domEnd = isCollapsed
-    ? domStart
-    : findPosition(document, root, end, isSingleline);
+  const domEnd = isCollapsed ? domStart : findPosition(document, root, end);
   if (!domEnd) {
     return false;
   }
@@ -136,21 +135,29 @@ type DOMPosition = [node: Text | Element, offsetAtNode: number];
 const findPosition = (
   document: Document,
   root: Element,
-  [line, offset]: Position,
-  isSingleline: boolean
+  [path, offset]: Position
 ): DOMPosition | void => {
+  let pathIndex = 0;
+  let type: NodeType | void;
   return parse(
     (readNext): DOMPosition | void => {
-      while (readNext()) {
-        const length = getNodeSize();
-        if (offset <= length) {
-          return [getDomNode(), offset];
+      while ((type = readNext())) {
+        if (type === TYPE_BLOCK) {
+          if (pathIndex < path.length) {
+            moveToBlock(path[pathIndex]!);
+            pathIndex++;
+          }
+        } else {
+          const length = getNodeSize();
+          if (offset <= length) {
+            return [getDomNode(), offset];
+          }
+          offset -= length;
         }
-        offset -= length;
       }
     },
     document,
-    isSingleline || root.childElementCount === 0 ? root : root.children[line]!
+    root
   );
 };
 
@@ -158,51 +165,73 @@ const serializePosition = (
   document: Document,
   root: Element,
   targetNode: Node,
-  offsetAtNode: number,
-  isSingleline: boolean
+  offsetAtNode: number
 ): Position => {
-  let row: Node = targetNode;
-  let lineIndex: number;
-  if (isSingleline || root.childElementCount === 0) {
-    row = root;
-    lineIndex = 0;
-  } else {
-    while (true) {
-      const parent = row.parentElement!;
-      if (parent === root) {
-        break;
-      }
-      row = parent;
-    }
-    lineIndex = Array.prototype.indexOf.call(root.children, row);
-  }
+  let node: Node | null = targetNode;
 
   if (isElementNode(targetNode)) {
-    // If anchor/focus of selection is not selectable node, it will have offset relative to its parent
-    //      0  1       2               3
-    // <div>aaaa<img /><span>bbbb</span></div>
-    targetNode = targetNode.childNodes[offsetAtNode]!;
-    offsetAtNode = 0;
+    if (targetNode.childNodes.length <= offsetAtNode) {
+      // special path for root selection
+      if (offsetAtNode === 0) {
+        // empty content (placeholder)
+      } else {
+        // void node at line end
+        // Ctrl+A in firefox
+        let n: Node | null = targetNode;
+        while ((n = n.lastChild)) {
+          targetNode = n;
+        }
+        offsetAtNode = isTextNode(targetNode) ? targetNode.data.length : 1;
+      }
+    } else {
+      // If anchor/focus of selection is not selectable node, it will have offset relative to its parent
+      //      0  1       2               3
+      // <div>aaaa<img /><span>bbbb</span></div>
+      targetNode = targetNode.childNodes[offsetAtNode]!;
+      offsetAtNode = 0;
+    }
   }
 
-  return parse(
-    (readNext) => {
-      let type: NodeType | void;
-      let offset = 0;
-
-      while ((type = readNext(targetNode))) {
-        if (type === TYPE_SOFT_BREAK) {
-          lineIndex++;
-          offset = 0;
-        } else {
-          offset += getNodeSize();
-        }
-      }
-      return [lineIndex, offset + offsetAtNode];
-    },
-    document,
-    row
+  const walker = document.createTreeWalker(
+    root,
+    NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT
   );
+  walker.currentNode = targetNode;
+
+  let offset = 0;
+
+  let shouldSkipSiblings = false;
+
+  function indexOfBlock(node: Element): number {
+    let index = 0;
+    while ((node = node.previousElementSibling!)) {
+      index++;
+    }
+
+    return index;
+  }
+
+  const path: number[] = [];
+  while (
+    (node = shouldSkipSiblings ? walker.parentNode() : walker.previousNode()) &&
+    node !== root
+  ) {
+    shouldSkipSiblings = false;
+    if (isTextNode(node)) {
+      offset += node.data.length;
+    } else if (isElementNode(node)) {
+      // TODO improve
+      if (node.tagName === "DIV") {
+        shouldSkipSiblings = true;
+        path.unshift(indexOfBlock(node));
+      } else if (node.tagName === "IMG") {
+        // TODO support void(embed?) node
+        offset++;
+      }
+    }
+  }
+
+  return [path, offset + offsetAtNode];
 };
 
 /**
@@ -210,8 +239,8 @@ const serializePosition = (
  */
 export const getEmptySelectionSnapshot = (): SelectionSnapshot => {
   return [
-    [0, 0],
-    [0, 0],
+    [[], 0],
+    [[], 0],
   ];
 };
 
@@ -220,8 +249,7 @@ export const getEmptySelectionSnapshot = (): SelectionSnapshot => {
  */
 export const takeSelectionSnapshot = (
   document: Document,
-  root: Element,
-  isSingleline: boolean
+  root: Element
 ): SelectionSnapshot => {
   const selection = getDOMSelection(root);
   const range = getSelectionRangeInEditor(selection, root);
@@ -239,44 +267,10 @@ export const takeSelectionSnapshot = (
           DOCUMENT_POSITION_PRECEDING) !==
         0;
 
-  let start: Position;
-  let end: Position;
-  if (root === startContainer && !isSingleline) {
-    if (
-      startOffset === 0 &&
-      endOffset !== 0 &&
-      root.children.length <= endOffset
-    ) {
-      // special case for Ctrl+A in firefox
-      start = [0, 0];
-      end = serializePosition(
-        document,
-        root,
-        root.lastElementChild!,
-        root.lastElementChild!.textContent!.length,
-        isSingleline
-      );
-    } else {
-      return getEmptySelectionSnapshot();
-    }
-  } else {
-    start = serializePosition(
-      document,
-      root,
-      startContainer,
-      startOffset,
-      isSingleline
-    );
-    end = selection.isCollapsed
-      ? start
-      : serializePosition(
-          document,
-          root,
-          endContainer,
-          endOffset,
-          isSingleline
-        );
-  }
+  const start = serializePosition(document, root, startContainer, startOffset);
+  const end = selection.isCollapsed
+    ? start
+    : serializePosition(document, root, endContainer, endOffset);
 
   return [backward ? end : start, backward ? start : end];
 };
@@ -321,8 +315,14 @@ export const takeDomSnapshot = (
           text += getDomNode<typeof type>().data;
         } else if (type === TYPE_VOID) {
           completeNode(getDomNode<typeof type>());
-        } else if (type === TYPE_SOFT_BREAK || type === TYPE_HARD_BREAK) {
+        } else if (type === TYPE_SOFT_BREAK) {
           completeRow();
+        } else if (type === TYPE_BLOCK) {
+          const prev = getDomNode<typeof type>().previousElementSibling;
+          // TODO improve
+          if (prev && prev.tagName === "DIV") {
+            completeRow();
+          }
         }
       }
       completeRow();
