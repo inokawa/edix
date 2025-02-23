@@ -1,7 +1,6 @@
 let walker: TreeWalker | null;
 let node: Node | null;
 let nodeType: NodeType | null;
-let skipChildren = false;
 let isBrDetected = false;
 
 const SHOW_ELEMENT = 0x1;
@@ -138,7 +137,7 @@ const isValidSoftBreak = (node: Node): boolean => {
 
 const readNext = (endNode?: Node): NodeType | void => {
   while (true) {
-    if (skipChildren) {
+    if (nodeType === TYPE_VOID) {
       const current = node!;
       // don't use TreeWalker.nextSibling() to support case like <body><p><a><img /></a></p><p>hello</p></body>
       while ((node = walker!.nextNode())) {
@@ -150,7 +149,7 @@ const readNext = (endNode?: Node): NodeType | void => {
       node = walker!.nextNode();
     }
 
-    skipChildren = false;
+    nodeType = null;
 
     if (!node || (endNode && node === endNode)) {
       break;
@@ -183,7 +182,6 @@ const readNext = (endNode?: Node): NodeType | void => {
         (node as HTMLElement).contentEditable === "false" ||
         EMBEDDED_CONTENT_TAG_NAMES.has(tagName)
       ) {
-        skipChildren = true;
         return (nodeType = TYPE_VOID);
       } else if (SINGLE_LINE_CONTAINER_NAMES.has(tagName)) {
         const prev = node.previousElementSibling;
@@ -209,6 +207,6 @@ export const parse = <T>(
     return scopeFn(readNext);
   } finally {
     walker = node = nodeType = null;
-    skipChildren = isBrDetected = false;
+    isBrDetected = false;
   }
 };
