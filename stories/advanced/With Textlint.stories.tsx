@@ -1,7 +1,7 @@
 import { StoryObj } from "@storybook/react";
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { editable } from "../../src";
+import { editable, plainSchema } from "../../src";
 import { TextlintKernel, TextlintMessage } from "@textlint/kernel";
 import { TextlintKernelOptions } from "@textlint/kernel/lib/src/textlint-kernel-interface";
 
@@ -119,7 +119,7 @@ export const WithTextlint: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
-        multiline: true,
+        schema: plainSchema({ multiline: true }),
         onChange: setText,
       });
     }, []);

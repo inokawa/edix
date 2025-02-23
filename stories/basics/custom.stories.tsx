@@ -1,45 +1,36 @@
 import React, { useEffect, useRef, useState } from "react";
 import { StoryObj } from "@storybook/react";
-import { editable, EditableHandle } from "../../src";
+import { editable, schema, voidNode, InferDoc } from "../../src";
 
 export default {
   component: editable,
 };
 
+const tagSchema = schema({
+  void: {
+    tag: voidNode({
+      is: (e) => e.contentEditable === "false",
+      data: (e) => ({ label: e.textContent!, value: e.dataset.tagValue! }),
+    }),
+  },
+});
+
 export const Tag: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
 
-    type EditableNode =
-      | { type: "text"; value: string }
-      | { type: "tag"; label: string; value: string };
-    const [value, setValue] = useState<EditableNode[]>([
-      { type: "text", value: "Hello " },
-      { type: "tag", label: "Apple", value: "1" },
-      { type: "text", value: " world " },
-      { type: "tag", label: "Orange", value: "2" },
+    type Doc = InferDoc<typeof tagSchema>;
+    const [value, setValue] = useState<Doc>([
+      { type: "text", text: "Hello " },
+      { type: "tag", data: { label: "Apple", value: "1" } },
+      { type: "text", text: " world " },
+      { type: "tag", data: { label: "Orange", value: "2" } },
     ]);
 
     useEffect(() => {
       if (!ref.current) return;
-      return editable<EditableNode[]>(ref.current, {
-        serializer: {
-          data: (snap) => {
-            // singleline
-            return snap[0].reduce((acc, t) => {
-              if (typeof t === "string") {
-                acc.push({ type: "text", value: t });
-              } else if ((t as HTMLElement).contentEditable === "false") {
-                acc.push({
-                  type: "tag",
-                  label: t.textContent!,
-                  value: (t as HTMLElement).dataset.tagValue!,
-                });
-              }
-              return acc;
-            }, [] as EditableNode[]);
-          },
-        },
+      return editable(ref.current, {
+        schema: tagSchema,
         onChange: setValue,
       });
     }, []);
@@ -58,7 +49,7 @@ export const Tag: StoryObj = {
               <span
                 key={j}
                 contentEditable={false}
-                data-tag-value={t.value}
+                data-tag-value={t.data.value}
                 style={{
                   background: "slategray",
                   color: "white",
@@ -67,10 +58,10 @@ export const Tag: StoryObj = {
                   borderRadius: 8,
                 }}
               >
-                {t.label}
+                {t.data.label}
               </span>
             ) : (
-              <span key={j}>{t.value}</span>
+              <span key={j}>{t.text}</span>
             )
           )
         ) : (
@@ -81,51 +72,45 @@ export const Tag: StoryObj = {
   },
 };
 
+const imageSchema = schema({
+  multiline: true,
+  void: {
+    image: voidNode({
+      is: (e) => e.tagName === "IMG",
+      data: (e) => ({ src: (e as HTMLImageElement).src }),
+    }),
+  },
+});
+
 export const Image: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
 
-    type EditableNode =
-      | { type: "text"; value: string }
-      | { type: "image"; src: string };
-    const [value, setValue] = useState<EditableNode[][]>([
+    type Doc = InferDoc<typeof imageSchema>;
+    const [value, setValue] = useState<Doc>([
       [
         {
           type: "text",
-          value: "Hello ",
+          text: "Hello ",
         },
         {
           type: "image",
-          src: "https://loremflickr.com/320/240/cats?lock=1",
+          data: { src: "https://loremflickr.com/320/240/cats?lock=1" },
         },
         {
           type: "text",
-          value: " world ",
+          text: " world ",
         },
         {
           type: "image",
-          src: "https://loremflickr.com/320/240/cats?lock=2",
+          data: { src: "https://loremflickr.com/320/240/cats?lock=2" },
         },
       ],
     ]);
     useEffect(() => {
       if (!ref.current) return;
-      return editable<EditableNode[][]>(ref.current, {
-        multiline: true,
-        serializer: {
-          data: (snap) => {
-            return snap.map((r) => {
-              return r.reduce((acc, t) => {
-                if (typeof t === "string") {
-                  acc.push({ type: "text", value: t });
-                } else if (t.tagName === "IMG") {
-                  acc.push({ type: "image", src: (t as HTMLImageElement).src });
-                }
-                return acc;
-              }, [] as EditableNode[]);
-            });
-          },
-        },
+      return editable(ref.current, {
+        schema: imageSchema,
         onChange: setValue,
       });
     }, []);
@@ -143,9 +128,9 @@ export const Image: StoryObj = {
             {r.length ? (
               r.map((t, j) =>
                 t.type === "image" ? (
-                  <img key={j} src={t.src} />
+                  <img key={j} src={t.data.src} />
                 ) : (
-                  <span key={j}>{t.value}</span>
+                  <span key={j}>{t.text}</span>
                 )
               )
             ) : (
@@ -158,50 +143,41 @@ export const Image: StoryObj = {
   },
 };
 
+const videoSchema = schema({
+  multiline: true,
+  void: {
+    video: voidNode({
+      is: (e) => e.tagName === "VIDEO",
+      data: (e) => ({ src: (e.childNodes[0] as HTMLSourceElement).src }),
+    }),
+  },
+});
+
 export const Video: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
 
-    type EditableNode =
-      | { type: "text"; value: string }
-      | { type: "video"; src: string };
-    const [value, setValue] = useState<EditableNode[][]>([
+    type Doc = InferDoc<typeof videoSchema>;
+    const [value, setValue] = useState<Doc>([
       [
         {
           type: "text",
-          value: "Hello ",
+          text: "Hello ",
         },
         {
           type: "video",
-          src: "https://download.samplelib.com/mp4/sample-5s.mp4",
+          data: { src: "https://download.samplelib.com/mp4/sample-5s.mp4" },
         },
         {
           type: "text",
-          value: " world ",
+          text: " world ",
         },
       ],
     ]);
     useEffect(() => {
       if (!ref.current) return;
-      return editable<EditableNode[][]>(ref.current, {
-        multiline: true,
-        serializer: {
-          data: (snap) => {
-            return snap.map((r) => {
-              return r.reduce((acc, t) => {
-                if (typeof t === "string") {
-                  acc.push({ type: "text", value: t });
-                } else if (t.tagName === "VIDEO") {
-                  acc.push({
-                    type: "video",
-                    src: (t.childNodes[0] as HTMLSourceElement).src,
-                  });
-                }
-                return acc;
-              }, [] as EditableNode[]);
-            });
-          },
-        },
+      return editable(ref.current, {
+        schema: videoSchema,
         onChange: setValue,
       });
     }, []);
@@ -227,10 +203,10 @@ export const Video: StoryObj = {
                     contentEditable="false"
                     suppressContentEditableWarning
                   >
-                    <source src={t.src} />
+                    <source src={t.data.src} />
                   </video>
                 ) : (
-                  <span key={j}>{t.value}</span>
+                  <span key={j}>{t.text}</span>
                 )
               )
             ) : (
@@ -242,6 +218,16 @@ export const Video: StoryObj = {
     );
   },
 };
+
+const youtubeSchema = schema({
+  multiline: true,
+  void: {
+    youtube: voidNode({
+      is: (e) => !!e.dataset.youtubeNode,
+      data: (e) => ({ id: e.dataset.youtubeId! }),
+    }),
+  },
+});
 
 const Youtube = ({ id }: { id: string }) => {
   return (
@@ -260,50 +246,30 @@ const Youtube = ({ id }: { id: string }) => {
 export const Iframe: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
-    const editorRef = useRef<EditableHandle | null>(null);
 
-    type EditableNode =
-      | { type: "text"; value: string }
-      | { type: "youtube"; id: string };
-    const [value, setValue] = useState<EditableNode[][]>([
+    type Doc = InferDoc<typeof youtubeSchema>;
+    const [value, setValue] = useState<Doc>([
       [
         {
           type: "text",
-          value: "Hello ",
+          text: "Hello ",
         },
         {
           type: "youtube",
-          id: "IqKz0SfHaqI",
+          data: { id: "IqKz0SfHaqI" },
         },
         {
           type: "text",
-          value: " Youtube",
+          text: " Youtube",
         },
       ],
     ]);
     useEffect(() => {
       if (!ref.current) return;
-      return (editorRef.current = editable<EditableNode[][]>(ref.current, {
-        multiline: true,
-        serializer: {
-          data: (snap) => {
-            return snap.map((r) => {
-              return r.reduce((acc, t) => {
-                if (typeof t === "string") {
-                  acc.push({ type: "text", value: t });
-                } else if (!!(t as HTMLElement).dataset.youtubeNode) {
-                  acc.push({
-                    type: "youtube",
-                    id: (t as HTMLElement).dataset.youtubeId!,
-                  });
-                }
-                return acc;
-              }, [] as EditableNode[]);
-            });
-          },
-        },
+      return editable(ref.current, {
+        schema: youtubeSchema,
         onChange: setValue,
-      }));
+      });
     }, []);
 
     return (
@@ -330,9 +296,9 @@ export const Iframe: StoryObj = {
               {r.length ? (
                 r.map((t, j) =>
                   t.type === "youtube" ? (
-                    <Youtube key={j} id={t.id} />
+                    <Youtube key={j} id={t.data.id} />
                   ) : (
-                    <span key={j}>{t.value}</span>
+                    <span key={j}>{t.text}</span>
                   )
                 )
               ) : (

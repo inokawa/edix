@@ -1,6 +1,6 @@
 import { StoryObj } from "@storybook/react";
 import React, { useEffect, useRef, useState } from "react";
-import { editable } from "../../src";
+import { editable, plainSchema } from "../../src";
 import { Highlight, themes } from "prism-react-renderer";
 
 export default {
@@ -30,7 +30,7 @@ function Example() {
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
-        multiline: true,
+        schema: plainSchema({ multiline: true }),
         onChange: setText,
       });
     }, []);

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { StoryObj } from "@storybook/react";
-import { editable, EditableHandle } from "../../src";
+import { editable, EditableHandle, plainSchema } from "../../src";
 
 export default {
   component: editable,
@@ -15,7 +15,7 @@ export const Multiline: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
-        multiline: true,
+        schema: plainSchema({ multiline: true }),
         onChange: setValue,
       });
     }, []);
@@ -44,6 +44,7 @@ export const Singleline: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
+        schema: plainSchema(),
         onChange: setValue,
       });
     }, []);
@@ -72,6 +73,7 @@ export const Readonly: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return (handle.current = editable(ref.current, {
+        schema: plainSchema(),
         onChange: setValue,
       }));
     }, []);
@@ -110,6 +112,7 @@ export const Placeholder: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
+        schema: plainSchema(),
         onChange: setValue,
       });
     }, []);
@@ -147,7 +150,7 @@ two !
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
-        multiline: true,
+        schema: plainSchema({ multiline: true }),
         onChange: setValue,
       });
     }, []);
@@ -178,7 +181,7 @@ export const Vertical: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
-        multiline: true,
+        schema: plainSchema({ multiline: true }),
         onChange: setValue,
       });
     }, []);
@@ -210,7 +213,7 @@ export const Highlight: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
-        multiline: true,
+        schema: plainSchema({ multiline: true }),
         onChange: setValue,
       });
     }, []);

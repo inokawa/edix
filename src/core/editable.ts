@@ -18,6 +18,7 @@ import {
 } from "./commands";
 import { flatten } from "./edit";
 import { isCommentNode } from "./parser";
+import { EditableSchema } from "./schema";
 
 /**
  * https://www.w3.org/TR/input-events-1/#interface-InputEvent-Attributes
@@ -69,31 +70,9 @@ type InputType =
   | "formatBackColor" // change the background color
   | "formatFontColor" // change the font color
   | "formatFontName"; // change the font-family
-
-export interface EditableSerializer<T> {
-  data: (snapshot: DomSnapshot) => T;
-  plain?: (snapshot: DomSnapshot) => string;
-}
-
-const serializeToString = (snapshot: DomSnapshot): string => {
-  return snapshot.reduce((acc, r, i) => {
-    if (i !== 0) {
-      acc += "\n";
-    }
-    return (
-      acc +
-      r.reduce(
-        (acc, n) => acc + (typeof n === "string" ? n : n.textContent!),
-        ""
-      )
-    );
-  }, "");
-};
-
 export interface EditableOptions<T> {
-  multiline?: boolean;
   readonly?: boolean;
-  serializer?: EditableSerializer<T>;
+  schema: EditableSchema<T>;
   onChange: (value: T) => void;
 }
 
@@ -102,12 +81,11 @@ export interface EditableHandle {
   readonly: (value: boolean) => void;
 }
 
-export const editable = <T = string>(
+export const editable = <T>(
   element: HTMLElement,
   {
-    multiline,
     readonly,
-    serializer = { data: serializeToString as EditableSerializer<T>["data"] },
+    schema: { single: isSingleline, data: serialize, plain: toString },
     onChange,
   }: EditableOptions<T>
 ): EditableHandle => {
@@ -131,7 +109,7 @@ export const editable = <T = string>(
   element.role = "textbox";
   // https://html.spec.whatwg.org/multipage/interaction.html#best-practices-for-in-page-editors
   element.style.whiteSpace = "pre-wrap";
-  if (multiline) {
+  if (!isSingleline) {
     element.ariaMultiLine = "true";
   }
 
@@ -144,9 +122,6 @@ export const editable = <T = string>(
   let isDragging = false;
 
   const commands: [EditableCommand<any[]>, args: unknown[]][] = [];
-
-  const isSingleline = !multiline;
-  const { data: serialize, plain: toString = serializeToString } = serializer;
 
   const document = getCurrentDocument(element);
 
