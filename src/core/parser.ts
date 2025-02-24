@@ -13,7 +13,7 @@ export const TYPE_VOID = 2;
 /** @internal */
 export const TYPE_SOFT_BREAK = 3;
 /** @internal */
-export const TYPE_HARD_BREAK = 4;
+export const TYPE_BLOCK = 4;
 /** @internal */
 export const TYPE_EMPTY_BLOCK_ANCHOR = 5;
 
@@ -24,7 +24,7 @@ export type NodeType =
   | typeof TYPE_TEXT
   | typeof TYPE_VOID
   | typeof TYPE_SOFT_BREAK
-  | typeof TYPE_HARD_BREAK
+  | typeof TYPE_BLOCK
   | typeof TYPE_EMPTY_BLOCK_ANCHOR;
 
 const ELEMENT_NODE = 1;
@@ -135,7 +135,17 @@ const isValidSoftBreak = (node: Node): boolean => {
   return !!node.nextSibling;
 };
 
-const readNext = (endNode?: Node): NodeType | void => {
+/**
+ * @internal
+ */
+export const moveToBlock = (index: number) => {
+  if (nodeType === TYPE_BLOCK) {
+    node = walker!.currentNode =
+      getDomNode<typeof nodeType>().parentElement!.children[index]!;
+  }
+};
+
+const readNext = (): NodeType | void => {
   while (true) {
     if (nodeType === TYPE_VOID) {
       const current = node!;
@@ -151,7 +161,7 @@ const readNext = (endNode?: Node): NodeType | void => {
 
     nodeType = null;
 
-    if (!node || (endNode && node === endNode)) {
+    if (!node) {
       break;
     }
 
@@ -184,10 +194,7 @@ const readNext = (endNode?: Node): NodeType | void => {
       ) {
         return (nodeType = TYPE_VOID);
       } else if (SINGLE_LINE_CONTAINER_NAMES.has(tagName)) {
-        const prev = node.previousElementSibling;
-        if (prev && SINGLE_LINE_CONTAINER_NAMES.has(prev.tagName)) {
-          return (nodeType = TYPE_HARD_BREAK);
-        }
+        return (nodeType = TYPE_BLOCK);
       }
     }
   }

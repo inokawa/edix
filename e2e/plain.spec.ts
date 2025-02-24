@@ -141,7 +141,9 @@ test.describe("type word", () => {
 
       await editable.focus();
 
-      expect(await getSelection(editable, true)).toEqual(createSelection());
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ line: [], offset: 0 })
+      );
 
       // Input
       const text = "test";
@@ -150,8 +152,8 @@ test.describe("type word", () => {
         insertAt(initialValue, text, [0, 0])
       );
       const textLength = text.length;
-      expect(await getSelection(editable, true)).toEqual(
-        createSelection({ offset: textLength })
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ line: [], offset: textLength })
       );
     });
 
@@ -163,12 +165,14 @@ test.describe("type word", () => {
 
       await editable.focus();
 
-      expect(await getSelection(editable, true)).toEqual(createSelection());
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ line: [], offset: 0 })
+      );
 
       // Move caret
       await page.keyboard.press("ArrowRight");
-      expect(await getSelection(editable, true)).toEqual(
-        createSelection({ offset: 1 })
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ line: [], offset: 1 })
       );
 
       // Input
@@ -178,8 +182,8 @@ test.describe("type word", () => {
         insertAt(initialValue, text, [0, 1])
       );
       const textLength = text.length;
-      expect(await getSelection(editable, true)).toEqual(
-        createSelection({ offset: 1 + textLength })
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ line: [], offset: 1 + textLength })
       );
     });
 
@@ -193,7 +197,9 @@ test.describe("type word", () => {
 
       await editable.focus();
 
-      expect(await getSelection(editable, true)).toEqual(createSelection());
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ line: [], offset: 0 })
+      );
 
       const client = await page.context().newCDPSession(page);
       await client.send("Input.imeSetComposition", {
@@ -214,8 +220,8 @@ test.describe("type word", () => {
         insertAt(initialValue, "😂😭", [0, 0])
       );
       const textLength = "😂😭".length;
-      expect(await getSelection(editable, true)).toEqual(
-        createSelection({ offset: textLength })
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ line: [], offset: textLength })
       );
     });
   });
@@ -275,7 +281,7 @@ test.describe("replace range", () => {
     // Expand selection
     await page.keyboard.press("Shift+ArrowDown");
     expect(await getSelection(editable)).toEqual(
-      createSelection({ anchor: [0, len], focus: [1, len] })
+      createSelection({ anchor: [[0], len], focus: [[1], len] })
     );
 
     // Input
@@ -306,9 +312,9 @@ test.describe("replace range", () => {
     await page.keyboard.press(`ControlOrMeta+A`);
     expect(await getSelection(editable)).toEqual(
       createSelection({
-        anchor: [0, 0],
+        anchor: [[0], 0],
         focus: [
-          initialValue.length - 1,
+          [initialValue.length - 1],
           initialValue[initialValue.length - 1].length,
         ],
       })
@@ -364,21 +370,23 @@ test.describe("Keydown", () => {
 
       await editable.focus();
 
-      expect(await getSelection(editable)).toEqual(createSelection());
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ line: [], offset: 0 })
+      );
 
       await page.keyboard.press("ArrowRight");
       expect(await getSelection(editable)).toEqual(
-        createSelection({ offset: 1 })
+        createSelection({ line: [], offset: 1 })
       );
 
       await page.keyboard.press("ArrowDown");
       expect(await getSelection(editable)).toEqual(
-        createSelection({ offset: textLength })
+        createSelection({ line: [], offset: textLength })
       );
 
       await page.keyboard.press("ArrowLeft");
       expect(await getSelection(editable)).toEqual(
-        createSelection({ offset: textLength - 1 })
+        createSelection({ line: [], offset: textLength - 1 })
       );
 
       await page.keyboard.press("ArrowUp");
@@ -616,11 +624,13 @@ test.describe("Keydown", () => {
 
       await editable.focus();
 
-      expect(await getSelection(editable)).toEqual(createSelection());
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ line: [], offset: 0 })
+      );
 
       await loop(2, () => page.keyboard.press("ArrowRight"));
       expect(await getSelection(editable)).toEqual(
-        createSelection({ offset: 2 })
+        createSelection({ line: [], offset: 2 })
       );
 
       // Press enter
@@ -629,7 +639,7 @@ test.describe("Keydown", () => {
       // NOP
       expect(await getText(editable)).toEqual(initialValue);
       expect(await getSelection(editable)).toEqual(
-        createSelection({ offset: 2 })
+        createSelection({ line: [], offset: 2 })
       );
     });
   });
@@ -714,7 +724,7 @@ test.describe("Keydown", () => {
       // Expand selection
       await page.keyboard.press("Shift+ArrowDown");
       expect(await getSelection(editable)).toEqual(
-        createSelection({ anchor: [0, len], focus: [1, len] })
+        createSelection({ anchor: [[0], len], focus: [[1], len] })
       );
 
       // delete
@@ -743,9 +753,9 @@ test.describe("Keydown", () => {
       await page.keyboard.press(`ControlOrMeta+A`);
       expect(await getSelection(editable)).toEqual(
         createSelection({
-          anchor: [0, 0],
+          anchor: [[0], 0],
           focus: [
-            initialValue.length - 1,
+            [initialValue.length - 1],
             initialValue[initialValue.length - 1].length,
           ],
         })
@@ -839,7 +849,7 @@ test.describe("Keydown", () => {
       // Expand selection
       await page.keyboard.press("Shift+ArrowDown");
       expect(await getSelection(editable)).toEqual(
-        createSelection({ anchor: [0, len], focus: [1, len] })
+        createSelection({ anchor: [[0], len], focus: [[1], len] })
       );
 
       // delete
@@ -868,9 +878,9 @@ test.describe("Keydown", () => {
       await page.keyboard.press(`ControlOrMeta+A`);
       expect(await getSelection(editable)).toEqual(
         createSelection({
-          anchor: [0, 0],
+          anchor: [[0], 0],
           focus: [
-            initialValue.length - 1,
+            [initialValue.length - 1],
             initialValue[initialValue.length - 1].length,
           ],
         })
@@ -963,7 +973,7 @@ test.describe("Cut", () => {
     // Expand selection
     await page.keyboard.press("Shift+ArrowDown");
     expect(await getSelection(editable)).toEqual(
-      createSelection({ anchor: [0, len], focus: [1, len] })
+      createSelection({ anchor: [[0], len], focus: [[1], len] })
     );
 
     // cut
@@ -992,9 +1002,9 @@ test.describe("Cut", () => {
     await page.keyboard.press(`ControlOrMeta+A`);
     expect(await getSelection(editable)).toEqual(
       createSelection({
-        anchor: [0, 0],
+        anchor: [[0], 0],
         focus: [
-          initialValue.length - 1,
+          [initialValue.length - 1],
           initialValue[initialValue.length - 1].length,
         ],
       })
@@ -1138,12 +1148,14 @@ test.describe("Paste", () => {
 
       await editable.focus();
 
-      expect(await getSelection(editable)).toEqual(createSelection());
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ line: [], offset: 0 })
+      );
 
       // Move caret
       await loop(2, () => page.keyboard.press("ArrowRight"));
       expect(await getSelection(editable)).toEqual(
-        createSelection({ offset: 2 })
+        createSelection({ line: [], offset: 2 })
       );
 
       // paste
@@ -1156,7 +1168,7 @@ test.describe("Paste", () => {
         insertAt(initialValue, pastedText, [0, 2])
       );
       expect(await getSelection(editable)).toEqual(
-        createSelection({ offset: 2 + charLength })
+        createSelection({ line: [], offset: 2 + charLength })
       );
     });
 
@@ -1168,12 +1180,14 @@ test.describe("Paste", () => {
 
       await editable.focus();
 
-      expect(await getSelection(editable)).toEqual(createSelection());
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ line: [], offset: 0 })
+      );
 
       // Move caret
       await loop(2, () => page.keyboard.press("ArrowRight"));
       expect(await getSelection(editable)).toEqual(
-        createSelection({ offset: 2 })
+        createSelection({ line: [], offset: 2 })
       );
 
       // paste
@@ -1187,7 +1201,7 @@ test.describe("Paste", () => {
         insertAt(initialValue, pastedTextWithoutLinebreak, [0, 2])
       );
       expect(await getSelection(editable)).toEqual(
-        createSelection({ offset: 2 + charLength })
+        createSelection({ line: [], offset: 2 + charLength })
       );
     });
   });
@@ -1581,7 +1595,9 @@ test("placeholder", async ({ page }) => {
   //   });
 
   expect(initialValue).toEqual([""]);
-  expect(await getSelection(editable)).toEqual(createSelection());
+  expect(await getSelection(editable)).toEqual(
+    createSelection({ line: [], offset: 0 })
+  );
   // expect((await getPlaceholder()).includes("Enter some text...")).toBe(true);
 
   // Input
@@ -1590,13 +1606,15 @@ test("placeholder", async ({ page }) => {
 
   const value1 = await getText(editable);
   expect(value1).toEqual(insertAt(initialValue, char, [0, 0]));
-  expect(await getSelection(editable)).toEqual(createSelection({ offset: 1 }));
+  expect(await getSelection(editable)).toEqual(
+    createSelection({ line: [], offset: 1 })
+  );
   // expect((await getPlaceholder()).includes("Enter some text...")).toBe(false);
 
   await page.keyboard.press("Backspace");
   const value2 = await getText(editable);
   expect(value2).toEqual([""]);
-  expect(await getSelection(editable)).toEqual(createSelection());
+  expect(await getSelection(editable)).toEqual(createSelection({ line: [] }));
   // expect((await getPlaceholder()).includes("Enter some text...")).toBe(true);
 });
 
