@@ -1,13 +1,13 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
-  import { editable, type EditableHandle } from "edix";
+  import { editable, plainSchema, type EditableHandle } from "edix";
 
   let value = $state("Hello World.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
   let ref: HTMLElement | undefined = $state();
   let cleanup: EditableHandle | null = null;
   onMount(() => {
     cleanup = editable(ref!, {
-      multiline: true,
+      schema: plainSchema({ multiline: true }),
       onChange: (v) => {
         value = v;
       },

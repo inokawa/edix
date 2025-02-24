@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import { editable } from "edix";
+import { editable, plainSchema } from "edix";
 
 function App() {
   const ref = useRef<HTMLDivElement>(null);
-  const [value, setValue] = useState("Hello World.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
+  const [value, setValue] = useState(
+    "Hello World.\nこんにちは。\n👍❤️🧑‍🧑‍🧒"
+  );
   useEffect(() => {
     return editable(ref.current!, {
-      multiline: true,
+      schema: plainSchema({ multiline: true }),
       onChange: setValue,
     });
   }, []);

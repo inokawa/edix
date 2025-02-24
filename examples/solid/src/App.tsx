@@ -1,12 +1,14 @@
 import { createMemo, createSignal, For, onCleanup, onMount } from "solid-js";
-import { editable } from "edix";
+import { editable, plainSchema } from "edix";
 
 function App() {
   let ref: HTMLDivElement | undefined;
-  const [value, setValue] = createSignal("Hello World.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
+  const [value, setValue] = createSignal(
+    "Hello World.\nこんにちは。\n👍❤️🧑‍🧑‍🧒"
+  );
   onMount(() => {
     const cleanup = editable(ref!, {
-      multiline: true,
+      schema: plainSchema({ multiline: true }),
       onChange: setValue,
     });
     onCleanup(() => {

@@ -1,4 +1,4 @@
-import { editable } from "edix";
+import { editable, plainSchema } from "edix";
 import morphdom from "morphdom";
 
 const root = document.getElementById("root")!;
@@ -22,7 +22,7 @@ const updateRows = (text: string) => {
 updateRows("Hello World.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
 
 editable(el, {
-  multiline: true,
+  schema: plainSchema({ multiline: true }),
   onChange: (v) => {
     updateRows(v);
   },

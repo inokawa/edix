@@ -1,5 +1,5 @@
 import { Component, ElementRef, signal, viewChild } from '@angular/core';
-import { editable, EditableHandle } from 'edix';
+import { editable, EditableHandle, plainSchema } from 'edix';
 
 @Component({
   selector: 'app-root',
@@ -13,7 +13,7 @@ export class AppComponent {
 
   ngAfterViewInit() {
     this.cleanup = editable(this.ref()!.nativeElement, {
-      multiline: true,
+      schema: plainSchema({ multiline: true }),
       onChange: (v) => {
         this.value.set(v);
       },
