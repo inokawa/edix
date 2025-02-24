@@ -4,11 +4,11 @@
 
 # Interface: EditableHandle()
 
-Defined in: [editable.ts:100](https://github.com/inokawa/edix/blob/4de6d1c6d7b389c5eb1a387ae91ce3a07ce8aa85/src/core/editable.ts#L100)
+Defined in: [editable.ts:79](https://github.com/inokawa/edix/blob/85c2a124fd44a8c8104340867b78a503a4b370d2/src/core/editable.ts#L79)
 
 > **EditableHandle**(): `void`
 
-Defined in: [editable.ts:101](https://github.com/inokawa/edix/blob/4de6d1c6d7b389c5eb1a387ae91ce3a07ce8aa85/src/core/editable.ts#L101)
+Defined in: [editable.ts:80](https://github.com/inokawa/edix/blob/85c2a124fd44a8c8104340867b78a503a4b370d2/src/core/editable.ts#L80)
 
 ## Returns
 
@@ -20,7 +20,7 @@ Defined in: [editable.ts:101](https://github.com/inokawa/edix/blob/4de6d1c6d7b38
 
 > **readonly**: (`value`) => `void`
 
-Defined in: [editable.ts:102](https://github.com/inokawa/edix/blob/4de6d1c6d7b389c5eb1a387ae91ce3a07ce8aa85/src/core/editable.ts#L102)
+Defined in: [editable.ts:81](https://github.com/inokawa/edix/blob/85c2a124fd44a8c8104340867b78a503a4b370d2/src/core/editable.ts#L81)
 
 #### Parameters
 
