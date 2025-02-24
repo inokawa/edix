@@ -1,7 +1,7 @@
 import { StoryObj } from "@storybook/react";
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { editable } from "../../src";
+import { editable, plainSchema } from "../../src";
 import { getTokenizer, Tokenizer, KuromojiToken } from "kuromojin";
 
 export default {
@@ -93,7 +93,7 @@ const Editor = ({ tokenizer }: { tokenizer: Tokenizer }) => {
   useEffect(() => {
     if (!ref.current) return;
     return editable(ref.current, {
-      multiline: true,
+      schema: plainSchema({ multiline: true }),
       onChange: setText,
     });
   }, []);

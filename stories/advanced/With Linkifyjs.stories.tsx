@@ -1,6 +1,6 @@
 import { StoryObj } from "@storybook/react";
 import React, { ReactElement, useEffect, useRef, useState } from "react";
-import { editable } from "../../src";
+import { editable, plainSchema } from "../../src";
 import * as linkify from "linkifyjs";
 
 export default {
@@ -34,7 +34,7 @@ export const WithLinkifyjs: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
-        multiline: true,
+        schema: plainSchema({ multiline: true }),
         onChange: setText,
       });
     }, []);

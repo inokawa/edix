@@ -1,6 +1,6 @@
 import { StoryObj } from "@storybook/react";
 import React, { ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import { editable } from "../../src";
+import { editable, plainSchema } from "../../src";
 import { diffLines, diffChars, Change } from "diff";
 
 export default {
@@ -45,7 +45,7 @@ const Editor = ({
   useEffect(() => {
     if (!ref.current) return;
     return editable(ref.current, {
-      multiline: true,
+      schema: plainSchema({ multiline: true }),
       onChange,
     });
   }, []);

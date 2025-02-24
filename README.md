@@ -21,6 +21,8 @@ Web editing is so hard even today. There are excellent libraries to make complex
 npm install edix
 ```
 
+`typescript >=5.0` is recommended.
+
 ## Getting started
 
 1. Define your contents declaratively. There are rules you have to follow:
@@ -41,7 +43,7 @@ Here is an example for React.
 
 ```tsx
 import { useState, useEffect, useRef } from "react";
-import { editable } from "edix";
+import { editable, plainSchema } from "edix";
 
 export const App = () => {
   const ref = useRef<HTMLDivElement>(null);
@@ -50,6 +52,7 @@ export const App = () => {
   useEffect(() => {
     // 2. init
     const cleanup = editable(ref.current, {
+      schema: plainSchema(),
       onChange: (v) => {
         // 3. update state
         setValue(v);
@@ -81,7 +84,7 @@ export const App = () => {
 
 ```tsx
 import { useState, useEffect, useRef } from "react";
-import { editable } from "edix";
+import { editable, plainSchema } from "edix";
 
 export const App = () => {
   const ref = useRef<HTMLDivElement>(null);
@@ -90,7 +93,7 @@ export const App = () => {
   useEffect(() => {
     // 2. init
     const cleanup = editable(ref.current, {
-      multiline: true,
+      schema: plainSchema({ multiline: true }),
       onChange: (v) => {
         // 3. update state
         setValue(v);
