@@ -6,7 +6,7 @@
 
 > **editable**\<`T`\>(`element`, `__namedParameters`): [`EditableHandle`](../interfaces/EditableHandle.md)
 
-Defined in: [editable.ts:84](https://github.com/inokawa/edix/blob/85c2a124fd44a8c8104340867b78a503a4b370d2/src/core/editable.ts#L84)
+Defined in: [editable.ts:83](https://github.com/inokawa/edix/blob/1310bb20e9f231a42c138bb5fc604641e3ec391b/src/core/editable.ts#L83)
 
 ## Type Parameters
 

@@ -4,7 +4,7 @@
 
 # Interface: EditableVoidSerializer\<T\>
 
-Defined in: [schema/custom.ts:4](https://github.com/inokawa/edix/blob/85c2a124fd44a8c8104340867b78a503a4b370d2/src/core/schema/custom.ts#L4)
+Defined in: [schema/custom.ts:4](https://github.com/inokawa/edix/blob/1310bb20e9f231a42c138bb5fc604641e3ec391b/src/core/schema/custom.ts#L4)
 
 ## Type Parameters
 
@@ -16,7 +16,7 @@ Defined in: [schema/custom.ts:4](https://github.com/inokawa/edix/blob/85c2a124fd
 
 > **is**: (`node`) => `boolean`
 
-Defined in: [schema/custom.ts:5](https://github.com/inokawa/edix/blob/85c2a124fd44a8c8104340867b78a503a4b370d2/src/core/schema/custom.ts#L5)
+Defined in: [schema/custom.ts:5](https://github.com/inokawa/edix/blob/1310bb20e9f231a42c138bb5fc604641e3ec391b/src/core/schema/custom.ts#L5)
 
 #### Parameters
 
@@ -34,7 +34,7 @@ Defined in: [schema/custom.ts:5](https://github.com/inokawa/edix/blob/85c2a124fd
 
 > **data**: (`node`) => `T`
 
-Defined in: [schema/custom.ts:6](https://github.com/inokawa/edix/blob/85c2a124fd44a8c8104340867b78a503a4b370d2/src/core/schema/custom.ts#L6)
+Defined in: [schema/custom.ts:6](https://github.com/inokawa/edix/blob/1310bb20e9f231a42c138bb5fc604641e3ec391b/src/core/schema/custom.ts#L6)
 
 #### Parameters
 
@@ -52,7 +52,7 @@ Defined in: [schema/custom.ts:6](https://github.com/inokawa/edix/blob/85c2a124fd
 
 > **plain**: (`node`) => `string`
 
-Defined in: [schema/custom.ts:7](https://github.com/inokawa/edix/blob/85c2a124fd44a8c8104340867b78a503a4b370d2/src/core/schema/custom.ts#L7)
+Defined in: [schema/custom.ts:7](https://github.com/inokawa/edix/blob/1310bb20e9f231a42c138bb5fc604641e3ec391b/src/core/schema/custom.ts#L7)
 
 #### Parameters
 

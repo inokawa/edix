@@ -6,7 +6,7 @@
 
 > **EditableSchema**\<`T`\>: `object`
 
-Defined in: [schema/types.ts:3](https://github.com/inokawa/edix/blob/85c2a124fd44a8c8104340867b78a503a4b370d2/src/core/schema/types.ts#L3)
+Defined in: [schema/types.ts:3](https://github.com/inokawa/edix/blob/1310bb20e9f231a42c138bb5fc604641e3ec391b/src/core/schema/types.ts#L3)
 
 ## Type Parameters
 
