@@ -17,7 +17,7 @@ export const Multiline: StoryObj = {
       return editable(ref.current, {
         schema: plainSchema({ multiline: true }),
         onChange: setValue,
-      });
+      }).dispose;
     }, []);
 
     return (
@@ -46,7 +46,7 @@ export const Singleline: StoryObj = {
       return editable(ref.current, {
         schema: plainSchema(),
         onChange: setValue,
-      });
+      }).dispose;
     }, []);
 
     return (
@@ -72,10 +72,12 @@ export const Readonly: StoryObj = {
     const handle = useRef<EditableHandle | null>(null);
     useEffect(() => {
       if (!ref.current) return;
-      return (handle.current = editable(ref.current, {
+      const editor = editable(ref.current, {
         schema: plainSchema(),
         onChange: setValue,
-      }));
+      });
+      handle.current = editor;
+      return editor.dispose;
     }, []);
     return (
       <div>
@@ -114,7 +116,7 @@ export const Placeholder: StoryObj = {
       return editable(ref.current, {
         schema: plainSchema(),
         onChange: setValue,
-      });
+      }).dispose;
     }, []);
     return (
       <>
@@ -152,7 +154,7 @@ two !
       return editable(ref.current, {
         schema: plainSchema({ multiline: true }),
         onChange: setValue,
-      });
+      }).dispose;
     }, []);
     return (
       <div
@@ -183,7 +185,7 @@ export const Vertical: StoryObj = {
       return editable(ref.current, {
         schema: plainSchema({ multiline: true }),
         onChange: setValue,
-      });
+      }).dispose;
     }, []);
     return (
       <div
@@ -215,7 +217,7 @@ export const Highlight: StoryObj = {
       return editable(ref.current, {
         schema: plainSchema({ multiline: true }),
         onChange: setValue,
-      });
+      }).dispose;
     }, []);
 
     const reg = searchText ? new RegExp(`(${searchText})`) : null;

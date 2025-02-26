@@ -71,20 +71,18 @@ type InputType =
   | "formatFontColor" // change the font color
   | "formatFontName"; // change the font-family
 export interface EditableOptions<T> {
-  readonly?: boolean;
   schema: EditableSchema<T>;
   onChange: (value: T) => void;
 }
 
 export interface EditableHandle {
-  (): void;
+  dispose: () => void;
   readonly: (value: boolean) => void;
 }
 
 export const editable = <T>(
   element: HTMLElement,
   {
-    readonly,
     schema: { single: isSingleline, data: serialize, plain: toString },
     onChange,
   }: EditableOptions<T>
@@ -100,12 +98,6 @@ export const editable = <T>(
   } = element;
   const prevWhiteSpace = element.style.whiteSpace;
 
-  const setContentEditable = () => {
-    element.contentEditable = readonly ? "false" : "true";
-    element.ariaReadOnly = readonly ? "true" : null;
-  };
-
-  setContentEditable();
   element.role = "textbox";
   // https://html.spec.whatwg.org/multipage/interaction.html#best-practices-for-in-page-editors
   element.style.whiteSpace = "pre-wrap";
@@ -113,6 +105,7 @@ export const editable = <T>(
     element.ariaMultiLine = "true";
   }
 
+  let readonly = false;
   let disposed = false;
   let selectionReverted = false;
   let currentSelection: SelectionSnapshot = getEmptySelectionSnapshot();
@@ -120,6 +113,13 @@ export const editable = <T>(
   let isComposing = false;
   let hasFocus = false;
   let isDragging = false;
+
+  const setContentEditable = () => {
+    element.contentEditable = readonly ? "false" : "true";
+    element.ariaReadOnly = readonly ? "true" : null;
+  };
+
+  setContentEditable();
 
   const commands: [EditableCommand<any[]>, args: unknown[]][] = [];
 
@@ -401,35 +401,36 @@ export const editable = <T>(
   element.addEventListener("dragstart", onDragStart);
   element.addEventListener("dragend", onDragEnd);
 
-  const handle = () => {
-    if (disposed) return;
-    disposed = true;
+  return {
+    dispose: () => {
+      if (disposed) return;
+      disposed = true;
 
-    element.contentEditable = prevContentEditable;
-    element.role = prevRole;
-    element.ariaMultiLine = prevAriaMultiLine;
-    element.ariaReadOnly = prevAriaReadOnly;
-    element.style.whiteSpace = prevWhiteSpace;
+      element.contentEditable = prevContentEditable;
+      element.role = prevRole;
+      element.ariaMultiLine = prevAriaMultiLine;
+      element.ariaReadOnly = prevAriaReadOnly;
+      element.style.whiteSpace = prevWhiteSpace;
 
-    observer._dispose();
+      observer._dispose();
 
-    document.removeEventListener("selectionchange", onSelectionChange);
-    element.removeEventListener("keydown", onKeyDown);
-    element.removeEventListener("input", onInput);
-    element.removeEventListener("beforeinput", onBeforeInput);
-    element.removeEventListener("compositionstart", onCompositionStart);
-    element.removeEventListener("compositionend", onCompositionEnd);
-    element.removeEventListener("copy", onCopy);
-    element.removeEventListener("cut", onCut);
-    element.removeEventListener("paste", onPaste);
-    element.removeEventListener("focus", onFocus);
-    element.removeEventListener("blur", onBlur);
-    element.removeEventListener("dragstart", onDragStart);
-    element.removeEventListener("dragend", onDragEnd);
+      document.removeEventListener("selectionchange", onSelectionChange);
+      element.removeEventListener("keydown", onKeyDown);
+      element.removeEventListener("input", onInput);
+      element.removeEventListener("beforeinput", onBeforeInput);
+      element.removeEventListener("compositionstart", onCompositionStart);
+      element.removeEventListener("compositionend", onCompositionEnd);
+      element.removeEventListener("copy", onCopy);
+      element.removeEventListener("cut", onCut);
+      element.removeEventListener("paste", onPaste);
+      element.removeEventListener("focus", onFocus);
+      element.removeEventListener("blur", onBlur);
+      element.removeEventListener("dragstart", onDragStart);
+      element.removeEventListener("dragend", onDragEnd);
+    },
+    readonly: (value) => {
+      readonly = value;
+      setContentEditable();
+    },
   };
-  handle.readonly = (value: boolean) => {
-    readonly = value;
-    setContentEditable();
-  };
-  return handle;
 };
