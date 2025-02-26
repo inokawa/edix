@@ -7,12 +7,12 @@ function App() {
     "Hello World.\nこんにちは。\n👍❤️🧑‍🧑‍🧒"
   );
   onMount(() => {
-    const cleanup = editable(ref!, {
+    const editor = editable(ref!, {
       schema: plainSchema({ multiline: true }),
       onChange: setValue,
     });
     onCleanup(() => {
-      cleanup();
+      editor.dispose();
     });
   });
 

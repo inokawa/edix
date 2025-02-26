@@ -4,9 +4,9 @@
 
   let value = $state("Hello World.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
   let ref: HTMLElement | undefined = $state();
-  let cleanup: EditableHandle | null = null;
+  let editor: EditableHandle | null = null;
   onMount(() => {
-    cleanup = editable(ref!, {
+    editor = editable(ref!, {
       schema: plainSchema({ multiline: true }),
       onChange: (v) => {
         value = v;
@@ -14,7 +14,7 @@
     });
   });
   onDestroy(() => {
-    cleanup?.();
+    editor?.dispose();
   });
 </script>
 

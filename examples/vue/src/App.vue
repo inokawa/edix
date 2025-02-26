@@ -4,9 +4,9 @@ import { editable, EditableHandle, plainSchema } from "edix";
 
 const value = ref("Hello World.\nこんにちは。\n👍❤️🧑‍🧑‍🧒")
 const element = ref<HTMLDivElement>()
-let cleanup: EditableHandle | null = null
+let editor: EditableHandle | null = null
 onMounted(() => {
-  cleanup = editable(element.value!, {
+  editor = editable(element.value!, {
     schema: plainSchema({ multiline: true }),
     onChange: (v) => {
       value.value = v
@@ -14,7 +14,7 @@ onMounted(() => {
   });
 })
 onUnmounted(() => {
-  cleanup?.()
+  editor?.dispose()
 })
 </script>
 

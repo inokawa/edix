@@ -9,10 +9,10 @@ import { editable, EditableHandle, plainSchema } from 'edix';
 export class AppComponent {
   ref = viewChild<ElementRef<HTMLDivElement>>('ref');
   value = signal('Hello World.\nこんにちは。\n👍❤️🧑‍🧑‍🧒');
-  cleanup: EditableHandle | null = null;
+  editor: EditableHandle | null = null;
 
   ngAfterViewInit() {
-    this.cleanup = editable(this.ref()!.nativeElement, {
+    this.editor = editable(this.ref()!.nativeElement, {
       schema: plainSchema({ multiline: true }),
       onChange: (v) => {
         this.value.set(v);
@@ -21,6 +21,6 @@ export class AppComponent {
   }
 
   ngOnDestroy() {
-    this.cleanup?.();
+    this.editor?.dispose();
   }
 }
