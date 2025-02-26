@@ -70,16 +70,39 @@ type InputType =
   | "formatBackColor" // change the background color
   | "formatFontColor" // change the font color
   | "formatFontName"; // change the font-family
+
+/**
+ * Options of {@link editable}.
+ */
 export interface EditableOptions<T> {
+  /**
+   * TODO
+   */
   schema: EditableSchema<T>;
+  /**
+   * TODO
+   */
   onChange: (value: T) => void;
 }
 
+/**
+ * Methods of editor instance.
+ */
 export interface EditableHandle {
+  /**
+   * Disposes editor and restores previous DOM state.
+   */
   dispose: () => void;
+  /**
+   * Changes editor's read-only state.
+   * @param value `true` to read-only. `false` to editable.
+   */
   readonly: (value: boolean) => void;
 }
 
+/**
+ * A function to make DOM editable.
+ */
 export const editable = <T>(
   element: HTMLElement,
   {

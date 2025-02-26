@@ -12,6 +12,9 @@ const serializeToString = (snapshot: DomSnapshot): string => {
   }, "");
 };
 
+/**
+ * Defines plain text schema.
+ */
 export const plainSchema = ({
   multiline,
 }: {
