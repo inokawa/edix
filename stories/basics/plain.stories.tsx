@@ -15,6 +15,7 @@ export const Multiline: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
+        doc: value,
         schema: plainSchema({ multiline: true }),
         onChange: setValue,
       }).dispose;
@@ -44,6 +45,7 @@ export const Singleline: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
+        doc: value,
         schema: plainSchema(),
         onChange: setValue,
       }).dispose;
@@ -73,6 +75,7 @@ export const Readonly: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       const editor = editable(ref.current, {
+        doc: value,
         schema: plainSchema(),
         onChange: setValue,
       });
@@ -186,6 +189,7 @@ two !
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
+        doc: value,
         schema: plainSchema({ multiline: true }),
         onChange: setValue,
       }).dispose;
@@ -217,6 +221,7 @@ export const Vertical: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
+        doc: value,
         schema: plainSchema({ multiline: true }),
         onChange: setValue,
       }).dispose;
@@ -249,6 +254,7 @@ export const Highlight: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
+        doc: value,
         schema: plainSchema({ multiline: true }),
         onChange: setValue,
       }).dispose;

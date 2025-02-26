@@ -82,13 +82,17 @@ export interface EditableOptions<T> {
    */
   schema: EditableSchema<T>;
   /**
+   * Initial document state.
+   */
+  doc?: T;
+  /**
    * TODO
    */
   isBlock?: (node: HTMLElement) => boolean;
   /**
    * TODO
    */
-  onChange: (value: T) => void;
+  onChange: (doc: T) => void;
 }
 
 /**
@@ -118,6 +122,7 @@ export const editable = <T>(
       copy,
       paste: getPastableData,
     },
+    doc: initialDoc = serialize([]),
     isBlock,
     onChange,
   }: EditableOptions<T>
@@ -166,10 +171,7 @@ export const editable = <T>(
 
   const history = createHistory<
     readonly [value: T, selection: SelectionSnapshot]
-  >([
-    serialize(takeDomSnapshot(document, element, parserConfig)),
-    currentSelection,
-  ]);
+  >([initialDoc, currentSelection]);
 
   const observer = createMutationObserver(element, () => {
     if (hasFocus) {
