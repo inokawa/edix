@@ -32,7 +32,7 @@ export const Tag: StoryObj = {
       return editable(ref.current, {
         schema: tagSchema,
         onChange: setValue,
-      });
+      }).dispose;
     }, []);
 
     return (
@@ -112,7 +112,7 @@ export const Image: StoryObj = {
       return editable(ref.current, {
         schema: imageSchema,
         onChange: setValue,
-      });
+      }).dispose;
     }, []);
 
     return (
@@ -179,7 +179,7 @@ export const Video: StoryObj = {
       return editable(ref.current, {
         schema: videoSchema,
         onChange: setValue,
-      });
+      }).dispose;
     }, []);
 
     return (
@@ -269,7 +269,7 @@ export const Iframe: StoryObj = {
       return editable(ref.current, {
         schema: youtubeSchema,
         onChange: setValue,
-      });
+      }).dispose;
     }, []);
 
     return (

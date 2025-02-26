@@ -35,7 +35,7 @@ npm install edix
 
 2. Call `editable` on mount, with `HTMLElement` which is the root of editable contents.
 3. Update your state with `onChange`, which will be called on edit.
-4. Call return value of `editable` on unmount for cleanup.
+4. Call `dispose` on unmount for cleanup.
 
 Here is an example for React.
 
@@ -51,7 +51,7 @@ export const App = () => {
 
   useEffect(() => {
     // 2. init
-    const cleanup = editable(ref.current, {
+    const editor = editable(ref.current, {
       schema: plainSchema(),
       onChange: (v) => {
         // 3. update state
@@ -60,7 +60,7 @@ export const App = () => {
     });
     return () => {
       // 4. cleanup
-      cleanup();
+      editor.dispose();
     };
   }, []);
 
@@ -92,7 +92,7 @@ export const App = () => {
 
   useEffect(() => {
     // 2. init
-    const cleanup = editable(ref.current, {
+    const editor = editable(ref.current, {
       schema: plainSchema({ multiline: true }),
       onChange: (v) => {
         // 3. update state
@@ -101,7 +101,7 @@ export const App = () => {
     });
     return () => {
       // 4. cleanup
-      cleanup();
+      editor.dispose();
     };
   }, []);
 
