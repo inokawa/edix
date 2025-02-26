@@ -8,6 +8,7 @@ function App() {
   );
   onMount(() => {
     const editor = editable(ref!, {
+      doc: value(),
       schema: plainSchema({ multiline: true }),
       onChange: setValue,
     });

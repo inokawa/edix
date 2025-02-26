@@ -8,6 +8,7 @@ export const App = component$(() => {
   useVisibleTask$(({ cleanup }) => {
     if (!ref.value) return;
     const editor = editable(ref.value, {
+      doc: value.value,
       schema: plainSchema({ multiline: true }),
       onChange: (v) => {
         value.value = v;

@@ -19,9 +19,11 @@ const updateRows = (text: string) => {
   morphdom(el, `<div>${rows}</div>`, { childrenOnly: true });
 };
 
-updateRows("Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
+const value = "Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒";
+updateRows(value);
 
 editable(el, {
+  doc: value,
   schema: plainSchema({ multiline: true }),
   onChange: (v) => {
     updateRows(v);

@@ -12,6 +12,36 @@ export default {
   component: editable,
 };
 
+export const Empty: StoryObj = {
+  render: () => {
+    const ref = useRef<HTMLDivElement>(null);
+    const [value, setValue] = useState("");
+    useEffect(() => {
+      if (!ref.current) return;
+      return editable(ref.current, {
+        doc: value,
+        schema: plainSchema({ multiline: true }),
+        onChange: setValue,
+      }).dispose;
+    }, []);
+
+    return (
+      <div
+        ref={ref}
+        style={{
+          backgroundColor: "white",
+          border: "solid 1px darkgray",
+          padding: 8,
+        }}
+      >
+        {value.split("\n").map((r, i) => (
+          <div key={i}>{r ? r : <br />}</div>
+        ))}
+      </div>
+    );
+  },
+};
+
 export const Multiline: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
@@ -21,6 +51,7 @@ export const Multiline: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
+        doc: value,
         schema: plainSchema({ multiline: true }),
         onChange: setValue,
       }).dispose;
@@ -50,6 +81,7 @@ export const Singleline: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
+        doc: value,
         schema: plainSchema(),
         onChange: setValue,
       }).dispose;
@@ -79,6 +111,7 @@ export const Readonly: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       const editor = editable(ref.current, {
+        doc: value,
         schema: plainSchema(),
         onChange: setValue,
       });
@@ -120,6 +153,7 @@ export const Placeholder: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
+        doc: value,
         schema: plainSchema(),
         onChange: setValue,
       }).dispose;
@@ -160,6 +194,7 @@ export const Highlight: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
+        doc: value,
         schema: plainSchema({ multiline: true }),
         onChange: setValue,
       }).dispose;
@@ -209,6 +244,7 @@ export const Command: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return (handle.current = editable(ref.current, {
+        doc: value,
         schema: plainSchema({ multiline: true }),
         onChange: setValue,
       })).dispose;
@@ -310,6 +346,7 @@ export const SpanAsBlock: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
+        doc: value,
         schema: plainSchema({ multiline: true }),
         isBlock: (node) => !!node.dataset.line,
         onChange: setValue,
@@ -344,6 +381,7 @@ two !
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
+        doc: value,
         schema: plainSchema({ multiline: true }),
         onChange: setValue,
       }).dispose;
@@ -375,6 +413,7 @@ export const Vertical: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
+        doc: value,
         schema: plainSchema({ multiline: true }),
         onChange: setValue,
       }).dispose;

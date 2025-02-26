@@ -101,6 +101,26 @@ export const schema = <
     return;
   };
 
+  const nodeToDocNode = (
+    node: ExtractVoidNode<V> | { type: "text"; text: string }
+  ): DocNode => {
+    if (node.type === "text") {
+      return { text: (node as { type: "text"; text: string }).text };
+    }
+    const { type, data } = node as {
+      type: keyof V;
+      data: ExtractVoidData<V[keyof V]>;
+    };
+    voidCache.set(
+      data as VoidNodeData,
+      {
+        type,
+        data,
+      } as VoidNodeType
+    );
+    return { data };
+  };
+
   return {
     single: !multiline,
     js: multiline
@@ -110,7 +130,18 @@ export const schema = <
       : (doc) => {
           return serializeRow(doc[0]!) satisfies RowType as any; // TODO improve type
         },
-    void: serializeVoid,
+    doc: (state) => {
+      // TODO remove
+      return multiline
+        ? (
+            state as (ExtractVoidNode<V> | { type: "text"; text: string })[][]
+          ).map((r) => r.map(nodeToDocNode))
+        : [
+            (
+              state as (ExtractVoidNode<V> | { type: "text"; text: string })[]
+            ).map(nodeToDocNode),
+          ];
+    },
     copy: (dataTransfer, doc, element) => {
       dataTransfer.setData(
         "text/plain",

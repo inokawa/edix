@@ -21,6 +21,7 @@ export const Multiline: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
+        doc: value,
         schema: basicSchema,
         onChange: setValue,
       }).dispose;
@@ -70,6 +71,7 @@ export const Tag: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
+        doc: value,
         schema: tagSchema,
         onChange: setValue,
       }).dispose;
@@ -150,6 +152,7 @@ export const Image: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
+        doc: value,
         schema: imageSchema,
         onChange: setValue,
       }).dispose;
@@ -217,6 +220,7 @@ export const Video: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
+        doc: value,
         schema: videoSchema,
         onChange: setValue,
       }).dispose;
@@ -307,6 +311,7 @@ export const Iframe: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
+        doc: value,
         schema: youtubeSchema,
         onChange: setValue,
       }).dispose;
