@@ -8,7 +8,14 @@ import {
   insertAt,
   insertLineBreakAt,
 } from "./edix";
-import { getEditable, input, loop, grapheme, storyUrl } from "./utils";
+import {
+  getEditable,
+  input,
+  loop,
+  grapheme,
+  storyUrl,
+  readClipboard,
+} from "./utils";
 
 test.beforeEach(async ({ context }) => {
   await initEdixHelpers(context);
@@ -1015,22 +1022,6 @@ test.describe("Copy", () => {
     await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   });
 
-  const readClipboard = async (
-    page: Page,
-    type: "text/plain" | "text/html"
-  ): Promise<string> => {
-    return page.evaluate(async (t) => {
-      const contents = await navigator.clipboard.read();
-      for (const item of contents) {
-        if (item.types.includes(t)) {
-          const blob = await item.getType(t);
-          return await blob.text();
-        }
-      }
-      throw new Error(`${t} is not found`);
-    }, type);
-  };
-
   test("copy all", async ({ page }) => {
     await page.goto(storyUrl("basics-plain--multiline"));
 
@@ -1047,9 +1038,7 @@ test.describe("Copy", () => {
     expect(await readClipboard(page, "text/plain")).toEqual(
       initialValue.join("\n")
     );
-    expect(await readClipboard(page, "text/html")).toEqual(
-      await editable.evaluate((e) => e.innerHTML)
-    );
+    expect(await readClipboard(page, "text/html")).toEqual(null);
   });
 });
 

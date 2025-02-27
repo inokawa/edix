@@ -6,6 +6,45 @@ export default {
   component: editable,
 };
 
+const basicSchema = schema({ multiline: true, void: {} });
+
+export const Multiline: StoryObj = {
+  render: () => {
+    const ref = useRef<HTMLDivElement>(null);
+
+    type Doc = InferDoc<typeof basicSchema>;
+    const [value, setValue] = useState<Doc>([
+      [{ type: "text", text: "Hello World." }],
+      [{ type: "text", text: "こんにちは。" }],
+      [{ type: "text", text: "👍❤️🧑‍🧑‍🧒" }],
+    ]);
+    useEffect(() => {
+      if (!ref.current) return;
+      return editable(ref.current, {
+        schema: basicSchema,
+        onChange: setValue,
+      }).dispose;
+    }, []);
+
+    return (
+      <div
+        ref={ref}
+        style={{
+          backgroundColor: "white",
+          border: "solid 1px darkgray",
+          padding: 8,
+        }}
+      >
+        {value.map((r, i) => (
+          <div key={i}>
+            {r.length ? r.map((n, j) => <span key={j}>{n.text}</span>) : <br />}
+          </div>
+        ))}
+      </div>
+    );
+  },
+};
+
 const tagSchema = schema({
   void: {
     tag: voidNode({
