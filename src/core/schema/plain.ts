@@ -24,5 +24,8 @@ export const plainSchema = ({
     single: !multiline,
     data: serializeToString,
     plain: serializeToString,
+    paste: (dataTransfer) => {
+      return dataTransfer.getData("text/plain");
+    },
   };
 };

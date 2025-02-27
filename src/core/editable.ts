@@ -17,7 +17,6 @@ import {
   replaceSelection,
 } from "./commands";
 import { flatten } from "./commands/edit";
-import { isCommentNode } from "./dom/parser";
 import { EditableSchema } from "./schema";
 
 /**
@@ -106,7 +105,12 @@ export interface EditableHandle {
 export const editable = <T>(
   element: HTMLElement,
   {
-    schema: { single: isSingleline, data: serialize, plain: toString },
+    schema: {
+      single: isSingleline,
+      data: serialize,
+      plain: toString,
+      paste: getPastableData,
+    },
     onChange,
   }: EditableOptions<T>
 ): EditableHandle => {
@@ -362,34 +366,12 @@ export const editable = <T>(
   };
   const onPaste = (e: ClipboardEvent) => {
     e.preventDefault();
-    const clipboardData = e.clipboardData!;
-
-    const html = clipboardData.getData("text/html");
-    if (html) {
-      let dom: Node = new DOMParser().parseFromString(html, "text/html").body;
-      let isWindowsCopy = false;
-      // https://github.com/w3c/clipboard-apis/issues/193
-      for (const n of [...dom.childNodes]) {
-        if (isCommentNode(n)) {
-          if (n.data === "StartFragment") {
-            isWindowsCopy = true;
-            dom = new DocumentFragment();
-          } else if (n.data === "EndFragment") {
-            isWindowsCopy = false;
-          }
-        } else if (isWindowsCopy) {
-          dom.appendChild(n);
-        }
-      }
-      try {
-        execCommand(replaceSelection, takeDomSnapshot(document, dom));
-        return;
-      } catch {
-        // NOP
-      }
+    const data = getPastableData(e.clipboardData!);
+    if (typeof data === "string") {
+      execCommand(insertText, data);
+    } else {
+      execCommand(replaceSelection, takeDomSnapshot(document, data));
     }
-
-    execCommand(insertText, clipboardData.getData("text/plain"));
   };
 
   const onFocus = () => {
