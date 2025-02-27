@@ -1,11 +1,11 @@
 import type { DomSnapshot } from "../types";
 
-export type EditableSchema<T> = {
+export interface EditableSchema<T> {
   single: boolean;
   data: (snapshot: DomSnapshot) => T;
   copy: (dataTransfer: DataTransfer, snapshot: DomSnapshot, dom: Node) => void;
   paste: (dataTransfer: DataTransfer) => Node | string;
-};
+}
 
 type ExtractItem<T> = T extends (infer I)[] ? ExtractItem<I> : T;
 
