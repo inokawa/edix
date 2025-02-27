@@ -1,3 +1,4 @@
+import { isCommentNode } from "../dom/parser";
 import type { NodeRef } from "../types";
 import type { EditableSchema } from "./types";
 
@@ -109,6 +110,28 @@ export const schema = <
           }, "")
         );
       }, "");
+    },
+    paste: (dataTransfer) => {
+      const html = dataTransfer.getData("text/html");
+      if (html) {
+        let dom: Node = new DOMParser().parseFromString(html, "text/html").body;
+        let isWindowsCopy = false;
+        // https://github.com/w3c/clipboard-apis/issues/193
+        for (const n of [...dom.childNodes]) {
+          if (isCommentNode(n)) {
+            if (n.data === "StartFragment") {
+              isWindowsCopy = true;
+              dom = new DocumentFragment();
+            } else if (n.data === "EndFragment") {
+              isWindowsCopy = false;
+            }
+          } else if (isWindowsCopy) {
+            dom.appendChild(n);
+          }
+        }
+        return dom;
+      }
+      return dataTransfer.getData("text/plain");
     },
   };
 };

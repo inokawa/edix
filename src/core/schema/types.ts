@@ -4,6 +4,7 @@ export type EditableSchema<T> = {
   single: boolean;
   data: (snapshot: DomSnapshot) => T;
   plain: (snapshot: DomSnapshot) => string;
+  paste: (dataTransfer: DataTransfer) => Node | string;
 };
 
 type ExtractItem<T> = T extends (infer I)[] ? ExtractItem<I> : T;
