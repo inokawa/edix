@@ -108,7 +108,7 @@ export const editable = <T>(
     schema: {
       single: isSingleline,
       data: serialize,
-      plain: toString,
+      copy,
       paste: getPastableData,
     },
     onChange,
@@ -346,11 +346,7 @@ export const editable = <T>(
     const selected = getSelectedElements(element);
     if (!selected) return;
 
-    const str = toString(takeDomSnapshot(document, selected));
-    const wrapper = document.createElement("div");
-    wrapper.appendChild(selected);
-    dataTransfer.setData("text/html", wrapper.innerHTML);
-    dataTransfer.setData("text/plain", str);
+    copy(dataTransfer, takeDomSnapshot(document, selected), selected);
   };
 
   const onCopy = (e: ClipboardEvent) => {

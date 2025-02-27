@@ -89,8 +89,8 @@ export const schema = <
       : (snap) => {
           return serializeRow(snap[0]!) satisfies RowType as any; // TODO improve type
         },
-    plain: (snap) => {
-      return snap.reduce((acc, r, i) => {
+    copy: (dataTransfer, snap, dom) => {
+      const str = snap.reduce((acc, r, i) => {
         if (i !== 0) {
           acc += "\n";
         }
@@ -110,6 +110,11 @@ export const schema = <
           }, "")
         );
       }, "");
+      dataTransfer.setData("text/plain", str);
+
+      const wrapper = document.createElement("div");
+      wrapper.appendChild(dom);
+      dataTransfer.setData("text/html", wrapper.innerHTML);
     },
     paste: (dataTransfer) => {
       const html = dataTransfer.getData("text/html");

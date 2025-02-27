@@ -3,7 +3,7 @@ import type { DomSnapshot } from "../types";
 export type EditableSchema<T> = {
   single: boolean;
   data: (snapshot: DomSnapshot) => T;
-  plain: (snapshot: DomSnapshot) => string;
+  copy: (dataTransfer: DataTransfer, snapshot: DomSnapshot, dom: Node) => void;
   paste: (dataTransfer: DataTransfer) => Node | string;
 };
 

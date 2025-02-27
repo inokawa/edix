@@ -8,7 +8,7 @@ import {
   insertAt,
   deleteAt,
 } from "./edix";
-import { getEditable, input, loop, storyUrl } from "./utils";
+import { getEditable, input, loop, readClipboard, storyUrl } from "./utils";
 
 test.beforeEach(async ({ context }) => {
   await initEdixHelpers(context);
@@ -284,6 +284,35 @@ test.describe("smoke node", () => {
   });
 });
 
+test.describe("Copy", () => {
+  test.beforeEach(async ({ context, browserName }) => {
+    // https://github.com/microsoft/playwright/issues/13037#issuecomment-1078208810
+    test.skip(browserName !== "chromium");
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  });
+
+  test("copy all", async ({ page }) => {
+    await page.goto(storyUrl("basics-custom--multiline"));
+
+    const editable = await getEditable(page);
+    const initialValue = await getText(editable);
+
+    await editable.focus();
+
+    expect(await getSelection(editable)).toEqual(createSelection());
+
+    await page.keyboard.press("ControlOrMeta+A");
+    await page.keyboard.press("ControlOrMeta+C");
+
+    expect(await readClipboard(page, "text/plain")).toEqual(
+      initialValue.join("\n")
+    );
+    expect(await readClipboard(page, "text/html")).toEqual(
+      await editable.evaluate((e) => e.innerHTML)
+    );
+  });
+});
+
 test.describe("html paste", () => {
   test.beforeEach(async ({ context, browserName }) => {
     // https://github.com/microsoft/playwright/issues/13037#issuecomment-1078208810
@@ -304,7 +333,7 @@ test.describe("html paste", () => {
   };
 
   test("single paragraph root", async ({ page }) => {
-    await page.goto(storyUrl("basics-custom--video"));
+    await page.goto(storyUrl("basics-custom--multiline"));
 
     const editable = await getEditable(page);
 
@@ -327,7 +356,7 @@ export const editable = (
   });
 
   test("multi paragraph root", async ({ page }) => {
-    await page.goto(storyUrl("basics-custom--video"));
+    await page.goto(storyUrl("basics-custom--multiline"));
 
     const editable = await getEditable(page);
 
@@ -348,7 +377,7 @@ export const editable = (
   });
 
   test("single inline root", async ({ page }) => {
-    await page.goto(storyUrl("basics-custom--video"));
+    await page.goto(storyUrl("basics-custom--multiline"));
 
     const editable = await getEditable(page);
 
@@ -368,7 +397,7 @@ export const editable = (
   });
 
   test("multi inline root", async ({ page }) => {
-    await page.goto(storyUrl("basics-custom--video"));
+    await page.goto(storyUrl("basics-custom--multiline"));
 
     const editable = await getEditable(page);
 
@@ -388,7 +417,7 @@ export const editable = (
   });
 
   test("table root", async ({ page }) => {
-    await page.goto(storyUrl("basics-custom--video"));
+    await page.goto(storyUrl("basics-custom--multiline"));
 
     const editable = await getEditable(page);
 
@@ -408,7 +437,7 @@ export const editable = (
   });
 
   test("copy in windows", async ({ page }) => {
-    await page.goto(storyUrl("basics-custom--video"));
+    await page.goto(storyUrl("basics-custom--multiline"));
 
     const editable = await getEditable(page);
 

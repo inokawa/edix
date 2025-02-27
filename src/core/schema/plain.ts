@@ -23,7 +23,9 @@ export const plainSchema = ({
   return {
     single: !multiline,
     data: serializeToString,
-    plain: serializeToString,
+    copy: (dataTransfer, data) => {
+      dataTransfer.setData("text/plain", serializeToString(data));
+    },
     paste: (dataTransfer) => {
       return dataTransfer.getData("text/plain");
     },

@@ -37,3 +37,19 @@ export const grapheme = (str: string): string[] => {
     ...new Intl.Segmenter("en", { granularity: "grapheme" }).segment(str),
   ].map((s) => s.segment);
 };
+
+export const readClipboard = async (
+  page: Page,
+  type: "text/plain" | "text/html"
+): Promise<string | null> => {
+  return page.evaluate(async (t) => {
+    const contents = await navigator.clipboard.read();
+    for (const item of contents) {
+      if (item.types.includes(t)) {
+        const blob = await item.getType(t);
+        return await blob.text();
+      }
+    }
+    return null;
+  }, type);
+};
