@@ -4,7 +4,7 @@ import {
   Position,
   SelectionSnapshot,
   Writeable,
-} from "./types";
+} from "../types";
 
 const isTextNode = (node: NodeRef) => typeof node === "string";
 const getNodeLength = (node: NodeRef): number =>

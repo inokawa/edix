@@ -16,8 +16,8 @@ import {
   insertText,
   replaceSelection,
 } from "./commands";
-import { flatten } from "./edit";
-import { isCommentNode } from "./parser";
+import { flatten } from "./commands/edit";
+import { isCommentNode } from "./dom/parser";
 import { EditableSchema } from "./schema";
 
 /**

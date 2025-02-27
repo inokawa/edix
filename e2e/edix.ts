@@ -5,13 +5,13 @@ import { SelectionSnapshot } from "../src/core/types";
 
 declare global {
   interface Window {
-    edix: typeof import("../src/core/dom.ts");
+    edix: typeof import("../src/core/dom/index.ts");
   }
 }
 
 const edixDom = esbuild
   .build({
-    entryPoints: [path.join(__dirname, "../src/core/dom.ts")],
+    entryPoints: [path.join(__dirname, "../src/core/dom/index.ts")],
     bundle: true,
     write: false,
     format: "iife",

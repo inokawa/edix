@@ -9,9 +9,9 @@ import {
   TYPE_SOFT_BREAK,
   TYPE_HARD_BREAK,
 } from "./parser";
-import { comparePosition } from "./position";
-import { DomSnapshot, Position, NodeRef, SelectionSnapshot } from "./types";
-import { min } from "./utils";
+import { comparePosition } from "../position";
+import { DomSnapshot, Position, NodeRef, SelectionSnapshot } from "../types";
+import { min } from "../utils";
 
 // const DOCUMENT_POSITION_DISCONNECTED = 0x01;
 const DOCUMENT_POSITION_PRECEDING = 0x02;
