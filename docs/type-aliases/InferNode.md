@@ -6,7 +6,7 @@
 
 > **InferNode**\<`T`\>: `T` *extends* [`EditableSchema`](EditableSchema.md)\<infer N\> ? `ExtractItem`\<`N`\> : `never`
 
-Defined in: [schema/types.ts:12](https://github.com/inokawa/edix/blob/1310bb20e9f231a42c138bb5fc604641e3ec391b/src/core/schema/types.ts#L12)
+Defined in: [schema/types.ts:13](https://github.com/inokawa/edix/blob/f0cba21efc7fe6a2310e4e8cc68ba696c9ddc746/src/core/schema/types.ts#L13)
 
 ## Type Parameters
 

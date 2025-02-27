@@ -6,7 +6,9 @@
 
 > **schema**\<`V`, `M`\>(`__namedParameters`): [`EditableSchema`](../type-aliases/EditableSchema.md)\<`M` *extends* `true` ? (\{ \[K in string \| number \| symbol\]: \{ \[K in string \| number \| symbol\]: \{ type: K; data: (...) extends (...) ? (...) : (...) \} \}\[keyof V\]\[K\] \} \| \{ `type`: `"text"`; `text`: `string`; \})[][] : (\{ \[K in string \| number \| symbol\]: \{ \[K in string \| number \| symbol\]: \{ type: K; data: (...)\[(...)\] extends EditableVoidSerializer\<(...)\> ? D : never \} \}\[keyof V\]\[K\] \} \| \{ `type`: `"text"`; `text`: `string`; \})[]\>
 
-Defined in: [schema/custom.ts:41](https://github.com/inokawa/edix/blob/1310bb20e9f231a42c138bb5fc604641e3ec391b/src/core/schema/custom.ts#L41)
+Defined in: [schema/custom.ts:45](https://github.com/inokawa/edix/blob/f0cba21efc7fe6a2310e4e8cc68ba696c9ddc746/src/core/schema/custom.ts#L45)
+
+Defines structured text schema.
 
 ## Type Parameters
 

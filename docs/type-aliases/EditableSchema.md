@@ -6,7 +6,7 @@
 
 > **EditableSchema**\<`T`\>: `object`
 
-Defined in: [schema/types.ts:3](https://github.com/inokawa/edix/blob/1310bb20e9f231a42c138bb5fc604641e3ec391b/src/core/schema/types.ts#L3)
+Defined in: [schema/types.ts:3](https://github.com/inokawa/edix/blob/f0cba21efc7fe6a2310e4e8cc68ba696c9ddc746/src/core/schema/types.ts#L3)
 
 ## Type Parameters
 
@@ -45,3 +45,17 @@ Defined in: [schema/types.ts:3](https://github.com/inokawa/edix/blob/1310bb20e9f
 #### Returns
 
 `string`
+
+### paste()
+
+> **paste**: (`dataTransfer`) => `Node` \| `string`
+
+#### Parameters
+
+##### dataTransfer
+
+`DataTransfer`
+
+#### Returns
+
+`Node` \| `string`

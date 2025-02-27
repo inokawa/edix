@@ -4,7 +4,9 @@
 
 # Interface: EditableOptions\<T\>
 
-Defined in: [editable.ts:73](https://github.com/inokawa/edix/blob/1310bb20e9f231a42c138bb5fc604641e3ec391b/src/core/editable.ts#L73)
+Defined in: [editable.ts:76](https://github.com/inokawa/edix/blob/f0cba21efc7fe6a2310e4e8cc68ba696c9ddc746/src/core/editable.ts#L76)
+
+Options of [editable](../functions/editable.md).
 
 ## Type Parameters
 
@@ -16,7 +18,9 @@ Defined in: [editable.ts:73](https://github.com/inokawa/edix/blob/1310bb20e9f231
 
 > **schema**: [`EditableSchema`](../type-aliases/EditableSchema.md)\<`T`\>
 
-Defined in: [editable.ts:74](https://github.com/inokawa/edix/blob/1310bb20e9f231a42c138bb5fc604641e3ec391b/src/core/editable.ts#L74)
+Defined in: [editable.ts:80](https://github.com/inokawa/edix/blob/f0cba21efc7fe6a2310e4e8cc68ba696c9ddc746/src/core/editable.ts#L80)
+
+TODO
 
 ***
 
@@ -24,7 +28,9 @@ Defined in: [editable.ts:74](https://github.com/inokawa/edix/blob/1310bb20e9f231
 
 > **onChange**: (`value`) => `void`
 
-Defined in: [editable.ts:75](https://github.com/inokawa/edix/blob/1310bb20e9f231a42c138bb5fc604641e3ec391b/src/core/editable.ts#L75)
+Defined in: [editable.ts:84](https://github.com/inokawa/edix/blob/f0cba21efc7fe6a2310e4e8cc68ba696c9ddc746/src/core/editable.ts#L84)
+
+TODO
 
 #### Parameters
 

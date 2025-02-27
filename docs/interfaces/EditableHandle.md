@@ -4,7 +4,9 @@
 
 # Interface: EditableHandle
 
-Defined in: [editable.ts:78](https://github.com/inokawa/edix/blob/1310bb20e9f231a42c138bb5fc604641e3ec391b/src/core/editable.ts#L78)
+Defined in: [editable.ts:90](https://github.com/inokawa/edix/blob/f0cba21efc7fe6a2310e4e8cc68ba696c9ddc746/src/core/editable.ts#L90)
+
+Methods of editor instance.
 
 ## Properties
 
@@ -12,7 +14,9 @@ Defined in: [editable.ts:78](https://github.com/inokawa/edix/blob/1310bb20e9f231
 
 > **dispose**: () => `void`
 
-Defined in: [editable.ts:79](https://github.com/inokawa/edix/blob/1310bb20e9f231a42c138bb5fc604641e3ec391b/src/core/editable.ts#L79)
+Defined in: [editable.ts:94](https://github.com/inokawa/edix/blob/f0cba21efc7fe6a2310e4e8cc68ba696c9ddc746/src/core/editable.ts#L94)
+
+Disposes editor and restores previous DOM state.
 
 #### Returns
 
@@ -24,13 +28,17 @@ Defined in: [editable.ts:79](https://github.com/inokawa/edix/blob/1310bb20e9f231
 
 > **readonly**: (`value`) => `void`
 
-Defined in: [editable.ts:80](https://github.com/inokawa/edix/blob/1310bb20e9f231a42c138bb5fc604641e3ec391b/src/core/editable.ts#L80)
+Defined in: [editable.ts:99](https://github.com/inokawa/edix/blob/f0cba21efc7fe6a2310e4e8cc68ba696c9ddc746/src/core/editable.ts#L99)
+
+Changes editor's read-only state.
 
 #### Parameters
 
 ##### value
 
 `boolean`
+
+`true` to read-only. `false` to editable.
 
 #### Returns
 
