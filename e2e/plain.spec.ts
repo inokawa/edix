@@ -1,4 +1,4 @@
-import { test, expect, Page } from "@playwright/test";
+import { test, expect, Page, Locator } from "@playwright/test";
 import {
   createSelection,
   getSelection,
@@ -7,6 +7,8 @@ import {
   deleteAt,
   insertAt,
   insertLineBreakAt,
+  getSelectedRect,
+  getSeletedText,
 } from "./edix";
 import {
   getEditable,
@@ -1180,6 +1182,61 @@ test.describe("Paste", () => {
       );
     });
   });
+});
+
+test.describe("Drag and Drop", () => {
+  const dragSelectionToNextLine = async (page: Page, editable: Locator) => {
+    const selected = await getSelectedRect(editable);
+    const x = selected.x + selected.width / 2;
+    const y = selected.y + selected.height / 2;
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    await page.mouse.move(x, y + selected.height);
+    await page.mouse.up();
+  };
+
+  test("move chars", async ({ page }) => {
+    await page.goto(storyUrl("basics-plain--multiline"));
+
+    const editable = await getEditable(page);
+    const initialValue = await getText(editable);
+
+    await editable.focus();
+
+    expect(await getSelection(editable)).toEqual(createSelection());
+
+    // Move caret
+    await page.keyboard.press("ArrowRight");
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: 1 })
+    );
+    // Expand selection
+    const selLength = 3;
+    await loop(selLength, () => page.keyboard.press("Shift+ArrowRight"));
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: 1, extent: selLength })
+    );
+
+    const [selectedText] = await getSeletedText(editable);
+
+    await dragSelectionToNextLine(page, editable);
+    expect(await getText(editable)).toEqual(
+      insertAt(deleteAt(initialValue, selLength, [0, 1]), selectedText, [1, 1])
+    );
+    // TODO check selection anchor also
+    expect((await getSelection(editable))[1]).toEqual(
+      createSelection({ line: 1, offset: 1, extent: selLength })[1]
+    );
+  });
+
+  // test("move linebreak", async ({ page }) => {
+  //   // TODO
+  // });
+
+  // test("drop external", async ({ page }) => {
+  //   // TODO
+  // });
 });
 
 test.describe("undo and redo", () => {
