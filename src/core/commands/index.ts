@@ -1,6 +1,6 @@
 import type { DomSnapshot, SelectionSnapshot, Writeable } from "../types";
 import { comparePosition } from "../position";
-import { deleteAt, getRowLength, insertAt, moveTo } from "./edit";
+import { deleteEdit, getRowLength, insertEdit, moveTo } from "./edit";
 
 /**
  * @internal
@@ -14,7 +14,7 @@ export type EditableCommand<T extends unknown[]> = (
 /**
  * @internal
  */
-export const deleteSelection: EditableCommand<[]> = (doc, selection) => {
+export const Delete: EditableCommand<[]> = (doc, selection) => {
   const [anchor, focus] = selection;
   const posDiff = comparePosition(anchor, focus);
   if (posDiff !== 0) {
@@ -22,7 +22,7 @@ export const deleteSelection: EditableCommand<[]> = (doc, selection) => {
     const start = backward ? focus : anchor;
     const end = backward ? anchor : focus;
 
-    deleteAt(doc, start, end);
+    deleteEdit(doc, start, end);
     moveTo(selection, start);
   }
 };
@@ -30,12 +30,12 @@ export const deleteSelection: EditableCommand<[]> = (doc, selection) => {
 /**
  * @internal
  */
-export const replaceSelection: EditableCommand<[lines: DomSnapshot]> = (
+export const InsertFragment: EditableCommand<[lines: DomSnapshot]> = (
   doc,
   selection,
   lines
 ) => {
-  deleteSelection(doc, selection);
+  Delete(doc, selection);
 
   // selection was collapsed with deleteSelection command
   const pos = selection[0];
@@ -44,7 +44,7 @@ export const replaceSelection: EditableCommand<[lines: DomSnapshot]> = (
   const [line, offset] = pos;
   const lastLineLength = getRowLength(lines[lineLength - 1]!);
 
-  insertAt(doc, lines, pos);
+  insertEdit(doc, lines, pos);
   moveTo(
     selection,
     lineLength === 1
@@ -56,12 +56,12 @@ export const replaceSelection: EditableCommand<[lines: DomSnapshot]> = (
 /**
  * @internal
  */
-export const insertText: EditableCommand<[text: string]> = (
+export const InsertText: EditableCommand<[text: string]> = (
   doc,
   selection,
   text
 ) => {
-  replaceSelection(
+  InsertFragment(
     doc,
     selection,
     text.split("\n").map((l) => [l])

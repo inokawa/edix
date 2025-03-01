@@ -72,7 +72,7 @@ const splitRow = (
 /**
  * @internal
  */
-export const insertAt = (
+export const insertEdit = (
   doc: Writeable<DomSnapshot>,
   lines: DomSnapshot,
   pos: Position
@@ -100,7 +100,7 @@ export const insertAt = (
 /**
  * @internal
  */
-export const deleteAt = (
+export const deleteEdit = (
   doc: Writeable<DomSnapshot>,
   start: Position,
   end: Position

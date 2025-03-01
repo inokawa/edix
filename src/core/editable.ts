@@ -11,10 +11,10 @@ import { createMutationObserver } from "./mutation";
 import { DomSnapshot, SelectionSnapshot, Writeable } from "./types";
 import { microtask } from "./utils";
 import {
-  deleteSelection,
+  Delete,
   EditableCommand,
-  insertText,
-  replaceSelection,
+  InsertText,
+  InsertFragment,
 } from "./commands";
 import { flatten } from "./commands/edit";
 import { EditableSchema } from "./schema";
@@ -357,16 +357,16 @@ export const editable = <T>(
     e.preventDefault();
     if (!readonly) {
       copySelectedDOM(e.clipboardData!);
-      execCommand(deleteSelection);
+      execCommand(Delete);
     }
   };
   const onPaste = (e: ClipboardEvent) => {
     e.preventDefault();
     const data = getPastableData(e.clipboardData!);
     if (typeof data === "string") {
-      execCommand(insertText, data);
+      execCommand(InsertText, data);
     } else {
-      execCommand(replaceSelection, takeDomSnapshot(document, data));
+      execCommand(InsertFragment, takeDomSnapshot(document, data));
     }
   };
 
