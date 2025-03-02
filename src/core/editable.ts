@@ -226,9 +226,7 @@ export const editable = <T>(
       // Revert DOM
       let m: MutationRecord | undefined;
       while ((m = queue.pop())) {
-        if (m.type === "characterData") {
-          (m.target as CharacterData).nodeValue = m.oldValue!;
-        } else if (m.type === "childList") {
+        if (m.type === "childList") {
           const { target, removedNodes, addedNodes, nextSibling } = m;
           for (let i = removedNodes.length - 1; i >= 0; i--) {
             target.insertBefore(removedNodes[i]!, nextSibling);
@@ -236,6 +234,8 @@ export const editable = <T>(
           for (let i = addedNodes.length - 1; i >= 0; i--) {
             target.removeChild(addedNodes[i]!);
           }
+        } else {
+          (m.target as CharacterData).nodeValue = m.oldValue!;
         }
       }
       observer._flush();
