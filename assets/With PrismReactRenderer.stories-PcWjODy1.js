@@ -24,7 +24,7 @@ function Example() {
       </button>
     </div>
   );
-}`),n=T.useRef(null);return T.useEffect(()=>{if(n.current)return ie(n.current,{schema:he({multiline:!0}),onChange:t})},[]),j.jsx(Et,{theme:ye.dracula,code:e,language:"jsx",children:({className:l,style:c,tokens:m,getLineProps:p,getTokenProps:h})=>j.jsx("pre",{ref:n,className:l,style:{...c,padding:4},children:m.map((u,d)=>(u=u.filter(b=>!b.empty),j.jsx("div",{...p({line:u,key:d}),children:u.length?u.map((b,y)=>j.jsx("span",{...h({token:b,key:y})})):j.jsx("br",{})})))})})}};var se,oe,le;Z.parameters={...Z.parameters,docs:{...(se=Z.parameters)==null?void 0:se.docs,source:{originalSource:`{
+}`),n=T.useRef(null);return T.useEffect(()=>{if(n.current)return ie(n.current,{schema:he({multiline:!0}),onChange:t}).dispose},[]),j.jsx(Et,{theme:ye.dracula,code:e,language:"jsx",children:({className:l,style:c,tokens:m,getLineProps:p,getTokenProps:h})=>j.jsx("pre",{ref:n,className:l,style:{...c,padding:4},children:m.map((u,d)=>(u=u.filter(b=>!b.empty),j.jsx("div",{...p({line:u,key:d}),children:u.length?u.map((b,y)=>j.jsx("span",{...h({token:b,key:y})})):j.jsx("br",{})})))})})}};var se,oe,le;Z.parameters={...Z.parameters,docs:{...(se=Z.parameters)==null?void 0:se.docs,source:{originalSource:`{
   render: () => {
     const [text, setText] = useState(\`import React, { useState } from "react";
 
@@ -48,7 +48,7 @@ function Example() {
           multiline: true
         }),
         onChange: setText
-      });
+      }).dispose;
     }, []);
     return <Highlight theme={themes.dracula} code={text} language="jsx">
         {({

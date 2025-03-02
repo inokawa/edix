@@ -4,7 +4,7 @@ import{e as wn,j as nr}from"./editable-BYvyiSk1.js";import{c as hr,r as pr}from"
 
 あのイーハトーヴォのすきとおった風、夏でも底に冷たさをもつ青いそら、うつくしい森で飾られたモリーオ市、郊外のぎらぎらひかる草の波。
 
-山路を登りながら、こう考えた。智に働けば角が立つ。情に棹させば流される。意地を通せば窮屈だ。とかくに人の世は住みにくい。住みにくさが高じると、安い所へ引き越したくなる。どこへ越しても住みにくいと悟った時、詩が生れて、画が出来る。`),i=pr.useRef(null);return pr.useEffect(()=>{if(i.current)return wn(i.current,{schema:to({multiline:!0}),onChange:t})},[]),nr.jsx("div",{ref:i,style:au,children:e.split(`
+山路を登りながら、こう考えた。智に働けば角が立つ。情に棹させば流される。意地を通せば窮屈だ。とかくに人の世は住みにくい。住みにくさが高じると、安い所へ引き越したくなる。どこへ越しても住みにくいと悟った時、詩が生れて、画が出来る。`),i=pr.useRef(null);return pr.useEffect(()=>{if(i.current)return wn(i.current,{schema:to({multiline:!0}),onChange:t}).dispose},[]),nr.jsx("div",{ref:i,style:au,children:e.split(`
 `).map((u,c)=>nr.jsx("div",{children:u?n.tokenize(u).map(h=>nr.jsx(ou,{token:h,children:h.surface_form},h.word_position)):nr.jsx("br",{})},c))})},vt={render:()=>{const[n,e]=pr.useState(null);return pr.useEffect(()=>{(async()=>{const t=await kn.getTokenizer({dicPath:"/edix/dict"});e(t)})().catch(t=>{e(t.toString())})},[]),n?typeof n=="string"?nr.jsxs("div",{children:["Error: ",n.toString()]}):nr.jsx("div",{style:{marginTop:32},children:nr.jsx(uu,{tokenizer:n})}):nr.jsx("div",{children:"Loading dictionaries"})}};var mn,_n,bn;vt.parameters={...vt.parameters,docs:{...(mn=vt.parameters)==null?void 0:mn.docs,source:{originalSource:`{
   render: () => {
     const [tokenizer, setTokenizer] = useState<Tokenizer | string | null>(null);
