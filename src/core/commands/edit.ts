@@ -1,3 +1,4 @@
+import { compareLine, comparePosition } from "../position";
 import {
   DomSnapshot,
   NodeRef,
@@ -9,10 +10,7 @@ import {
 const isTextNode = (node: NodeRef) => typeof node === "string";
 const getNodeLength = (node: NodeRef): number =>
   isTextNode(node) ? node.length : 1;
-/**
- * @internal
- */
-export const getRowLength = (nodes: readonly NodeRef[]): number =>
+const getRowLength = (nodes: readonly NodeRef[]): number =>
   nodes.reduce((acc, n) => acc + getNodeLength(n), 0);
 
 const insertNodeAfter = (row: NodeRef[], index: number, node: NodeRef) => {
@@ -69,18 +67,57 @@ const splitRow = (
   return [row, []];
 };
 
+const fixPositionAfterInsert = (
+  selectionPos: Position,
+  pos: Position,
+  lineDiff: number,
+  lastRowLength: number
+): Position => {
+  return [
+    selectionPos[0] + lineDiff,
+    selectionPos[1] +
+      (compareLine(selectionPos, pos) === 0
+        ? lastRowLength - (lineDiff === 0 ? 0 : pos[1])
+        : 0),
+  ];
+};
+
+const fixPositionAfterDelete = (
+  selectionPos: Position,
+  start: Position,
+  end: Position
+): Position => {
+  const lineDiff = end[0] - start[0];
+
+  return comparePosition(end, selectionPos) === 1
+    ? [
+        selectionPos[0] - lineDiff,
+        compareLine(end, selectionPos) === 1
+          ? selectionPos[1]
+          : lineDiff === 0
+          ? selectionPos[1] + start[1] - end[1]
+          : start[1] + end[1],
+      ]
+    : start;
+};
+
 /**
  * @internal
  */
 export const insertEdit = (
   doc: Writeable<DomSnapshot>,
+  selection: Writeable<SelectionSnapshot>,
   lines: DomSnapshot,
   pos: Position
 ) => {
+  const [anchor, focus] = selection;
+
   const [before, after] = splitRow(doc, pos);
 
   const lineLength = lines.length;
   const [line] = pos;
+  const lineDiff = lineLength - 1;
+  const lastRowLength = getRowLength(lines[lineLength - 1]!);
 
   if (lineLength === 1) {
     doc[line] = joinRows(before, lines[0]!, after);
@@ -95,6 +132,13 @@ export const insertEdit = (
       joinRows(last, after)
     );
   }
+
+  if (comparePosition(anchor, pos) !== 1) {
+    selection[0] = fixPositionAfterInsert(anchor, pos, lineDiff, lastRowLength);
+  }
+  if (comparePosition(focus, pos) !== 1) {
+    selection[1] = fixPositionAfterInsert(focus, pos, lineDiff, lastRowLength);
+  }
 };
 
 /**
@@ -102,26 +146,27 @@ export const insertEdit = (
  */
 export const deleteEdit = (
   doc: Writeable<DomSnapshot>,
+  selection: Writeable<SelectionSnapshot>,
   start: Position,
   end: Position
 ) => {
-  const startLine = start[0];
-  const endLine = end[0];
+  const [anchor, focus] = selection;
+
+  const [startLine] = start;
+  const [endLine] = end;
+
   doc.splice(
     startLine,
     endLine - startLine + 1,
     joinRows(splitRow(doc, start)[0], splitRow(doc, end)[1])
   );
-};
 
-/**
- * @internal
- */
-export const moveTo = (
-  selection: Writeable<SelectionSnapshot>,
-  pos: Position
-) => {
-  selection[0] = selection[1] = pos;
+  if (comparePosition(anchor, start) !== 1) {
+    selection[0] = fixPositionAfterDelete(anchor, start, end);
+  }
+  if (comparePosition(focus, start) !== 1) {
+    selection[1] = fixPositionAfterDelete(focus, start, end);
+  }
 };
 
 /**
