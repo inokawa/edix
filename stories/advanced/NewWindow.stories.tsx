@@ -15,7 +15,7 @@ const Content = () => {
     return editable(ref.current, {
       schema: plainSchema({ multiline: true }),
       onChange: setValue,
-    });
+    }).dispose;
   }, []);
   return (
     <div

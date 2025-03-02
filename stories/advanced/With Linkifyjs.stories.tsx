@@ -36,7 +36,7 @@ export const WithLinkifyjs: StoryObj = {
       return editable(ref.current, {
         schema: plainSchema({ multiline: true }),
         onChange: setText,
-      });
+      }).dispose;
     }, []);
 
     return (

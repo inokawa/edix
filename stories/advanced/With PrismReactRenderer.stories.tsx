@@ -32,7 +32,7 @@ function Example() {
       return editable(ref.current, {
         schema: plainSchema({ multiline: true }),
         onChange: setText,
-      });
+      }).dispose;
     }, []);
 
     return (

@@ -44,7 +44,7 @@ export const Segmenter: StoryObj = {
       return editable(ref.current, {
         schema: plainSchema({ multiline: true }),
         onChange: setText,
-      });
+      }).dispose;
     }, []);
 
     const [locale, setLocale] = useState("ja");

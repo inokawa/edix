@@ -47,7 +47,7 @@ const Editor = ({
     return editable(ref.current, {
       schema: plainSchema({ multiline: true }),
       onChange,
-    });
+    }).dispose;
   }, []);
   return (
     <div ref={ref} style={{ background: "white", padding: 4, flex: 1 }}>

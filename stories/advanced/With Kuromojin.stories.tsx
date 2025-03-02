@@ -95,7 +95,7 @@ const Editor = ({ tokenizer }: { tokenizer: Tokenizer }) => {
     return editable(ref.current, {
       schema: plainSchema({ multiline: true }),
       onChange: setText,
-    });
+    }).dispose;
   }, []);
 
   return (

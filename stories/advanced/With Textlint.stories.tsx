@@ -121,7 +121,7 @@ export const WithTextlint: StoryObj = {
       return editable(ref.current, {
         schema: plainSchema({ multiline: true }),
         onChange: setText,
-      });
+      }).dispose;
     }, []);
 
     const [tokens, setTokens] = useState<TextlintMessage[]>([]);
