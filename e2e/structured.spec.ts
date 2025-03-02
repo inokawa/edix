@@ -16,7 +16,7 @@ test.beforeEach(async ({ context }) => {
 
 test.describe("smoke node", () => {
   test("contenteditable: false", async ({ page }) => {
-    await page.goto(storyUrl("basics-custom--tag"));
+    await page.goto(storyUrl("basics-structured--tag"));
 
     const editable = await getEditable(page);
     const initialValue = await getText(editable);
@@ -83,7 +83,7 @@ test.describe("smoke node", () => {
   });
 
   test("img", async ({ page }) => {
-    await page.goto(storyUrl("basics-custom--image"));
+    await page.goto(storyUrl("basics-structured--image"));
 
     const editable = await getEditable(page);
     const initialValue = await getText(editable);
@@ -150,7 +150,7 @@ test.describe("smoke node", () => {
   });
 
   test("video", async ({ page }) => {
-    await page.goto(storyUrl("basics-custom--video"));
+    await page.goto(storyUrl("basics-structured--video"));
 
     const editable = await getEditable(page);
     const initialValue = await getText(editable);
@@ -217,7 +217,7 @@ test.describe("smoke node", () => {
   });
 
   test("iframe", async ({ page }) => {
-    await page.goto(storyUrl("basics-custom--iframe"));
+    await page.goto(storyUrl("basics-structured--iframe"));
 
     const editable = await getEditable(page);
     const initialValue = await getText(editable);
@@ -292,7 +292,7 @@ test.describe("Copy", () => {
   });
 
   test("copy all", async ({ page }) => {
-    await page.goto(storyUrl("basics-custom--multiline"));
+    await page.goto(storyUrl("basics-structured--multiline"));
 
     const editable = await getEditable(page);
     const initialValue = await getText(editable);
@@ -333,7 +333,7 @@ test.describe("html paste", () => {
   };
 
   test("single paragraph root", async ({ page }) => {
-    await page.goto(storyUrl("basics-custom--multiline"));
+    await page.goto(storyUrl("basics-structured--multiline"));
 
     const editable = await getEditable(page);
 
@@ -356,7 +356,7 @@ export const editable = (
   });
 
   test("multi paragraph root", async ({ page }) => {
-    await page.goto(storyUrl("basics-custom--multiline"));
+    await page.goto(storyUrl("basics-structured--multiline"));
 
     const editable = await getEditable(page);
 
@@ -377,7 +377,7 @@ export const editable = (
   });
 
   test("single inline root", async ({ page }) => {
-    await page.goto(storyUrl("basics-custom--multiline"));
+    await page.goto(storyUrl("basics-structured--multiline"));
 
     const editable = await getEditable(page);
 
@@ -397,7 +397,7 @@ export const editable = (
   });
 
   test("multi inline root", async ({ page }) => {
-    await page.goto(storyUrl("basics-custom--multiline"));
+    await page.goto(storyUrl("basics-structured--multiline"));
 
     const editable = await getEditable(page);
 
@@ -417,7 +417,7 @@ export const editable = (
   });
 
   test("table root", async ({ page }) => {
-    await page.goto(storyUrl("basics-custom--multiline"));
+    await page.goto(storyUrl("basics-structured--multiline"));
 
     const editable = await getEditable(page);
 
@@ -437,7 +437,7 @@ export const editable = (
   });
 
   test("copy in windows", async ({ page }) => {
-    await page.goto(storyUrl("basics-custom--multiline"));
+    await page.goto(storyUrl("basics-structured--multiline"));
 
     const editable = await getEditable(page);
 
