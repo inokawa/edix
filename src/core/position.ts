@@ -6,13 +6,28 @@ import type { Position } from "./types";
  * 1 : A is before B (forward)
  * -1: A is after B (backward)
  */
-export const comparePosition = (
-  [posAline, posAoffset]: Position,
-  [posBline, posBoffset]: Position
+export const compareLine = (
+  [lineA]: Position,
+  [lineB]: Position
 ): 0 | 1 | -1 => {
-  if (posAline === posBline) {
-    return posAoffset === posBoffset ? 0 : posAoffset < posBoffset ? 1 : -1;
+  if (lineA === lineB) {
+    return 0;
   } else {
-    return posAline < posBline ? 1 : -1;
+    return lineA < lineB ? 1 : -1;
+  }
+};
+
+/**
+ * @internal
+ * 0 : same
+ * 1 : A is before B (forward)
+ * -1: A is after B (backward)
+ */
+export const comparePosition = (posA: Position, posB: Position): 0 | 1 | -1 => {
+  const line = compareLine(posA, posB);
+  if (line === 0) {
+    return posA[1] === posB[1] ? 0 : posA[1] < posB[1] ? 1 : -1;
+  } else {
+    return line;
   }
 };

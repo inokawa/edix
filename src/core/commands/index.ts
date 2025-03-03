@@ -1,6 +1,6 @@
 import type { DomSnapshot, SelectionSnapshot, Writeable } from "../types";
 import { comparePosition } from "../position";
-import { deleteEdit, getRowLength, insertEdit, moveTo } from "./edit";
+import { deleteEdit, insertEdit } from "./edit";
 
 /**
  * @internal
@@ -19,11 +19,13 @@ export const Delete: EditableCommand<[]> = (doc, selection) => {
   const posDiff = comparePosition(anchor, focus);
   if (posDiff !== 0) {
     const backward = posDiff === -1;
-    const start = backward ? focus : anchor;
-    const end = backward ? anchor : focus;
 
-    deleteEdit(doc, start, end);
-    moveTo(selection, start);
+    deleteEdit(
+      doc,
+      selection,
+      backward ? focus : anchor,
+      backward ? anchor : focus
+    );
   }
 };
 
@@ -37,19 +39,12 @@ export const InsertFragment: EditableCommand<[lines: DomSnapshot]> = (
 ) => {
   Delete(doc, selection);
 
-  // selection was collapsed with deleteSelection command
-  const pos = selection[0];
-
-  const lineLength = lines.length;
-  const [line, offset] = pos;
-  const lastLineLength = getRowLength(lines[lineLength - 1]!);
-
-  insertEdit(doc, lines, pos);
-  moveTo(
+  insertEdit(
+    doc,
     selection,
-    lineLength === 1
-      ? [line, offset + lastLineLength]
-      : [line + lineLength - 1, lastLineLength]
+    lines,
+    // selection was collapsed with delete command
+    selection[0]
   );
 };
 
