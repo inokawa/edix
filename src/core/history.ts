@@ -18,7 +18,7 @@ export const createHistory = <T>(initialValue: T) => {
 
   const push = (history: T) => {
     const time = now();
-    if (prevTime && time - prevTime < BATCH_HISTORY_TIME) {
+    if (index !== 0 && time - prevTime < BATCH_HISTORY_TIME) {
       index--;
     }
     prevTime = time;
