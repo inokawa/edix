@@ -6,7 +6,7 @@
 
 > **voidNode**\<`D`\>(`__namedParameters`): [`EditableVoidSerializer`](../interfaces/EditableVoidSerializer.md)\<`D`\>
 
-Defined in: [schema/custom.ts:13](https://github.com/inokawa/edix/blob/3b39c30ee6a7ee9a5e705005551e6fd2e6c7ae38/src/core/schema/custom.ts#L13)
+Defined in: [schema/structured.ts:13](https://github.com/inokawa/edix/blob/209c0f8699b6c4859eabf76831797001cc56c947/src/core/schema/structured.ts#L13)
 
 ## Type Parameters
 
@@ -24,7 +24,7 @@ Defined in: [schema/custom.ts:13](https://github.com/inokawa/edix/blob/3b39c30ee
 
 (`node`) => `D`
 
-#### plain
+#### plain?
 
 (`node`) => `string` = `toString`
 

@@ -1,0 +1,81 @@
+[**API**](../API.md)
+
+***
+
+# Interface: EditableSchema\<T\>
+
+Defined in: [schema/types.ts:3](https://github.com/inokawa/edix/blob/209c0f8699b6c4859eabf76831797001cc56c947/src/core/schema/types.ts#L3)
+
+## Type Parameters
+
+• **T**
+
+## Properties
+
+### single
+
+> **single**: `boolean`
+
+Defined in: [schema/types.ts:4](https://github.com/inokawa/edix/blob/209c0f8699b6c4859eabf76831797001cc56c947/src/core/schema/types.ts#L4)
+
+***
+
+### data()
+
+> **data**: (`snapshot`) => `T`
+
+Defined in: [schema/types.ts:5](https://github.com/inokawa/edix/blob/209c0f8699b6c4859eabf76831797001cc56c947/src/core/schema/types.ts#L5)
+
+#### Parameters
+
+##### snapshot
+
+`DomSnapshot`
+
+#### Returns
+
+`T`
+
+***
+
+### copy()
+
+> **copy**: (`dataTransfer`, `snapshot`, `dom`) => `void`
+
+Defined in: [schema/types.ts:6](https://github.com/inokawa/edix/blob/209c0f8699b6c4859eabf76831797001cc56c947/src/core/schema/types.ts#L6)
+
+#### Parameters
+
+##### dataTransfer
+
+`DataTransfer`
+
+##### snapshot
+
+`DomSnapshot`
+
+##### dom
+
+`Node`
+
+#### Returns
+
+`void`
+
+***
+
+### paste()
+
+> **paste**: (`dataTransfer`) => `string` \| `Node`
+
+Defined in: [schema/types.ts:7](https://github.com/inokawa/edix/blob/209c0f8699b6c4859eabf76831797001cc56c947/src/core/schema/types.ts#L7)
+
+#### Parameters
+
+##### dataTransfer
+
+`DataTransfer`
+
+#### Returns
+
+`string` \| `Node`
