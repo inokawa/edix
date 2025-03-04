@@ -287,11 +287,11 @@ export const editable = <T>(
     if ((e.metaKey || e.ctrlKey) && !e.altKey && e.code === "KeyZ") {
       e.preventDefault();
 
+      observer._accept(false);
       if (!readonly) {
         const nextHistory = e.shiftKey ? history.redo() : history.undo();
 
         if (nextHistory) {
-          observer._accept(false);
           currentSelection = nextHistory[1];
           onChange(nextHistory[0]);
 
