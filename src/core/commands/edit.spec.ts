@@ -282,16 +282,19 @@ describe(deleteEdit.name, () => {
     const docText2 = "fghij";
     const doc: Writeable<DomSnapshot> = [[docText], [docText2]];
     const sel: Writeable<SelectionSnapshot> = [
-      [1, 2],
-      [1, 2],
+      [1, 3],
+      [1, 3],
     ];
-    const initialSel: SelectionSnapshot = structuredClone(sel);
-    deleteEdit(doc, sel, [0, 1], [1, 1]);
+
+    deleteEdit(doc, sel, [0, 2], [1, 1]);
 
     expect(doc).toEqual([
-      [deleteAt(docText, 1, docText.length - 1) + deleteAt(docText2, 0, 1)],
+      [deleteAt(docText, 2, docText.length - 1) + deleteAt(docText2, 0, 1)],
     ]);
-    expect(sel).toEqual(moveLine(initialSel, -1));
+    expect(sel).toEqual([
+      [0, 2 + (3 - 1)],
+      [0, 2 + (3 - 1)],
+    ]);
   });
 
   it("delete text before caret", () => {
