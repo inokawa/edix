@@ -37,12 +37,10 @@ const joinNodes = (...lines: (readonly NodeRef[])[]): readonly NodeRef[] => {
   return line;
 };
 
-const splitLine = (
-  doc: DomSnapshot,
-  [lineIndex, offset]: Position
+const split = (
+  line: readonly NodeRef[],
+  offset: number
 ): [readonly NodeRef[], readonly NodeRef[]] => {
-  const line = doc[lineIndex]!;
-
   for (let i = 0; i < line.length; i++) {
     const node = line[i]!;
     const length = getNodeLength(node);
@@ -96,23 +94,24 @@ const fixPositionAfterDelete = (
     : start;
 };
 
-const insertToLine = (
-  doc: DomSnapshot,
-  linePos: Position,
-  newLines: DomSnapshot
-): (readonly NodeRef[])[] => {
-  if (!newLines.length) {
-    return [doc[linePos[0]]!];
-  }
+const replaceRange = (
+  doc: Writeable<DomSnapshot>,
+  newLines: DomSnapshot,
+  start: Position,
+  end?: Position
+) => {
+  const [startLine] = start;
+  const [endLine] = end || start;
 
-  const [before, after] = splitLine(doc, linePos);
+  const splitByStart = split(doc[start[0]]!, start[1]);
+  const before = splitByStart[0];
+  const after = end ? split(doc[end[0]]!, end[1])[1] : splitByStart[1];
 
   const results: (readonly NodeRef[])[] = [...newLines];
-
-  results[0] = joinNodes(before, results[0]!);
+  results[0] = results.length ? joinNodes(before, results[0]!) : before;
   results[results.length - 1] = joinNodes(results[results.length - 1]!, after);
 
-  return results;
+  doc.splice(startLine, endLine - startLine + 1, ...results);
 };
 
 /**
@@ -130,7 +129,7 @@ export const insertEdit = (
   const lineDiff = lineLength - 1;
   const lastRowLength = getLineLength(lines[lineLength - 1]!);
 
-  doc.splice(pos[0], 1, ...insertToLine(doc, pos, lines));
+  replaceRange(doc, lines, pos);
 
   if (comparePosition(anchor, pos) !== 1) {
     selection[0] = fixPositionAfterInsert(anchor, pos, lineDiff, lastRowLength);
@@ -151,14 +150,7 @@ export const deleteEdit = (
 ) => {
   const [anchor, focus] = selection;
 
-  const [startLine] = start;
-  const [endLine] = end;
-
-  doc.splice(
-    startLine,
-    endLine - startLine + 1,
-    joinNodes(splitLine(doc, start)[0], splitLine(doc, end)[1])
-  );
+  replaceRange(doc, [], start, end);
 
   if (comparePosition(anchor, start) !== 1) {
     selection[0] = fixPositionAfterDelete(anchor, start, end);
