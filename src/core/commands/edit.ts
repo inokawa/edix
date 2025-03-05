@@ -10,45 +10,45 @@ import {
 const isTextNode = (node: NodeRef) => typeof node === "string";
 const getNodeLength = (node: NodeRef): number =>
   isTextNode(node) ? node.length : 1;
-const getRowLength = (nodes: readonly NodeRef[]): number =>
+const getLineLength = (nodes: readonly NodeRef[]): number =>
   nodes.reduce((acc, n) => acc + getNodeLength(n), 0);
 
-const insertNodeAfter = (row: NodeRef[], index: number, node: NodeRef) => {
-  const target = row[index]!;
+const insertNodeAfter = (line: NodeRef[], index: number, node: NodeRef) => {
+  const target = line[index]!;
   if (isTextNode(node) && isTextNode(target)) {
-    row[index] = target + node;
+    line[index] = target + node;
   } else {
-    row.splice(index + 1, 0, node);
+    line.splice(index + 1, 0, node);
   }
 };
 
-const joinRows = (...rows: (readonly NodeRef[])[]): readonly NodeRef[] => {
-  const row: NodeRef[] = [];
-  for (let i = 0; i < rows.length; i++) {
-    const current = rows[i]!;
+const joinNodes = (...lines: (readonly NodeRef[])[]): readonly NodeRef[] => {
+  const line: NodeRef[] = [];
+  for (let i = 0; i < lines.length; i++) {
+    const current = lines[i]!;
     if (i === 0) {
-      row.push(...current);
+      line.push(...current);
     } else {
       for (const node of current) {
-        insertNodeAfter(row, row.length - 1, node);
+        insertNodeAfter(line, line.length - 1, node);
       }
     }
   }
-  return row;
+  return line;
 };
 
-const splitRow = (
-  doc: Writeable<DomSnapshot>,
-  [line, offset]: Position
+const splitLine = (
+  doc: DomSnapshot,
+  [lineIndex, offset]: Position
 ): [readonly NodeRef[], readonly NodeRef[]] => {
-  const row = doc[line]!;
+  const line = doc[lineIndex]!;
 
-  for (let i = 0; i < row.length; i++) {
-    const node = row[i]!;
+  for (let i = 0; i < line.length; i++) {
+    const node = line[i]!;
     const length = getNodeLength(node);
     if (length > offset) {
-      const before = row.slice(0, i);
-      const after = row.slice(i + 1);
+      const before = line.slice(0, i);
+      const after = line.slice(i + 1);
       if (isTextNode(node)) {
         before.push(node.slice(0, offset));
         after.unshift(node.slice(offset));
@@ -64,7 +64,7 @@ const splitRow = (
     }
     offset -= length;
   }
-  return [row, []];
+  return [line, []];
 };
 
 const fixPositionAfterInsert = (
@@ -96,6 +96,25 @@ const fixPositionAfterDelete = (
     : start;
 };
 
+const insertToLine = (
+  doc: DomSnapshot,
+  linePos: Position,
+  newLines: DomSnapshot
+): (readonly NodeRef[])[] => {
+  if (!newLines.length) {
+    return [doc[linePos[0]]!];
+  }
+
+  const [before, after] = splitLine(doc, linePos);
+
+  const results: (readonly NodeRef[])[] = [...newLines];
+
+  results[0] = joinNodes(before, results[0]!);
+  results[results.length - 1] = joinNodes(results[results.length - 1]!, after);
+
+  return results;
+};
+
 /**
  * @internal
  */
@@ -107,26 +126,11 @@ export const insertEdit = (
 ) => {
   const [anchor, focus] = selection;
 
-  const [before, after] = splitRow(doc, pos);
-
   const lineLength = lines.length;
-  const [line] = pos;
   const lineDiff = lineLength - 1;
-  const lastRowLength = getRowLength(lines[lineLength - 1]!);
+  const lastRowLength = getLineLength(lines[lineLength - 1]!);
 
-  if (lineLength === 1) {
-    doc[line] = joinRows(before, lines[0]!, after);
-  } else {
-    const [first, ...mid] = lines;
-    const last = mid.pop()!;
-    doc.splice(
-      line,
-      1,
-      joinRows(before, first!),
-      ...mid,
-      joinRows(last, after)
-    );
-  }
+  doc.splice(pos[0], 1, ...insertToLine(doc, pos, lines));
 
   if (comparePosition(anchor, pos) !== 1) {
     selection[0] = fixPositionAfterInsert(anchor, pos, lineDiff, lastRowLength);
@@ -153,7 +157,7 @@ export const deleteEdit = (
   doc.splice(
     startLine,
     endLine - startLine + 1,
-    joinRows(splitRow(doc, start)[0], splitRow(doc, end)[1])
+    joinNodes(splitLine(doc, start)[0], splitLine(doc, end)[1])
   );
 
   if (comparePosition(anchor, start) !== 1) {
@@ -187,7 +191,7 @@ export const flatten = (
   }
 
   return [
-    [joinRows(...doc)],
+    [joinNodes(...doc)],
     [
       [0, offsetBeforeAnchor + anchorOffset],
       [0, offsetBeforeFocus + focusOffset],
