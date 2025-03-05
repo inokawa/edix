@@ -108,8 +108,15 @@ const replaceRange = (
   const after = end ? split(doc[end[0]]!, end[1])[1] : splitByStart[1];
 
   const results: (readonly NodeRef[])[] = [...newLines];
-  results[0] = results.length ? joinNodes(before, results[0]!) : before;
-  results[results.length - 1] = joinNodes(results[results.length - 1]!, after);
+  if (results.length) {
+    results[0] = joinNodes(before, results[0]!);
+    results[results.length - 1] = joinNodes(
+      results[results.length - 1]!,
+      after
+    );
+  } else {
+    results.push(joinNodes(before, after));
+  }
 
   doc.splice(startLine, endLine - startLine + 1, ...results);
 };
