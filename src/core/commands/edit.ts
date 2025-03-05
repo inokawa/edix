@@ -8,10 +8,8 @@ import {
 } from "../types";
 
 const isTextNode = (node: NodeRef) => typeof node === "string";
-const getNodeLength = (node: NodeRef): number =>
+const getNodeSize = (node: NodeRef): number =>
   isTextNode(node) ? node.length : 1;
-const getLineLength = (nodes: readonly NodeRef[]): number =>
-  nodes.reduce((acc, n) => acc + getNodeLength(n), 0);
 
 const insertNodeAfter = (line: NodeRef[], index: number, node: NodeRef) => {
   const target = line[index]!;
@@ -43,7 +41,7 @@ const split = (
 ): [readonly NodeRef[], readonly NodeRef[]] => {
   for (let i = 0; i < line.length; i++) {
     const node = line[i]!;
-    const length = getNodeLength(node);
+    const length = getNodeSize(node);
     if (length > offset) {
       const before = line.slice(0, i);
       const after = line.slice(i + 1);
@@ -96,7 +94,7 @@ const fixPositionAfterDelete = (
 
 const replaceRange = (
   doc: Writeable<DomSnapshot>,
-  newLines: DomSnapshot,
+  fragment: DomSnapshot,
   start: Position,
   end?: Position
 ) => {
@@ -107,18 +105,15 @@ const replaceRange = (
   const before = splitByStart[0];
   const after = end ? split(doc[end[0]]!, end[1])[1] : splitByStart[1];
 
-  const results: (readonly NodeRef[])[] = [...newLines];
-  if (results.length) {
-    results[0] = joinNodes(before, results[0]!);
-    results[results.length - 1] = joinNodes(
-      results[results.length - 1]!,
-      after
-    );
+  const lines: (readonly NodeRef[])[] = [...fragment];
+  if (lines.length) {
+    lines[0] = joinNodes(before, lines[0]!);
+    lines[lines.length - 1] = joinNodes(lines[lines.length - 1]!, after);
   } else {
-    results.push(joinNodes(before, after));
+    lines.push(joinNodes(before, after));
   }
 
-  doc.splice(startLine, endLine - startLine + 1, ...results);
+  doc.splice(startLine, endLine - startLine + 1, ...lines);
 };
 
 /**
@@ -134,7 +129,10 @@ export const insertEdit = (
 
   const lineLength = lines.length;
   const lineDiff = lineLength - 1;
-  const lastRowLength = getLineLength(lines[lineLength - 1]!);
+  const lastRowLength = lines[lineLength - 1]!.reduce(
+    (acc, n) => acc + getNodeSize(n),
+    0
+  );
 
   replaceRange(doc, lines, pos);
 
@@ -179,7 +177,7 @@ export const flatten = (
 
   for (let i = 0; i < doc.length; i++) {
     for (const node of doc[i]!) {
-      const length = getNodeLength(node);
+      const length = getNodeSize(node);
       if (i < anchorLine) {
         offsetBeforeAnchor += length;
       }
