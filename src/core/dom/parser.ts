@@ -8,7 +8,7 @@ let isBlockNode: (node: Element) => boolean;
  * @internal
  */
 export interface ParserConfig {
-  isBlock?: (node: Element) => boolean;
+  _isBlock?: (node: Element) => boolean;
 }
 
 const SHOW_ELEMENT = 0x1;
@@ -215,7 +215,7 @@ export const parse = <T>(
   config: ParserConfig
 ): T => {
   try {
-    isBlockNode = config.isBlock || defaultIsBlockNode;
+    isBlockNode = config._isBlock || defaultIsBlockNode;
 
     walker = document.createTreeWalker(root, SHOW_TEXT | SHOW_ELEMENT);
 

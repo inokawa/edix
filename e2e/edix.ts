@@ -37,7 +37,7 @@ export const getText = async (
       const document = element.ownerDocument;
       return window.edix
         .takeDomSnapshot(document, element, {
-          isBlock: blockTag
+          _isBlock: blockTag
             ? (n) => n.tagName === blockTag.toUpperCase()
             : undefined,
         })
@@ -62,7 +62,7 @@ export const getSeletedText = (
       const range = selection.getRangeAt(0)!.cloneContents();
       return window.edix
         .takeDomSnapshot(document, range, {
-          isBlock: blockTag
+          _isBlock: blockTag
             ? (n) => n.tagName === blockTag.toUpperCase()
             : undefined,
         })
@@ -86,7 +86,7 @@ export const getSelection = (
       element,
       isSingleline,
       {
-        isBlock: blockTag
+        _isBlock: blockTag
           ? (n) => n.tagName === blockTag.toUpperCase()
           : undefined,
       }

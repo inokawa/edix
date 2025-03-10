@@ -153,7 +153,7 @@ export const SpanAsBlock: StoryObj = {
       if (!ref.current) return;
       return editable(ref.current, {
         schema: plainSchema({ multiline: true }),
-        isBlock: (node) => !!node.dataset.row,
+        isBlock: (node) => !!node.dataset.line,
         onChange: setValue,
       }).dispose;
     }, []);
@@ -168,7 +168,7 @@ export const SpanAsBlock: StoryObj = {
         }}
       >
         {value.split("\n").map((r, i) => (
-          <span key={i} data-row style={{ display: "block" }}>
+          <span key={i} data-line style={{ display: "block" }}>
             {r ? r : <br />}
           </span>
         ))}

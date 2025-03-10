@@ -150,7 +150,7 @@ export const editable = <T>(
   let isDragging = false;
 
   const parserConfig: ParserConfig = {
-    isBlock: isBlock as ParserConfig["isBlock"],
+    _isBlock: isBlock as ParserConfig["_isBlock"],
   };
 
   const setContentEditable = () => {
