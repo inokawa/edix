@@ -4,7 +4,7 @@
 
 # Interface: EditableHandle
 
-Defined in: [editable.ts:92](https://github.com/inokawa/edix/blob/209c0f8699b6c4859eabf76831797001cc56c947/src/core/editable.ts#L92)
+Defined in: [editable.ts:97](https://github.com/inokawa/edix/blob/01d58ece64bb1beb7c3cb038988926f097264356/src/core/editable.ts#L97)
 
 Methods of editor instance.
 
@@ -14,7 +14,7 @@ Methods of editor instance.
 
 > **dispose**: () => `void`
 
-Defined in: [editable.ts:96](https://github.com/inokawa/edix/blob/209c0f8699b6c4859eabf76831797001cc56c947/src/core/editable.ts#L96)
+Defined in: [editable.ts:101](https://github.com/inokawa/edix/blob/01d58ece64bb1beb7c3cb038988926f097264356/src/core/editable.ts#L101)
 
 Disposes editor and restores previous DOM state.
 
@@ -28,7 +28,7 @@ Disposes editor and restores previous DOM state.
 
 > **readonly**: (`value`) => `void`
 
-Defined in: [editable.ts:101](https://github.com/inokawa/edix/blob/209c0f8699b6c4859eabf76831797001cc56c947/src/core/editable.ts#L101)
+Defined in: [editable.ts:106](https://github.com/inokawa/edix/blob/01d58ece64bb1beb7c3cb038988926f097264356/src/core/editable.ts#L106)
 
 Changes editor's read-only state.
 

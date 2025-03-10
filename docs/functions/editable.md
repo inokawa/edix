@@ -6,7 +6,7 @@
 
 > **editable**\<`T`\>(`element`, `__namedParameters`): [`EditableHandle`](../interfaces/EditableHandle.md)
 
-Defined in: [editable.ts:107](https://github.com/inokawa/edix/blob/209c0f8699b6c4859eabf76831797001cc56c947/src/core/editable.ts#L107)
+Defined in: [editable.ts:112](https://github.com/inokawa/edix/blob/01d58ece64bb1beb7c3cb038988926f097264356/src/core/editable.ts#L112)
 
 A function to make DOM editable.
 

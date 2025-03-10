@@ -4,7 +4,7 @@
 
 # Interface: EditableSchema\<T\>
 
-Defined in: [schema/types.ts:3](https://github.com/inokawa/edix/blob/209c0f8699b6c4859eabf76831797001cc56c947/src/core/schema/types.ts#L3)
+Defined in: [schema/types.ts:3](https://github.com/inokawa/edix/blob/01d58ece64bb1beb7c3cb038988926f097264356/src/core/schema/types.ts#L3)
 
 ## Type Parameters
 
@@ -16,7 +16,7 @@ Defined in: [schema/types.ts:3](https://github.com/inokawa/edix/blob/209c0f8699b
 
 > **single**: `boolean`
 
-Defined in: [schema/types.ts:4](https://github.com/inokawa/edix/blob/209c0f8699b6c4859eabf76831797001cc56c947/src/core/schema/types.ts#L4)
+Defined in: [schema/types.ts:4](https://github.com/inokawa/edix/blob/01d58ece64bb1beb7c3cb038988926f097264356/src/core/schema/types.ts#L4)
 
 ***
 
@@ -24,7 +24,7 @@ Defined in: [schema/types.ts:4](https://github.com/inokawa/edix/blob/209c0f8699b
 
 > **data**: (`snapshot`) => `T`
 
-Defined in: [schema/types.ts:5](https://github.com/inokawa/edix/blob/209c0f8699b6c4859eabf76831797001cc56c947/src/core/schema/types.ts#L5)
+Defined in: [schema/types.ts:5](https://github.com/inokawa/edix/blob/01d58ece64bb1beb7c3cb038988926f097264356/src/core/schema/types.ts#L5)
 
 #### Parameters
 
@@ -42,7 +42,7 @@ Defined in: [schema/types.ts:5](https://github.com/inokawa/edix/blob/209c0f8699b
 
 > **copy**: (`dataTransfer`, `snapshot`, `dom`) => `void`
 
-Defined in: [schema/types.ts:6](https://github.com/inokawa/edix/blob/209c0f8699b6c4859eabf76831797001cc56c947/src/core/schema/types.ts#L6)
+Defined in: [schema/types.ts:6](https://github.com/inokawa/edix/blob/01d58ece64bb1beb7c3cb038988926f097264356/src/core/schema/types.ts#L6)
 
 #### Parameters
 
@@ -68,7 +68,7 @@ Defined in: [schema/types.ts:6](https://github.com/inokawa/edix/blob/209c0f8699b
 
 > **paste**: (`dataTransfer`) => `string` \| `Node`
 
-Defined in: [schema/types.ts:7](https://github.com/inokawa/edix/blob/209c0f8699b6c4859eabf76831797001cc56c947/src/core/schema/types.ts#L7)
+Defined in: [schema/types.ts:7](https://github.com/inokawa/edix/blob/01d58ece64bb1beb7c3cb038988926f097264356/src/core/schema/types.ts#L7)
 
 #### Parameters
 
