@@ -143,6 +143,40 @@ export const Placeholder: StoryObj = {
   },
 };
 
+export const SpanAsBlock: StoryObj = {
+  render: () => {
+    const ref = useRef<HTMLDivElement>(null);
+    const [value, setValue] = useState(
+      "Hello World.\nこんにちは。\n👍❤️🧑‍🧑‍🧒"
+    );
+    useEffect(() => {
+      if (!ref.current) return;
+      return editable(ref.current, {
+        schema: plainSchema({ multiline: true }),
+        isBlock: (node) => !!node.dataset.row,
+        onChange: setValue,
+      }).dispose;
+    }, []);
+
+    return (
+      <div
+        ref={ref}
+        style={{
+          backgroundColor: "white",
+          border: "solid 1px darkgray",
+          padding: 8,
+        }}
+      >
+        {value.split("\n").map((r, i) => (
+          <span key={i} data-row style={{ display: "block" }}>
+            {r ? r : <br />}
+          </span>
+        ))}
+      </div>
+    );
+  },
+};
+
 export const Rtl: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);

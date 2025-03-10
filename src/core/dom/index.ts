@@ -8,6 +8,7 @@ import {
   TYPE_VOID,
   TYPE_SOFT_BREAK,
   TYPE_HARD_BREAK,
+  ParserConfig,
 } from "./parser";
 import { comparePosition } from "../position";
 import { DomSnapshot, Position, NodeRef, SelectionSnapshot } from "../types";
@@ -64,7 +65,8 @@ export const setSelectionToDOM = (
   document: Document,
   root: Element,
   [anchor, focus]: SelectionSnapshot,
-  isSingleline: boolean
+  isSingleline: boolean,
+  config: ParserConfig
 ): boolean => {
   const posDiff = comparePosition(anchor, focus);
   const isCollapsed = posDiff === 0;
@@ -86,14 +88,14 @@ export const setSelectionToDOM = (
     return true;
   }
 
-  const domStart = findPosition(document, root, start, isSingleline);
+  const domStart = findPosition(document, root, start, isSingleline, config);
   if (!domStart) {
     return false;
   }
 
   const domEnd = isCollapsed
     ? domStart
-    : findPosition(document, root, end, isSingleline);
+    : findPosition(document, root, end, isSingleline, config);
   if (!domEnd) {
     return false;
   }
@@ -137,7 +139,8 @@ const findPosition = (
   document: Document,
   root: Element,
   [line, offset]: Position,
-  isSingleline: boolean
+  isSingleline: boolean,
+  config: ParserConfig
 ): DOMPosition | void => {
   return parse(
     (readNext): DOMPosition | void => {
@@ -150,7 +153,8 @@ const findPosition = (
       }
     },
     document,
-    isSingleline || root.childElementCount === 0 ? root : root.children[line]!
+    isSingleline || root.childElementCount === 0 ? root : root.children[line]!,
+    config
   );
 };
 
@@ -159,7 +163,8 @@ const serializePosition = (
   root: Element,
   targetNode: Node,
   offsetAtNode: number,
-  isSingleline: boolean
+  isSingleline: boolean,
+  config: ParserConfig
 ): Position => {
   let row: Node = targetNode;
   let lineIndex: number;
@@ -201,7 +206,8 @@ const serializePosition = (
       return [lineIndex, offset + offsetAtNode];
     },
     document,
-    row
+    row,
+    config
   );
 };
 
@@ -221,7 +227,8 @@ export const getEmptySelectionSnapshot = (): SelectionSnapshot => {
 export const takeSelectionSnapshot = (
   document: Document,
   root: Element,
-  isSingleline: boolean
+  isSingleline: boolean,
+  config: ParserConfig
 ): SelectionSnapshot => {
   const selection = getDOMSelection(root);
   const range = getSelectionRangeInEditor(selection, root);
@@ -254,7 +261,8 @@ export const takeSelectionSnapshot = (
         root,
         root.lastElementChild!,
         root.lastElementChild!.textContent!.length,
-        isSingleline
+        isSingleline,
+        config
       );
     } else {
       return getEmptySelectionSnapshot();
@@ -265,7 +273,8 @@ export const takeSelectionSnapshot = (
       root,
       startContainer,
       startOffset,
-      isSingleline
+      isSingleline,
+      config
     );
     end = selection.isCollapsed
       ? start
@@ -274,7 +283,8 @@ export const takeSelectionSnapshot = (
           root,
           endContainer,
           endOffset,
-          isSingleline
+          isSingleline,
+          config
         );
   }
 
@@ -286,7 +296,8 @@ export const takeSelectionSnapshot = (
  */
 export const takeDomSnapshot = (
   document: Document,
-  root: Node
+  root: Node,
+  config: ParserConfig
 ): DomSnapshot => {
   return parse(
     (readNext) => {
@@ -330,7 +341,8 @@ export const takeDomSnapshot = (
       return rows;
     },
     document,
-    root
+    root,
+    config
   );
 };
 
@@ -350,7 +362,8 @@ export const getPointedCaretPosition = (
   document: Document,
   root: Element,
   { clientX, clientY }: MouseEvent,
-  isSingleline: boolean
+  isSingleline: boolean,
+  config: ParserConfig
 ): Position | void => {
   // https://developer.mozilla.org/en-US/docs/Web/API/Document/caretPositionFromPoint
   // https://developer.mozilla.org/en-US/docs/Web/API/Document/caretRangeFromPoint
@@ -366,7 +379,8 @@ export const getPointedCaretPosition = (
         root,
         position.offsetNode,
         position.offset,
-        isSingleline
+        isSingleline,
+        config
       );
     }
   } else if (document.caretRangeFromPoint) {
@@ -377,7 +391,8 @@ export const getPointedCaretPosition = (
         root,
         range.startContainer,
         range.startOffset,
-        isSingleline
+        isSingleline,
+        config
       );
     }
   }
