@@ -28,41 +28,70 @@ export const initEdixHelpers = async (context: BrowserContext) => {
 
 export const NON_EDITABLE_PLACEHOLDER = "$";
 
-export const getText = async (editable: Locator): Promise<string[]> => {
-  return editable.evaluate((element, NON_EDITABLE_PLACEHOLDER) => {
-    const document = element.ownerDocument;
-    return window.edix.takeDomSnapshot(document, element).map((r) => {
-      return r.reduce<string>((acc, n) => {
-        return acc + (typeof n === "string" ? n : NON_EDITABLE_PLACEHOLDER);
-      }, "");
-    });
-  }, NON_EDITABLE_PLACEHOLDER);
+export const getText = async (
+  editable: Locator,
+  config: { blockTag?: string } = {}
+): Promise<string[]> => {
+  return editable.evaluate(
+    (element, [NON_EDITABLE_PLACEHOLDER, { blockTag }]) => {
+      const document = element.ownerDocument;
+      return window.edix
+        .takeDomSnapshot(document, element, {
+          isBlock: blockTag
+            ? (n) => n.tagName === blockTag.toUpperCase()
+            : undefined,
+        })
+        .map((r) => {
+          return r.reduce<string>((acc, n) => {
+            return acc + (typeof n === "string" ? n : NON_EDITABLE_PLACEHOLDER);
+          }, "");
+        });
+    },
+    [NON_EDITABLE_PLACEHOLDER, config] as const
+  );
 };
 
-export const getSeletedText = (editable: Locator): Promise<string[]> => {
-  return editable.evaluate((element, NON_EDITABLE_PLACEHOLDER) => {
-    const document = element.ownerDocument;
-    const selection = document.getSelection()!;
-    const range = selection.getRangeAt(0)!.cloneContents();
-    return window.edix.takeDomSnapshot(document, range).map((r) => {
-      return r.reduce<string>((acc, n) => {
-        return acc + (typeof n === "string" ? n : NON_EDITABLE_PLACEHOLDER);
-      }, "");
-    });
-  }, NON_EDITABLE_PLACEHOLDER);
+export const getSeletedText = (
+  editable: Locator,
+  config: { blockTag?: string } = {}
+): Promise<string[]> => {
+  return editable.evaluate(
+    (element, [NON_EDITABLE_PLACEHOLDER, { blockTag }]) => {
+      const document = element.ownerDocument;
+      const selection = document.getSelection()!;
+      const range = selection.getRangeAt(0)!.cloneContents();
+      return window.edix
+        .takeDomSnapshot(document, range, {
+          isBlock: blockTag
+            ? (n) => n.tagName === blockTag.toUpperCase()
+            : undefined,
+        })
+        .map((r) => {
+          return r.reduce<string>((acc, n) => {
+            return acc + (typeof n === "string" ? n : NON_EDITABLE_PLACEHOLDER);
+          }, "");
+        });
+    },
+    [NON_EDITABLE_PLACEHOLDER, config] as const
+  );
 };
 
 export const getSelection = (
   editable: Locator,
-  isSingleline: boolean = false
+  config: { isSingleline?: boolean; blockTag?: string } = {}
 ): Promise<SelectionSnapshot> => {
-  return editable.evaluate((element, isSingleline) => {
+  return editable.evaluate((element, { isSingleline = false, blockTag }) => {
     return window.edix.takeSelectionSnapshot(
       element.ownerDocument,
       element,
-      isSingleline
+      isSingleline,
+      {
+        isBlock: blockTag
+          ? (n) => n.tagName === blockTag.toUpperCase()
+          : undefined,
+      }
     );
-  }, isSingleline);
+  }, config);
 };
 
 export const getSelectedRect = (editable: Locator): Promise<DOMRect> => {

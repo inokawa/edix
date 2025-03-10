@@ -2,6 +2,14 @@ let walker: TreeWalker | null;
 let node: Node | null;
 let nodeType: NodeType | null;
 let isBrDetected = false;
+let isBlockNode: (node: Element) => boolean;
+
+/**
+ * @internal
+ */
+export interface ParserConfig {
+  isBlock?: (node: Element) => boolean;
+}
 
 const SHOW_ELEMENT = 0x1;
 const SHOW_TEXT = 0x4;
@@ -87,6 +95,10 @@ const EMBEDDED_CONTENT_TAG_NAMES = new Set([
   "IFRAME",
   "OBJECT",
 ]);
+
+const defaultIsBlockNode = (node: Element): boolean => {
+  return SINGLE_LINE_CONTAINER_NAMES.has(node.tagName);
+};
 
 /**
  * @internal
@@ -183,9 +195,9 @@ const readNext = (endNode?: Node): NodeType | void => {
         EMBEDDED_CONTENT_TAG_NAMES.has(tagName)
       ) {
         return (nodeType = TYPE_VOID);
-      } else if (SINGLE_LINE_CONTAINER_NAMES.has(tagName)) {
+      } else if (isBlockNode(node)) {
         const prev = node.previousElementSibling;
-        if (prev && SINGLE_LINE_CONTAINER_NAMES.has(prev.tagName)) {
+        if (prev && isBlockNode(prev)) {
           return (nodeType = TYPE_HARD_BREAK);
         }
       }
@@ -199,9 +211,12 @@ const readNext = (endNode?: Node): NodeType | void => {
 export const parse = <T>(
   scopeFn: (read: typeof readNext) => T,
   document: Document,
-  root: Node
+  root: Node,
+  config: ParserConfig
 ): T => {
   try {
+    isBlockNode = config.isBlock || defaultIsBlockNode;
+
     walker = document.createTreeWalker(root, SHOW_TEXT | SHOW_ELEMENT);
 
     return scopeFn(readNext);

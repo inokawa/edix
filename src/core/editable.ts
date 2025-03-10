@@ -20,6 +20,7 @@ import {
 } from "./commands";
 import { flatten } from "./commands/edit";
 import { EditableSchema } from "./schema";
+import { ParserConfig } from "./dom/parser";
 
 /**
  * https://www.w3.org/TR/input-events-1/#interface-InputEvent-Attributes
@@ -83,6 +84,10 @@ export interface EditableOptions<T> {
   /**
    * TODO
    */
+  isBlock?: (node: HTMLElement) => boolean;
+  /**
+   * TODO
+   */
   onChange: (value: T) => void;
 }
 
@@ -113,6 +118,7 @@ export const editable = <T>(
       copy,
       paste: getPastableData,
     },
+    isBlock,
     onChange,
   }: EditableOptions<T>
 ): EditableHandle => {
@@ -143,6 +149,10 @@ export const editable = <T>(
   let hasFocus = false;
   let isDragging = false;
 
+  const parserConfig: ParserConfig = {
+    isBlock: isBlock as ParserConfig["isBlock"],
+  };
+
   const setContentEditable = () => {
     element.contentEditable = readonly ? "false" : "true";
     element.ariaReadOnly = readonly ? "true" : null;
@@ -156,12 +166,21 @@ export const editable = <T>(
 
   const history = createHistory<
     readonly [value: T, selection: SelectionSnapshot]
-  >([serialize(takeDomSnapshot(document, element)), currentSelection]);
+  >([
+    serialize(takeDomSnapshot(document, element, parserConfig)),
+    currentSelection,
+  ]);
 
   const observer = createMutationObserver(element, () => {
     if (hasFocus) {
       // Mutation to selected DOM may change selection, so restore it.
-      setSelectionToDOM(document, element, currentSelection, isSingleline);
+      setSelectionToDOM(
+        document,
+        element,
+        currentSelection,
+        isSingleline,
+        parserConfig
+      );
       if (restoreSelectionQueue != null) {
         clearTimeout(restoreSelectionQueue);
         restoreSelectionQueue = null;
@@ -188,7 +207,13 @@ export const editable = <T>(
     // So we also schedule restoring on timeout for safe.
     const nextSelection = currentSelection;
     restoreSelectionQueue = setTimeout(() => {
-      setSelectionToDOM(document, element, nextSelection, isSingleline);
+      setSelectionToDOM(
+        document,
+        element,
+        nextSelection,
+        isSingleline,
+        parserConfig
+      );
     });
   };
 
@@ -213,7 +238,12 @@ export const editable = <T>(
   };
 
   const syncSelection = () => {
-    currentSelection = takeSelectionSnapshot(document, element, isSingleline);
+    currentSelection = takeSelectionSnapshot(
+      document,
+      element,
+      isSingleline,
+      parserConfig
+    );
   };
 
   const flushInput = () => {
@@ -222,8 +252,13 @@ export const editable = <T>(
     observer._accept(false);
     if (queue.length) {
       // Get current value and selection from DOM
-      const selection = takeSelectionSnapshot(document, element, isSingleline);
-      const value = takeDomSnapshot(document, element);
+      const selection = takeSelectionSnapshot(
+        document,
+        element,
+        isSingleline,
+        parserConfig
+      );
+      const value = takeDomSnapshot(document, element, parserConfig);
 
       // Revert DOM
       let m: MutationRecord | undefined;
@@ -249,7 +284,8 @@ export const editable = <T>(
         document,
         element,
         currentSelection,
-        isSingleline
+        isSingleline,
+        parserConfig
       );
 
       updateState(value, selection, currentSelection);
@@ -261,7 +297,8 @@ export const editable = <T>(
       const selection: Writeable<SelectionSnapshot> = [...currentSelection];
       const dom: Writeable<DomSnapshot> = takeDomSnapshot(
         document,
-        element
+        element,
+        parserConfig
       ) as Writeable<DomSnapshot>; // TODO improve type
 
       let command: (typeof commands)[number] | undefined;
@@ -357,7 +394,11 @@ export const editable = <T>(
     const selected = getSelectedElements(element);
     if (!selected) return;
 
-    copy(dataTransfer, takeDomSnapshot(document, selected), selected);
+    copy(
+      dataTransfer,
+      takeDomSnapshot(document, selected, parserConfig),
+      selected
+    );
   };
 
   const insertData = (dataTransfer: DataTransfer) => {
@@ -365,7 +406,10 @@ export const editable = <T>(
     if (typeof data === "string") {
       execCommand(InsertText, data);
     } else {
-      execCommand(InsertFragment, takeDomSnapshot(document, data));
+      execCommand(
+        InsertFragment,
+        takeDomSnapshot(document, data, parserConfig)
+      );
     }
   };
 
@@ -393,7 +437,8 @@ export const editable = <T>(
       document,
       element,
       e,
-      isSingleline
+      isSingleline,
+      parserConfig
     );
     if (dataTransfer && droppedPosition) {
       // move selection first to keep selection after modifications
