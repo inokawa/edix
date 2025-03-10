@@ -1,4 +1,4 @@
-import{e as o,j as e}from"./editable-5txfYM30.js";import{r}from"./index-RYns6xqu.js";import{p as u}from"./plain-DNmB8OPO.js";const N={component:o},d={render:()=>{const n=r.useRef(null),[a,s]=r.useState(`Hello World.
+import{e as o,j as e}from"./editable-o__fXOk9.js";import{r}from"./index-RYns6xqu.js";import{p as u}from"./plain-DNmB8OPO.js";const N={component:o},d={render:()=>{const n=r.useRef(null),[a,s]=r.useState(`Hello World.
 こんにちは。
 👍❤️🧑‍🧑‍🧒`);return r.useEffect(()=>{if(n.current)return o(n.current,{schema:u({multiline:!0}),onChange:s}).dispose},[]),e.jsx("div",{ref:n,style:{backgroundColor:"white",border:"solid 1px darkgray",padding:8},children:a.split(`
 `).map((t,l)=>e.jsx("div",{children:t||e.jsx("br",{})},l))})}},p={render:()=>{const n=r.useRef(null),[a,s]=r.useState("Hello World.");return r.useEffect(()=>{if(n.current)return o(n.current,{schema:u(),onChange:s}).dispose},[]),e.jsx("div",{ref:n,style:{backgroundColor:"white",border:"solid 1px darkgray",padding:8},children:a||e.jsx("br",{})})}},m={render:()=>{const n=r.useRef(null),[a,s]=r.useState("Hello world."),[t,l]=r.useState(!1),c=r.useRef(null);return r.useEffect(()=>{if(!n.current)return;const i=o(n.current,{schema:u(),onChange:s});return c.current=i,i.dispose},[]),e.jsxs("div",{children:[e.jsx("div",{children:e.jsx("button",{onClick:()=>{if(!c.current)return;const i=!t;c.current.readonly(i),l(i)},children:t?"editable":"readonly"})}),e.jsx("div",{ref:n,style:{background:"white",color:t?"gray":void 0},children:a||e.jsx("br",{})})]})}},f={render:()=>{const n=r.useRef(null),[a,s]=r.useState("");return r.useEffect(()=>{if(n.current)return o(n.current,{schema:u(),onChange:s}).dispose},[]),e.jsxs(e.Fragment,{children:[e.jsx("div",{ref:n,style:{backgroundColor:"white",border:"solid 1px darkgray",padding:8},"aria-placeholder":"Enter some text...",children:a}),e.jsx("style",{children:`
@@ -9,8 +9,8 @@ import{e as o,j as e}from"./editable-5txfYM30.js";import{r}from"./index-RYns6xqu
 }
 `})]})}},h={render:()=>{const n=r.useRef(null),[a,s]=r.useState(`Hello World.
 こんにちは。
-👍❤️🧑‍🧑‍🧒`);return r.useEffect(()=>{if(n.current)return o(n.current,{schema:u({multiline:!0}),isBlock:t=>!!t.dataset.row,onChange:s}).dispose},[]),e.jsx("div",{ref:n,style:{backgroundColor:"white",border:"solid 1px darkgray",padding:8},children:a.split(`
-`).map((t,l)=>e.jsx("span",{"data-row":!0,style:{display:"block"},children:t||e.jsx("br",{})},l))})}},v={render:()=>{const n=r.useRef(null),[a,s]=r.useState(`אחד !
+👍❤️🧑‍🧑‍🧒`);return r.useEffect(()=>{if(n.current)return o(n.current,{schema:u({multiline:!0}),isBlock:t=>!!t.dataset.line,onChange:s}).dispose},[]),e.jsx("div",{ref:n,style:{backgroundColor:"white",border:"solid 1px darkgray",padding:8},children:a.split(`
+`).map((t,l)=>e.jsx("span",{"data-line":!0,style:{display:"block"},children:t||e.jsx("br",{})},l))})}},v={render:()=>{const n=r.useRef(null),[a,s]=r.useState(`אחד !
 two !
 שְׁלוֹשָׁה !`);return r.useEffect(()=>{if(n.current)return o(n.current,{schema:u({multiline:!0}),onChange:s}).dispose},[]),e.jsx("div",{ref:n,style:{direction:"rtl",background:"white"},children:a.split(`
 `).map((t,l)=>e.jsx("div",{children:t||e.jsx("br",{})},l))})}},g={render:()=>{const n=r.useRef(null),[a,s]=r.useState(`春は、あけぼの。やうやうしろくなりゆく山ぎは、すこし明かりて、紫だちたる雲の、細くたなびきたる。
@@ -39,7 +39,7 @@ two !
         {value.split("\\n").map((r, i) => <div key={i}>{r ? r : <br />}</div>)}
       </div>;
   }
-}`,...(j=(k=d.parameters)==null?void 0:k.docs)==null?void 0:j.source}}};var E,w,C;p.parameters={...p.parameters,docs:{...(E=p.parameters)==null?void 0:E.docs,source:{originalSource:`{
+}`,...(j=(k=d.parameters)==null?void 0:k.docs)==null?void 0:j.source}}};var E,C,R;p.parameters={...p.parameters,docs:{...(E=p.parameters)==null?void 0:E.docs,source:{originalSource:`{
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
     const [value, setValue] = useState("Hello World.");
@@ -58,7 +58,7 @@ two !
         {value ? value : <br />}
       </div>;
   }
-}`,...(C=(w=p.parameters)==null?void 0:w.docs)==null?void 0:C.source}}};var R,V,H;m.parameters={...m.parameters,docs:{...(R=m.parameters)==null?void 0:R.docs,source:{originalSource:`{
+}`,...(R=(C=p.parameters)==null?void 0:C.docs)==null?void 0:R.source}}};var w,V,H;m.parameters={...m.parameters,docs:{...(w=m.parameters)==null?void 0:w.docs,source:{originalSource:`{
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
     const [value, setValue] = useState(\`Hello world.\`);
@@ -130,7 +130,7 @@ two !
         schema: plainSchema({
           multiline: true
         }),
-        isBlock: node => !!node.dataset.row,
+        isBlock: node => !!node.dataset.line,
         onChange: setValue
       }).dispose;
     }, []);
@@ -139,7 +139,7 @@ two !
       border: "solid 1px darkgray",
       padding: 8
     }}>
-        {value.split("\\n").map((r, i) => <span key={i} data-row style={{
+        {value.split("\\n").map((r, i) => <span key={i} data-line style={{
         display: "block"
       }}>
             {r ? r : <br />}
