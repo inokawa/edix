@@ -6,7 +6,7 @@
 
 > **InferDoc**\<`T`\>: `T` *extends* [`EditableSchema`](../interfaces/EditableSchema.md)\<infer N\> ? `N` : `never`
 
-Defined in: [schema/types.ts:12](https://github.com/inokawa/edix/blob/01d58ece64bb1beb7c3cb038988926f097264356/src/core/schema/types.ts#L12)
+Defined in: [schema/types.ts:12](https://github.com/inokawa/edix/blob/5dda010c7d491e5c9162d0f17dc6178b28acc47b/src/core/schema/types.ts#L12)
 
 ## Type Parameters
 

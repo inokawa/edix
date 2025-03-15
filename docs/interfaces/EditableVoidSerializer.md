@@ -4,7 +4,7 @@
 
 # Interface: EditableVoidSerializer\<T\>
 
-Defined in: [schema/structured.ts:5](https://github.com/inokawa/edix/blob/01d58ece64bb1beb7c3cb038988926f097264356/src/core/schema/structured.ts#L5)
+Defined in: [schema/structured.ts:5](https://github.com/inokawa/edix/blob/5dda010c7d491e5c9162d0f17dc6178b28acc47b/src/core/schema/structured.ts#L5)
 
 ## Type Parameters
 
@@ -16,7 +16,7 @@ Defined in: [schema/structured.ts:5](https://github.com/inokawa/edix/blob/01d58e
 
 > **is**: (`node`) => `boolean`
 
-Defined in: [schema/structured.ts:6](https://github.com/inokawa/edix/blob/01d58ece64bb1beb7c3cb038988926f097264356/src/core/schema/structured.ts#L6)
+Defined in: [schema/structured.ts:6](https://github.com/inokawa/edix/blob/5dda010c7d491e5c9162d0f17dc6178b28acc47b/src/core/schema/structured.ts#L6)
 
 #### Parameters
 
@@ -34,7 +34,7 @@ Defined in: [schema/structured.ts:6](https://github.com/inokawa/edix/blob/01d58e
 
 > **data**: (`node`) => `T`
 
-Defined in: [schema/structured.ts:7](https://github.com/inokawa/edix/blob/01d58ece64bb1beb7c3cb038988926f097264356/src/core/schema/structured.ts#L7)
+Defined in: [schema/structured.ts:7](https://github.com/inokawa/edix/blob/5dda010c7d491e5c9162d0f17dc6178b28acc47b/src/core/schema/structured.ts#L7)
 
 #### Parameters
 
@@ -52,7 +52,7 @@ Defined in: [schema/structured.ts:7](https://github.com/inokawa/edix/blob/01d58e
 
 > **plain**: (`node`) => `string`
 
-Defined in: [schema/structured.ts:8](https://github.com/inokawa/edix/blob/01d58ece64bb1beb7c3cb038988926f097264356/src/core/schema/structured.ts#L8)
+Defined in: [schema/structured.ts:8](https://github.com/inokawa/edix/blob/5dda010c7d491e5c9162d0f17dc6178b28acc47b/src/core/schema/structured.ts#L8)
 
 #### Parameters
 

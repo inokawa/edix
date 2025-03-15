@@ -4,7 +4,7 @@
 
 # Interface: EditableOptions\<T\>
 
-Defined in: [editable.ts:79](https://github.com/inokawa/edix/blob/01d58ece64bb1beb7c3cb038988926f097264356/src/core/editable.ts#L79)
+Defined in: [editable.ts:79](https://github.com/inokawa/edix/blob/5dda010c7d491e5c9162d0f17dc6178b28acc47b/src/core/editable.ts#L79)
 
 Options of [editable](../functions/editable.md).
 
@@ -18,7 +18,7 @@ Options of [editable](../functions/editable.md).
 
 > **schema**: [`EditableSchema`](EditableSchema.md)\<`T`\>
 
-Defined in: [editable.ts:83](https://github.com/inokawa/edix/blob/01d58ece64bb1beb7c3cb038988926f097264356/src/core/editable.ts#L83)
+Defined in: [editable.ts:83](https://github.com/inokawa/edix/blob/5dda010c7d491e5c9162d0f17dc6178b28acc47b/src/core/editable.ts#L83)
 
 TODO
 
@@ -28,7 +28,7 @@ TODO
 
 > `optional` **isBlock**: (`node`) => `boolean`
 
-Defined in: [editable.ts:87](https://github.com/inokawa/edix/blob/01d58ece64bb1beb7c3cb038988926f097264356/src/core/editable.ts#L87)
+Defined in: [editable.ts:87](https://github.com/inokawa/edix/blob/5dda010c7d491e5c9162d0f17dc6178b28acc47b/src/core/editable.ts#L87)
 
 TODO
 
@@ -48,7 +48,7 @@ TODO
 
 > **onChange**: (`value`) => `void`
 
-Defined in: [editable.ts:91](https://github.com/inokawa/edix/blob/01d58ece64bb1beb7c3cb038988926f097264356/src/core/editable.ts#L91)
+Defined in: [editable.ts:91](https://github.com/inokawa/edix/blob/5dda010c7d491e5c9162d0f17dc6178b28acc47b/src/core/editable.ts#L91)
 
 TODO
 

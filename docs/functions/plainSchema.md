@@ -6,7 +6,7 @@
 
 > **plainSchema**(`__namedParameters`): [`EditableSchema`](../interfaces/EditableSchema.md)\<`string`\>
 
-Defined in: [schema/plain.ts:18](https://github.com/inokawa/edix/blob/01d58ece64bb1beb7c3cb038988926f097264356/src/core/schema/plain.ts#L18)
+Defined in: [schema/plain.ts:18](https://github.com/inokawa/edix/blob/5dda010c7d491e5c9162d0f17dc6178b28acc47b/src/core/schema/plain.ts#L18)
 
 Defines plain text schema.
 
