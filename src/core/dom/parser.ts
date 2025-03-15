@@ -125,6 +125,8 @@ export const getNodeSize = (): number => {
 };
 
 const isValidSoftBreak = (node: Node): boolean => {
+  const next = node.nextSibling;
+
   // This function will return false if there are no nodes after soft break.
   //
   // In contenteditable, Shift+Enter will insert soft break. \n in Chrome, <br/> in Firefox. Safari doesn't insert soft break.
@@ -144,7 +146,11 @@ const isValidSoftBreak = (node: Node): boolean => {
   // And these do not include soft breaks:
   // <div><br/></div>             empty line
   // <div>[a]<br/></div>          type on empty line in Firefox
-  return !!node.nextSibling;
+  return (
+    !!next &&
+    // svelte/angular may have comment node
+    !isCommentNode(next)
+  );
 };
 
 const readNext = (endNode?: Node): NodeType | void => {

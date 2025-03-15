@@ -31,17 +31,28 @@ test("smoke", async ({ page }) => {
   const text = "test";
   await input(editable, text);
 
-  const value1 = await getText(editable);
-  expect(value1).toEqual(insertAt(initialValue, text, [0, 1]));
+  const value1 = insertAt(initialValue, text, [0, 1]);
+  expect(await getText(editable)).toEqual(value1);
   const textLength = text.length;
   expect(await getSelection(editable)).toEqual(
     createSelection({ offset: 1 + textLength })
   );
 
-  // Press enter
+  // Split
   await page.keyboard.press("Enter");
-
-  const value2 = await getText(editable);
-  expect(value2).toEqual(insertLineBreakAt(value1, [0, 1 + textLength]));
+  const value2 = insertLineBreakAt(value1, [0, 1 + textLength]);
+  expect(await getText(editable)).toEqual(value2);
   expect(await getSelection(editable)).toEqual(createSelection({ line: 1 }));
+
+  // Split again
+  await page.keyboard.press("Enter");
+  const value3 = insertLineBreakAt(value2, [1, 0]);
+  expect(await getText(editable)).toEqual(value3);
+  expect(await getSelection(editable)).toEqual(createSelection({ line: 2 }));
+
+  // Insert empty line
+  await page.keyboard.press("ArrowUp");
+  await page.keyboard.press("Enter");
+  expect(await getText(editable)).toEqual(insertLineBreakAt(value3, [1, 0]));
+  expect(await getSelection(editable)).toEqual(createSelection({ line: 2 }));
 });
