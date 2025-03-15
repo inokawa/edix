@@ -11,7 +11,14 @@ import {
   ParserConfig,
 } from "./parser";
 import { comparePosition } from "../position";
-import { DocFragment, Position, NodeRef, SelectionSnapshot } from "../types";
+import {
+  DocFragment,
+  Position,
+  NodeRef,
+  SelectionSnapshot,
+  NODE_TEXT,
+  NODE_VOID,
+} from "../types";
 import { min } from "../utils";
 
 // const DOCUMENT_POSITION_DISCONNECTED = 0x01;
@@ -312,11 +319,11 @@ export const takeDomSnapshot = (
           row = [];
         }
         if (text) {
-          row.push(text);
+          row.push({ type: NODE_TEXT, text });
           text = "";
         }
         if (element) {
-          row.push(element);
+          row.push({ type: NODE_VOID, node: element });
         }
       };
       const completeRow = () => {
