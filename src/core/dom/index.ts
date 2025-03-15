@@ -11,7 +11,7 @@ import {
   ParserConfig,
 } from "./parser";
 import { comparePosition } from "../position";
-import { DomSnapshot, Position, NodeRef, SelectionSnapshot } from "../types";
+import { DocFragment, Position, NodeRef, SelectionSnapshot } from "../types";
 import { min } from "../utils";
 
 // const DOCUMENT_POSITION_DISCONNECTED = 0x01;
@@ -298,7 +298,7 @@ export const takeDomSnapshot = (
   document: Document,
   root: Node,
   config: ParserConfig
-): DomSnapshot => {
+): DocFragment => {
   return parse(
     (readNext) => {
       let type: NodeType | void;

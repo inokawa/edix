@@ -9,7 +9,7 @@ import {
   getPointedCaretPosition,
 } from "./dom";
 import { createMutationObserver } from "./mutation";
-import { DomSnapshot, SelectionSnapshot, Writeable } from "./types";
+import { DocFragment, SelectionSnapshot, Writeable } from "./types";
 import { microtask } from "./utils";
 import {
   Delete,
@@ -218,7 +218,7 @@ export const editable = <T>(
   };
 
   const updateState = (
-    dom: DomSnapshot,
+    dom: DocFragment,
     selection: SelectionSnapshot,
     prevSelection: SelectionSnapshot
   ) => {
@@ -295,11 +295,11 @@ export const editable = <T>(
   const flushCommand = () => {
     if (commands.length) {
       const selection: Writeable<SelectionSnapshot> = [...currentSelection];
-      const dom: Writeable<DomSnapshot> = takeDomSnapshot(
+      const dom: Writeable<DocFragment> = takeDomSnapshot(
         document,
         element,
         parserConfig
-      ) as Writeable<DomSnapshot>; // TODO improve type
+      ) as Writeable<DocFragment>; // TODO improve type
 
       let command: (typeof commands)[number] | undefined;
       while ((command = commands.pop())) {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { deleteEdit, insertEdit } from "./edit";
-import type { DomSnapshot, SelectionSnapshot, Writeable } from "../types";
+import type { DocFragment, SelectionSnapshot, Writeable } from "../types";
 
 const splitAt = (targetStr: string, index: number): [string, string] => {
   return [targetStr.slice(0, index), targetStr.slice(index)];
@@ -43,7 +43,7 @@ describe(insertEdit.name, () => {
   it("insert text at line before caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Writeable<DomSnapshot> = [[docText], [docText2]];
+    const doc: Writeable<DocFragment> = [[docText], [docText2]];
     const sel: Writeable<SelectionSnapshot> = [
       [1, 2],
       [1, 2],
@@ -59,7 +59,7 @@ describe(insertEdit.name, () => {
   it("insert lines at line before caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Writeable<DomSnapshot> = [[docText], [docText2]];
+    const doc: Writeable<DocFragment> = [[docText], [docText2]];
     const sel: Writeable<SelectionSnapshot> = [
       [1, 2],
       [1, 2],
@@ -76,7 +76,7 @@ describe(insertEdit.name, () => {
 
   it("insert text before caret", () => {
     const docText = "abcde";
-    const doc: Writeable<DomSnapshot> = [[docText]];
+    const doc: Writeable<DocFragment> = [[docText]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 2],
       [0, 2],
@@ -91,7 +91,7 @@ describe(insertEdit.name, () => {
 
   it("insert lines before caret", () => {
     const docText = "abcde";
-    const doc: Writeable<DomSnapshot> = [[docText]];
+    const doc: Writeable<DocFragment> = [[docText]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 2],
       [0, 2],
@@ -110,7 +110,7 @@ describe(insertEdit.name, () => {
 
   it("insert text on caret", () => {
     const docText = "abcde";
-    const doc: Writeable<DomSnapshot> = [[docText]];
+    const doc: Writeable<DocFragment> = [[docText]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 2],
       [0, 2],
@@ -125,7 +125,7 @@ describe(insertEdit.name, () => {
 
   it("insert lines on caret", () => {
     const docText = "abcde";
-    const doc: Writeable<DomSnapshot> = [[docText]];
+    const doc: Writeable<DocFragment> = [[docText]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 2],
       [0, 2],
@@ -144,7 +144,7 @@ describe(insertEdit.name, () => {
 
   it("insert text inside selection", () => {
     const docText = "abcde";
-    const doc: Writeable<DomSnapshot> = [[docText]];
+    const doc: Writeable<DocFragment> = [[docText]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 1],
       [0, 3],
@@ -159,7 +159,7 @@ describe(insertEdit.name, () => {
 
   it("insert lines inside selection", () => {
     const docText = "abcde";
-    const doc: Writeable<DomSnapshot> = [[docText]];
+    const doc: Writeable<DocFragment> = [[docText]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 1],
       [0, 3],
@@ -181,7 +181,7 @@ describe(insertEdit.name, () => {
 
   it("insert text after caret", () => {
     const docText = "abcde";
-    const doc: Writeable<DomSnapshot> = [[docText]];
+    const doc: Writeable<DocFragment> = [[docText]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 2],
       [0, 2],
@@ -196,7 +196,7 @@ describe(insertEdit.name, () => {
 
   it("insert lines after caret", () => {
     const docText = "abcde";
-    const doc: Writeable<DomSnapshot> = [[docText]];
+    const doc: Writeable<DocFragment> = [[docText]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 2],
       [0, 2],
@@ -214,7 +214,7 @@ describe(insertEdit.name, () => {
   it("insert text at line after caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Writeable<DomSnapshot> = [[docText], [docText2]];
+    const doc: Writeable<DocFragment> = [[docText], [docText2]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 2],
       [0, 2],
@@ -230,7 +230,7 @@ describe(insertEdit.name, () => {
   it("insert lines at line after caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Writeable<DomSnapshot> = [[docText], [docText2]];
+    const doc: Writeable<DocFragment> = [[docText], [docText2]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 2],
       [0, 2],
@@ -249,12 +249,12 @@ describe(insertEdit.name, () => {
 describe(deleteEdit.name, () => {
   it("do nothing if start and end is the same", () => {
     const docText = "abcde";
-    const doc: Writeable<DomSnapshot> = [[docText]];
+    const doc: Writeable<DocFragment> = [[docText]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 2],
       [0, 2],
     ];
-    const initialDoc: DomSnapshot = structuredClone(doc);
+    const initialDoc: DocFragment = structuredClone(doc);
     const initialSel: SelectionSnapshot = structuredClone(sel);
     deleteEdit(doc, sel, [0, 1], [0, 1]);
 
@@ -265,7 +265,7 @@ describe(deleteEdit.name, () => {
   it("delete text at line before caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Writeable<DomSnapshot> = [[docText], [docText2]];
+    const doc: Writeable<DocFragment> = [[docText], [docText2]];
     const sel: Writeable<SelectionSnapshot> = [
       [1, 2],
       [1, 2],
@@ -280,7 +280,7 @@ describe(deleteEdit.name, () => {
   it("delete linebreak at line before caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Writeable<DomSnapshot> = [[docText], [docText2]];
+    const doc: Writeable<DocFragment> = [[docText], [docText2]];
     const sel: Writeable<SelectionSnapshot> = [
       [1, 3],
       [1, 3],
@@ -299,7 +299,7 @@ describe(deleteEdit.name, () => {
 
   it("delete text before caret", () => {
     const docText = "abcde";
-    const doc: Writeable<DomSnapshot> = [[docText]];
+    const doc: Writeable<DocFragment> = [[docText]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 3],
       [0, 3],
@@ -313,7 +313,7 @@ describe(deleteEdit.name, () => {
 
   it("delete text just before caret", () => {
     const docText = "abcde";
-    const doc: Writeable<DomSnapshot> = [[docText]];
+    const doc: Writeable<DocFragment> = [[docText]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 3],
       [0, 3],
@@ -327,7 +327,7 @@ describe(deleteEdit.name, () => {
 
   it("delete text around caret", () => {
     const docText = "abcde";
-    const doc: Writeable<DomSnapshot> = [[docText]];
+    const doc: Writeable<DocFragment> = [[docText]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 3],
       [0, 3],
@@ -341,7 +341,7 @@ describe(deleteEdit.name, () => {
 
   it("delete text around selection", () => {
     const docText = "abcde";
-    const doc: Writeable<DomSnapshot> = [[docText]];
+    const doc: Writeable<DocFragment> = [[docText]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 2],
       [0, 4],
@@ -357,7 +357,7 @@ describe(deleteEdit.name, () => {
 
   it("delete text around selection anchor", () => {
     const docText = "abcde";
-    const doc: Writeable<DomSnapshot> = [[docText]];
+    const doc: Writeable<DocFragment> = [[docText]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 2],
       [0, 4],
@@ -371,7 +371,7 @@ describe(deleteEdit.name, () => {
 
   it("delete text around selection focus", () => {
     const docText = "abcde";
-    const doc: Writeable<DomSnapshot> = [[docText]];
+    const doc: Writeable<DocFragment> = [[docText]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 2],
       [0, 4],
@@ -386,7 +386,7 @@ describe(deleteEdit.name, () => {
   it("delete linebreak inside selection", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Writeable<DomSnapshot> = [[docText], [docText2]];
+    const doc: Writeable<DocFragment> = [[docText], [docText2]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 2],
       [1, 2],
@@ -402,7 +402,7 @@ describe(deleteEdit.name, () => {
 
   it("delete text just after caret", () => {
     const docText = "abcde";
-    const doc: Writeable<DomSnapshot> = [[docText]];
+    const doc: Writeable<DocFragment> = [[docText]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 3],
       [0, 3],
@@ -416,7 +416,7 @@ describe(deleteEdit.name, () => {
 
   it("delete text after caret", () => {
     const docText = "abcde";
-    const doc: Writeable<DomSnapshot> = [[docText]];
+    const doc: Writeable<DocFragment> = [[docText]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 3],
       [0, 3],
@@ -431,7 +431,7 @@ describe(deleteEdit.name, () => {
   it("delete text at line after caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Writeable<DomSnapshot> = [[docText], [docText2]];
+    const doc: Writeable<DocFragment> = [[docText], [docText2]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 2],
       [0, 2],
@@ -447,7 +447,7 @@ describe(deleteEdit.name, () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const docText3 = "klmno";
-    const doc: Writeable<DomSnapshot> = [[docText], [docText2], [docText3]];
+    const doc: Writeable<DocFragment> = [[docText], [docText2], [docText3]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 2],
       [0, 2],

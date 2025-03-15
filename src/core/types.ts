@@ -1,6 +1,6 @@
 export type NodeRef = string | Element;
 
-export type DomSnapshot = readonly (readonly NodeRef[])[];
+export type DocFragment = readonly (readonly NodeRef[])[];
 
 /**
  * @internal

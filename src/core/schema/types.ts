@@ -1,9 +1,9 @@
-import type { DomSnapshot } from "../types";
+import type { DocFragment } from "../types";
 
 export interface EditableSchema<T> {
   single: boolean;
-  data: (snapshot: DomSnapshot) => T;
-  copy: (dataTransfer: DataTransfer, snapshot: DomSnapshot, dom: Node) => void;
+  data: (snapshot: DocFragment) => T;
+  copy: (dataTransfer: DataTransfer, snapshot: DocFragment, dom: Node) => void;
   paste: (dataTransfer: DataTransfer) => Node | string;
 }
 

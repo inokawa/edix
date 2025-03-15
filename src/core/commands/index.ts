@@ -1,5 +1,5 @@
 import type {
-  DomSnapshot,
+  DocFragment,
   Position,
   SelectionSnapshot,
   Writeable,
@@ -11,7 +11,7 @@ import { deleteEdit, insertEdit } from "./edit";
  * @internal
  */
 export type EditableCommand<T extends unknown[]> = (
-  doc: Writeable<DomSnapshot>,
+  doc: Writeable<DocFragment>,
   selection: Writeable<SelectionSnapshot>,
   ...args: T
 ) => void;
@@ -40,7 +40,7 @@ export const Delete: EditableCommand<[range?: SelectionSnapshot]> = (
 /**
  * @internal
  */
-export const InsertFragment: EditableCommand<[lines: DomSnapshot]> = (
+export const InsertFragment: EditableCommand<[lines: DocFragment]> = (
   doc,
   selection,
   lines

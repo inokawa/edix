@@ -1,7 +1,7 @@
-import type { DomSnapshot } from "../types";
+import type { DocFragment } from "../types";
 import type { EditableSchema } from "./types";
 
-const serializeToString = (snapshot: DomSnapshot): string => {
+const serializeToString = (snapshot: DocFragment): string => {
   return snapshot.reduce((acc, r, i) => {
     if (i !== 0) {
       acc += "\n";

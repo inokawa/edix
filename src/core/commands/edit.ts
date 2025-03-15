@@ -1,6 +1,6 @@
 import { compareLine, comparePosition } from "../position";
 import {
-  DomSnapshot,
+  DocFragment,
   NodeRef,
   Position,
   SelectionSnapshot,
@@ -93,8 +93,8 @@ const fixPositionAfterDelete = (
 };
 
 const replaceRange = (
-  doc: Writeable<DomSnapshot>,
-  fragment: DomSnapshot,
+  doc: Writeable<DocFragment>,
+  fragment: DocFragment,
   start: Position,
   end?: Position
 ) => {
@@ -120,9 +120,9 @@ const replaceRange = (
  * @internal
  */
 export const insertEdit = (
-  doc: Writeable<DomSnapshot>,
+  doc: Writeable<DocFragment>,
   selection: Writeable<SelectionSnapshot>,
-  lines: DomSnapshot,
+  lines: DocFragment,
   pos: Position
 ) => {
   const [anchor, focus] = selection;
@@ -148,7 +148,7 @@ export const insertEdit = (
  * @internal
  */
 export const deleteEdit = (
-  doc: Writeable<DomSnapshot>,
+  doc: Writeable<DocFragment>,
   selection: Writeable<SelectionSnapshot>,
   start: Position,
   end: Position
@@ -169,9 +169,9 @@ export const deleteEdit = (
  * @internal
  */
 export const flatten = (
-  doc: DomSnapshot,
+  doc: DocFragment,
   [[anchorLine, anchorOffset], [focusLine, focusOffset]]: SelectionSnapshot
-): [DomSnapshot, SelectionSnapshot] => {
+): [DocFragment, SelectionSnapshot] => {
   let offsetBeforeAnchor = 0;
   let offsetBeforeFocus = 0;
 
