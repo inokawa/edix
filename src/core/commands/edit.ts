@@ -2,17 +2,17 @@ import { compareLine, comparePosition } from "../position";
 import {
   DocFragment,
   NODE_TEXT,
-  NodeRef,
+  NodeData,
   Position,
   SelectionSnapshot,
   Writeable,
 } from "../types";
 
-const isTextNode = (node: NodeRef) => node.type === NODE_TEXT;
-const getNodeSize = (node: NodeRef): number =>
+const isTextNode = (node: NodeData) => node.type === NODE_TEXT;
+const getNodeSize = (node: NodeData): number =>
   isTextNode(node) ? node.text.length : 1;
 
-const insertNodeAfter = (line: NodeRef[], index: number, node: NodeRef) => {
+const insertNodeAfter = (line: NodeData[], index: number, node: NodeData) => {
   const target = line[index]!;
   if (isTextNode(node) && isTextNode(target)) {
     line[index] = { type: NODE_TEXT, text: target.text + node.text };
@@ -21,8 +21,8 @@ const insertNodeAfter = (line: NodeRef[], index: number, node: NodeRef) => {
   }
 };
 
-const join = (...lines: (readonly NodeRef[])[]): readonly NodeRef[] => {
-  const line: NodeRef[] = [];
+const join = (...lines: (readonly NodeData[])[]): readonly NodeData[] => {
+  const line: NodeData[] = [];
   for (let i = 0; i < lines.length; i++) {
     const current = lines[i]!;
     if (!line.length) {
@@ -37,9 +37,9 @@ const join = (...lines: (readonly NodeRef[])[]): readonly NodeRef[] => {
 };
 
 const split = (
-  line: readonly NodeRef[],
+  line: readonly NodeData[],
   offset: number
-): [readonly NodeRef[], readonly NodeRef[]] => {
+): [readonly NodeData[], readonly NodeData[]] => {
   for (let i = 0; i < line.length; i++) {
     const node = line[i]!;
     const length = getNodeSize(node);
@@ -106,7 +106,7 @@ const replaceRange = (
   const before = splitByStart[0];
   const after = end ? split(doc[end[0]]!, end[1])[1] : splitByStart[1];
 
-  const lines: (readonly NodeRef[])[] = [...fragment];
+  const lines: (readonly NodeData[])[] = [...fragment];
   if (lines.length) {
     lines[0] = join(before, lines[0]!);
     lines[lines.length - 1] = join(lines[lines.length - 1]!, after);

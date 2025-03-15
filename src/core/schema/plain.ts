@@ -1,8 +1,8 @@
 import { NODE_TEXT, type DocFragment } from "../types";
 import type { EditableSchema } from "./types";
 
-const serializeToString = (snapshot: DocFragment): string => {
-  return snapshot.reduce((acc, r, i) => {
+const toString = (doc: DocFragment): string => {
+  return doc.reduce((acc, r, i) => {
     if (i !== 0) {
       acc += "\n";
     }
@@ -22,9 +22,10 @@ export const plainSchema = ({
 } = {}): EditableSchema<string> => {
   return {
     single: !multiline,
-    data: serializeToString,
+    js: toString,
+    void: () => {}, // not supported
     copy: (dataTransfer, data) => {
-      dataTransfer.setData("text/plain", serializeToString(data));
+      dataTransfer.setData("text/plain", toString(data));
     },
     paste: (dataTransfer) => {
       return dataTransfer.getData("text/plain");
