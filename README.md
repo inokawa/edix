@@ -52,6 +52,7 @@ export const App = () => {
   useEffect(() => {
     // 2. init
     const editor = editable(ref.current, {
+      doc: value,
       schema: plainSchema(),
       onChange: (v) => {
         // 3. update state
@@ -93,6 +94,7 @@ export const App = () => {
   useEffect(() => {
     // 2. init
     const editor = editable(ref.current, {
+      doc: value,
       schema: plainSchema({ multiline: true }),
       onChange: (v) => {
         // 3. update state
