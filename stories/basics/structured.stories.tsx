@@ -50,6 +50,7 @@ const tagSchema = schema({
     tag: voidNode({
       is: (e) => e.contentEditable === "false",
       data: (e) => ({ label: e.textContent!, value: e.dataset.tagValue! }),
+      plain: (d) => d.label,
     }),
   },
 });

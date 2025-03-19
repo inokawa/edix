@@ -1,23 +1,23 @@
 import { isCommentNode } from "../dom/parser";
-import { NODE_TEXT, type NodeRef } from "../types";
+import { NODE_TEXT, TextNode, type NodeData } from "../types";
 import type { EditableSchema } from "./types";
 
 export interface EditableVoidSerializer<T> {
   is: (node: HTMLElement) => boolean;
   data: (node: HTMLElement) => T;
-  plain: (node: HTMLElement) => string;
+  plain: (data: T) => string;
 }
 
-const toString = (node: Node): string => node.textContent!;
+const emptyString = (): string => "";
 
 export const voidNode = <const D>({
   is,
   data,
-  plain = toString,
+  plain = emptyString,
 }: {
   is: (node: HTMLElement) => boolean;
   data: (node: HTMLElement) => D;
-  plain?: (node: HTMLElement) => string;
+  plain?: (data: D) => string;
 }): EditableVoidSerializer<D> => {
   return {
     is,
@@ -30,11 +30,12 @@ type Prettify<T> = {
   [K in keyof T]: T[K];
 } & {};
 
+type ExtractVoidData<T> = T extends EditableVoidSerializer<infer D> ? D : never;
 type ExtractVoidNode<T> = Prettify<
   {
     [K in keyof T]: {
       type: K;
-      data: T[K] extends EditableVoidSerializer<infer D> ? D : never;
+      data: ExtractVoidData<T[K]>;
     };
   }[keyof T]
 >;
@@ -56,25 +57,27 @@ export const schema = <
     ? (ExtractVoidNode<V> | { type: "text"; text: string })[][]
     : (ExtractVoidNode<V> | { type: "text"; text: string })[]
 > => {
+  type VoidNodeData = ExtractVoidData<V[keyof V]>;
+  type TextNodeType = { type: "text"; text: string };
   type VoidNodeType = ExtractVoidNode<V>;
-  type RowType = (VoidNodeType | { type: "text"; text: string })[];
+  type RowType = (TextNodeType | VoidNodeType)[];
 
   const voidSerializers = Object.entries(voids);
 
-  const serializeRow = (r: readonly NodeRef[]): RowType => {
+  const textCache = new WeakMap<TextNode, TextNodeType>();
+  // TODO replace VoidNodeData with VoidNode
+  const voidCache = new WeakMap<VoidNodeData, VoidNodeType>();
+
+  const serializeRow = (r: readonly NodeData[]): RowType => {
     return r.reduce((acc, t) => {
       if (t.type === NODE_TEXT) {
-        acc.push({ type: "text", text: t.text });
-      } else {
-        for (const [type, s] of voidSerializers) {
-          if (s.is(t.node as HTMLElement)) {
-            acc.push({
-              type,
-              data: s.data(t.node as HTMLElement),
-            } as VoidNodeType);
-            break;
-          }
+        let text = textCache.get(t);
+        if (!text) {
+          textCache.set(t, (text = { type: "text", text: t.text }));
         }
+        acc.push(text);
+      } else {
+        acc.push(voidCache.get(t.data as VoidNodeData)!);
       }
       return acc;
     }, [] as RowType);
@@ -82,15 +85,29 @@ export const schema = <
 
   return {
     single: !multiline,
-    data: multiline
-      ? (snap) => {
-          return snap.map(serializeRow);
+    js: multiline
+      ? (doc) => {
+          return doc.map(serializeRow);
         }
-      : (snap) => {
-          return serializeRow(snap[0]!) satisfies RowType as any; // TODO improve type
+      : (doc) => {
+          return serializeRow(doc[0]!) satisfies RowType as any; // TODO improve type
         },
-    copy: (dataTransfer, snap, dom) => {
-      const str = snap.reduce((acc, r, i) => {
+    void: (element) => {
+      for (const [type, s] of voidSerializers) {
+        if (s.is(element as HTMLElement)) {
+          const data = s.data(element as HTMLElement) as VoidNodeData;
+          // TODO improve
+          voidCache.set(data, {
+            type,
+            data: { ...data },
+          } as VoidNodeType);
+          return data;
+        }
+      }
+      return;
+    },
+    copy: (dataTransfer, doc, dom) => {
+      const str = doc.reduce((acc, r, i) => {
         if (i !== 0) {
           acc += "\n";
         }
@@ -99,14 +116,9 @@ export const schema = <
           r.reduce((acc, t) => {
             if (t.type === NODE_TEXT) {
               return acc + t.text;
-            } else {
-              for (const [, s] of voidSerializers) {
-                if (s.is(t.node as HTMLElement)) {
-                  return acc + s.plain(t.node as HTMLElement);
-                }
-              }
             }
-            return acc;
+            const voidNode = voidCache.get(t.data as VoidNodeData)!;
+            return acc + voids[voidNode.type]!.plain(t.data);
           }, "")
         );
       }, "");

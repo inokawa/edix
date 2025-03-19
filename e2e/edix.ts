@@ -36,11 +36,16 @@ export const getText = async (
     (element, [NON_EDITABLE_PLACEHOLDER, { blockTag }]) => {
       const document = element.ownerDocument;
       return window.edix
-        .takeDomSnapshot(document, element, {
-          _isBlock: blockTag
-            ? (n) => n.tagName === blockTag.toUpperCase()
-            : undefined,
-        })
+        .takeDomSnapshot(
+          document,
+          element,
+          {
+            _isBlock: blockTag
+              ? (n) => n.tagName === blockTag.toUpperCase()
+              : undefined,
+          },
+          () => ({})
+        )
         .map((r) => {
           return r.reduce<string>((acc, n) => {
             return acc + (n.type === 1 ? n.text : NON_EDITABLE_PLACEHOLDER);
@@ -61,11 +66,16 @@ export const getSeletedText = (
       const selection = document.getSelection()!;
       const range = selection.getRangeAt(0)!.cloneContents();
       return window.edix
-        .takeDomSnapshot(document, range, {
-          _isBlock: blockTag
-            ? (n) => n.tagName === blockTag.toUpperCase()
-            : undefined,
-        })
+        .takeDomSnapshot(
+          document,
+          range,
+          {
+            _isBlock: blockTag
+              ? (n) => n.tagName === blockTag.toUpperCase()
+              : undefined,
+          },
+          () => ({})
+        )
         .map((r) => {
           return r.reduce<string>((acc, n) => {
             return acc + (n.type === 1 ? n.text : NON_EDITABLE_PLACEHOLDER);

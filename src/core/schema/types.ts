@@ -2,8 +2,9 @@ import type { DocFragment } from "../types";
 
 export interface EditableSchema<T> {
   single: boolean;
-  data: (snapshot: DocFragment) => T;
-  copy: (dataTransfer: DataTransfer, snapshot: DocFragment, dom: Node) => void;
+  js: (doc: DocFragment) => T;
+  void: (element: Element) => Record<string, unknown> | void;
+  copy: (dataTransfer: DataTransfer, doc: DocFragment, dom: Node) => void;
   paste: (dataTransfer: DataTransfer) => Node | string;
 }
 

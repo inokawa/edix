@@ -14,7 +14,7 @@ import { comparePosition } from "../position";
 import {
   DocFragment,
   Position,
-  NodeRef,
+  NodeData,
   SelectionSnapshot,
   NODE_TEXT,
   NODE_VOID,
@@ -304,15 +304,16 @@ export const takeSelectionSnapshot = (
 export const takeDomSnapshot = (
   document: Document,
   root: Node,
-  config: ParserConfig
+  config: ParserConfig,
+  serializeVoid: (node: Element) => Record<string, unknown> | void
 ): DocFragment => {
   return parse(
     (readNext) => {
       let type: NodeType | void;
-      let row: NodeRef[] | null = null;
+      let row: NodeData[] | null = null;
       let text = "";
 
-      const rows: NodeRef[][] = [];
+      const rows: NodeData[][] = [];
 
       const completeNode = (element?: Element) => {
         if (!row) {
@@ -323,7 +324,10 @@ export const takeDomSnapshot = (
           text = "";
         }
         if (element) {
-          row.push({ type: NODE_VOID, node: element });
+          const data = serializeVoid(element);
+          if (data) {
+            row.push({ type: NODE_VOID, data });
+          }
         }
       };
       const completeRow = () => {

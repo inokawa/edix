@@ -114,7 +114,8 @@ export const editable = <T>(
   {
     schema: {
       single: isSingleline,
-      data: serialize,
+      js: docToJS,
+      void: serializeVoid,
       copy,
       paste: getPastableData,
     },
@@ -165,9 +166,9 @@ export const editable = <T>(
   const document = getCurrentDocument(element);
 
   const history = createHistory<
-    readonly [value: T, selection: SelectionSnapshot]
+    readonly [value: DocFragment, selection: SelectionSnapshot]
   >([
-    serialize(takeDomSnapshot(document, element, parserConfig)),
+    takeDomSnapshot(document, element, parserConfig, serializeVoid),
     currentSelection,
   ]);
 
@@ -218,20 +219,19 @@ export const editable = <T>(
   };
 
   const updateState = (
-    dom: DocFragment,
+    doc: DocFragment,
     selection: SelectionSnapshot,
     prevSelection: SelectionSnapshot
   ) => {
     if (!readonly) {
       if (isSingleline) {
-        [dom, selection] = flatten(dom, selection);
+        [doc, selection] = flatten(doc, selection);
       }
-      const value = serialize(dom);
 
       history.set([history.get()[0], prevSelection]);
-      history.push([value, selection]);
+      history.push([doc, selection]);
       currentSelection = selection;
-      onChange(value);
+      onChange(docToJS(doc));
     }
 
     restoreSelectionOnTimeout();
@@ -258,7 +258,12 @@ export const editable = <T>(
         isSingleline,
         parserConfig
       );
-      const value = takeDomSnapshot(document, element, parserConfig);
+      const value = takeDomSnapshot(
+        document,
+        element,
+        parserConfig,
+        serializeVoid
+      );
 
       // Revert DOM
       let m: MutationRecord | undefined;
@@ -298,7 +303,8 @@ export const editable = <T>(
       const dom: Writeable<DocFragment> = takeDomSnapshot(
         document,
         element,
-        parserConfig
+        parserConfig,
+        serializeVoid
       ) as Writeable<DocFragment>; // TODO improve type
 
       let command: (typeof commands)[number] | undefined;
@@ -330,7 +336,7 @@ export const editable = <T>(
 
         if (nextHistory) {
           currentSelection = nextHistory[1];
-          onChange(nextHistory[0]);
+          onChange(docToJS(nextHistory[0]));
 
           restoreSelectionOnTimeout();
         }
@@ -396,7 +402,7 @@ export const editable = <T>(
 
     copy(
       dataTransfer,
-      takeDomSnapshot(document, selected, parserConfig),
+      takeDomSnapshot(document, selected, parserConfig, serializeVoid),
       selected
     );
   };
@@ -408,7 +414,7 @@ export const editable = <T>(
     } else {
       execCommand(
         InsertFragment,
-        takeDomSnapshot(document, data, parserConfig)
+        takeDomSnapshot(document, data, parserConfig, serializeVoid)
       );
     }
   };
