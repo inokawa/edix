@@ -43,7 +43,7 @@ export const getText = async (
         })
         .map((r) => {
           return r.reduce<string>((acc, n) => {
-            return acc + (typeof n === "string" ? n : NON_EDITABLE_PLACEHOLDER);
+            return acc + (n.type === 1 ? n.text : NON_EDITABLE_PLACEHOLDER);
           }, "");
         });
     },
@@ -68,7 +68,7 @@ export const getSeletedText = (
         })
         .map((r) => {
           return r.reduce<string>((acc, n) => {
-            return acc + (typeof n === "string" ? n : NON_EDITABLE_PLACEHOLDER);
+            return acc + (n.type === 1 ? n.text : NON_EDITABLE_PLACEHOLDER);
           }, "");
         });
     },

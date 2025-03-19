@@ -1,4 +1,4 @@
-import type { DocFragment } from "../types";
+import { NODE_TEXT, type DocFragment } from "../types";
 import type { EditableSchema } from "./types";
 
 const serializeToString = (snapshot: DocFragment): string => {
@@ -7,7 +7,7 @@ const serializeToString = (snapshot: DocFragment): string => {
       acc += "\n";
     }
     return (
-      acc + r.reduce((acc, n) => acc + (typeof n === "string" ? n : ""), "")
+      acc + r.reduce((acc, n) => acc + (n.type === NODE_TEXT ? n.text : ""), "")
     );
   }, "");
 };

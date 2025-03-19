@@ -1,30 +1,31 @@
 import { compareLine, comparePosition } from "../position";
 import {
   DocFragment,
+  NODE_TEXT,
   NodeRef,
   Position,
   SelectionSnapshot,
   Writeable,
 } from "../types";
 
-const isTextNode = (node: NodeRef) => typeof node === "string";
+const isTextNode = (node: NodeRef) => node.type === NODE_TEXT;
 const getNodeSize = (node: NodeRef): number =>
-  isTextNode(node) ? node.length : 1;
+  isTextNode(node) ? node.text.length : 1;
 
 const insertNodeAfter = (line: NodeRef[], index: number, node: NodeRef) => {
   const target = line[index]!;
   if (isTextNode(node) && isTextNode(target)) {
-    line[index] = target + node;
+    line[index] = { type: NODE_TEXT, text: target.text + node.text };
   } else {
     line.splice(index + 1, 0, node);
   }
 };
 
-const joinNodes = (...lines: (readonly NodeRef[])[]): readonly NodeRef[] => {
+const join = (...lines: (readonly NodeRef[])[]): readonly NodeRef[] => {
   const line: NodeRef[] = [];
   for (let i = 0; i < lines.length; i++) {
     const current = lines[i]!;
-    if (i === 0) {
+    if (!line.length) {
       line.push(...current);
     } else {
       for (const node of current) {
@@ -46,8 +47,8 @@ const split = (
       const before = line.slice(0, i);
       const after = line.slice(i + 1);
       if (isTextNode(node)) {
-        before.push(node.slice(0, offset));
-        after.unshift(node.slice(offset));
+        before.push({ type: NODE_TEXT, text: node.text.slice(0, offset) });
+        after.unshift({ type: NODE_TEXT, text: node.text.slice(offset) });
       } else {
         // TODO improve
         if (offset === 0) {
@@ -107,10 +108,10 @@ const replaceRange = (
 
   const lines: (readonly NodeRef[])[] = [...fragment];
   if (lines.length) {
-    lines[0] = joinNodes(before, lines[0]!);
-    lines[lines.length - 1] = joinNodes(lines[lines.length - 1]!, after);
+    lines[0] = join(before, lines[0]!);
+    lines[lines.length - 1] = join(lines[lines.length - 1]!, after);
   } else {
-    lines.push(joinNodes(before, after));
+    lines.push(join(before, after));
   }
 
   doc.splice(startLine, endLine - startLine + 1, ...lines);
@@ -188,7 +189,7 @@ export const flatten = (
   }
 
   return [
-    [joinNodes(...doc)],
+    [join(...doc)],
     [
       [0, offsetBeforeAnchor + anchorOffset],
       [0, offsetBeforeFocus + focusOffset],

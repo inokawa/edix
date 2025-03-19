@@ -1,4 +1,8 @@
-export type NodeRef = string | Element;
+export const NODE_TEXT = 1;
+export const NODE_VOID = 2;
+export type TextNode = Readonly<{ type: typeof NODE_TEXT; text: string }>;
+export type VoidNode = Readonly<{ type: typeof NODE_VOID; node: Element }>;
+export type NodeRef = TextNode | VoidNode;
 
 export type DocFragment = readonly (readonly NodeRef[])[];
 

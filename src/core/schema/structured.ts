@@ -1,5 +1,5 @@
 import { isCommentNode } from "../dom/parser";
-import type { NodeRef } from "../types";
+import { NODE_TEXT, type NodeRef } from "../types";
 import type { EditableSchema } from "./types";
 
 export interface EditableVoidSerializer<T> {
@@ -63,14 +63,14 @@ export const schema = <
 
   const serializeRow = (r: readonly NodeRef[]): RowType => {
     return r.reduce((acc, t) => {
-      if (typeof t === "string") {
-        acc.push({ type: "text", text: t });
+      if (t.type === NODE_TEXT) {
+        acc.push({ type: "text", text: t.text });
       } else {
         for (const [type, s] of voidSerializers) {
-          if (s.is(t as HTMLElement)) {
+          if (s.is(t.node as HTMLElement)) {
             acc.push({
               type,
-              data: s.data(t as HTMLElement),
+              data: s.data(t.node as HTMLElement),
             } as VoidNodeType);
             break;
           }
@@ -97,12 +97,12 @@ export const schema = <
         return (
           acc +
           r.reduce((acc, t) => {
-            if (typeof t === "string") {
-              return acc + t;
+            if (t.type === NODE_TEXT) {
+              return acc + t.text;
             } else {
               for (const [, s] of voidSerializers) {
-                if (s.is(t as HTMLElement)) {
-                  return acc + s.plain(t as HTMLElement);
+                if (s.is(t.node as HTMLElement)) {
+                  return acc + s.plain(t.node as HTMLElement);
                 }
               }
             }
