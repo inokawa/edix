@@ -3,10 +3,15 @@ import {
   getCurrentDocument,
   takeSelectionSnapshot,
   setSelectionToDOM,
-  takeDomSnapshot,
   getEmptySelectionSnapshot,
   getSelectedElements,
   getPointedCaretPosition,
+  readDocAll,
+  detectMutationRange,
+  domToRange,
+  refToDoc,
+  readDom,
+  defaultIsBlockNode,
 } from "./dom";
 import { createMutationObserver } from "./mutation";
 import { DocFragment, SelectionSnapshot, Writeable } from "./types";
@@ -17,6 +22,7 @@ import {
   InsertText,
   InsertFragment,
   MoveToPosition,
+  Input,
 } from "./commands";
 import { flatten } from "./commands/edit";
 import { EditableSchema } from "./schema";
@@ -125,7 +131,7 @@ export const editable = <T>(
       copy,
       paste: getPastableData,
     },
-    isBlock,
+    isBlock = defaultIsBlockNode,
     onChange,
   }: EditableOptions<T>
 ): EditableHandle => {
@@ -174,7 +180,7 @@ export const editable = <T>(
 
   const history = createHistory<
     readonly [doc: DocFragment, selection: SelectionSnapshot]
-  >([takeDomSnapshot(element, parserConfig, serializeVoid), currentSelection]);
+  >([readDocAll(element, parserConfig, serializeVoid), currentSelection]);
 
   const observer = createMutationObserver(element, () => {
     if (hasFocus) {
@@ -222,33 +228,6 @@ export const editable = <T>(
     });
   };
 
-  const updateState = (
-    doc: DocFragment,
-    selection: SelectionSnapshot,
-    prevSelection: SelectionSnapshot
-  ) => {
-    if (!readonly) {
-      if (isSingleline) {
-        [doc, selection] = flatten(doc, selection);
-      }
-
-      currentSelection = selection;
-
-      // TODO improve
-      const prevDoc = history.get()[0];
-      if (
-        doc.length !== prevDoc.length ||
-        doc.some((l, i) => l !== prevDoc[i])
-      ) {
-        history.set([prevDoc, prevSelection]);
-        history.push([doc, selection]);
-        onChange(docToJS(doc));
-      }
-    }
-
-    restoreSelectionOnTimeout();
-  };
-
   const syncSelection = () => {
     currentSelection = takeSelectionSnapshot(
       element,
@@ -268,7 +247,39 @@ export const editable = <T>(
         isSingleline,
         parserConfig
       );
-      const doc = takeDomSnapshot(element, parserConfig, serializeVoid);
+
+      const nodes = new Set<Node>();
+      for (const m of queue) {
+        if (m.type === "childList") {
+          for (const n of m.addedNodes) {
+            nodes.add(n);
+          }
+          for (const n of m.removedNodes) {
+            nodes.add(n);
+          }
+        } else {
+          nodes.add(m.target);
+        }
+      }
+
+      const afterRange = detectMutationRange(element, nodes, parserConfig);
+
+      const afterSlicedDom = afterRange
+        ? readDom(element, parserConfig, {
+            _startNode: afterRange[0],
+            _endNode: afterRange[1],
+          })
+        : [];
+
+      const afterPos =
+        afterRange &&
+        domToRange(
+          element,
+          isSingleline,
+          parserConfig,
+          afterRange[0],
+          afterRange[1]
+        );
 
       // Revert DOM
       let m: MutationRecord | undefined;
@@ -285,6 +296,18 @@ export const editable = <T>(
           (m.target as CharacterData).nodeValue = m.oldValue!;
         }
       }
+
+      const beforeRange = detectMutationRange(element, nodes, parserConfig);
+      const beforePos =
+        beforeRange &&
+        domToRange(
+          element,
+          isSingleline,
+          parserConfig,
+          beforeRange[0],
+          beforeRange[1]
+        );
+
       observer._flush();
 
       // Restore previous selection
@@ -298,20 +321,57 @@ export const editable = <T>(
         parserConfig
       );
 
-      updateState(doc, selection, currentSelection);
+      execCommand(
+        Input,
+        beforePos
+          ? {
+              _range: beforePos,
+              _isBlock: beforeRange[2],
+            }
+          : null,
+        afterPos
+          ? {
+              _start: afterPos[0],
+              _isBlock: afterRange[2],
+              _doc: refToDoc(afterSlicedDom, serializeVoid),
+            }
+          : null,
+        selection
+      );
     }
   };
 
   const flushCommand = () => {
     if (commands.length) {
-      const selection: Writeable<SelectionSnapshot> = [...currentSelection];
-      const doc: Writeable<DocFragment> = [...history.get()[0]];
+      let selection: Writeable<SelectionSnapshot> = [...currentSelection];
+      let doc: Writeable<DocFragment> = [...history.get()[0]];
 
       let command: (typeof commands)[number] | undefined;
       while ((command = commands.pop())) {
         command[0](doc, selection, ...command[1]);
       }
-      updateState(doc, selection, currentSelection);
+
+      if (!readonly) {
+        if (isSingleline) {
+          [doc, selection] = flatten(doc, selection);
+        }
+
+        // TODO improve
+        const prevDoc = history.get()[0];
+        const prevSelection = currentSelection;
+        currentSelection = selection;
+
+        if (
+          doc.length !== prevDoc.length ||
+          doc.some((l, i) => l !== prevDoc[i])
+        ) {
+          history.set([prevDoc, prevSelection]);
+          history.push([doc, selection]);
+          onChange(docToJS(doc));
+        }
+      }
+
+      restoreSelectionOnTimeout();
     }
   };
 
@@ -399,7 +459,7 @@ export const editable = <T>(
 
     copy(
       dataTransfer,
-      takeDomSnapshot(selected, parserConfig, serializeVoid),
+      readDocAll(selected, parserConfig, serializeVoid),
       selected
     );
   };
@@ -411,7 +471,7 @@ export const editable = <T>(
     } else {
       execCommand(
         InsertFragment,
-        takeDomSnapshot(data, parserConfig, serializeVoid)
+        readDocAll(data, parserConfig, serializeVoid)
       );
     }
   };

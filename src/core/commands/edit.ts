@@ -12,6 +12,12 @@ const isTextNode = (node: NodeData) => node.type === NODE_TEXT;
 const getNodeSize = (node: NodeData): number =>
   isTextNode(node) ? node.text.length : 1;
 
+/**
+ * @internal
+ */
+export const getLineSize = (doc: DocFragment, i: number): number =>
+  doc[i]!.reduce((acc, n) => acc + getNodeSize(n), 0);
+
 const insertNodeAfter = (line: NodeData[], index: number, node: NodeData) => {
   const target = line[index]!;
   if (isTextNode(node) && isTextNode(target)) {
@@ -47,8 +53,14 @@ const split = (
       const before = line.slice(0, i);
       const after = line.slice(i + 1);
       if (isTextNode(node)) {
-        before.push({ type: NODE_TEXT, text: node.text.slice(0, offset) });
-        after.unshift({ type: NODE_TEXT, text: node.text.slice(offset) });
+        const beforeText = node.text.slice(0, offset);
+        const afterText = node.text.slice(offset);
+        if (beforeText) {
+          before.push({ type: NODE_TEXT, text: beforeText });
+        }
+        if (afterText) {
+          after.unshift({ type: NODE_TEXT, text: afterText });
+        }
       } else {
         // TODO improve
         if (offset === 0) {
@@ -130,10 +142,7 @@ export const insertEdit = (
 
   const lineLength = lines.length;
   const lineDiff = lineLength - 1;
-  const lastRowLength = lines[lineLength - 1]!.reduce(
-    (acc, n) => acc + getNodeSize(n),
-    0
-  );
+  const lastRowLength = getLineSize(lines, lineLength - 1);
 
   replaceRange(doc, lines, pos);
 
@@ -172,7 +181,7 @@ export const deleteEdit = (
 export const flatten = (
   doc: DocFragment,
   [[anchorLine, anchorOffset], [focusLine, focusOffset]]: SelectionSnapshot
-): [DocFragment, SelectionSnapshot] => {
+): [Writeable<DocFragment>, Writeable<SelectionSnapshot>] => {
   let offsetBeforeAnchor = 0;
   let offsetBeforeFocus = 0;
 
