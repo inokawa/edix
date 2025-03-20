@@ -1,8 +1,9 @@
 export type TextNode = Readonly<{
   text: string;
+  data?: Readonly<Record<string, unknown>>;
 }>;
 export type VoidNode = Readonly<{
-  data: Record<string, unknown>;
+  data: Readonly<Record<string, unknown>>;
 }>;
 export type DocNode = TextNode | VoidNode;
 export type DocLine = readonly DocNode[];

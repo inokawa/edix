@@ -6,6 +6,7 @@ import {
   Position,
   SelectionSnapshot,
   Writeable,
+  TextNode,
 } from "./types";
 
 /**
@@ -21,7 +22,18 @@ const getNodeSize = (node: DocNode): number =>
 export const getLineSize = (line: DocLine): number =>
   line.reduce((acc, n) => acc + getNodeSize(n), 0);
 
-const merge = (a: DocLine, b: DocLine): DocLine => {
+const isSameTextNode = (a: TextNode, b: TextNode): boolean => {
+  if (!a.data && !b.data) return true;
+  if ((a.data && !b.data) || (!a.data && b.data)) return false;
+  // TODO use Object.keys()
+  return JSON.stringify(a.data) === JSON.stringify(b.data);
+};
+const merge = (
+  a: DocLine,
+  b: DocLine,
+  forceMerge?: boolean,
+  preferAfter?: boolean
+): DocLine => {
   const result: Writeable<DocLine> = [...a];
   if (!result.length) {
     result.push(...b);
@@ -29,8 +41,22 @@ const merge = (a: DocLine, b: DocLine): DocLine => {
     for (const node of b) {
       const index = result.length - 1;
       const target = result[index]!;
-      if (isTextNode(node) && isTextNode(target)) {
-        result[index] = { text: target.text + node.text };
+      if (
+        isTextNode(node) &&
+        isTextNode(target) &&
+        (forceMerge || isSameTextNode(node, target))
+      ) {
+        let t: TextNode;
+        if (preferAfter) {
+          preferAfter = false;
+          t = node;
+        } else {
+          t = target;
+        }
+        result[index] = {
+          ...t,
+          text: target.text + node.text,
+        };
       } else {
         result.push(node);
       }
@@ -50,10 +76,10 @@ const split = (line: DocLine, offset: number): [DocLine, DocLine] => {
         const beforeText = node.text.slice(0, offset);
         const afterText = node.text.slice(offset);
         if (beforeText) {
-          before.push({ text: beforeText });
+          before.push({ ...node, text: beforeText });
         }
         if (afterText) {
-          after.unshift({ text: afterText });
+          after.unshift({ ...node, text: afterText });
         }
       } else {
         // node size must be 1
@@ -99,7 +125,8 @@ const replaceRange = (
   doc: Writeable<DocFragment>,
   fragment: DocFragment,
   start: Position,
-  end?: Position
+  end?: Position,
+  forceMerge?: boolean
 ) => {
   const [startLine] = start;
   const [endLine] = end || start;
@@ -110,8 +137,13 @@ const replaceRange = (
 
   const lines: Writeable<DocFragment> = [...fragment];
   if (lines.length) {
-    lines[0] = merge(before, lines[0]!);
-    lines[lines.length - 1] = merge(lines[lines.length - 1]!, after);
+    lines[0] = merge(before, lines[0]!, forceMerge);
+    lines[lines.length - 1] = merge(
+      lines[lines.length - 1]!,
+      after,
+      forceMerge && start[1] === 0,
+      true
+    );
   } else {
     lines.push(merge(before, after));
   }
@@ -152,7 +184,7 @@ export const insertEdit = (
   const lineDiff = lineLength - 1;
   const lastRowLength = getLineSize(lines[lineLength - 1]!);
 
-  replaceRange(doc, lines, pos);
+  replaceRange(doc, lines, pos, undefined, true);
 
   if (comparePosition(anchor, pos) !== 1) {
     selection[0] = fixPositionAfterInsert(anchor, pos, lineDiff, lastRowLength);
@@ -181,6 +213,30 @@ export const deleteEdit = (
   if (comparePosition(focus, start) !== 1) {
     selection[1] = fixPositionAfterDelete(focus, start, end);
   }
+};
+
+/**
+ * @internal
+ */
+export const setDataEdit = (
+  doc: Writeable<DocFragment>,
+  data: { [key: string]: unknown },
+  start: Position,
+  end: Position
+) => {
+  replaceRange(
+    doc,
+    sliceDoc(doc, start, end).map((line) =>
+      line.map((node) => {
+        if (isTextNode(node)) {
+          return { ...node, data: { ...node.data, ...data } };
+        }
+        return node;
+      })
+    ),
+    start,
+    end
+  );
 };
 
 /**
