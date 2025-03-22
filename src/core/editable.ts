@@ -228,10 +228,18 @@ export const editable = <T>(
         [doc, selection] = flatten(doc, selection);
       }
 
-      history.set([history.get()[0], prevSelection]);
-      history.push([doc, selection]);
       currentSelection = selection;
-      onChange(docToJS(doc));
+
+      // TODO improve
+      const prevDoc = history.get()[0];
+      if (
+        doc.length !== prevDoc.length ||
+        doc.some((l, i) => l !== prevDoc[i])
+      ) {
+        history.set([prevDoc, prevSelection]);
+        history.push([doc, selection]);
+        onChange(docToJS(doc));
+      }
     }
 
     restoreSelectionOnTimeout();
