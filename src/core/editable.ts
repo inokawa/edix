@@ -300,18 +300,13 @@ export const editable = <T>(
   const flushCommand = () => {
     if (commands.length) {
       const selection: Writeable<SelectionSnapshot> = [...currentSelection];
-      const dom: Writeable<DocFragment> = takeDomSnapshot(
-        document,
-        element,
-        parserConfig,
-        serializeVoid
-      ) as Writeable<DocFragment>; // TODO improve type
+      const doc: Writeable<DocFragment> = [...history.get()[0]];
 
       let command: (typeof commands)[number] | undefined;
       while ((command = commands.pop())) {
-        command[0](dom, selection, ...command[1]);
+        command[0](doc, selection, ...command[1]);
       }
-      updateState(dom, selection, currentSelection);
+      updateState(doc, selection, currentSelection);
     }
   };
 
