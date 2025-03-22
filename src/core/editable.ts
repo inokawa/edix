@@ -166,7 +166,7 @@ export const editable = <T>(
   const document = getCurrentDocument(element);
 
   const history = createHistory<
-    readonly [value: DocFragment, selection: SelectionSnapshot]
+    readonly [doc: DocFragment, selection: SelectionSnapshot]
   >([
     takeDomSnapshot(document, element, parserConfig, serializeVoid),
     currentSelection,
@@ -204,7 +204,7 @@ export const editable = <T>(
 
   const restoreSelectionOnTimeout = () => {
     // We set updated selection after the next rerender, because it will modify DOM and selection again.
-    // However frameworks may not rerender for optimization in some case, for example if selection is updated but value is the same.
+    // However frameworks may not rerender for optimization in some case, for example if selection is updated but document is the same.
     // So we also schedule restoring on timeout for safe.
     const nextSelection = currentSelection;
     restoreSelectionQueue = setTimeout(() => {
@@ -259,14 +259,14 @@ export const editable = <T>(
 
     observer._accept(false);
     if (queue.length) {
-      // Get current value and selection from DOM
+      // Get current document and selection from DOM
       const selection = takeSelectionSnapshot(
         document,
         element,
         isSingleline,
         parserConfig
       );
-      const value = takeDomSnapshot(
+      const doc = takeDomSnapshot(
         document,
         element,
         parserConfig,
@@ -301,7 +301,7 @@ export const editable = <T>(
         parserConfig
       );
 
-      updateState(value, selection, currentSelection);
+      updateState(doc, selection, currentSelection);
     }
   };
 
