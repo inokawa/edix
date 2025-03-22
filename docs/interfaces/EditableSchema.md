@@ -4,7 +4,7 @@
 
 # Interface: EditableSchema\<T\>
 
-Defined in: [schema/types.ts:3](https://github.com/inokawa/edix/blob/5dda010c7d491e5c9162d0f17dc6178b28acc47b/src/core/schema/types.ts#L3)
+Defined in: [schema/types.ts:3](https://github.com/inokawa/edix/blob/6c51a3045dd266d2df11ac3bf40a8c324611c95f/src/core/schema/types.ts#L3)
 
 ## Type Parameters
 
@@ -16,21 +16,21 @@ Defined in: [schema/types.ts:3](https://github.com/inokawa/edix/blob/5dda010c7d4
 
 > **single**: `boolean`
 
-Defined in: [schema/types.ts:4](https://github.com/inokawa/edix/blob/5dda010c7d491e5c9162d0f17dc6178b28acc47b/src/core/schema/types.ts#L4)
+Defined in: [schema/types.ts:4](https://github.com/inokawa/edix/blob/6c51a3045dd266d2df11ac3bf40a8c324611c95f/src/core/schema/types.ts#L4)
 
 ***
 
-### data()
+### js()
 
-> **data**: (`snapshot`) => `T`
+> **js**: (`doc`) => `T`
 
-Defined in: [schema/types.ts:5](https://github.com/inokawa/edix/blob/5dda010c7d491e5c9162d0f17dc6178b28acc47b/src/core/schema/types.ts#L5)
+Defined in: [schema/types.ts:5](https://github.com/inokawa/edix/blob/6c51a3045dd266d2df11ac3bf40a8c324611c95f/src/core/schema/types.ts#L5)
 
 #### Parameters
 
-##### snapshot
+##### doc
 
-`DomSnapshot`
+`DocFragment`
 
 #### Returns
 
@@ -38,11 +38,29 @@ Defined in: [schema/types.ts:5](https://github.com/inokawa/edix/blob/5dda010c7d4
 
 ***
 
+### void()
+
+> **void**: (`element`) => `void` \| `Record`\<`string`, `unknown`\>
+
+Defined in: [schema/types.ts:6](https://github.com/inokawa/edix/blob/6c51a3045dd266d2df11ac3bf40a8c324611c95f/src/core/schema/types.ts#L6)
+
+#### Parameters
+
+##### element
+
+`Element`
+
+#### Returns
+
+`void` \| `Record`\<`string`, `unknown`\>
+
+***
+
 ### copy()
 
-> **copy**: (`dataTransfer`, `snapshot`, `dom`) => `void`
+> **copy**: (`dataTransfer`, `doc`, `dom`) => `void`
 
-Defined in: [schema/types.ts:6](https://github.com/inokawa/edix/blob/5dda010c7d491e5c9162d0f17dc6178b28acc47b/src/core/schema/types.ts#L6)
+Defined in: [schema/types.ts:7](https://github.com/inokawa/edix/blob/6c51a3045dd266d2df11ac3bf40a8c324611c95f/src/core/schema/types.ts#L7)
 
 #### Parameters
 
@@ -50,9 +68,9 @@ Defined in: [schema/types.ts:6](https://github.com/inokawa/edix/blob/5dda010c7d4
 
 `DataTransfer`
 
-##### snapshot
+##### doc
 
-`DomSnapshot`
+`DocFragment`
 
 ##### dom
 
@@ -68,7 +86,7 @@ Defined in: [schema/types.ts:6](https://github.com/inokawa/edix/blob/5dda010c7d4
 
 > **paste**: (`dataTransfer`) => `string` \| `Node`
 
-Defined in: [schema/types.ts:7](https://github.com/inokawa/edix/blob/5dda010c7d491e5c9162d0f17dc6178b28acc47b/src/core/schema/types.ts#L7)
+Defined in: [schema/types.ts:8](https://github.com/inokawa/edix/blob/6c51a3045dd266d2df11ac3bf40a8c324611c95f/src/core/schema/types.ts#L8)
 
 #### Parameters
 
