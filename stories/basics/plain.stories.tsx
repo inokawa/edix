@@ -247,36 +247,40 @@ export const Command: StoryObj = {
             <button
               onClick={() => {
                 document.getSelection()?.modify("move", "forward", "character");
+                ref.current?.focus();
               }}
             >
-              Move Forward
+              move forward
             </button>
             <button
               onClick={() => {
                 document
                   .getSelection()
                   ?.modify("move", "backward", "character");
+                ref.current?.focus();
               }}
             >
-              Move Backward
+              move backward
             </button>
             <button
               onClick={() => {
                 document
                   .getSelection()
                   ?.modify("extend", "forward", "character");
+                ref.current?.focus();
               }}
             >
-              Move Focus Forward
+              move focus forward
             </button>
             <button
               onClick={() => {
                 document
                   .getSelection()
                   ?.modify("extend", "backward", "character");
+                ref.current?.focus();
               }}
             >
-              Move Focus Backward
+              move focus backward
             </button>
           </div>
         </div>
