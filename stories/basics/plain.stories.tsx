@@ -234,13 +234,51 @@ export const Command: StoryObj = {
               insert
             </button>
           </div>
-          <button
-            onClick={() => {
-              handle.current?.command(Delete);
-            }}
-          >
-            delete selection
-          </button>
+          <div>
+            <button
+              onClick={() => {
+                handle.current?.command(Delete);
+              }}
+            >
+              delete selection
+            </button>
+          </div>
+          <div>
+            <button
+              onClick={() => {
+                document.getSelection()?.modify("move", "forward", "character");
+              }}
+            >
+              Move Forward
+            </button>
+            <button
+              onClick={() => {
+                document
+                  .getSelection()
+                  ?.modify("move", "backward", "character");
+              }}
+            >
+              Move Backward
+            </button>
+            <button
+              onClick={() => {
+                document
+                  .getSelection()
+                  ?.modify("extend", "forward", "character");
+              }}
+            >
+              Move Focus Forward
+            </button>
+            <button
+              onClick={() => {
+                document
+                  .getSelection()
+                  ?.modify("extend", "backward", "character");
+              }}
+            >
+              Move Focus Backward
+            </button>
+          </div>
         </div>
         <div
           ref={ref}
