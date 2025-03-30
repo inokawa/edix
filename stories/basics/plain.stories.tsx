@@ -1,6 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { StoryObj } from "@storybook/react";
-import { editable, EditableHandle, plainSchema } from "../../src";
+import {
+  Delete,
+  editable,
+  EditableHandle,
+  InsertText,
+  plainSchema,
+} from "../../src";
 
 export default {
   component: editable,
@@ -143,6 +149,116 @@ export const Placeholder: StoryObj = {
   },
 };
 
+export const Highlight: StoryObj = {
+  render: () => {
+    const ref = useRef<HTMLDivElement>(null);
+    const [value, setValue] = useState(
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+    );
+    const [searchText, setSearchText] = useState("dolor");
+
+    useEffect(() => {
+      if (!ref.current) return;
+      return editable(ref.current, {
+        schema: plainSchema({ multiline: true }),
+        onChange: setValue,
+      }).dispose;
+    }, []);
+
+    const reg = searchText ? new RegExp(`(${searchText})`) : null;
+
+    return (
+      <div>
+        <div>
+          <label htmlFor="search">search word</label>
+          <input
+            name="search"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+          />
+        </div>
+        <div ref={ref} style={{ background: "white" }}>
+          {value.split("\n").map((r, i) => (
+            <div key={i}>
+              {r ? (
+                (reg ? r.split(reg) : [r]).map((t, j) =>
+                  t === searchText ? (
+                    <mark key={j}>{t}</mark>
+                  ) : (
+                    <span key={j}>{t}</span>
+                  )
+                )
+              ) : (
+                <br />
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  },
+};
+
+export const Command: StoryObj = {
+  render: () => {
+    const ref = useRef<HTMLDivElement>(null);
+    const [value, setValue] = useState(
+      "Hello World.\nこんにちは。\n👍❤️🧑‍🧑‍🧒"
+    );
+    const handle = useRef<EditableHandle | null>(null);
+    useEffect(() => {
+      if (!ref.current) return;
+      return (handle.current = editable(ref.current, {
+        schema: plainSchema({ multiline: true }),
+        onChange: setValue,
+      })).dispose;
+    }, []);
+
+    const [text, setText] = useState("text");
+
+    return (
+      <div>
+        <div style={{ padding: 4 }}>
+          <div>
+            <input
+              value={text}
+              onChange={(e) => {
+                setText(e.target.value);
+              }}
+            />
+            <button
+              onClick={() => {
+                handle.current?.command(InsertText, text);
+              }}
+            >
+              insert
+            </button>
+          </div>
+          <button
+            onClick={() => {
+              handle.current?.command(Delete);
+            }}
+          >
+            delete selection
+          </button>
+        </div>
+        <div
+          ref={ref}
+          style={{
+            backgroundColor: "white",
+            border: "solid 1px darkgray",
+            padding: 8,
+          }}
+        >
+          {value.split("\n").map((r, i) => (
+            <div key={i}>{r ? r : <br />}</div>
+          ))}
+        </div>
+      </div>
+    );
+  },
+};
+
 export const SpanAsBlock: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
@@ -233,56 +349,6 @@ export const Vertical: StoryObj = {
         {value.split("\n").map((r, i) => (
           <div key={i}>{r ? r : <br />}</div>
         ))}
-      </div>
-    );
-  },
-};
-
-export const Highlight: StoryObj = {
-  render: () => {
-    const ref = useRef<HTMLDivElement>(null);
-    const [value, setValue] = useState(
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-    );
-    const [searchText, setSearchText] = useState("dolor");
-
-    useEffect(() => {
-      if (!ref.current) return;
-      return editable(ref.current, {
-        schema: plainSchema({ multiline: true }),
-        onChange: setValue,
-      }).dispose;
-    }, []);
-
-    const reg = searchText ? new RegExp(`(${searchText})`) : null;
-
-    return (
-      <div>
-        <div>
-          <label htmlFor="search">search word</label>
-          <input
-            name="search"
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-          />
-        </div>
-        <div ref={ref} style={{ background: "white" }}>
-          {value.split("\n").map((r, i) => (
-            <div key={i}>
-              {r ? (
-                (reg ? r.split(reg) : [r]).map((t, j) =>
-                  t === searchText ? (
-                    <mark key={j}>{t}</mark>
-                  ) : (
-                    <span key={j}>{t}</span>
-                  )
-                )
-              ) : (
-                <br />
-              )}
-            </div>
-          ))}
-        </div>
       </div>
     );
   },

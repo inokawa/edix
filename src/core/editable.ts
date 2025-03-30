@@ -16,7 +16,7 @@ import {
   EditableCommand,
   InsertText,
   InsertFragment,
-  MoveTo,
+  MoveToPosition,
 } from "./commands";
 import { flatten } from "./commands/edit";
 import { EditableSchema } from "./schema";
@@ -99,6 +99,12 @@ export interface EditableHandle {
    * Disposes editor and restores previous DOM state.
    */
   dispose: () => void;
+  /**
+   * Dispatches editing command.
+   * @param fn command function
+   * @param args arguments of command
+   */
+  command: <A extends unknown[]>(fn: EditableCommand<A>, ...args: A) => void;
   /**
    * Changes editor's read-only state.
    * @param value `true` to read-only. `false` to editable.
@@ -318,10 +324,7 @@ export const editable = <T>(
     }
   };
 
-  const execCommand = <A extends unknown[]>(
-    fn: EditableCommand<A>,
-    ...args: A
-  ) => {
+  const execCommand: EditableHandle["command"] = (fn, ...args) => {
     commands.unshift([fn, args]);
 
     queueTask(flushCommand);
@@ -451,7 +454,7 @@ export const editable = <T>(
     );
     if (dataTransfer && droppedPosition) {
       // move selection first to keep selection after modifications
-      execCommand(MoveTo, droppedPosition);
+      execCommand(MoveToPosition, droppedPosition);
       if (isDragging) {
         execCommand(Delete, currentSelection);
       } else {
@@ -511,6 +514,7 @@ export const editable = <T>(
       element.removeEventListener("dragstart", onDragStart);
       element.removeEventListener("dragend", onDragEnd);
     },
+    command: execCommand,
     readonly: (value) => {
       readonly = value;
       setContentEditable();

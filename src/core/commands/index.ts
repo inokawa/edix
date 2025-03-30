@@ -8,18 +8,12 @@ import {
 import { comparePosition } from "../position";
 import { deleteEdit, insertEdit } from "./edit";
 
-/**
- * @internal
- */
 export type EditableCommand<T extends unknown[]> = (
   doc: Writeable<DocFragment>,
   selection: Writeable<SelectionSnapshot>,
   ...args: T
 ) => void;
 
-/**
- * @internal
- */
 export const Delete: EditableCommand<[range?: SelectionSnapshot]> = (
   doc,
   selection,
@@ -57,9 +51,6 @@ export const InsertFragment: EditableCommand<[lines: DocFragment]> = (
   );
 };
 
-/**
- * @internal
- */
 export const InsertText: EditableCommand<[text: string]> = (
   doc,
   selection,
@@ -75,7 +66,7 @@ export const InsertText: EditableCommand<[text: string]> = (
 /**
  * @internal
  */
-export const MoveTo: EditableCommand<[position: Position]> = (
+export const MoveToPosition: EditableCommand<[position: Position]> = (
   _doc,
   selection,
   position
