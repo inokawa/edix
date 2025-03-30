@@ -1359,6 +1359,42 @@ test.describe("undo and redo", () => {
   });
 });
 
+test("command", async ({ page }) => {
+  await page.goto(storyUrl("basics-plain--command"));
+
+  const editable = await getEditable(page);
+  const initialValue = await getText(editable);
+
+  await editable.focus();
+
+  expect(await getSelection(editable)).toEqual(createSelection());
+
+  // Move caret
+
+  await page.getByRole("button", { name: "move forward" }).click();
+  expect(await getSelection(editable)).toEqual(createSelection({ offset: 1 }));
+
+  // insert
+  await page.getByRole("button", { name: "insert" }).click();
+  const text = "text";
+  expect(await getText(editable)).toEqual(insertAt(initialValue, text, [0, 1]));
+  expect(await getSelection(editable)).toEqual(
+    createSelection({ offset: 1 + text.length })
+  );
+
+  // undo
+  // TODO undo with button
+  await page.keyboard.press(`ControlOrMeta+Z`);
+  expect(await getText(editable)).toEqual(initialValue);
+  expect(await getSelection(editable)).toEqual(createSelection({ offset: 1 }));
+
+  // delete
+  await page.getByRole("button", { name: "move focus forward" }).click();
+  await page.getByRole("button", { name: "delete selection" }).click();
+  expect(await getText(editable)).toEqual(deleteAt(initialValue, 1, [0, 1]));
+  expect(await getSelection(editable)).toEqual(createSelection({ offset: 1 }));
+});
+
 test("rtl", async ({ page }) => {
   await page.goto(storyUrl("basics-plain--rtl"));
 
