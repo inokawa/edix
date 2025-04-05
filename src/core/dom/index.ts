@@ -418,12 +418,16 @@ const detectMutationRange = (
   for (const n of nodes) {
     if (n.isConnected) {
       if (
-        !start ||
-        compareDomPosition(start, n) & DOCUMENT_POSITION_PRECEDING
+        (!start ||
+          compareDomPosition(start, n) & DOCUMENT_POSITION_PRECEDING) &&
+        (isTextNode(n) || isElementNode(n))
       ) {
         start = n;
       }
-      if (!end || compareDomPosition(end, n) & DOCUMENT_POSITION_FOLLOWING) {
+      if (
+        (!end || compareDomPosition(end, n) & DOCUMENT_POSITION_FOLLOWING) &&
+        (isTextNode(n) || isElementNode(n))
+      ) {
         end = n;
       }
     }
