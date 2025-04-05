@@ -621,6 +621,57 @@ test.describe("Keydown", () => {
       );
     });
 
+    test("split first/last", async ({ page }) => {
+      await page.goto(storyUrl("basics-plain--multiline"));
+
+      const editable = await getEditable(page);
+      const initialValue = await getText(editable);
+
+      await editable.focus();
+
+      expect(await getSelection(editable)).toEqual(createSelection());
+
+      // Split first
+      await page.keyboard.press("Enter");
+      expect(await getText(editable)).toEqual(
+        insertLineBreakAt(initialValue, [0, 0])
+      );
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ line: 1 })
+      );
+
+      // Join
+      await page.keyboard.press("Backspace");
+      expect(await getText(editable)).toEqual(initialValue);
+      expect(await getSelection(editable)).toEqual(createSelection());
+
+      // Move to last
+      const lastLineIndex = initialValue.length - 1;
+      const lastLineLength = initialValue[lastLineIndex].length;
+      for (let i = 0; i <= lastLineIndex + 1; i++) {
+        await page.keyboard.press("ArrowDown");
+      }
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ line: lastLineIndex, offset: lastLineLength })
+      );
+
+      // Split last
+      await page.keyboard.press("Enter");
+      expect(await getText(editable)).toEqual(
+        insertLineBreakAt(initialValue, [lastLineIndex, lastLineLength])
+      );
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ line: lastLineIndex + 1 })
+      );
+
+      // Join
+      await page.keyboard.press("Backspace");
+      expect(await getText(editable)).toEqual(initialValue);
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ line: lastLineIndex, offset: lastLineLength })
+      );
+    });
+
     test("treat soft break as hard break", async ({ page }) => {
       await page.goto(storyUrl("basics-plain--multiline"));
 
