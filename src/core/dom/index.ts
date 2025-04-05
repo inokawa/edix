@@ -95,14 +95,14 @@ export const setSelectionToDOM = (
     return true;
   }
 
-  const domStart = findPosition(document, root, start, isSingleline, config);
+  const domStart = findPosition(root, start, isSingleline, config);
   if (!domStart) {
     return false;
   }
 
   const domEnd = isCollapsed
     ? domStart
-    : findPosition(document, root, end, isSingleline, config);
+    : findPosition(root, end, isSingleline, config);
   if (!domEnd) {
     return false;
   }
@@ -143,7 +143,6 @@ export const setSelectionToDOM = (
 type DOMPosition = [node: Text | Element, offsetAtNode: number];
 
 const findPosition = (
-  document: Document,
   root: Element,
   [line, offset]: Position,
   isSingleline: boolean,
@@ -159,14 +158,12 @@ const findPosition = (
         offset -= length;
       }
     },
-    document,
     isSingleline || root.childElementCount === 0 ? root : root.children[line]!,
     config
   );
 };
 
 const serializePosition = (
-  document: Document,
   root: Element,
   targetNode: Node,
   offsetAtNode: number,
@@ -212,7 +209,6 @@ const serializePosition = (
       }
       return [lineIndex, offset + offsetAtNode];
     },
-    document,
     row,
     config
   );
@@ -232,7 +228,6 @@ export const getEmptySelectionSnapshot = (): SelectionSnapshot => {
  * @internal
  */
 export const takeSelectionSnapshot = (
-  document: Document,
   root: Element,
   isSingleline: boolean,
   config: ParserConfig
@@ -264,7 +259,6 @@ export const takeSelectionSnapshot = (
       // special case for Ctrl+A in firefox
       start = [0, 0];
       end = serializePosition(
-        document,
         root,
         root.lastElementChild!,
         root.lastElementChild!.textContent!.length,
@@ -276,7 +270,6 @@ export const takeSelectionSnapshot = (
     }
   } else {
     start = serializePosition(
-      document,
       root,
       startContainer,
       startOffset,
@@ -285,14 +278,7 @@ export const takeSelectionSnapshot = (
     );
     end = selection.isCollapsed
       ? start
-      : serializePosition(
-          document,
-          root,
-          endContainer,
-          endOffset,
-          isSingleline,
-          config
-        );
+      : serializePosition(root, endContainer, endOffset, isSingleline, config);
   }
 
   return [backward ? end : start, backward ? start : end];
@@ -302,7 +288,6 @@ export const takeSelectionSnapshot = (
  * @internal
  */
 export const takeDomSnapshot = (
-  document: Document,
   root: Node,
   config: ParserConfig,
   serializeVoid: (node: Element) => Record<string, unknown> | void
@@ -351,7 +336,6 @@ export const takeDomSnapshot = (
 
       return rows;
     },
-    document,
     root,
     config
   );
@@ -386,7 +370,6 @@ export const getPointedCaretPosition = (
     const position = document.caretPositionFromPoint(clientX, clientY);
     if (position) {
       return serializePosition(
-        document,
         root,
         position.offsetNode,
         position.offset,
@@ -398,7 +381,6 @@ export const getPointedCaretPosition = (
     const range = document.caretRangeFromPoint(clientX, clientY);
     if (range) {
       return serializePosition(
-        document,
         root,
         range.startContainer,
         range.startOffset,

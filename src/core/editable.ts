@@ -156,7 +156,10 @@ export const editable = <T>(
   let hasFocus = false;
   let isDragging = false;
 
+  const document = getCurrentDocument(element);
+
   const parserConfig: ParserConfig = {
+    _document: document,
     _isBlock: isBlock as ParserConfig["_isBlock"],
   };
 
@@ -169,14 +172,9 @@ export const editable = <T>(
 
   const commands: [EditableCommand<any[]>, args: unknown[]][] = [];
 
-  const document = getCurrentDocument(element);
-
   const history = createHistory<
     readonly [doc: DocFragment, selection: SelectionSnapshot]
-  >([
-    takeDomSnapshot(document, element, parserConfig, serializeVoid),
-    currentSelection,
-  ]);
+  >([takeDomSnapshot(element, parserConfig, serializeVoid), currentSelection]);
 
   const observer = createMutationObserver(element, () => {
     if (hasFocus) {
@@ -253,7 +251,6 @@ export const editable = <T>(
 
   const syncSelection = () => {
     currentSelection = takeSelectionSnapshot(
-      document,
       element,
       isSingleline,
       parserConfig
@@ -267,17 +264,11 @@ export const editable = <T>(
     if (queue.length) {
       // Get current document and selection from DOM
       const selection = takeSelectionSnapshot(
-        document,
         element,
         isSingleline,
         parserConfig
       );
-      const doc = takeDomSnapshot(
-        document,
-        element,
-        parserConfig,
-        serializeVoid
-      );
+      const doc = takeDomSnapshot(element, parserConfig, serializeVoid);
 
       // Revert DOM
       let m: MutationRecord | undefined;
@@ -408,7 +399,7 @@ export const editable = <T>(
 
     copy(
       dataTransfer,
-      takeDomSnapshot(document, selected, parserConfig, serializeVoid),
+      takeDomSnapshot(selected, parserConfig, serializeVoid),
       selected
     );
   };
@@ -420,7 +411,7 @@ export const editable = <T>(
     } else {
       execCommand(
         InsertFragment,
-        takeDomSnapshot(document, data, parserConfig, serializeVoid)
+        takeDomSnapshot(data, parserConfig, serializeVoid)
       );
     }
   };

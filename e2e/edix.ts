@@ -37,9 +37,9 @@ export const getText = async (
       const document = element.ownerDocument;
       return window.edix
         .takeDomSnapshot(
-          document,
           element,
           {
+            _document: document,
             _isBlock: blockTag
               ? (n) => n.tagName === blockTag.toUpperCase()
               : undefined,
@@ -67,9 +67,9 @@ export const getSeletedText = (
       const range = selection.getRangeAt(0)!.cloneContents();
       return window.edix
         .takeDomSnapshot(
-          document,
           range,
           {
+            _document: document,
             _isBlock: blockTag
               ? (n) => n.tagName === blockTag.toUpperCase()
               : undefined,
@@ -91,16 +91,12 @@ export const getSelection = (
   config: { isSingleline?: boolean; blockTag?: string } = {}
 ): Promise<SelectionSnapshot> => {
   return editable.evaluate((element, { isSingleline = false, blockTag }) => {
-    return window.edix.takeSelectionSnapshot(
-      element.ownerDocument,
-      element,
-      isSingleline,
-      {
-        _isBlock: blockTag
-          ? (n) => n.tagName === blockTag.toUpperCase()
-          : undefined,
-      }
-    );
+    return window.edix.takeSelectionSnapshot(element, isSingleline, {
+      _document: element.ownerDocument,
+      _isBlock: blockTag
+        ? (n) => n.tagName === blockTag.toUpperCase()
+        : undefined,
+    });
   }, config);
 };
 
