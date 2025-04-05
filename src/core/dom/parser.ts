@@ -1,6 +1,8 @@
 let walker: TreeWalker | null;
 let node: Node | null;
 let nodeType: NodeType | null;
+let endNode: Node | null;
+let shouldCheckEnd = false;
 let isBrDetected = false;
 let isBlockNode: (node: Element) => boolean;
 
@@ -154,7 +156,7 @@ const isValidSoftBreak = (node: Node): boolean => {
   );
 };
 
-const readNext = (endNode?: Node): NodeType | void => {
+const readNext = (targetNode?: Node): NodeType | void => {
   while (true) {
     if (nodeType === TYPE_VOID) {
       const current = node!;
@@ -170,8 +172,16 @@ const readNext = (endNode?: Node): NodeType | void => {
 
     nodeType = null;
 
-    if (!node || (endNode && node === endNode)) {
+    if (
+      !node ||
+      (targetNode && node === targetNode) ||
+      (shouldCheckEnd && !endNode!.contains(node))
+    ) {
       break;
+    }
+
+    if (endNode && endNode.contains(node)) {
+      shouldCheckEnd = true;
     }
 
     if (isTextNode(node)) {
@@ -218,16 +228,23 @@ const readNext = (endNode?: Node): NodeType | void => {
 export const parse = <T>(
   scopeFn: (read: typeof readNext) => T,
   root: Node,
-  { _document: document, _isBlock: isBlock = defaultIsBlockNode }: ParserConfig
+  { _document: document, _isBlock: isBlock = defaultIsBlockNode }: ParserConfig,
+  range?: [Node, Node]
 ): T => {
   try {
     isBlockNode = isBlock;
 
     walker = document.createTreeWalker(root, SHOW_TEXT | SHOW_ELEMENT);
 
+    if (range) {
+      walker.currentNode = range[0];
+      walker.previousNode();
+      endNode = range[1];
+    }
+
     return scopeFn(readNext);
   } finally {
-    walker = node = nodeType = null;
-    isBrDetected = false;
+    walker = node = nodeType = endNode = null;
+    shouldCheckEnd = isBrDetected = false;
   }
 };

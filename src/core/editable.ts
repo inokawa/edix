@@ -3,10 +3,11 @@ import {
   getCurrentDocument,
   takeSelectionSnapshot,
   setSelectionToDOM,
-  takeDomSnapshot,
   getEmptySelectionSnapshot,
   getSelectedElements,
   getPointedCaretPosition,
+  readDocAll,
+  readMutationAndRevert,
 } from "./dom";
 import { createMutationObserver } from "./mutation";
 import { DocFragment, SelectionSnapshot, Writeable } from "./types";
@@ -17,6 +18,7 @@ import {
   InsertText,
   InsertFragment,
   MoveToPosition,
+  Input,
 } from "./commands";
 import { flatten } from "./commands/edit";
 import { EditableSchema } from "./schema";
@@ -174,7 +176,11 @@ export const editable = <T>(
 
   const history = createHistory<
     readonly [doc: DocFragment, selection: SelectionSnapshot]
-  >([takeDomSnapshot(element, parserConfig, serializeVoid), currentSelection]);
+  >([
+    readDocAll(element, parserConfig, serializeVoid),
+    // [], // TODO takeDomSnapshot(document, element, parserConfig, serializeVoid),
+    currentSelection,
+  ]);
 
   const observer = createMutationObserver(element, () => {
     if (hasFocus) {
@@ -222,33 +228,6 @@ export const editable = <T>(
     });
   };
 
-  const updateState = (
-    doc: DocFragment,
-    selection: SelectionSnapshot,
-    prevSelection: SelectionSnapshot
-  ) => {
-    if (!readonly) {
-      if (isSingleline) {
-        [doc, selection] = flatten(doc, selection);
-      }
-
-      currentSelection = selection;
-
-      // TODO improve
-      const prevDoc = history.get()[0];
-      if (
-        doc.length !== prevDoc.length ||
-        doc.some((l, i) => l !== prevDoc[i])
-      ) {
-        history.set([prevDoc, prevSelection]);
-        history.push([doc, selection]);
-        onChange(docToJS(doc));
-      }
-    }
-
-    restoreSelectionOnTimeout();
-  };
-
   const syncSelection = () => {
     currentSelection = takeSelectionSnapshot(
       element,
@@ -268,23 +247,15 @@ export const editable = <T>(
         isSingleline,
         parserConfig
       );
-      const doc = takeDomSnapshot(element, parserConfig, serializeVoid);
+      const doc = readMutationAndRevert(
+        element,
+        isSingleline,
+        parserConfig,
+        queue,
+        serializeVoid
+      );
+      console.log("read", ...doc);
 
-      // Revert DOM
-      let m: MutationRecord | undefined;
-      while ((m = queue.pop())) {
-        if (m.type === "childList") {
-          const { target, removedNodes, addedNodes, nextSibling } = m;
-          for (let i = removedNodes.length - 1; i >= 0; i--) {
-            target.insertBefore(removedNodes[i]!, nextSibling);
-          }
-          for (let i = addedNodes.length - 1; i >= 0; i--) {
-            target.removeChild(addedNodes[i]!);
-          }
-        } else {
-          (m.target as CharacterData).nodeValue = m.oldValue!;
-        }
-      }
       observer._flush();
 
       // Restore previous selection
@@ -298,20 +269,54 @@ export const editable = <T>(
         parserConfig
       );
 
-      updateState(doc, selection, currentSelection);
+      if (doc) {
+        execCommand(
+          Input,
+          doc[0] ? { _range: doc[0]._range, _isBlock: doc[0]._isBlock } : null,
+          doc[1]
+            ? {
+                _start: doc[1]._range[0],
+                _isBlock: doc[1]._isBlock,
+                _doc: doc[1]._doc,
+              }
+            : null,
+          selection
+        );
+      }
     }
   };
 
   const flushCommand = () => {
     if (commands.length) {
-      const selection: Writeable<SelectionSnapshot> = [...currentSelection];
-      const doc: Writeable<DocFragment> = [...history.get()[0]];
+      let selection: Writeable<SelectionSnapshot> = [...currentSelection];
+      let doc: Writeable<DocFragment> = [...history.get()[0]];
 
       let command: (typeof commands)[number] | undefined;
       while ((command = commands.pop())) {
         command[0](doc, selection, ...command[1]);
       }
-      updateState(doc, selection, currentSelection);
+
+      if (!readonly) {
+        if (isSingleline) {
+          [doc, selection] = flatten(doc, selection);
+        }
+
+        // TODO improve
+        const prevDoc = history.get()[0];
+        const prevSelection = currentSelection;
+        currentSelection = selection;
+
+        if (
+          doc.length !== prevDoc.length ||
+          doc.some((l, i) => l !== prevDoc[i])
+        ) {
+          history.set([prevDoc, prevSelection]);
+          history.push([doc, selection]);
+          onChange(docToJS(doc));
+        }
+      }
+
+      restoreSelectionOnTimeout();
     }
   };
 
@@ -399,7 +404,7 @@ export const editable = <T>(
 
     copy(
       dataTransfer,
-      takeDomSnapshot(selected, parserConfig, serializeVoid),
+      readDocAll(selected, parserConfig, serializeVoid),
       selected
     );
   };
@@ -411,7 +416,7 @@ export const editable = <T>(
     } else {
       execCommand(
         InsertFragment,
-        takeDomSnapshot(data, parserConfig, serializeVoid)
+        readDocAll(data, parserConfig, serializeVoid)
       );
     }
   };

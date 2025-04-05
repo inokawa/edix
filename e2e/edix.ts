@@ -36,7 +36,7 @@ export const getText = async (
     (element, [NON_EDITABLE_PLACEHOLDER, { blockTag }]) => {
       const document = element.ownerDocument;
       return window.edix
-        .takeDomSnapshot(
+        .readDocAll(
           element,
           {
             _document: document,
@@ -66,7 +66,7 @@ export const getSeletedText = (
       const selection = document.getSelection()!;
       const range = selection.getRangeAt(0)!.cloneContents();
       return window.edix
-        .takeDomSnapshot(
+        .readDocAll(
           range,
           {
             _document: document,

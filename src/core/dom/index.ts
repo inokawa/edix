@@ -9,6 +9,8 @@ import {
   TYPE_SOFT_BREAK,
   TYPE_HARD_BREAK,
   ParserConfig,
+  TYPE_EMPTY_BLOCK_ANCHOR,
+  isTextNode,
 } from "./parser";
 import { comparePosition } from "../position";
 import {
@@ -23,7 +25,7 @@ import { min } from "../utils";
 
 // const DOCUMENT_POSITION_DISCONNECTED = 0x01;
 const DOCUMENT_POSITION_PRECEDING = 0x02;
-// const DOCUMENT_POSITION_FOLLOWING = 0x04;
+const DOCUMENT_POSITION_FOLLOWING = 0x04;
 // const DOCUMENT_POSITION_CONTAINS = 0x08;
 // const DOCUMENT_POSITION_CONTAINED_BY = 0x10;
 // const DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20;
@@ -163,30 +165,37 @@ const findPosition = (
   );
 };
 
+const findBlockNode = (root: Element, startNode: Node): Element => {
+  let temp: Element = startNode as Element;
+  while (true) {
+    const parent = temp.parentElement!;
+    if (parent === root) {
+      break;
+    }
+    temp = parent;
+  }
+  return temp;
+};
+
 const serializePosition = (
   root: Element,
   targetNode: Node,
   offsetAtNode: number,
   isSingleline: boolean,
-  config: ParserConfig
+  config: ParserConfig,
+  isArtifitialPosition?: boolean
 ): Position => {
-  let row: Node = targetNode;
+  let row: Node;
   let lineIndex: number;
   if (isSingleline || root.childElementCount === 0) {
     row = root;
     lineIndex = 0;
   } else {
-    while (true) {
-      const parent = row.parentElement!;
-      if (parent === root) {
-        break;
-      }
-      row = parent;
-    }
+    row = findBlockNode(root, targetNode);
     lineIndex = Array.prototype.indexOf.call(root.children, row);
   }
 
-  if (isElementNode(targetNode)) {
+  if (!isArtifitialPosition && isElementNode(targetNode)) {
     // If anchor/focus of selection is not selectable node, it will have offset relative to its parent
     //      0  1       2               3
     // <div>aaaa<img /><span>bbbb</span></div>
@@ -224,6 +233,8 @@ export const getEmptySelectionSnapshot = (): SelectionSnapshot => {
   ];
 };
 
+const compareDomPosition = (a: Node, b: Node) => a.compareDocumentPosition(b);
+
 /**
  * @internal
  */
@@ -244,7 +255,7 @@ export const takeSelectionSnapshot = (
   const backward =
     startContainer === endContainer
       ? selection.anchorOffset > selection.focusOffset
-      : (selection.anchorNode!.compareDocumentPosition(selection.focusNode!) &
+      : (compareDomPosition(selection.anchorNode!, selection.focusNode!) &
           DOCUMENT_POSITION_PRECEDING) !==
         0;
 
@@ -284,35 +295,50 @@ export const takeSelectionSnapshot = (
   return [backward ? end : start, backward ? start : end];
 };
 
-/**
- * @internal
- */
-export const takeDomSnapshot = (
-  root: Node,
-  config: ParserConfig,
+type NodeRef = Element | string;
+
+const refToDoc = (
+  nodes: readonly (readonly NodeRef[])[],
   serializeVoid: (node: Element) => Record<string, unknown> | void
 ): DocFragment => {
+  return nodes.map((l) =>
+    l.reduce((acc, n) => {
+      if (typeof n === "string") {
+        acc.push({ type: NODE_TEXT, text: n });
+      } else {
+        const data = serializeVoid(n);
+        if (data) {
+          acc.push({ type: NODE_VOID, data });
+        }
+      }
+      return acc;
+    }, [] as NodeData[])
+  );
+};
+
+const readDom = (
+  root: Node,
+  config: ParserConfig,
+  range?: [Node, Node]
+): NodeRef[][] => {
   return parse(
     (readNext) => {
       let type: NodeType | void;
-      let row: NodeData[] | null = null;
+      let row: NodeRef[] | null = null;
       let text = "";
 
-      const rows: NodeData[][] = [];
+      const rows: NodeRef[][] = [];
 
       const completeNode = (element?: Element) => {
         if (!row) {
           row = [];
         }
         if (text) {
-          row.push({ type: NODE_TEXT, text });
+          row.push(text);
           text = "";
         }
         if (element) {
-          const data = serializeVoid(element);
-          if (data) {
-            row.push({ type: NODE_VOID, data });
-          }
+          row.push(element);
         }
       };
       const completeRow = () => {
@@ -337,8 +363,222 @@ export const takeDomSnapshot = (
       return rows;
     },
     root,
+    config,
+    range
+  );
+};
+
+const findAnchorableChild = (
+  config: ParserConfig,
+  node: Node,
+  last?: boolean
+): Node | void => {
+  // TODO refactor to use parser.ts for detection
+  if (
+    isTextNode(node) ||
+    (isElementNode(node) &&
+      (node.tagName === "BR" ||
+        node.tagName === "IMG" ||
+        node.tagName === "VIDEO" ||
+        node.tagName === "IFRAME" ||
+        node.contentEditable === "false"))
+  ) {
+    return node;
+  }
+  let child: Node | void;
+  return parse(
+    (readNext) => {
+      let type: NodeType | void;
+      while ((type = readNext())) {
+        if (
+          type === TYPE_TEXT ||
+          type === TYPE_VOID ||
+          type === TYPE_EMPTY_BLOCK_ANCHOR
+        ) {
+          child = getDomNode<typeof type>();
+          if (!last) {
+            break;
+          }
+        }
+      }
+      return child;
+    },
+    node,
     config
   );
+};
+
+const detectMutationRange = (
+  root: Element,
+  nodes: Set<Node>,
+  config: ParserConfig
+): [boolean, Node, Node] | undefined => {
+  let start: Node | undefined;
+  let end: Node | undefined;
+  for (const n of nodes) {
+    if (n.isConnected) {
+      if (
+        (!start ||
+          compareDomPosition(start, n) & DOCUMENT_POSITION_PRECEDING) &&
+        (isTextNode(n) || isElementNode(n))
+      ) {
+        start = n;
+      }
+      if (
+        (!end || compareDomPosition(end, n) & DOCUMENT_POSITION_FOLLOWING) &&
+        (isTextNode(n) || isElementNode(n))
+      ) {
+        end = n;
+      }
+    }
+  }
+
+  if (!start || !end) {
+    return;
+  }
+  const firstChild = findAnchorableChild(config, start);
+  const lastChild = findAnchorableChild(config, end, true);
+  if (!firstChild || !lastChild) {
+    return;
+  }
+  const startBlock = findBlockNode(root, start);
+  const endBlock = findBlockNode(root, end);
+  // TODO
+  const isBlockAnchor = startBlock === start && startBlock.tagName === "DIV";
+  return [isBlockAnchor, firstChild, lastChild];
+};
+
+const domToRange = (
+  root: Element,
+  isSingleline: boolean,
+  config: ParserConfig,
+  startNode: Node,
+  endNode: Node
+): [Position, Position] => {
+  return [
+    serializePosition(root, startNode, 0, isSingleline, config, true),
+    serializePosition(
+      root,
+      endNode,
+      // TODO refactor to use parser.ts
+      isTextNode(endNode)
+        ? endNode.data.length
+        : endNode.tagName === "BR"
+        ? 0
+        : 1,
+      isSingleline,
+      config,
+      true
+    ),
+  ];
+};
+
+/**
+ * @internal
+ */
+export const readMutationAndRevert = (
+  root: Element,
+  isSingleline: boolean,
+  config: ParserConfig,
+  queue: MutationRecord[],
+  serializeVoid: (node: Element) => Record<string, unknown> | void
+):
+  | [
+      deleted: { _range: [Position, Position]; _isBlock: boolean } | null,
+      added: {
+        _range: [Position, Position];
+        _isBlock: boolean;
+        _doc: DocFragment;
+      } | null
+    ]
+  | void => {
+  const nodes = new Set<Node>();
+  for (const m of queue) {
+    if (m.type === "childList") {
+      for (const n of m.addedNodes) {
+        nodes.add(n);
+      }
+      for (const n of m.removedNodes) {
+        nodes.add(n);
+      }
+    } else {
+      nodes.add(m.target);
+    }
+  }
+
+  const afterRange = detectMutationRange(root, nodes, config);
+
+  const afterSlicedDom = afterRange
+    ? readDom(root, config, [afterRange[1], afterRange[2]])
+    : [];
+
+  const afterPos =
+    afterRange &&
+    domToRange(root, isSingleline, config, afterRange[1], afterRange[2]);
+  console.log(
+    "after child",
+    afterRange?.[1]?.cloneNode(),
+    afterRange?.[2]?.cloneNode(),
+    afterPos && afterPos[0],
+    afterPos && afterPos[1],
+    afterSlicedDom
+  );
+
+  // Revert DOM
+  let m: MutationRecord | undefined;
+  while ((m = queue.pop())) {
+    if (m.type === "childList") {
+      const { target, removedNodes, addedNodes, nextSibling } = m;
+      for (let i = removedNodes.length - 1; i >= 0; i--) {
+        target.insertBefore(removedNodes[i]!, nextSibling);
+      }
+      for (let i = addedNodes.length - 1; i >= 0; i--) {
+        target.removeChild(addedNodes[i]!);
+      }
+    } else {
+      (m.target as CharacterData).nodeValue = m.oldValue!;
+    }
+  }
+
+  const beforeRange = detectMutationRange(root, nodes, config);
+  const beforePos =
+    beforeRange &&
+    domToRange(root, isSingleline, config, beforeRange[1], beforeRange[2]);
+
+  console.log(
+    "before child",
+    beforeRange?.[1]?.cloneNode(),
+    beforeRange?.[2]?.cloneNode(),
+    beforePos && beforePos[0],
+    beforePos && beforePos[1]
+  );
+
+  return [
+    beforePos
+      ? {
+          _range: [beforePos[0], beforePos[1]],
+          _isBlock: beforeRange?.[0] ?? false,
+        }
+      : null,
+    afterPos
+      ? {
+          _range: [afterPos[0], afterPos[1]],
+          _doc: refToDoc(afterSlicedDom, serializeVoid),
+          _isBlock: afterRange?.[0] ?? false,
+        }
+      : null,
+  ];
+};
+
+/**
+ * @internal
+ */
+export const readDocAll = (
+  root: Node,
+  config: ParserConfig,
+  serializeVoid: (node: Element) => Record<string, unknown> | void
+): DocFragment => {
+  return refToDoc(readDom(root, config), serializeVoid);
 };
 
 /**

@@ -6,7 +6,7 @@ import {
   type Writeable,
 } from "../types";
 import { comparePosition } from "../position";
-import { deleteEdit, insertEdit } from "./edit";
+import { deleteEdit, getLineSize, insertEdit } from "./edit";
 
 export type EditableCommand<T extends unknown[]> = (
   doc: Writeable<DocFragment>,
@@ -72,4 +72,47 @@ export const MoveToPosition: EditableCommand<[position: Position]> = (
   position
 ) => {
   selection[0] = selection[1] = position;
+};
+
+/**
+ * @internal
+ */
+export const Input: EditableCommand<
+  [
+    deleteLines: { _range: [Position, Position]; _isBlock: boolean } | null,
+    insertLines: {
+      _start: Position;
+      _isBlock: boolean;
+      _doc: DocFragment;
+    } | null,
+    nextSelection?: SelectionSnapshot
+  ]
+> = (doc, selection, deleteLines, insertLines, nextSelection) => {
+  if (deleteLines) {
+    deleteEdit(
+      doc,
+      selection,
+      deleteLines._isBlock
+        ? deleteLines._range[0][0] === 0
+          ? [0, 0]
+          : [
+              deleteLines._range[0][0] - 1,
+              getLineSize(doc, deleteLines._range[0][0] - 1),
+            ]
+        : deleteLines._range[0],
+      deleteLines._range[1]
+    );
+  }
+  if (insertLines) {
+    insertEdit(
+      doc,
+      selection,
+      insertLines._isBlock ? [[], ...insertLines._doc] : insertLines._doc,
+      insertLines._start
+    );
+  }
+  if (nextSelection) {
+    selection[0] = nextSelection[0];
+    selection[1] = nextSelection[1];
+  }
 };
