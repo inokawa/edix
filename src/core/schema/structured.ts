@@ -44,14 +44,14 @@ type ExtractVoidNode<T> = Prettify<
  * Defines structured text schema.
  */
 export const schema = <
-  V extends Record<string, EditableVoidSerializer<any>>,
+  V extends Record<string, EditableVoidSerializer<any>> = {},
   M extends boolean = false
 >({
   multiline,
-  void: voids,
+  void: voids = {} as V,
 }: {
   multiline?: M;
-  void: V;
+  void?: V;
 }): EditableSchema<
   M extends true
     ? (ExtractVoidNode<V> | { type: "text"; text: string })[][]
