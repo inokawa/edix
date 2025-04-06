@@ -6,7 +6,7 @@ export default {
   component: editable,
 };
 
-const basicSchema = schema({ multiline: true, void: {} });
+const basicSchema = schema({ multiline: true });
 
 export const Multiline: StoryObj = {
   render: () => {
