@@ -1,14 +1,15 @@
 import {
-  NodeType,
+  TokenType,
   parse,
   getNodeSize,
   getDomNode,
   isElementNode,
-  TYPE_TEXT,
-  TYPE_VOID,
-  TYPE_SOFT_BREAK,
-  TYPE_HARD_BREAK,
+  TOKEN_TEXT,
+  TOKEN_VOID,
+  TOKEN_SOFT_BREAK,
+  TOKEN_HARD_BREAK,
   ParserConfig,
+  isTextNode,
 } from "./parser";
 import { comparePosition } from "../position";
 import {
@@ -21,9 +22,11 @@ import {
 } from "../types";
 import { min } from "../utils";
 
+export { defaultIsBlockNode } from "./parser";
+
 // const DOCUMENT_POSITION_DISCONNECTED = 0x01;
 const DOCUMENT_POSITION_PRECEDING = 0x02;
-// const DOCUMENT_POSITION_FOLLOWING = 0x04;
+const DOCUMENT_POSITION_FOLLOWING = 0x04;
 // const DOCUMENT_POSITION_CONTAINS = 0x08;
 // const DOCUMENT_POSITION_CONTAINED_BY = 0x10;
 // const DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20;
@@ -149,8 +152,8 @@ const findPosition = (
   config: ParserConfig
 ): DOMPosition | void => {
   return parse(
-    (readNext): DOMPosition | void => {
-      while (readNext()) {
+    (next): DOMPosition | void => {
+      while (next()) {
         const length = getNodeSize();
         if (offset <= length) {
           return [getDomNode(), offset];
@@ -163,30 +166,38 @@ const findPosition = (
   );
 };
 
+const findClosestBlockNode = (root: Element, startNode: Node): Element => {
+  let temp: Element = startNode as Element;
+  while (true) {
+    const parent = temp.parentElement!;
+    if (parent === root) {
+      break;
+    }
+    temp = parent;
+  }
+  return temp;
+};
+
 const serializePosition = (
   root: Element,
   targetNode: Node,
   offsetAtNode: number,
   isSingleline: boolean,
-  config: ParserConfig
+  config: ParserConfig,
+  isArtifitialPosition?: boolean,
+  includeEnd?: boolean
 ): Position => {
-  let row: Node = targetNode;
+  let row: Node;
   let lineIndex: number;
   if (isSingleline || root.childElementCount === 0) {
     row = root;
     lineIndex = 0;
   } else {
-    while (true) {
-      const parent = row.parentElement!;
-      if (parent === root) {
-        break;
-      }
-      row = parent;
-    }
+    row = findClosestBlockNode(root, targetNode);
     lineIndex = Array.prototype.indexOf.call(root.children, row);
   }
 
-  if (isElementNode(targetNode)) {
+  if (!isArtifitialPosition && isElementNode(targetNode)) {
     // If anchor/focus of selection is not selectable node, it will have offset relative to its parent
     //      0  1       2               3
     // <div>aaaa<img /><span>bbbb</span></div>
@@ -195,12 +206,11 @@ const serializePosition = (
   }
 
   return parse(
-    (readNext) => {
-      let type: NodeType | void;
+    (next) => {
+      let type: TokenType | void;
       let offset = 0;
-
-      while ((type = readNext(targetNode))) {
-        if (type === TYPE_SOFT_BREAK) {
+      while ((type = next())) {
+        if (type === TOKEN_SOFT_BREAK) {
           lineIndex++;
           offset = 0;
         } else {
@@ -210,7 +220,8 @@ const serializePosition = (
       return [lineIndex, offset + offsetAtNode];
     },
     row,
-    config
+    config,
+    { _endNode: targetNode, _excludeEnd: !includeEnd }
   );
 };
 
@@ -223,6 +234,8 @@ export const getEmptySelectionSnapshot = (): SelectionSnapshot => {
     [0, 0],
   ];
 };
+
+const compareDomPosition = (a: Node, b: Node) => a.compareDocumentPosition(b);
 
 /**
  * @internal
@@ -244,7 +257,7 @@ export const takeSelectionSnapshot = (
   const backward =
     startContainer === endContainer
       ? selection.anchorOffset > selection.focusOffset
-      : (selection.anchorNode!.compareDocumentPosition(selection.focusNode!) &
+      : (compareDomPosition(selection.anchorNode!, selection.focusNode!) &
           DOCUMENT_POSITION_PRECEDING) !==
         0;
 
@@ -284,35 +297,56 @@ export const takeSelectionSnapshot = (
   return [backward ? end : start, backward ? start : end];
 };
 
+type NodeRef = Element | string;
+
 /**
  * @internal
  */
-export const takeDomSnapshot = (
-  root: Node,
-  config: ParserConfig,
+export const refToDoc = (
+  nodes: readonly (readonly NodeRef[])[],
   serializeVoid: (node: Element) => Record<string, unknown> | void
 ): DocFragment => {
+  return nodes.map((l) =>
+    l.reduce((acc, n) => {
+      if (typeof n === "string") {
+        acc.push({ type: NODE_TEXT, text: n });
+      } else {
+        const data = serializeVoid(n);
+        if (data) {
+          acc.push({ type: NODE_VOID, data });
+        }
+      }
+      return acc;
+    }, [] as NodeData[])
+  );
+};
+
+/**
+ * @internal
+ */
+export const readDom = (
+  root: Node,
+  config: ParserConfig,
+  range?: { _startNode: Node; _endNode: Node }
+): NodeRef[][] => {
   return parse(
-    (readNext) => {
-      let type: NodeType | void;
-      let row: NodeData[] | null = null;
+    (next) => {
+      let type: TokenType | void;
+      let row: NodeRef[] | null = null;
       let text = "";
 
-      const rows: NodeData[][] = [];
+      const rows: NodeRef[][] = [];
 
       const completeNode = (element?: Element) => {
         if (!row) {
           row = [];
         }
         if (text) {
-          row.push({ type: NODE_TEXT, text });
+          row.push(text);
           text = "";
         }
         if (element) {
-          const data = serializeVoid(element);
-          if (data) {
-            row.push({ type: NODE_VOID, data });
-          }
+          row.push(element);
         }
       };
       const completeRow = () => {
@@ -323,12 +357,12 @@ export const takeDomSnapshot = (
         row = null;
       };
 
-      while ((type = readNext())) {
-        if (type === TYPE_TEXT) {
+      while ((type = next())) {
+        if (type === TOKEN_TEXT) {
           text += getDomNode<typeof type>().data;
-        } else if (type === TYPE_VOID) {
+        } else if (type === TOKEN_VOID) {
           completeNode(getDomNode<typeof type>());
-        } else if (type === TYPE_SOFT_BREAK || type === TYPE_HARD_BREAK) {
+        } else if (type === TOKEN_SOFT_BREAK || type === TOKEN_HARD_BREAK) {
           completeRow();
         }
       }
@@ -337,8 +371,111 @@ export const takeDomSnapshot = (
       return rows;
     },
     root,
-    config
+    config,
+    range
   );
+};
+
+const findAnchorableChild = (
+  config: ParserConfig,
+  root: Node,
+  node: Node,
+  last?: boolean
+): Node | void => {
+  return parse(
+    (next) => {
+      let child: Node | undefined;
+      let type: TokenType | void;
+      while ((type = next())) {
+        if (type !== TOKEN_HARD_BREAK) {
+          child = getDomNode<typeof type>();
+          if (!last) {
+            break;
+          }
+        }
+      }
+      return child;
+    },
+    root,
+    config,
+    { _startNode: node, _endNode: node }
+  );
+};
+
+/**
+ * @internal
+ */
+export const detectMutationRange = (
+  root: Element,
+  nodes: Set<Node>,
+  config: ParserConfig
+): [Node, Node, boolean] | undefined => {
+  let start: Node | undefined;
+  let end: Node | undefined;
+  for (const n of nodes) {
+    if (n.isConnected && (isTextNode(n) || isElementNode(n))) {
+      if (
+        !start ||
+        compareDomPosition(start, n) & DOCUMENT_POSITION_PRECEDING
+      ) {
+        start = n;
+      }
+      if (!end || compareDomPosition(end, n) & DOCUMENT_POSITION_FOLLOWING) {
+        end = n;
+      }
+    }
+  }
+
+  if (!start || !end) {
+    return;
+  }
+  const startBlock = findClosestBlockNode(root, start);
+
+  const firstChild = findAnchorableChild(config, root, start);
+  const lastChild = findAnchorableChild(config, root, end, true);
+  if (!firstChild || !lastChild) {
+    return;
+  }
+  return [
+    firstChild,
+    lastChild,
+    startBlock === start && config._isBlock(startBlock),
+  ];
+};
+
+/**
+ * @internal
+ */
+export const domToRange = (
+  root: Element,
+  isSingleline: boolean,
+  config: ParserConfig,
+  startNode: Node,
+  endNode: Node
+): [Position, Position] => {
+  return [
+    serializePosition(root, startNode, 0, isSingleline, config, true),
+    serializePosition(
+      root,
+      endNode,
+      0, // TODO unused
+      isSingleline,
+      config,
+      true,
+      true
+    ),
+  ];
+};
+
+/**
+ * @internal
+ */
+export const readDocAll = (
+  root: Node,
+  config: ParserConfig,
+  serializeVoid: (node: Element) => Record<string, unknown> | void
+): DocFragment => {
+  return refToDoc(readDom(root, config), serializeVoid);
 };
 
 /**

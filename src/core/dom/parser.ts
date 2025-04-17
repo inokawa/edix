@@ -1,6 +1,9 @@
 let walker: TreeWalker | null;
 let node: Node | null;
-let nodeType: NodeType | null;
+let tokenType: TokenType | null;
+let endNode: Node | null;
+let isEndNodeVisited = false;
+let shouldExcludeEnd = false;
 let isBrDetected = false;
 let isBlockNode: (node: Element) => boolean;
 
@@ -9,32 +12,33 @@ let isBlockNode: (node: Element) => boolean;
  */
 export interface ParserConfig {
   _document: Document;
-  _isBlock?: (node: Element) => boolean;
+  _isBlock: (node: Element) => boolean;
 }
 
 const SHOW_ELEMENT = 0x1;
 const SHOW_TEXT = 0x4;
 
 /** @internal */
-export const TYPE_TEXT = 1;
+export const TOKEN_TEXT = 1;
 /** @internal */
-export const TYPE_VOID = 2;
+export const TOKEN_VOID = 2;
 /** @internal */
-export const TYPE_SOFT_BREAK = 3;
+export const TOKEN_SOFT_BREAK = 3;
 /** @internal */
-export const TYPE_HARD_BREAK = 4;
-/** @internal */
-export const TYPE_EMPTY_BLOCK_ANCHOR = 5;
+export const TOKEN_HARD_BREAK = 4;
+const TOKEN_EMPTY_BLOCK_ANCHOR = 5;
+const TOKEN_INVALID_SOFT_BREAK = 6;
 
 /**
  * @internal
  */
-export type NodeType =
-  | typeof TYPE_TEXT
-  | typeof TYPE_VOID
-  | typeof TYPE_SOFT_BREAK
-  | typeof TYPE_HARD_BREAK
-  | typeof TYPE_EMPTY_BLOCK_ANCHOR;
+export type TokenType =
+  | typeof TOKEN_TEXT
+  | typeof TOKEN_VOID
+  | typeof TOKEN_SOFT_BREAK
+  | typeof TOKEN_HARD_BREAK
+  | typeof TOKEN_EMPTY_BLOCK_ANCHOR
+  | typeof TOKEN_INVALID_SOFT_BREAK;
 
 const ELEMENT_NODE = 1;
 const TEXT_NODE = 3;
@@ -97,7 +101,10 @@ const EMBEDDED_CONTENT_TAG_NAMES = new Set([
   "OBJECT",
 ]);
 
-const defaultIsBlockNode = (node: Element): boolean => {
+/**
+ * @internal
+ */
+export const defaultIsBlockNode = (node: Element): boolean => {
   return SINGLE_LINE_CONTAINER_NAMES.has(node.tagName);
 };
 
@@ -105,10 +112,10 @@ const defaultIsBlockNode = (node: Element): boolean => {
  * @internal
  */
 export const getDomNode = <
-  T extends NodeType | void
->(): T extends typeof TYPE_TEXT
+  T extends TokenType | void
+>(): T extends typeof TOKEN_TEXT
   ? Text
-  : T extends NodeType
+  : T extends TokenType
   ? Element
   : Text | Element => {
   return node as any;
@@ -118,9 +125,9 @@ export const getDomNode = <
  * @internal
  */
 export const getNodeSize = (): number => {
-  return nodeType === TYPE_TEXT
+  return tokenType === TOKEN_TEXT
     ? (node as Text).data.length
-    : nodeType === TYPE_VOID
+    : tokenType === TOKEN_VOID
     ? 1
     : 0;
 };
@@ -154,9 +161,9 @@ const isValidSoftBreak = (node: Node): boolean => {
   );
 };
 
-const readNext = (endNode?: Node): NodeType | void => {
+const readNext = (): TokenType | void => {
   while (true) {
-    if (nodeType === TYPE_VOID) {
+    if (tokenType === TOKEN_VOID) {
       const current = node!;
       // don't use TreeWalker.nextSibling() to support case like <body><p><a><img /></a></p><p>hello</p></body>
       while ((node = walker!.nextNode())) {
@@ -168,20 +175,33 @@ const readNext = (endNode?: Node): NodeType | void => {
       node = walker!.nextNode();
     }
 
-    nodeType = null;
+    tokenType = null;
 
-    if (!node || (endNode && node === endNode)) {
+    if (!node) {
       break;
+    }
+
+    if (endNode) {
+      if (endNode.contains(node)) {
+        isEndNodeVisited = true;
+        if (shouldExcludeEnd) {
+          break;
+        }
+      } else {
+        if (isEndNodeVisited) {
+          break;
+        }
+      }
     }
 
     if (isTextNode(node)) {
       // Especially Shift+Enter in Chrome
       if (node.data === "\n") {
-        if (isValidSoftBreak(node)) {
-          return (nodeType = TYPE_SOFT_BREAK);
-        }
+        return (tokenType = isValidSoftBreak(node)
+          ? TOKEN_SOFT_BREAK
+          : TOKEN_INVALID_SOFT_BREAK);
       } else {
-        return (nodeType = TYPE_TEXT);
+        return (tokenType = TOKEN_TEXT);
       }
     } else if (isElementNode(node)) {
       const tagName = node.tagName;
@@ -190,22 +210,22 @@ const readNext = (endNode?: Node): NodeType | void => {
         isBrDetected = true;
         // Especially Shift+Enter in Firefox
         if (isValidSoftBreak(node)) {
-          return (nodeType = TYPE_SOFT_BREAK);
+          return (tokenType = TOKEN_SOFT_BREAK);
         } else {
           if (!isBr) {
             // Returning <div><br/></div> is necessary to anchor selection
-            return (nodeType = TYPE_EMPTY_BLOCK_ANCHOR);
+            return (tokenType = TOKEN_EMPTY_BLOCK_ANCHOR);
           }
         }
       } else if (
         (node as HTMLElement).contentEditable === "false" ||
         EMBEDDED_CONTENT_TAG_NAMES.has(tagName)
       ) {
-        return (nodeType = TYPE_VOID);
+        return (tokenType = TOKEN_VOID);
       } else if (isBlockNode(node)) {
         const prev = node.previousElementSibling;
         if (prev && isBlockNode(prev)) {
-          return (nodeType = TYPE_HARD_BREAK);
+          return (tokenType = TOKEN_HARD_BREAK);
         }
       }
     }
@@ -218,16 +238,32 @@ const readNext = (endNode?: Node): NodeType | void => {
 export const parse = <T>(
   scopeFn: (read: typeof readNext) => T,
   root: Node,
-  { _document: document, _isBlock: isBlock = defaultIsBlockNode }: ParserConfig
+  { _document: document, _isBlock: isBlock }: ParserConfig,
+  option?: {
+    _startNode?: Node;
+    _endNode?: Node;
+    _excludeEnd?: boolean;
+  }
 ): T => {
   try {
     isBlockNode = isBlock;
 
     walker = document.createTreeWalker(root, SHOW_TEXT | SHOW_ELEMENT);
 
+    if (option) {
+      if (option._startNode) {
+        walker.currentNode = option._startNode;
+        walker.previousNode();
+      }
+      if (option._endNode) {
+        endNode = option._endNode;
+      }
+      shouldExcludeEnd = option._excludeEnd || false;
+    }
+
     return scopeFn(readNext);
   } finally {
-    walker = node = nodeType = null;
-    isBrDetected = false;
+    walker = node = tokenType = endNode = null;
+    isEndNodeVisited = shouldExcludeEnd = isBrDetected = false;
   }
 };
