@@ -4,7 +4,6 @@ let tokenType: TokenType | null;
 let endNode: Node | null;
 let isEndNodeVisited = false;
 let shouldExcludeEnd = false;
-let isBrDetected = false;
 let isBlockNode: (node: Element) => boolean;
 
 /**
@@ -206,17 +205,11 @@ const readNext = (): TokenType | void => {
     } else if (isElementNode(node)) {
       const tagName = node.tagName;
       if (tagName === "BR") {
-        const isBr = isBrDetected;
-        isBrDetected = true;
-        // Especially Shift+Enter in Firefox
-        if (isValidSoftBreak(node)) {
-          return (tokenType = TOKEN_SOFT_BREAK);
-        } else {
-          if (!isBr) {
-            // Returning <div><br/></div> is necessary to anchor selection
-            return (tokenType = TOKEN_EMPTY_BLOCK_ANCHOR);
-          }
-        }
+        return (tokenType = isValidSoftBreak(node)
+          ? // Especially Shift+Enter in Firefox
+            TOKEN_SOFT_BREAK
+          : // Returning <div><br/></div> is necessary to anchor selection
+            TOKEN_EMPTY_BLOCK_ANCHOR);
       } else if (
         (node as HTMLElement).contentEditable === "false" ||
         EMBEDDED_CONTENT_TAG_NAMES.has(tagName)
@@ -264,6 +257,6 @@ export const parse = <T>(
     return scopeFn(readNext);
   } finally {
     walker = node = tokenType = endNode = null;
-    isEndNodeVisited = shouldExcludeEnd = isBrDetected = false;
+    isEndNodeVisited = shouldExcludeEnd = false;
   }
 };

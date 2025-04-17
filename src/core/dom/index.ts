@@ -374,32 +374,6 @@ export const readDom = (
   );
 };
 
-const findAnchorableChild = (
-  config: ParserConfig,
-  root: Node,
-  node: Node,
-  last?: boolean
-): Node | void => {
-  return parse(
-    (next) => {
-      let child: Node | undefined;
-      let type: TokenType | void;
-      while ((type = next())) {
-        if (type !== TOKEN_HARD_BREAK) {
-          child = getDomNode<typeof type>();
-          if (!last) {
-            break;
-          }
-        }
-      }
-      return child;
-    },
-    root,
-    config,
-    { _startNode: node, _endNode: node }
-  );
-};
-
 /**
  * @internal
  */
@@ -410,6 +384,9 @@ export const detectMutationRange = (
 ): [Node, Node, boolean] | undefined => {
   let start: Node | undefined;
   let end: Node | undefined;
+  let startChild: Node | undefined;
+  let endChild: Node | undefined;
+
   for (const n of nodes) {
     if (n.isConnected && (isTextNode(n) || isElementNode(n))) {
       if (
@@ -429,14 +406,28 @@ export const detectMutationRange = (
   }
   const startBlock = findClosestBlockNode(root, start);
 
-  const firstChild = findAnchorableChild(config, root, start);
-  const lastChild = findAnchorableChild(config, root, end, true);
-  if (!firstChild || !lastChild) {
+  parse(
+    (next) => {
+      let type: TokenType | void;
+      while ((type = next())) {
+        if (type !== TOKEN_HARD_BREAK) {
+          endChild = getDomNode<typeof type>();
+          if (!startChild) {
+            startChild = endChild;
+          }
+        }
+      }
+    },
+    root,
+    config,
+    { _startNode: start, _endNode: end }
+  );
+  if (!startChild || !endChild) {
     return;
   }
   return [
-    firstChild,
-    lastChild,
+    startChild,
+    endChild,
     startBlock === start && config._isBlock(startBlock),
   ];
 };
