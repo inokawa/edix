@@ -337,16 +337,13 @@ export const readDom = (
 
       const rows: NodeRef[][] = [];
 
-      const completeNode = (element?: Element) => {
+      const completeNode = () => {
         if (!row) {
           row = [];
         }
         if (text) {
           row.push(text);
           text = "";
-        }
-        if (element) {
-          row.push(element);
         }
       };
       const completeRow = () => {
@@ -361,7 +358,8 @@ export const readDom = (
         if (type === TOKEN_TEXT) {
           text += getDomNode<typeof type>().data;
         } else if (type === TOKEN_VOID) {
-          completeNode(getDomNode<typeof type>());
+          completeNode();
+          row!.push(getDomNode<typeof type>());
         } else if (type === TOKEN_SOFT_BREAK || type === TOKEN_HARD_BREAK) {
           completeRow();
         }
