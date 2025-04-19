@@ -16,14 +16,7 @@ import {
 import { createMutationObserver } from "./mutation";
 import { DocFragment, SelectionSnapshot, Writeable } from "./types";
 import { microtask } from "./utils";
-import {
-  Delete,
-  EditableCommand,
-  InsertText,
-  InsertFragment,
-  MoveToPosition,
-  Input,
-} from "./commands";
+import { Delete, EditableCommand, MoveToPosition, Input } from "./commands";
 import { flatten } from "./commands/edit";
 import { EditableSchema } from "./schema";
 import { ParserConfig } from "./dom/parser";
@@ -129,7 +122,7 @@ export const editable = <T>(
       js: docToJS,
       void: serializeVoid,
       copy,
-      paste: getPastableData,
+      paste,
     },
     isBlock = defaultIsBlockNode,
     onChange,
@@ -465,15 +458,9 @@ export const editable = <T>(
   };
 
   const insertData = (dataTransfer: DataTransfer) => {
-    const data = getPastableData(dataTransfer);
-    if (typeof data === "string") {
-      execCommand(InsertText, data);
-    } else {
-      execCommand(
-        InsertFragment,
-        readDocAll(data, parserConfig, serializeVoid)
-      );
-    }
+    paste(dataTransfer, execCommand, (dom) =>
+      readDocAll(dom, parserConfig, serializeVoid)
+    );
   };
 
   const onCopy = (e: ClipboardEvent) => {

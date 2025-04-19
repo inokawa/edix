@@ -1,3 +1,4 @@
+import { InsertFragment, InsertText } from "../commands";
 import { isCommentNode } from "../dom/parser";
 import { NODE_TEXT, TextNode, type NodeData } from "../types";
 import type { EditableSchema } from "./types";
@@ -128,7 +129,7 @@ export const schema = <
       wrapper.appendChild(dom);
       dataTransfer.setData("text/html", wrapper.innerHTML);
     },
-    paste: (dataTransfer) => {
+    paste: (dataTransfer, command, read) => {
       const html = dataTransfer.getData("text/html");
       if (html) {
         let dom: Node = new DOMParser().parseFromString(html, "text/html").body;
@@ -146,9 +147,9 @@ export const schema = <
             dom.appendChild(n);
           }
         }
-        return dom;
+        command(InsertFragment, read(dom));
       }
-      return dataTransfer.getData("text/plain");
+      command(InsertText, dataTransfer.getData("text/plain"));
     },
   };
 };
