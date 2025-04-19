@@ -1,3 +1,4 @@
+import type { EditableCommand } from "../commands";
 import type { DocFragment } from "../types";
 
 export interface EditableSchema<T> {
@@ -5,7 +6,11 @@ export interface EditableSchema<T> {
   js: (doc: DocFragment) => T;
   void: (element: Element) => Record<string, unknown> | void;
   copy: (dataTransfer: DataTransfer, doc: DocFragment, dom: Node) => void;
-  paste: (dataTransfer: DataTransfer) => Node | string;
+  paste: (
+    dataTransfer: DataTransfer,
+    command: <A extends unknown[]>(fn: EditableCommand<A>, ...args: A) => void,
+    read: (node: Node) => DocFragment
+  ) => void;
 }
 
 type ExtractItem<T> = T extends (infer I)[] ? ExtractItem<I> : T;

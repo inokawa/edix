@@ -1,3 +1,4 @@
+import { InsertText } from "../commands";
 import { NODE_TEXT, type DocFragment } from "../types";
 import type { EditableSchema } from "./types";
 
@@ -27,8 +28,8 @@ export const plainSchema = ({
     copy: (dataTransfer, data) => {
       dataTransfer.setData("text/plain", toString(data));
     },
-    paste: (dataTransfer) => {
-      return dataTransfer.getData("text/plain");
+    paste: (dataTransfer, command) => {
+      command(InsertText, dataTransfer.getData("text/plain"));
     },
   };
 };
