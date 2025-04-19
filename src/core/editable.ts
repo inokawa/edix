@@ -4,7 +4,7 @@ import {
   takeSelectionSnapshot,
   setSelectionToDOM,
   getEmptySelectionSnapshot,
-  getSelectedElements,
+  getSelectedRange,
   getPointedCaretPosition,
   readDocAll,
   detectMutationRange,
@@ -17,7 +17,7 @@ import { createMutationObserver } from "./mutation";
 import { DocFragment, SelectionSnapshot, Writeable } from "./types";
 import { microtask } from "./utils";
 import { Delete, EditableCommand, MoveToPosition, Input } from "./commands";
-import { flatten } from "./commands/edit";
+import { flatten, sliceDoc } from "./commands/edit";
 import { EditableSchema } from "./schema";
 import { ParserConfig } from "./dom/parser";
 
@@ -446,15 +446,15 @@ export const editable = <T>(
     }
   };
 
-  const copySelectedDOM = (dataTransfer: DataTransfer) => {
-    const selected = getSelectedElements(element);
-    if (!selected) return;
-
-    copy(
-      dataTransfer,
-      readDocAll(selected, parserConfig, serializeVoid),
-      selected
-    );
+  const copySelected = (dataTransfer: DataTransfer) => {
+    const selected = getSelectedRange(element, isSingleline, parserConfig);
+    if (selected) {
+      copy(
+        dataTransfer,
+        sliceDoc(history.get()[0], ...selected[1]),
+        selected[0]
+      );
+    }
   };
 
   const insertData = (dataTransfer: DataTransfer) => {
@@ -465,12 +465,12 @@ export const editable = <T>(
 
   const onCopy = (e: ClipboardEvent) => {
     e.preventDefault();
-    copySelectedDOM(e.clipboardData!);
+    copySelected(e.clipboardData!);
   };
   const onCut = (e: ClipboardEvent) => {
     e.preventDefault();
     if (!readonly) {
-      copySelectedDOM(e.clipboardData!);
+      copySelected(e.clipboardData!);
       execCommand(Delete);
     }
   };
@@ -503,7 +503,7 @@ export const editable = <T>(
   };
   const onDragStart = (e: DragEvent) => {
     isDragging = true;
-    copySelectedDOM(e.dataTransfer!);
+    copySelected(e.dataTransfer!);
   };
   const onDragEnd = () => {
     isDragging = false;
