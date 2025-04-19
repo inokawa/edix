@@ -11,7 +11,7 @@ import {
   ParserConfig,
   isTextNode,
 } from "./parser";
-import { comparePosition } from "../position";
+import { comparePosition } from "../doc/position";
 import {
   DocFragment,
   Position,
@@ -19,7 +19,7 @@ import {
   SelectionSnapshot,
   NODE_TEXT,
   NODE_VOID,
-} from "../types";
+} from "../doc/types";
 import { min } from "../utils";
 
 export { defaultIsBlockNode } from "./parser";

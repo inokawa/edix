@@ -1,5 +1,5 @@
-import { InsertText } from "../commands";
-import { NODE_TEXT, type DocFragment } from "../types";
+import { InsertText } from "../doc/commands";
+import { NODE_TEXT, type DocFragment } from "../doc/types";
 import type { EditableSchema } from "./types";
 
 const toString = (doc: DocFragment): string => {

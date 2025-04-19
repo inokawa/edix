@@ -1,6 +1,6 @@
-import { InsertFragment, InsertText } from "../commands";
+import { InsertFragment, InsertText } from "../doc/commands";
 import { isCommentNode } from "../dom/parser";
-import { NODE_TEXT, TextNode, type NodeData } from "../types";
+import { NODE_TEXT, TextNode, type NodeData } from "../doc/types";
 import type { EditableSchema } from "./types";
 
 export interface EditableVoidSerializer<T> {

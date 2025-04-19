@@ -1,4 +1,4 @@
-import { compareLine, comparePosition } from "../position";
+import { compareLine, comparePosition } from "./position";
 import {
   DocFragment,
   NODE_TEXT,
@@ -6,7 +6,7 @@ import {
   Position,
   SelectionSnapshot,
   Writeable,
-} from "../types";
+} from "./types";
 
 const isTextNode = (node: NodeData) => node.type === NODE_TEXT;
 const getNodeSize = (node: NodeData): number =>

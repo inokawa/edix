@@ -1,7 +1,7 @@
 import { BrowserContext, Locator } from "@playwright/test";
 import * as esbuild from "esbuild";
 import * as path from "node:path";
-import { SelectionSnapshot } from "../src/core/types";
+import { SelectionSnapshot } from "../src/core/doc/types";
 
 declare global {
   interface Window {

@@ -4,8 +4,8 @@ import {
   type Position,
   type SelectionSnapshot,
   type Writeable,
-} from "../types";
-import { comparePosition } from "../position";
+} from "./types";
+import { comparePosition } from "./position";
 import { deleteEdit, getLineSize, insertEdit } from "./edit";
 
 export type EditableCommand<T extends unknown[]> = (

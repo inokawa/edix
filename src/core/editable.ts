@@ -14,10 +14,10 @@ import {
   defaultIsBlockNode,
 } from "./dom";
 import { createMutationObserver } from "./mutation";
-import { DocFragment, SelectionSnapshot, Writeable } from "./types";
+import { DocFragment, SelectionSnapshot, Writeable } from "./doc/types";
 import { microtask } from "./utils";
-import { Delete, EditableCommand, MoveToPosition, Input } from "./commands";
-import { flatten, sliceDoc } from "./commands/edit";
+import { Delete, EditableCommand, MoveToPosition, Input } from "./doc/commands";
+import { flatten, sliceDoc } from "./doc/edit";
 import { EditableSchema } from "./schema";
 import { ParserConfig } from "./dom/parser";
 

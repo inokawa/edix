@@ -5,7 +5,7 @@ import {
   type DocFragment,
   type SelectionSnapshot,
   type Writeable,
-} from "../types";
+} from "./types";
 
 const splitAt = (targetStr: string, index: number): [string, string] => {
   return [targetStr.slice(0, index), targetStr.slice(index)];

@@ -1,5 +1,5 @@
-import type { EditableCommand } from "../commands";
-import type { DocFragment } from "../types";
+import type { EditableCommand } from "../doc/commands";
+import type { DocFragment } from "../doc/types";
 
 export interface EditableSchema<T> {
   single: boolean;
