@@ -132,6 +132,24 @@ const replaceRange = (
 /**
  * @internal
  */
+export const sliceDoc = (
+  doc: DocFragment,
+  start: Position,
+  end: Position
+): DocFragment => {
+  if (compareLine(start, end) === 0) {
+    return [split(split(doc[start[0]]!, end[1])[0], start[1])[1]];
+  }
+  return [
+    split(doc[start[0]]!, start[1])[1],
+    ...doc.slice(start[0] + 1, end[0]),
+    split(doc[end[0]]!, end[1])[0],
+  ];
+};
+
+/**
+ * @internal
+ */
 export const insertEdit = (
   doc: Writeable<DocFragment>,
   selection: Writeable<SelectionSnapshot>,

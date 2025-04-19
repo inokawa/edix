@@ -237,29 +237,14 @@ export const getEmptySelectionSnapshot = (): SelectionSnapshot => {
 
 const compareDomPosition = (a: Node, b: Node) => a.compareDocumentPosition(b);
 
-/**
- * @internal
- */
-export const takeSelectionSnapshot = (
+const serializeRange = (
   root: Element,
   isSingleline: boolean,
-  config: ParserConfig
+  config: ParserConfig,
+  range: Range,
+  backward?: boolean
 ): SelectionSnapshot => {
-  const selection = getDOMSelection(root);
-  const range = getSelectionRangeInEditor(selection, root);
-  if (!range) {
-    return getEmptySelectionSnapshot();
-  }
-
   const { startOffset, startContainer, endOffset, endContainer } = range;
-
-  // https://stackoverflow.com/questions/9180405/detect-direction-of-user-selection-with-javascript
-  const backward =
-    startContainer === endContainer
-      ? selection.anchorOffset > selection.focusOffset
-      : (compareDomPosition(selection.anchorNode!, selection.focusNode!) &
-          DOCUMENT_POSITION_PRECEDING) !==
-        0;
 
   let start: Position;
   let end: Position;
@@ -289,12 +274,47 @@ export const takeSelectionSnapshot = (
       isSingleline,
       config
     );
-    end = selection.isCollapsed
-      ? start
-      : serializePosition(root, endContainer, endOffset, isSingleline, config);
+    end =
+      startContainer === endContainer && startOffset === endOffset
+        ? start
+        : serializePosition(
+            root,
+            endContainer,
+            endOffset,
+            isSingleline,
+            config
+          );
   }
 
   return [backward ? end : start, backward ? start : end];
+};
+
+/**
+ * @internal
+ */
+export const takeSelectionSnapshot = (
+  root: Element,
+  isSingleline: boolean,
+  config: ParserConfig
+): SelectionSnapshot => {
+  const selection = getDOMSelection(root);
+  const range = getSelectionRangeInEditor(selection, root);
+  if (!range) {
+    return getEmptySelectionSnapshot();
+  }
+
+  return serializeRange(
+    root,
+    isSingleline,
+    config,
+    range,
+    // https://stackoverflow.com/questions/9180405/detect-direction-of-user-selection-with-javascript
+    range.startContainer === range.endContainer
+      ? selection.anchorOffset > selection.focusOffset
+      : (compareDomPosition(selection.anchorNode!, selection.focusNode!) &
+          DOCUMENT_POSITION_PRECEDING) !==
+          0
+  );
 };
 
 type NodeRef = Element | string;
@@ -470,10 +490,17 @@ export const readDocAll = (
 /**
  * @internal
  */
-export const getSelectedElements = (root: Element): Node | undefined => {
+export const getSelectedRange = (
+  root: Element,
+  isSingleline: boolean,
+  config: ParserConfig
+): [Node, readonly [Position, Position]] | undefined => {
   const range = getSelectionRangeInEditor(getDOMSelection(root), root);
   if (!range) return;
-  return range.cloneContents();
+  return [
+    range.cloneContents(),
+    serializeRange(root, isSingleline, config, range),
+  ];
 };
 
 /**
