@@ -1039,7 +1039,7 @@ test.describe("Keydown", () => {
 });
 
 test.describe("Cut", () => {
-  test("noop (collapsed selection)", async ({ page }) => {
+  test("noop (collapsed selection)", async ({ page, browserName }) => {
     await page.goto(storyUrl("basics-plain--multiline"));
 
     const editable = await getEditable(page);
@@ -1062,9 +1062,14 @@ test.describe("Cut", () => {
     expect(await getSelection(editable)).toEqual(
       createSelection({ offset: 2 })
     );
+
+    // https://github.com/microsoft/playwright/issues/13037#issuecomment-1078208810
+    if (browserName !== "chromium") return;
+    expect(await readClipboard(page, "text/plain")).toEqual(null);
+    expect(await readClipboard(page, "text/html")).toEqual(null);
   });
 
-  test("cut chars", async ({ page }) => {
+  test("cut chars", async ({ page, browserName }) => {
     await page.goto(storyUrl("basics-plain--multiline"));
 
     const editable = await getEditable(page);
@@ -1095,9 +1100,16 @@ test.describe("Cut", () => {
     expect(await getSelection(editable)).toEqual(
       createSelection({ offset: 1 })
     );
+
+    // https://github.com/microsoft/playwright/issues/13037#issuecomment-1078208810
+    if (browserName !== "chromium") return;
+    expect(await readClipboard(page, "text/plain")).toEqual(
+      initialValue[0].slice(1, 1 + selLength)
+    );
+    expect(await readClipboard(page, "text/html")).toEqual(null);
   });
 
-  test("cut linebreak", async ({ page }) => {
+  test("cut linebreak", async ({ page, browserName }) => {
     await page.goto(storyUrl("basics-plain--multiline"));
 
     const editable = await getEditable(page);
@@ -1129,9 +1141,16 @@ test.describe("Cut", () => {
     expect(await getSelection(editable)).toEqual(
       createSelection({ offset: len })
     );
+
+    // https://github.com/microsoft/playwright/issues/13037#issuecomment-1078208810
+    if (browserName !== "chromium") return;
+    expect(await readClipboard(page, "text/plain")).toEqual(
+      [initialValue[0].slice(len), initialValue[1].slice(0, len)].join("\n")
+    );
+    expect(await readClipboard(page, "text/html")).toEqual(null);
   });
 
-  test("cut all", async ({ page }) => {
+  test("cut all", async ({ page, browserName }) => {
     await page.goto(storyUrl("basics-plain--multiline"));
 
     const editable = await getEditable(page);
@@ -1158,14 +1177,20 @@ test.describe("Cut", () => {
 
     expect(await getText(editable)).toEqual([""]);
     expect(await getSelection(editable)).toEqual(createSelection());
+
+    // https://github.com/microsoft/playwright/issues/13037#issuecomment-1078208810
+    if (browserName !== "chromium") return;
+    expect(await readClipboard(page, "text/plain")).toEqual(
+      initialValue.join("\n")
+    );
+    expect(await readClipboard(page, "text/html")).toEqual(null);
   });
 });
 
 test.describe("Copy", () => {
-  test.beforeEach(async ({ context, browserName }) => {
+  test.beforeEach(async ({ browserName }) => {
     // https://github.com/microsoft/playwright/issues/13037#issuecomment-1078208810
     test.skip(browserName !== "chromium");
-    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   });
 
   test("copy selected", async ({ page }) => {
@@ -1210,10 +1235,9 @@ test.describe("Copy", () => {
 });
 
 test.describe("Paste", () => {
-  test.beforeEach(async ({ context, browserName }) => {
+  test.beforeEach(async ({ browserName }) => {
     // https://github.com/microsoft/playwright/issues/13037#issuecomment-1078208810
     test.skip(browserName !== "chromium");
-    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   });
 
   const writeText = async (page: Page, value: string) => {

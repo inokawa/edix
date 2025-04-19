@@ -42,7 +42,11 @@ export default defineConfig({
     : [
         {
           name: "chromium",
-          use: { ...devices["Desktop Chrome"] },
+          use: {
+            ...devices["Desktop Chrome"],
+            // https://github.com/microsoft/playwright/issues/13037#issuecomment-1078208810
+            permissions: ["clipboard-read", "clipboard-write"],
+          },
           testIgnore: FRAMEWORK_SPEC,
         },
         {
