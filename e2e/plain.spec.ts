@@ -1168,6 +1168,27 @@ test.describe("Copy", () => {
     await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   });
 
+  test("copy selected", async ({ page }) => {
+    await page.goto(storyUrl("basics-plain--multiline"));
+
+    const editable = await getEditable(page);
+    const initialValue = await getText(editable);
+
+    await editable.focus();
+
+    expect(await getSelection(editable)).toEqual(createSelection());
+
+    await page.keyboard.press("ArrowRight");
+    await page.keyboard.press("Shift+ArrowRight");
+    await page.keyboard.press("Shift+ArrowDown");
+    await page.keyboard.press("ControlOrMeta+C");
+
+    expect(await readClipboard(page, "text/plain")).toEqual(
+      [initialValue[0].slice(1), initialValue[1].slice(0, 1)].join("\n")
+    );
+    expect(await readClipboard(page, "text/html")).toEqual(null);
+  });
+
   test("copy all", async ({ page }) => {
     await page.goto(storyUrl("basics-plain--multiline"));
 
