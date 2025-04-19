@@ -5,6 +5,7 @@ import {
   NodeData,
   Position,
   SelectionSnapshot,
+  VoidNode,
   Writeable,
 } from "./types";
 
@@ -145,6 +146,29 @@ export const sliceDoc = (
     ...doc.slice(start[0] + 1, end[0]),
     split(doc[end[0]]!, end[1])[0],
   ];
+};
+
+/**
+ * @internal
+ */
+export const docToString = (
+  doc: DocFragment,
+  voidToString?: (node: VoidNode) => string
+): string => {
+  return doc.reduce((acc, r, i) => {
+    if (i !== 0) {
+      acc += "\n";
+    }
+    return (
+      acc +
+      r.reduce(
+        (acc, n) =>
+          acc +
+          (n.type === NODE_TEXT ? n.text : voidToString ? voidToString(n) : ""),
+        ""
+      )
+    );
+  }, "");
 };
 
 /**

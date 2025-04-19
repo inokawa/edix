@@ -2,6 +2,7 @@ import { InsertFragment, InsertText } from "../doc/commands";
 import { isCommentNode } from "../dom/parser";
 import { NODE_TEXT, TextNode, type NodeData } from "../doc/types";
 import type { EditableSchema } from "./types";
+import { docToString } from "../doc/edit";
 
 export interface EditableVoidSerializer<T> {
   is: (node: HTMLElement) => boolean;
@@ -108,22 +109,13 @@ export const schema = <
       return;
     },
     copy: (dataTransfer, doc, dom) => {
-      const str = doc.reduce((acc, r, i) => {
-        if (i !== 0) {
-          acc += "\n";
-        }
-        return (
-          acc +
-          r.reduce((acc, t) => {
-            if (t.type === NODE_TEXT) {
-              return acc + t.text;
-            }
-            const voidNode = voidCache.get(t.data as VoidNodeData)!;
-            return acc + voids[voidNode.type]!.plain(t.data);
-          }, "")
-        );
-      }, "");
-      dataTransfer.setData("text/plain", str);
+      dataTransfer.setData(
+        "text/plain",
+        docToString(doc, (node) => {
+          const voidNode = voidCache.get(node.data as VoidNodeData)!;
+          return voids[voidNode.type]!.plain(node.data);
+        })
+      );
 
       const wrapper = document.createElement("div");
       wrapper.appendChild(dom);
