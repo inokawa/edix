@@ -241,11 +241,9 @@ const serializeRange = (
   root: Element,
   isSingleline: boolean,
   config: ParserConfig,
-  range: Range,
+  { startOffset, startContainer, endOffset, endContainer }: Range,
   backward?: boolean
 ): SelectionSnapshot => {
-  const { startOffset, startContainer, endOffset, endContainer } = range;
-
   let start: Position;
   let end: Position;
   if (root === startContainer && !isSingleline) {
