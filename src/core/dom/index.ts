@@ -394,9 +394,22 @@ export const readDom = (
 /**
  * @internal
  */
+export const REMOVE_MUTATION = 0b0001;
+/**
+ * @internal
+ */
+export const ADD_MUTATION = 0b0010;
+/**
+ * @internal
+ */
+export const TEXT_UPDATE_MUTATION = 0b0100;
+
+/**
+ * @internal
+ */
 export const detectMutationRange = (
   root: Element,
-  nodes: Set<Node>,
+  nodes: Map<Node, number>,
   config: ParserConfig
 ): [Node, Node, boolean] | undefined => {
   let start: Node | undefined;
@@ -404,7 +417,7 @@ export const detectMutationRange = (
   let startChild: Node | undefined;
   let endChild: Node | undefined;
 
-  for (const n of nodes) {
+  for (const n of nodes.keys()) {
     if (n.isConnected && (isTextNode(n) || isElementNode(n))) {
       if (
         !start ||
@@ -421,7 +434,6 @@ export const detectMutationRange = (
   if (!start || !end) {
     return;
   }
-  const startBlock = findClosestBlockNode(root, start);
 
   parse(
     (next) => {
@@ -442,10 +454,13 @@ export const detectMutationRange = (
   if (!startChild || !endChild) {
     return;
   }
+  const startBlock = findClosestBlockNode(root, startChild);
+
   return [
     startChild,
     endChild,
-    startBlock === start && config._isBlock(startBlock),
+    startChild !== startBlock &&
+      !!((nodes.get(startBlock) || 0) & (ADD_MUTATION + REMOVE_MUTATION)),
   ];
 };
 

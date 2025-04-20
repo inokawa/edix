@@ -12,6 +12,9 @@ import {
   refToDoc,
   readDom,
   defaultIsBlockNode,
+  ADD_MUTATION,
+  REMOVE_MUTATION,
+  TEXT_UPDATE_MUTATION,
 } from "./dom";
 import { createMutationObserver } from "./mutation";
 import { DocFragment, SelectionSnapshot, Writeable } from "./doc/types";
@@ -241,17 +244,20 @@ export const editable = <T>(
         parserConfig
       );
 
-      const nodes = new Set<Node>();
+      const nodes = new Map<Node, number>();
       for (const m of queue) {
         if (m.type === "childList") {
           for (const n of m.addedNodes) {
-            nodes.add(n);
+            nodes.set(n, (nodes.get(n) || 0) | ADD_MUTATION);
           }
           for (const n of m.removedNodes) {
-            nodes.add(n);
+            nodes.set(n, (nodes.get(n) || 0) | REMOVE_MUTATION);
           }
         } else {
-          nodes.add(m.target);
+          nodes.set(
+            m.target,
+            (nodes.get(m.target) || 0) | TEXT_UPDATE_MUTATION
+          );
         }
       }
 
