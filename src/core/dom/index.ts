@@ -20,7 +20,6 @@ import {
   NODE_TEXT,
   NODE_VOID,
 } from "../doc/types";
-import { min } from "../utils";
 
 export { defaultIsBlockNode } from "./parser";
 
@@ -122,7 +121,7 @@ export const setSelectionToDOM = (
         range.setStartAfter(node);
       }
     } else {
-      range.setStart(node, min(offset, node.data.length));
+      range.setStart(node, offset);
     }
   }
   {
@@ -135,7 +134,7 @@ export const setSelectionToDOM = (
         range.setEndAfter(node);
       }
     } else {
-      range.setEnd(node, min(offset, node.data.length));
+      range.setEnd(node, offset);
     }
   }
 
