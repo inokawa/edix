@@ -205,11 +205,11 @@ export const editable = <T>(
     }
   };
 
-  const restoreSelectionOnTimeout = () => {
+  const restoreSelectionOnTimeout = (nextSelection: SelectionSnapshot) => {
+    currentSelection = nextSelection;
     // We set updated selection after the next rerender, because it will modify DOM and selection again.
     // However frameworks may not rerender for optimization in some case, for example if selection is updated but document is the same.
     // So we also schedule restoring on timeout for safe.
-    const nextSelection = currentSelection;
     restoreSelectionQueue = setTimeout(() => {
       setSelectionToDOM(
         document,
@@ -352,7 +352,6 @@ export const editable = <T>(
         // TODO improve
         const prevDoc = history.get()[0];
         const prevSelection = currentSelection;
-        currentSelection = selection;
 
         if (
           doc.length !== prevDoc.length ||
@@ -364,7 +363,7 @@ export const editable = <T>(
         }
       }
 
-      restoreSelectionOnTimeout();
+      restoreSelectionOnTimeout(selection);
     }
   };
 
@@ -385,10 +384,9 @@ export const editable = <T>(
         const nextHistory = e.shiftKey ? history.redo() : history.undo();
 
         if (nextHistory) {
-          currentSelection = nextHistory[1];
           onChange(docToJS(nextHistory[0]));
 
-          restoreSelectionOnTimeout();
+          restoreSelectionOnTimeout(nextHistory[1]);
         }
       }
     }
