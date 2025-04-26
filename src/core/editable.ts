@@ -447,10 +447,8 @@ export const editable = <T>(
   const copySelected = (dataTransfer: DataTransfer) => {
     const selected = getSelectedRange(element, isSingleline, parserConfig);
     if (selected) {
-      copy(
-        dataTransfer,
-        sliceDoc(history.get()[0], ...selected[1]),
-        selected[0]
+      copy(dataTransfer, sliceDoc(history.get()[0], ...selected[1]), () =>
+        selected[0].cloneContents()
       );
     }
   };

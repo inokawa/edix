@@ -491,13 +491,10 @@ export const getSelectedRange = (
   root: Element,
   isSingleline: boolean,
   config: ParserConfig
-): [Node, readonly [Position, Position]] | undefined => {
+): [Range, readonly [Position, Position]] | undefined => {
   const range = getSelectionRangeInEditor(getDOMSelection(root), root);
   if (!range) return;
-  return [
-    range.cloneContents(),
-    serializeRange(root, isSingleline, config, range),
-  ];
+  return [range, serializeRange(root, isSingleline, config, range)];
 };
 
 /**

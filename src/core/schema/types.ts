@@ -5,7 +5,7 @@ export interface EditableSchema<T> {
   single: boolean;
   js: (doc: DocFragment) => T;
   void: (element: Element) => Record<string, unknown> | void;
-  copy: (dataTransfer: DataTransfer, doc: DocFragment, dom: Node) => void;
+  copy: (dataTransfer: DataTransfer, doc: DocFragment, dom: () => Node) => void;
   paste: (
     dataTransfer: DataTransfer,
     command: <A extends unknown[]>(fn: EditableCommand<A>, ...args: A) => void,

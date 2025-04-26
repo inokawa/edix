@@ -118,7 +118,7 @@ export const schema = <
       );
 
       const wrapper = document.createElement("div");
-      wrapper.appendChild(dom);
+      wrapper.appendChild(dom());
       dataTransfer.setData("text/html", wrapper.innerHTML);
     },
     paste: (dataTransfer, command, read) => {
