@@ -180,7 +180,7 @@ const findClosestBlockNode = (root: Element, startNode: Node): Element => {
 
 const serializePosition = (
   root: Element,
-  targetNode: Node,
+  node: Node,
   offsetAtNode: number,
   config: ParserConfig,
   isArtifitialPosition?: boolean,
@@ -188,7 +188,7 @@ const serializePosition = (
 ): Position => {
   let row: Node;
   let lineIndex: number;
-  if (root === targetNode) {
+  if (root === node) {
     if (!root.hasChildNodes()) {
       // for placeholder
       return [0, 0];
@@ -204,7 +204,7 @@ const serializePosition = (
       index !== offsetAtNode
     );
   } else {
-    const maybeBlock = findClosestBlockNode(root, targetNode);
+    const maybeBlock = findClosestBlockNode(root, node);
     if (config._isBlock(maybeBlock)) {
       row = maybeBlock;
       lineIndex = Array.prototype.indexOf.call(root.children, row);
@@ -214,11 +214,11 @@ const serializePosition = (
     }
   }
 
-  if (!isArtifitialPosition && isElementNode(targetNode)) {
+  if (!isArtifitialPosition && isElementNode(node)) {
     // If anchor/focus of selection is not selectable node, it will have offset relative to its parent
     //      0  1       2               3
     // <div>aaaa<img /><span>bbbb</span></div>
-    targetNode = targetNode.childNodes[offsetAtNode]!;
+    node = node.childNodes[offsetAtNode]!;
     offsetAtNode = 0;
   }
 
@@ -238,7 +238,7 @@ const serializePosition = (
     },
     row,
     config,
-    { _endNode: targetNode, _excludeEnd: !includeEnd }
+    { _endNode: node, _excludeEnd: !includeEnd }
   );
 };
 
@@ -266,7 +266,7 @@ const serializeRange = (
       ? start
       : serializePosition(root, endContainer, endOffset, config);
 
-  return [backward ? end : start, backward ? start : end];
+  return backward ? [end, start] : [start, end];
 };
 
 /**
