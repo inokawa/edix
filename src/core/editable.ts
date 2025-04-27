@@ -16,7 +16,7 @@ import {
 import { createMutationObserver } from "./mutation";
 import { DocFragment, SelectionSnapshot, Writeable } from "./doc/types";
 import { microtask } from "./utils";
-import { Delete, EditableCommand, MoveToPosition, Input } from "./doc/commands";
+import { Delete, EditableCommand, MoveTo, Input } from "./doc/commands";
 import { flatten, sliceDoc } from "./doc/edit";
 import { EditableSchema } from "./schema";
 import { ParserConfig } from "./dom/parser";
@@ -308,9 +308,9 @@ export const editable = <T>(
               _isBlock: afterRange[2],
               _doc: refToDoc(afterSlicedDom, serializeVoid),
             }
-          : null,
-        selection
+          : null
       );
+      execCommand(MoveTo, ...selection);
     }
   };
 
@@ -467,7 +467,7 @@ export const editable = <T>(
     );
     if (dataTransfer && droppedPosition) {
       // move selection first to keep selection after modifications
-      execCommand(MoveToPosition, droppedPosition);
+      execCommand(MoveTo, droppedPosition);
       if (isDragging) {
         execCommand(Delete, currentSelection);
       } else {

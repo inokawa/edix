@@ -66,12 +66,14 @@ export const InsertText: EditableCommand<[text: string]> = (
 /**
  * @internal
  */
-export const MoveToPosition: EditableCommand<[position: Position]> = (
+export const MoveTo: EditableCommand<[anchor: Position, focus?: Position]> = (
   _doc,
   selection,
-  position
+  anchor,
+  focus = anchor
 ) => {
-  selection[0] = selection[1] = position;
+  selection[0] = anchor;
+  selection[1] = focus;
 };
 
 const movePositionPrevIfExist = (doc: DocFragment, pos: Position): Position => {
@@ -88,10 +90,9 @@ export const Input: EditableCommand<
       _start: Position;
       _isBlock: boolean;
       _doc: DocFragment;
-    } | null,
-    nextSelection?: SelectionSnapshot
+    } | null
   ]
-> = (doc, selection, deleteLines, insertLines, nextSelection) => {
+> = (doc, selection, deleteLines, insertLines) => {
   if (deleteLines) {
     deleteEdit(
       doc,
@@ -111,9 +112,5 @@ export const Input: EditableCommand<
         ? movePositionPrevIfExist(doc, insertLines._start)
         : insertLines._start
     );
-  }
-  if (nextSelection) {
-    selection[0] = nextSelection[0];
-    selection[1] = nextSelection[1];
   }
 };
