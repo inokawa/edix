@@ -20,6 +20,7 @@ import {
   NODE_TEXT,
   NODE_VOID,
 } from "../doc/types";
+import { min } from "../utils";
 
 export { defaultIsBlockNode } from "./parser";
 
@@ -188,9 +189,25 @@ const serializePosition = (
 ): Position => {
   let row: Node;
   let lineIndex: number;
-  if (isSingleline || root.childElementCount === 0) {
+  if (
+    isSingleline ||
+    // especially for placeholder
+    root.childElementCount === 0
+  ) {
     row = root;
     lineIndex = 0;
+  } else if (root === targetNode) {
+    // special case for Ctrl+A in firefox
+    const index = min(offsetAtNode, root.childNodes.length - 1);
+    return serializePosition(
+      root,
+      root.childNodes[index]!,
+      0,
+      isSingleline,
+      config,
+      isArtifitialPosition,
+      index !== offsetAtNode
+    );
   } else {
     row = findClosestBlockNode(root, targetNode);
     lineIndex = Array.prototype.indexOf.call(root.children, row);
@@ -243,45 +260,17 @@ const serializeRange = (
   { startOffset, startContainer, endOffset, endContainer }: Range,
   backward?: boolean
 ): SelectionSnapshot => {
-  let start: Position;
-  let end: Position;
-  if (root === startContainer && !isSingleline) {
-    if (
-      startOffset === 0 &&
-      endOffset !== 0 &&
-      root.children.length <= endOffset
-    ) {
-      // special case for Ctrl+A in firefox
-      start = [0, 0];
-      end = serializePosition(
-        root,
-        root.lastElementChild!,
-        root.lastElementChild!.textContent!.length,
-        isSingleline,
-        config
-      );
-    } else {
-      return getEmptySelectionSnapshot();
-    }
-  } else {
-    start = serializePosition(
-      root,
-      startContainer,
-      startOffset,
-      isSingleline,
-      config
-    );
-    end =
-      startContainer === endContainer && startOffset === endOffset
-        ? start
-        : serializePosition(
-            root,
-            endContainer,
-            endOffset,
-            isSingleline,
-            config
-          );
-  }
+  const start = serializePosition(
+    root,
+    startContainer,
+    startOffset,
+    isSingleline,
+    config
+  );
+  const end =
+    startContainer === endContainer && startOffset === endOffset
+      ? start
+      : serializePosition(root, endContainer, endOffset, isSingleline, config);
 
   return [backward ? end : start, backward ? start : end];
 };
