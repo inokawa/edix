@@ -88,10 +88,10 @@ export const getSeletedText = (
 
 export const getSelection = (
   editable: Locator,
-  config: { isSingleline?: boolean; blockTag?: string } = {}
+  config: { blockTag?: string } = {}
 ): Promise<SelectionSnapshot> => {
-  return editable.evaluate((element, { isSingleline = false, blockTag }) => {
-    return window.edix.takeSelectionSnapshot(element, isSingleline, {
+  return editable.evaluate((element, { blockTag }) => {
+    return window.edix.takeSelectionSnapshot(element, {
       _document: element.ownerDocument,
       _isBlock: blockTag
         ? (n) => n.tagName === blockTag.toUpperCase()

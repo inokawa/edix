@@ -150,9 +150,7 @@ test.describe("type word", () => {
 
       await editable.focus();
 
-      expect(await getSelection(editable, { isSingleline: true })).toEqual(
-        createSelection()
-      );
+      expect(await getSelection(editable)).toEqual(createSelection());
 
       // Input
       const text = "test";
@@ -161,7 +159,7 @@ test.describe("type word", () => {
         insertAt(initialValue, text, [0, 0])
       );
       const textLength = text.length;
-      expect(await getSelection(editable, { isSingleline: true })).toEqual(
+      expect(await getSelection(editable)).toEqual(
         createSelection({ offset: textLength })
       );
     });
@@ -174,13 +172,11 @@ test.describe("type word", () => {
 
       await editable.focus();
 
-      expect(await getSelection(editable, { isSingleline: true })).toEqual(
-        createSelection()
-      );
+      expect(await getSelection(editable)).toEqual(createSelection());
 
       // Move caret
       await page.keyboard.press("ArrowRight");
-      expect(await getSelection(editable, { isSingleline: true })).toEqual(
+      expect(await getSelection(editable)).toEqual(
         createSelection({ offset: 1 })
       );
 
@@ -191,7 +187,7 @@ test.describe("type word", () => {
         insertAt(initialValue, text, [0, 1])
       );
       const textLength = text.length;
-      expect(await getSelection(editable, { isSingleline: true })).toEqual(
+      expect(await getSelection(editable)).toEqual(
         createSelection({ offset: 1 + textLength })
       );
     });
@@ -206,9 +202,7 @@ test.describe("type word", () => {
 
       await editable.focus();
 
-      expect(await getSelection(editable, { isSingleline: true })).toEqual(
-        createSelection()
-      );
+      expect(await getSelection(editable)).toEqual(createSelection());
 
       const client = await page.context().newCDPSession(page);
       await client.send("Input.imeSetComposition", {
@@ -229,7 +223,7 @@ test.describe("type word", () => {
         insertAt(initialValue, "😂😭", [0, 0])
       );
       const textLength = "😂😭".length;
-      expect(await getSelection(editable, { isSingleline: true })).toEqual(
+      expect(await getSelection(editable)).toEqual(
         createSelection({ offset: textLength })
       );
     });

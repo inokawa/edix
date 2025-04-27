@@ -222,11 +222,7 @@ export const editable = <T>(
   };
 
   const syncSelection = () => {
-    currentSelection = takeSelectionSnapshot(
-      element,
-      isSingleline,
-      parserConfig
-    );
+    currentSelection = takeSelectionSnapshot(element, parserConfig);
   };
 
   const flushInput = () => {
@@ -235,11 +231,7 @@ export const editable = <T>(
     observer._accept(false);
     if (queue.length) {
       // Get current document and selection from DOM
-      const selection = takeSelectionSnapshot(
-        element,
-        isSingleline,
-        parserConfig
-      );
+      const selection = takeSelectionSnapshot(element, parserConfig);
 
       const nodes = new Set<Node>();
       for (const m of queue) {
@@ -266,13 +258,7 @@ export const editable = <T>(
 
       const afterPos =
         afterRange &&
-        domToRange(
-          element,
-          isSingleline,
-          parserConfig,
-          afterRange[0],
-          afterRange[1]
-        );
+        domToRange(element, parserConfig, afterRange[0], afterRange[1]);
 
       // Revert DOM
       let m: MutationRecord | undefined;
@@ -293,13 +279,7 @@ export const editable = <T>(
       const beforeRange = detectMutationRange(element, nodes, parserConfig);
       const beforePos =
         beforeRange &&
-        domToRange(
-          element,
-          isSingleline,
-          parserConfig,
-          beforeRange[0],
-          beforeRange[1]
-        );
+        domToRange(element, parserConfig, beforeRange[0], beforeRange[1]);
 
       observer._flush();
 
@@ -445,7 +425,7 @@ export const editable = <T>(
   };
 
   const copySelected = (dataTransfer: DataTransfer) => {
-    const selected = getSelectedRange(element, isSingleline, parserConfig);
+    const selected = getSelectedRange(element, parserConfig);
     if (selected) {
       copy(dataTransfer, sliceDoc(history.get()[0], ...selected[1]), () =>
         selected[0].cloneContents()
@@ -483,7 +463,6 @@ export const editable = <T>(
       document,
       element,
       e,
-      isSingleline,
       parserConfig
     );
     if (dataTransfer && droppedPosition) {

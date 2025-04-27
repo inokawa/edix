@@ -182,35 +182,36 @@ const serializePosition = (
   root: Element,
   targetNode: Node,
   offsetAtNode: number,
-  isSingleline: boolean,
   config: ParserConfig,
   isArtifitialPosition?: boolean,
   includeEnd?: boolean
 ): Position => {
   let row: Node;
   let lineIndex: number;
-  if (
-    isSingleline ||
-    // especially for placeholder
-    root.childElementCount === 0
-  ) {
-    row = root;
-    lineIndex = 0;
-  } else if (root === targetNode) {
+  if (root === targetNode) {
+    if (!root.hasChildNodes()) {
+      // for placeholder
+      return [0, 0];
+    }
     // special case for Ctrl+A in firefox
     const index = min(offsetAtNode, root.childNodes.length - 1);
     return serializePosition(
       root,
       root.childNodes[index]!,
       0,
-      isSingleline,
       config,
       isArtifitialPosition,
       index !== offsetAtNode
     );
   } else {
-    row = findClosestBlockNode(root, targetNode);
-    lineIndex = Array.prototype.indexOf.call(root.children, row);
+    const maybeBlock = findClosestBlockNode(root, targetNode);
+    if (config._isBlock(maybeBlock)) {
+      row = maybeBlock;
+      lineIndex = Array.prototype.indexOf.call(root.children, row);
+    } else {
+      row = root;
+      lineIndex = 0;
+    }
   }
 
   if (!isArtifitialPosition && isElementNode(targetNode)) {
@@ -255,22 +256,15 @@ const compareDomPosition = (a: Node, b: Node) => a.compareDocumentPosition(b);
 
 const serializeRange = (
   root: Element,
-  isSingleline: boolean,
   config: ParserConfig,
   { startOffset, startContainer, endOffset, endContainer }: Range,
   backward?: boolean
 ): SelectionSnapshot => {
-  const start = serializePosition(
-    root,
-    startContainer,
-    startOffset,
-    isSingleline,
-    config
-  );
+  const start = serializePosition(root, startContainer, startOffset, config);
   const end =
     startContainer === endContainer && startOffset === endOffset
       ? start
-      : serializePosition(root, endContainer, endOffset, isSingleline, config);
+      : serializePosition(root, endContainer, endOffset, config);
 
   return [backward ? end : start, backward ? start : end];
 };
@@ -280,7 +274,6 @@ const serializeRange = (
  */
 export const takeSelectionSnapshot = (
   root: Element,
-  isSingleline: boolean,
   config: ParserConfig
 ): SelectionSnapshot => {
   const selection = getDOMSelection(root);
@@ -291,7 +284,6 @@ export const takeSelectionSnapshot = (
 
   return serializeRange(
     root,
-    isSingleline,
     config,
     range,
     // https://stackoverflow.com/questions/9180405/detect-direction-of-user-selection-with-javascript
@@ -443,18 +435,16 @@ export const detectMutationRange = (
  */
 export const domToRange = (
   root: Element,
-  isSingleline: boolean,
   config: ParserConfig,
   startNode: Node,
   endNode: Node
 ): [Position, Position] => {
   return [
-    serializePosition(root, startNode, 0, isSingleline, config, true),
+    serializePosition(root, startNode, 0, config, true),
     serializePosition(
       root,
       endNode,
       0, // TODO unused
-      isSingleline,
       config,
       true,
       true
@@ -478,12 +468,11 @@ export const readDocAll = (
  */
 export const getSelectedRange = (
   root: Element,
-  isSingleline: boolean,
   config: ParserConfig
 ): [Range, readonly [Position, Position]] | undefined => {
   const range = getSelectionRangeInEditor(getDOMSelection(root), root);
   if (!range) return;
-  return [range, serializeRange(root, isSingleline, config, range)];
+  return [range, serializeRange(root, config, range)];
 };
 
 /**
@@ -493,7 +482,6 @@ export const getPointedCaretPosition = (
   document: Document,
   root: Element,
   { clientX, clientY }: MouseEvent,
-  isSingleline: boolean,
   config: ParserConfig
 ): Position | void => {
   // https://developer.mozilla.org/en-US/docs/Web/API/Document/caretPositionFromPoint
@@ -509,7 +497,6 @@ export const getPointedCaretPosition = (
         root,
         position.offsetNode,
         position.offset,
-        isSingleline,
         config
       );
     }
@@ -520,7 +507,6 @@ export const getPointedCaretPosition = (
         root,
         range.startContainer,
         range.startOffset,
-        isSingleline,
         config
       );
     }
