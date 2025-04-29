@@ -370,7 +370,14 @@ const detectMutationRange = (
   root: Element,
   nodes: Set<Node>,
   config: ParserConfig
-): { _start: Node; _end: Node; _isBlock: boolean } | undefined => {
+):
+  | {
+      _range: [Position, Position];
+      _start: Node;
+      _end: Node;
+      _isBlock: boolean;
+    }
+  | undefined => {
   let start: Node | undefined;
   let end: Node | undefined;
   let startChild: Node | undefined;
@@ -414,7 +421,19 @@ const detectMutationRange = (
   if (!startChild || !endChild) {
     return;
   }
+
   return {
+    _range: [
+      serializePosition(root, startChild, 0, config, true),
+      serializePosition(
+        root,
+        endChild,
+        0, // TODO unused
+        config,
+        true,
+        true
+      ),
+    ],
     _start: startChild,
     _end: endChild,
     _isBlock: startBlock === start && config._isBlock(startBlock),
@@ -463,9 +482,6 @@ export const readEditAndRevert = (
       })
     : [];
 
-  const afterPos =
-    afterRange && domToRange(root, config, afterRange._start, afterRange._end);
-
   // Revert DOM
   let m: MutationRecord | undefined;
   while ((m = queue.pop())) {
@@ -483,43 +499,21 @@ export const readEditAndRevert = (
   }
 
   const beforeRange = detectMutationRange(root, nodes, config);
-  const beforePos =
-    beforeRange &&
-    domToRange(root, config, beforeRange._start, beforeRange._end);
 
   return [
-    beforePos
+    beforeRange
       ? {
-          _range: beforePos,
+          _range: beforeRange._range,
           _isBlock: beforeRange._isBlock,
         }
       : null,
-    afterPos
+    afterRange
       ? {
-          _start: afterPos[0],
+          _start: afterRange._range[0],
           _isBlock: afterRange._isBlock,
           _doc: refToDoc(afterSlicedDom, serializeVoid),
         }
       : null,
-  ];
-};
-
-const domToRange = (
-  root: Element,
-  config: ParserConfig,
-  startNode: Node,
-  endNode: Node
-): [Position, Position] => {
-  return [
-    serializePosition(root, startNode, 0, config, true),
-    serializePosition(
-      root,
-      endNode,
-      0, // TODO unused
-      config,
-      true,
-      true
-    ),
   ];
 };
 
