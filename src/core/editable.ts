@@ -166,7 +166,7 @@ export const editable = <T>(
 
   setContentEditable();
 
-  const commands: [EditableCommand<any[]>, args: unknown[]][] = [];
+  const commands: { _fn: EditableCommand<any[]>; _args: unknown[] }[] = [];
 
   const history = createHistory<
     readonly [doc: DocFragment, selection: SelectionSnapshot]
@@ -262,7 +262,7 @@ export const editable = <T>(
 
       let command: (typeof commands)[number] | undefined;
       while ((command = commands.pop())) {
-        command[0](doc, selection, ...command[1]);
+        command._fn(doc, selection, ...command._args);
       }
 
       if (!readonly) {
@@ -289,7 +289,7 @@ export const editable = <T>(
   };
 
   const execCommand: EditableHandle["command"] = (fn, ...args) => {
-    commands.unshift([fn, args]);
+    commands.unshift({ _fn: fn, _args: args });
 
     queueTask(flushCommand);
   };
@@ -368,8 +368,8 @@ export const editable = <T>(
   const copySelected = (dataTransfer: DataTransfer) => {
     const selected = getSelectedRange(element, parserConfig);
     if (selected) {
-      copy(dataTransfer, sliceDoc(history.get()[0], ...selected[1]), () =>
-        selected[0].cloneContents()
+      copy(dataTransfer, sliceDoc(history.get()[0], ...selected[0]), () =>
+        selected[1].cloneContents()
       );
     }
   };

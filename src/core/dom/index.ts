@@ -370,7 +370,7 @@ const detectMutationRange = (
   root: Element,
   nodes: Set<Node>,
   config: ParserConfig
-): [Node, Node, boolean] | undefined => {
+): { _start: Node; _end: Node; _isBlock: boolean } | undefined => {
   let start: Node | undefined;
   let end: Node | undefined;
   let startChild: Node | undefined;
@@ -414,11 +414,11 @@ const detectMutationRange = (
   if (!startChild || !endChild) {
     return;
   }
-  return [
-    startChild,
-    endChild,
-    startBlock === start && config._isBlock(startBlock),
-  ];
+  return {
+    _start: startChild,
+    _end: endChild,
+    _isBlock: startBlock === start && config._isBlock(startBlock),
+  };
 };
 
 /**
@@ -458,13 +458,13 @@ export const readEditAndRevert = (
 
   const afterSlicedDom = afterRange
     ? readDom(root, config, {
-        _startNode: afterRange[0],
-        _endNode: afterRange[1],
+        _startNode: afterRange._start,
+        _endNode: afterRange._end,
       })
     : [];
 
   const afterPos =
-    afterRange && domToRange(root, config, afterRange[0], afterRange[1]);
+    afterRange && domToRange(root, config, afterRange._start, afterRange._end);
 
   // Revert DOM
   let m: MutationRecord | undefined;
@@ -484,18 +484,20 @@ export const readEditAndRevert = (
 
   const beforeRange = detectMutationRange(root, nodes, config);
   const beforePos =
-    beforeRange && domToRange(root, config, beforeRange[0], beforeRange[1]);
+    beforeRange &&
+    domToRange(root, config, beforeRange._start, beforeRange._end);
+
   return [
     beforePos
       ? {
           _range: beforePos,
-          _isBlock: beforeRange[2],
+          _isBlock: beforeRange._isBlock,
         }
       : null,
     afterPos
       ? {
           _start: afterPos[0],
-          _isBlock: afterRange[2],
+          _isBlock: afterRange._isBlock,
           _doc: refToDoc(afterSlicedDom, serializeVoid),
         }
       : null,
@@ -538,10 +540,10 @@ export const readDocAll = (
 export const getSelectedRange = (
   root: Element,
   config: ParserConfig
-): [Range, readonly [Position, Position]] | undefined => {
+): [readonly [Position, Position], Range] | undefined => {
   const range = getSelectionRangeInEditor(getDOMSelection(root), root);
   if (!range) return;
-  return [range, serializeRange(root, config, range)];
+  return [serializeRange(root, config, range), range];
 };
 
 /**
