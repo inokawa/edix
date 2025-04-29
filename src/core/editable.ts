@@ -7,11 +7,8 @@ import {
   getSelectedRange,
   getPointedCaretPosition,
   readDocAll,
-  detectMutationRange,
-  domToRange,
-  refToDoc,
-  readDom,
   defaultIsBlockNode,
+  readEditAndRevert,
 } from "./dom";
 import { createMutationObserver } from "./mutation";
 import { DocFragment, SelectionSnapshot, Writeable } from "./doc/types";
@@ -233,53 +230,12 @@ export const editable = <T>(
       // Get current document and selection from DOM
       const selection = takeSelectionSnapshot(element, parserConfig);
 
-      const nodes = new Set<Node>();
-      for (const m of queue) {
-        if (m.type === "childList") {
-          for (const n of m.addedNodes) {
-            nodes.add(n);
-          }
-          for (const n of m.removedNodes) {
-            nodes.add(n);
-          }
-        } else {
-          nodes.add(m.target);
-        }
-      }
-
-      const afterRange = detectMutationRange(element, nodes, parserConfig);
-
-      const afterSlicedDom = afterRange
-        ? readDom(element, parserConfig, {
-            _startNode: afterRange[0],
-            _endNode: afterRange[1],
-          })
-        : [];
-
-      const afterPos =
-        afterRange &&
-        domToRange(element, parserConfig, afterRange[0], afterRange[1]);
-
-      // Revert DOM
-      let m: MutationRecord | undefined;
-      while ((m = queue.pop())) {
-        if (m.type === "childList") {
-          const { target, removedNodes, addedNodes, nextSibling } = m;
-          for (let i = removedNodes.length - 1; i >= 0; i--) {
-            target.insertBefore(removedNodes[i]!, nextSibling);
-          }
-          for (let i = addedNodes.length - 1; i >= 0; i--) {
-            target.removeChild(addedNodes[i]!);
-          }
-        } else {
-          (m.target as CharacterData).nodeValue = m.oldValue!;
-        }
-      }
-
-      const beforeRange = detectMutationRange(element, nodes, parserConfig);
-      const beforePos =
-        beforeRange &&
-        domToRange(element, parserConfig, beforeRange[0], beforeRange[1]);
+      const result = readEditAndRevert(
+        element,
+        parserConfig,
+        queue,
+        serializeVoid
+      );
 
       observer._flush();
 
@@ -294,22 +250,7 @@ export const editable = <T>(
         parserConfig
       );
 
-      execCommand(
-        Input,
-        beforePos
-          ? {
-              _range: beforePos,
-              _isBlock: beforeRange[2],
-            }
-          : null,
-        afterPos
-          ? {
-              _start: afterPos[0],
-              _isBlock: afterRange[2],
-              _doc: refToDoc(afterSlicedDom, serializeVoid),
-            }
-          : null
-      );
+      execCommand(Input, ...result);
       execCommand(MoveTo, ...selection);
     }
   };

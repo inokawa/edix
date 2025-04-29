@@ -297,10 +297,7 @@ export const takeSelectionSnapshot = (
 
 type NodeRef = Element | string;
 
-/**
- * @internal
- */
-export const refToDoc = (
+const refToDoc = (
   nodes: readonly (readonly NodeRef[])[],
   serializeVoid: (node: Element) => Record<string, unknown> | void
 ): DocFragment => {
@@ -319,10 +316,7 @@ export const refToDoc = (
   );
 };
 
-/**
- * @internal
- */
-export const readDom = (
+const readDom = (
   root: Node,
   config: ParserConfig,
   range?: { _startNode: Node; _endNode: Node }
@@ -372,10 +366,7 @@ export const readDom = (
   );
 };
 
-/**
- * @internal
- */
-export const detectMutationRange = (
+const detectMutationRange = (
   root: Element,
   nodes: Set<Node>,
   config: ParserConfig
@@ -433,7 +424,85 @@ export const detectMutationRange = (
 /**
  * @internal
  */
-export const domToRange = (
+export const readEditAndRevert = (
+  root: Element,
+  config: ParserConfig,
+  queue: MutationRecord[],
+  serializeVoid: (node: Element) => Record<string, unknown> | void
+): [
+  {
+    _range: [Position, Position];
+    _isBlock: boolean;
+  } | null,
+  {
+    _start: Position;
+    _isBlock: boolean;
+    _doc: DocFragment;
+  } | null
+] => {
+  const nodes = new Set<Node>();
+  for (const m of queue) {
+    if (m.type === "childList") {
+      for (const n of m.addedNodes) {
+        nodes.add(n);
+      }
+      for (const n of m.removedNodes) {
+        nodes.add(n);
+      }
+    } else {
+      nodes.add(m.target);
+    }
+  }
+
+  const afterRange = detectMutationRange(root, nodes, config);
+
+  const afterSlicedDom = afterRange
+    ? readDom(root, config, {
+        _startNode: afterRange[0],
+        _endNode: afterRange[1],
+      })
+    : [];
+
+  const afterPos =
+    afterRange && domToRange(root, config, afterRange[0], afterRange[1]);
+
+  // Revert DOM
+  let m: MutationRecord | undefined;
+  while ((m = queue.pop())) {
+    if (m.type === "childList") {
+      const { target, removedNodes, addedNodes, nextSibling } = m;
+      for (let i = removedNodes.length - 1; i >= 0; i--) {
+        target.insertBefore(removedNodes[i]!, nextSibling);
+      }
+      for (let i = addedNodes.length - 1; i >= 0; i--) {
+        target.removeChild(addedNodes[i]!);
+      }
+    } else {
+      (m.target as CharacterData).nodeValue = m.oldValue!;
+    }
+  }
+
+  const beforeRange = detectMutationRange(root, nodes, config);
+  const beforePos =
+    beforeRange && domToRange(root, config, beforeRange[0], beforeRange[1]);
+  return [
+    beforePos
+      ? {
+          _range: beforePos,
+          _isBlock: beforeRange[2],
+        }
+      : null,
+    afterPos
+      ? {
+          _start: afterPos[0],
+          _isBlock: afterRange[2],
+          _doc: refToDoc(afterSlicedDom, serializeVoid),
+        }
+      : null,
+  ];
+};
+
+const domToRange = (
   root: Element,
   config: ParserConfig,
   startNode: Node,
