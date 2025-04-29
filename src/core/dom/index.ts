@@ -287,7 +287,7 @@ export const takeSelectionSnapshot = (
     config,
     range,
     // https://stackoverflow.com/questions/9180405/detect-direction-of-user-selection-with-javascript
-    range.startContainer === range.endContainer
+    selection.anchorNode === selection.focusNode
       ? selection.anchorOffset > selection.focusOffset
       : (compareDomPosition(selection.anchorNode!, selection.focusNode!) &
           DOCUMENT_POSITION_PRECEDING) !==
