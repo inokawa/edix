@@ -22,7 +22,7 @@ import {
 } from "../doc/types";
 import { min } from "../utils";
 
-export { defaultIsBlockNode } from "./parser";
+export { defaultIsBlockNode } from "./default";
 
 // const DOCUMENT_POSITION_DISCONNECTED = 0x01;
 const DOCUMENT_POSITION_PRECEDING = 0x02;
@@ -112,31 +112,30 @@ export const setSelectionToDOM = (
 
   // https://w3c.github.io/contentEditable/#dfn-legal-caret-positions
   const range = document.createRange();
-  {
-    const [node, offset] = domStart;
-    // embed or br
-    if (isElementNode(node)) {
-      if (offset < 1) {
-        range.setStartBefore(node);
-      } else {
-        range.setStartAfter(node);
-      }
+
+  const [startNode, startOffset] = domStart;
+  const [endNode, endOffset] = domEnd;
+
+  // embed or br
+  if (isElementNode(startNode)) {
+    if (startOffset < 1) {
+      range.setStartBefore(startNode);
     } else {
-      range.setStart(node, offset);
+      range.setStartAfter(startNode);
     }
+  } else {
+    range.setStart(startNode, startOffset);
   }
-  {
-    const [node, offset] = domEnd;
-    // embed or br
-    if (isElementNode(node)) {
-      if (offset < 1) {
-        range.setEndBefore(node);
-      } else {
-        range.setEndAfter(node);
-      }
+
+  // embed or br
+  if (isElementNode(endNode)) {
+    if (endOffset < 1) {
+      range.setEndBefore(endNode);
     } else {
-      range.setEnd(node, offset);
+      range.setEndAfter(endNode);
     }
+  } else {
+    range.setEnd(endNode, endOffset);
   }
 
   setRangeToSelection(root, range, backward);
