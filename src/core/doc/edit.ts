@@ -99,7 +99,7 @@ const fixPositionAfterDelete = (
 ): Position => {
   return comparePosition(end, selectionPos) === 1
     ? [
-        selectionPos[0] - end[0] - start[0],
+        selectionPos[0] + start[0] - end[0],
         selectionPos[1] +
           (compareLine(end, selectionPos) === 0 ? start[1] - end[1] : 0),
       ]

@@ -114,6 +114,31 @@ describe(insertEdit.name, () => {
     expect(sel).toEqual(moveOffset(initialSel, text.length));
   });
 
+  it("should insert text before caret on middle line", () => {
+    const docText = "abcde";
+    const docText2 = "fghi";
+    const docText3 = "jkl";
+    const doc: Writeable<DocFragment> = [
+      [{ type: NODE_TEXT, text: docText }],
+      [{ type: NODE_TEXT, text: docText2 }],
+      [{ type: NODE_TEXT, text: docText3 }],
+    ];
+    const sel: Writeable<SelectionSnapshot> = [
+      [1, 2],
+      [1, 2],
+    ];
+    const initialSel: SelectionSnapshot = structuredClone(sel);
+    const text = "ABC";
+    insertEdit(doc, sel, [[{ type: NODE_TEXT, text: text }]], [1, 1]);
+
+    expect(doc).toEqual([
+      [{ type: NODE_TEXT, text: docText }],
+      [{ type: NODE_TEXT, text: insertAt(docText2, 1, text) }],
+      [{ type: NODE_TEXT, text: docText3 }],
+    ]);
+    expect(sel).toEqual(moveOffset(initialSel, text.length));
+  });
+
   it("should insert lines before caret", () => {
     const docText = "abcde";
     const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
@@ -245,6 +270,31 @@ describe(insertEdit.name, () => {
 
     expect(doc).toEqual([
       [{ type: NODE_TEXT, text: insertAt(docText, 3, text) }],
+    ]);
+    expect(sel).toEqual(initialSel);
+  });
+
+  it("should insert text after caret on middle line", () => {
+    const docText = "abcde";
+    const docText2 = "fghi";
+    const docText3 = "jkl";
+    const doc: Writeable<DocFragment> = [
+      [{ type: NODE_TEXT, text: docText }],
+      [{ type: NODE_TEXT, text: docText2 }],
+      [{ type: NODE_TEXT, text: docText3 }],
+    ];
+    const sel: Writeable<SelectionSnapshot> = [
+      [1, 2],
+      [1, 2],
+    ];
+    const initialSel: SelectionSnapshot = structuredClone(sel);
+    const text = "ABC";
+    insertEdit(doc, sel, [[{ type: NODE_TEXT, text: text }]], [1, 3]);
+
+    expect(doc).toEqual([
+      [{ type: NODE_TEXT, text: docText }],
+      [{ type: NODE_TEXT, text: insertAt(docText2, 3, text) }],
+      [{ type: NODE_TEXT, text: docText3 }],
     ]);
     expect(sel).toEqual(initialSel);
   });
@@ -407,6 +457,30 @@ describe(deleteEdit.name, () => {
     expect(sel).toEqual(moveOffset(initialSel, -1));
   });
 
+  it("should delete text before caret on middle line", () => {
+    const docText = "abcde";
+    const docText2 = "fghi";
+    const docText3 = "jkl";
+    const doc: Writeable<DocFragment> = [
+      [{ type: NODE_TEXT, text: docText }],
+      [{ type: NODE_TEXT, text: docText2 }],
+      [{ type: NODE_TEXT, text: docText3 }],
+    ];
+    const sel: Writeable<SelectionSnapshot> = [
+      [1, 3],
+      [1, 3],
+    ];
+    const initialSel: SelectionSnapshot = structuredClone(sel);
+    deleteEdit(doc, sel, [1, 1], [1, 2]);
+
+    expect(doc).toEqual([
+      [{ type: NODE_TEXT, text: docText }],
+      [{ type: NODE_TEXT, text: deleteAt(docText2, 1, 1) }],
+      [{ type: NODE_TEXT, text: docText3 }],
+    ]);
+    expect(sel).toEqual(moveOffset(initialSel, -1));
+  });
+
   it("should delete text just before caret", () => {
     const docText = "abcde";
     const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
@@ -531,6 +605,30 @@ describe(deleteEdit.name, () => {
     deleteEdit(doc, sel, [0, 4], [0, 5]);
 
     expect(doc).toEqual([[{ type: NODE_TEXT, text: deleteAt(docText, 4, 1) }]]);
+    expect(sel).toEqual(initialSel);
+  });
+
+  it("should delete text after caret on middle line", () => {
+    const docText = "abcde";
+    const docText2 = "fghi";
+    const docText3 = "jkl";
+    const doc: Writeable<DocFragment> = [
+      [{ type: NODE_TEXT, text: docText }],
+      [{ type: NODE_TEXT, text: docText2 }],
+      [{ type: NODE_TEXT, text: docText3 }],
+    ];
+    const sel: Writeable<SelectionSnapshot> = [
+      [1, 3],
+      [1, 3],
+    ];
+    const initialSel: SelectionSnapshot = structuredClone(sel);
+    deleteEdit(doc, sel, [1, 4], [1, 5]);
+
+    expect(doc).toEqual([
+      [{ type: NODE_TEXT, text: docText }],
+      [{ type: NODE_TEXT, text: deleteAt(docText2, 4, 1) }],
+      [{ type: NODE_TEXT, text: docText3 }],
+    ]);
     expect(sel).toEqual(initialSel);
   });
 
