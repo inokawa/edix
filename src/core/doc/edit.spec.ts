@@ -45,7 +45,7 @@ const moveLine = (
 };
 
 describe(insertEdit.name, () => {
-  it("insert text at line before caret", () => {
+  it("should insert text at line before caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Writeable<DocFragment> = [
@@ -67,7 +67,7 @@ describe(insertEdit.name, () => {
     expect(sel).toEqual(initialSel);
   });
 
-  it("insert lines at line before caret", () => {
+  it("should insert lines at line before caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Writeable<DocFragment> = [
@@ -97,7 +97,7 @@ describe(insertEdit.name, () => {
     expect(sel).toEqual(moveLine(initialSel, 1));
   });
 
-  it("insert text before caret", () => {
+  it("should insert text before caret", () => {
     const docText = "abcde";
     const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
@@ -114,7 +114,7 @@ describe(insertEdit.name, () => {
     expect(sel).toEqual(moveOffset(initialSel, text.length));
   });
 
-  it("insert lines before caret", () => {
+  it("should insert lines before caret", () => {
     const docText = "abcde";
     const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
@@ -141,7 +141,7 @@ describe(insertEdit.name, () => {
     );
   });
 
-  it("insert text on caret", () => {
+  it("should insert text on caret", () => {
     const docText = "abcde";
     const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
@@ -158,7 +158,7 @@ describe(insertEdit.name, () => {
     expect(sel).toEqual(moveOffset(initialSel, text.length));
   });
 
-  it("insert lines on caret", () => {
+  it("should insert lines on caret", () => {
     const docText = "abcde";
     const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
@@ -185,7 +185,7 @@ describe(insertEdit.name, () => {
     );
   });
 
-  it("insert text inside selection", () => {
+  it("should insert text inside selection", () => {
     const docText = "abcde";
     const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
@@ -202,7 +202,7 @@ describe(insertEdit.name, () => {
     expect(sel).toEqual(moveOffset(initialSel, { focus: text.length }));
   });
 
-  it("insert lines inside selection", () => {
+  it("should insert lines inside selection", () => {
     const docText = "abcde";
     const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
@@ -232,7 +232,7 @@ describe(insertEdit.name, () => {
     );
   });
 
-  it("insert text after caret", () => {
+  it("should insert text after caret", () => {
     const docText = "abcde";
     const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
@@ -249,7 +249,7 @@ describe(insertEdit.name, () => {
     expect(sel).toEqual(initialSel);
   });
 
-  it("insert lines after caret", () => {
+  it("should insert lines after caret", () => {
     const docText = "abcde";
     const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
@@ -274,7 +274,7 @@ describe(insertEdit.name, () => {
     expect(sel).toEqual(initialSel);
   });
 
-  it("insert text at line after caret", () => {
+  it("should insert text at line after caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Writeable<DocFragment> = [
@@ -296,7 +296,7 @@ describe(insertEdit.name, () => {
     expect(sel).toEqual(initialSel);
   });
 
-  it("insert lines at line after caret", () => {
+  it("should insert lines at line after caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Writeable<DocFragment> = [
@@ -328,7 +328,7 @@ describe(insertEdit.name, () => {
 });
 
 describe(deleteEdit.name, () => {
-  it("do nothing if start and end is the same", () => {
+  it("should do nothing if start and end is the same", () => {
     const docText = "abcde";
     const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
@@ -343,7 +343,7 @@ describe(deleteEdit.name, () => {
     expect(sel).toEqual(initialSel);
   });
 
-  it("delete text at line before caret", () => {
+  it("should delete text at line before caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Writeable<DocFragment> = [
@@ -364,7 +364,7 @@ describe(deleteEdit.name, () => {
     expect(sel).toEqual(initialSel);
   });
 
-  it("delete linebreak at line before caret", () => {
+  it("should delete linebreak at line before caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Writeable<DocFragment> = [
@@ -393,7 +393,7 @@ describe(deleteEdit.name, () => {
     ]);
   });
 
-  it("delete text before caret", () => {
+  it("should delete text before caret", () => {
     const docText = "abcde";
     const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
@@ -407,7 +407,7 @@ describe(deleteEdit.name, () => {
     expect(sel).toEqual(moveOffset(initialSel, -1));
   });
 
-  it("delete text just before caret", () => {
+  it("should delete text just before caret", () => {
     const docText = "abcde";
     const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
@@ -421,7 +421,7 @@ describe(deleteEdit.name, () => {
     expect(sel).toEqual(moveOffset(initialSel, -1));
   });
 
-  it("delete text around caret", () => {
+  it("should delete text around caret", () => {
     const docText = "abcde";
     const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
@@ -435,7 +435,7 @@ describe(deleteEdit.name, () => {
     expect(sel).toEqual(moveOffset(initialSel, -1));
   });
 
-  it("delete text around selection", () => {
+  it("should delete text around selection", () => {
     const docText = "abcde";
     const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
@@ -451,7 +451,7 @@ describe(deleteEdit.name, () => {
     ]);
   });
 
-  it("delete text around selection anchor", () => {
+  it("should delete text around selection anchor", () => {
     const docText = "abcde";
     const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
@@ -465,7 +465,7 @@ describe(deleteEdit.name, () => {
     expect(sel).toEqual(moveOffset(initialSel, { anchor: 1 - 2, focus: -2 }));
   });
 
-  it("delete text around selection focus", () => {
+  it("should delete text around selection focus", () => {
     const docText = "abcde";
     const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
@@ -479,7 +479,7 @@ describe(deleteEdit.name, () => {
     expect(sel).toEqual(moveOffset(initialSel, { focus: 1 - 2 }));
   });
 
-  it("delete linebreak inside selection", () => {
+  it("should delete linebreak inside selection", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Writeable<DocFragment> = [
@@ -506,7 +506,7 @@ describe(deleteEdit.name, () => {
     ]);
   });
 
-  it("delete text just after caret", () => {
+  it("should delete text just after caret", () => {
     const docText = "abcde";
     const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
@@ -520,7 +520,7 @@ describe(deleteEdit.name, () => {
     expect(sel).toEqual(initialSel);
   });
 
-  it("delete text after caret", () => {
+  it("should delete text after caret", () => {
     const docText = "abcde";
     const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
@@ -534,7 +534,7 @@ describe(deleteEdit.name, () => {
     expect(sel).toEqual(initialSel);
   });
 
-  it("delete text at line after caret", () => {
+  it("should delete text at line after caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Writeable<DocFragment> = [
@@ -555,7 +555,7 @@ describe(deleteEdit.name, () => {
     expect(sel).toEqual(initialSel);
   });
 
-  it("delete linebreak at line after caret", () => {
+  it("should delete linebreak at line after caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const docText3 = "klmno";
