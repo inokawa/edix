@@ -1,1 +1,0 @@
-import{d as e,I as n}from"./editable-ZK5qw91P.js";const p=({multiline:s}={})=>({single:!s,js:e,void:()=>{},copy:(t,a)=>{t.setData("text/plain",e(a))},paste:(t,a)=>{a(n,t.getData("text/plain"))}});export{p};
