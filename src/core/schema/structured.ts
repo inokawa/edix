@@ -1,6 +1,6 @@
 import { InsertFragment, InsertText } from "../doc/commands";
 import { isCommentNode } from "../dom/parser";
-import { NODE_TEXT, TextNode, type NodeData } from "../doc/types";
+import { NODE_TEXT, TextNode, type DocNode } from "../doc/types";
 import type { EditableSchema } from "./types";
 import { docToString } from "../doc/edit";
 
@@ -70,7 +70,7 @@ export const schema = <
   // TODO replace VoidNodeData with VoidNode
   const voidCache = new WeakMap<VoidNodeData, VoidNodeType>();
 
-  const serializeRow = (r: readonly NodeData[]): RowType => {
+  const serializeRow = (r: readonly DocNode[]): RowType => {
     return r.reduce((acc, t) => {
       if (t.type === NODE_TEXT) {
         let text = textCache.get(t);

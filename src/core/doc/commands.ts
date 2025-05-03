@@ -77,7 +77,7 @@ export const MoveTo: EditableCommand<[anchor: Position, focus?: Position]> = (
 };
 
 const movePositionPrevIfExist = (doc: DocFragment, pos: Position): Position => {
-  return pos[0] === 0 ? [0, 0] : [pos[0] - 1, getLineSize(doc, pos[0] - 1)];
+  return pos[0] === 0 ? [0, 0] : [pos[0] - 1, getLineSize(doc[pos[0] - 1]!)];
 };
 
 /**

@@ -8,9 +8,9 @@ export type VoidNode = Readonly<{
   type: typeof NODE_VOID;
   data: Record<string, unknown>;
 }>;
-export type NodeData = TextNode | VoidNode;
-
-export type DocFragment = readonly (readonly NodeData[])[];
+export type DocNode = TextNode | VoidNode;
+export type DocLine = readonly DocNode[];
+export type DocFragment = readonly DocLine[];
 
 export type Position = readonly [line: number, offset: number];
 

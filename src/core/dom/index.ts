@@ -15,7 +15,7 @@ import { comparePosition } from "../doc/position";
 import {
   DocFragment,
   Position,
-  NodeData,
+  DocNode,
   SelectionSnapshot,
   NODE_TEXT,
   NODE_VOID,
@@ -311,7 +311,7 @@ const refToDoc = (
         }
       }
       return acc;
-    }, [] as NodeData[])
+    }, [] as DocNode[])
   );
 };
 

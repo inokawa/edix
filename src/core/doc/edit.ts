@@ -1,25 +1,30 @@
 import { compareLine, comparePosition } from "./position";
 import {
   DocFragment,
+  DocLine,
   NODE_TEXT,
-  NodeData,
+  DocNode,
   Position,
   SelectionSnapshot,
   VoidNode,
   Writeable,
 } from "./types";
 
-const isTextNode = (node: NodeData) => node.type === NODE_TEXT;
-const getNodeSize = (node: NodeData): number =>
+const isTextNode = (node: DocNode) => node.type === NODE_TEXT;
+const getNodeSize = (node: DocNode): number =>
   isTextNode(node) ? node.text.length : 1;
 
 /**
  * @internal
  */
-export const getLineSize = (doc: DocFragment, i: number): number =>
-  doc[i]!.reduce((acc, n) => acc + getNodeSize(n), 0);
+export const getLineSize = (line: DocLine): number =>
+  line.reduce((acc, n) => acc + getNodeSize(n), 0);
 
-const insertNodeAfter = (line: NodeData[], index: number, node: NodeData) => {
+const insertNodeAfter = (
+  line: Writeable<DocLine>,
+  index: number,
+  node: DocNode
+) => {
   const target = line[index]!;
   if (isTextNode(node) && isTextNode(target)) {
     line[index] = { type: NODE_TEXT, text: target.text + node.text };
@@ -28,8 +33,8 @@ const insertNodeAfter = (line: NodeData[], index: number, node: NodeData) => {
   }
 };
 
-const join = (...lines: (readonly NodeData[])[]): readonly NodeData[] => {
-  const line: NodeData[] = [];
+const join = (...lines: DocLine[]): DocLine => {
+  const line: Writeable<DocLine> = [];
   for (let i = 0; i < lines.length; i++) {
     const current = lines[i]!;
     if (!line.length) {
@@ -43,10 +48,7 @@ const join = (...lines: (readonly NodeData[])[]): readonly NodeData[] => {
   return line;
 };
 
-const split = (
-  line: readonly NodeData[],
-  offset: number
-): [readonly NodeData[], readonly NodeData[]] => {
+const split = (line: DocLine, offset: number): [DocLine, DocLine] => {
   for (let i = 0; i < line.length; i++) {
     const node = line[i]!;
     const length = getNodeSize(node);
@@ -119,7 +121,7 @@ const replaceRange = (
   const before = splitByStart[0];
   const after = end ? split(doc[end[0]]!, end[1])[1] : splitByStart[1];
 
-  const lines: (readonly NodeData[])[] = [...fragment];
+  const lines: Writeable<DocFragment> = [...fragment];
   if (lines.length) {
     lines[0] = join(before, lines[0]!);
     lines[lines.length - 1] = join(lines[lines.length - 1]!, after);
@@ -184,7 +186,7 @@ export const insertEdit = (
 
   const lineLength = lines.length;
   const lineDiff = lineLength - 1;
-  const lastRowLength = getLineSize(lines, lineLength - 1);
+  const lastRowLength = getLineSize(lines[lineLength - 1]!);
 
   replaceRange(doc, lines, pos);
 
