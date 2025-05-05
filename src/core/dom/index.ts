@@ -7,7 +7,7 @@ import {
   TOKEN_TEXT,
   TOKEN_VOID,
   TOKEN_SOFT_BREAK,
-  TOKEN_HARD_BREAK,
+  TOKEN_BLOCK,
   ParserConfig,
   isTextNode,
 } from "./parser";
@@ -328,7 +328,7 @@ const readDom = (
 
       const rows: NodeRef[][] = [];
 
-      const completeNode = () => {
+      const completeText = () => {
         if (!row) {
           row = [];
         }
@@ -338,7 +338,7 @@ const readDom = (
         }
       };
       const completeRow = () => {
-        completeNode();
+        completeText();
         if (row) {
           rows.push(row);
         }
@@ -349,9 +349,14 @@ const readDom = (
         if (type === TOKEN_TEXT) {
           text += getDomNode<typeof type>().data;
         } else if (type === TOKEN_VOID) {
-          completeNode();
+          completeText();
           row!.push(getDomNode<typeof type>());
-        } else if (type === TOKEN_SOFT_BREAK || type === TOKEN_HARD_BREAK) {
+        } else if (type === TOKEN_BLOCK) {
+          const prev = getDomNode<typeof type>().previousElementSibling;
+          if (prev && config._isBlock(prev)) {
+            completeRow();
+          }
+        } else if (type === TOKEN_SOFT_BREAK) {
           completeRow();
         }
       }
@@ -405,7 +410,7 @@ const detectMutationRange = (
     (next) => {
       let type: TokenType | void;
       while ((type = next())) {
-        if (type !== TOKEN_HARD_BREAK) {
+        if (type !== TOKEN_BLOCK) {
           endChild = getDomNode<typeof type>();
           if (!startChild) {
             startChild = endChild;
