@@ -24,7 +24,7 @@ export const TOKEN_VOID = 2;
 /** @internal */
 export const TOKEN_SOFT_BREAK = 3;
 /** @internal */
-export const TOKEN_HARD_BREAK = 4;
+export const TOKEN_BLOCK = 4;
 const TOKEN_EMPTY_BLOCK_ANCHOR = 5;
 const TOKEN_INVALID_SOFT_BREAK = 6;
 
@@ -35,7 +35,7 @@ export type TokenType =
   | typeof TOKEN_TEXT
   | typeof TOKEN_VOID
   | typeof TOKEN_SOFT_BREAK
-  | typeof TOKEN_HARD_BREAK
+  | typeof TOKEN_BLOCK
   | typeof TOKEN_EMPTY_BLOCK_ANCHOR
   | typeof TOKEN_INVALID_SOFT_BREAK;
 
@@ -188,10 +188,7 @@ const readNext = (): TokenType | void => {
       ) {
         return (tokenType = TOKEN_VOID);
       } else if (isBlockNode(node)) {
-        const prev = node.previousElementSibling;
-        if (prev && isBlockNode(prev)) {
-          return (tokenType = TOKEN_HARD_BREAK);
-        }
+        return (tokenType = TOKEN_BLOCK);
       }
     }
   }
