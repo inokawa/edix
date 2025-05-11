@@ -17,6 +17,7 @@ import { Delete, EditableCommand, MoveTo, Input } from "./doc/commands";
 import { flatten, sliceDoc } from "./doc/edit";
 import { EditableSchema } from "./schema";
 import { ParserConfig } from "./dom/parser";
+import { comparePosition } from "./doc/position";
 
 /**
  * https://www.w3.org/TR/input-events-1/#interface-InputEvent-Attributes
@@ -367,7 +368,7 @@ export const editable = <T>(
 
   const copySelected = (dataTransfer: DataTransfer) => {
     const selected = getSelectedRange(element, parserConfig);
-    if (selected) {
+    if (selected && comparePosition(...selected[0]) !== 0) {
       copy(dataTransfer, sliceDoc(history.get()[0], ...selected[0]), () =>
         selected[1].cloneContents()
       );
