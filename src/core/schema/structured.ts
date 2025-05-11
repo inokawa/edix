@@ -140,6 +140,7 @@ export const schema = <
           }
         }
         command(InsertFragment, read(dom));
+        return;
       }
       command(InsertText, dataTransfer.getData("text/plain"));
     },
