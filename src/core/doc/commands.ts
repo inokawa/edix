@@ -5,7 +5,7 @@ import {
   type SelectionSnapshot,
   type Writeable,
 } from "./types";
-import { comparePosition } from "./position";
+import { comparePosition, edges } from "./position";
 import { deleteEdit, getLineSize, insertEdit } from "./edit";
 
 export type EditableCommand<T extends unknown[]> = (
@@ -19,16 +19,8 @@ export const Delete: EditableCommand<[range?: SelectionSnapshot]> = (
   selection,
   [anchor, focus] = selection
 ) => {
-  const posDiff = comparePosition(anchor, focus);
-  if (posDiff !== 0) {
-    const backward = posDiff === -1;
-
-    deleteEdit(
-      doc,
-      selection,
-      backward ? focus : anchor,
-      backward ? anchor : focus
-    );
+  if (comparePosition(anchor, focus) !== 0) {
+    deleteEdit(doc, selection, ...edges(anchor, focus));
   }
 };
 
