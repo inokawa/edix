@@ -20,39 +20,31 @@ const getNodeSize = (node: DocNode): number =>
 export const getLineSize = (line: DocLine): number =>
   line.reduce((acc, n) => acc + getNodeSize(n), 0);
 
-const insertNodeAfter = (
-  line: Writeable<DocLine>,
-  index: number,
-  node: DocNode
-) => {
-  const target = line[index]!;
-  if (isTextNode(node) && isTextNode(target)) {
-    line[index] = { type: NODE_TEXT, text: target.text + node.text };
-  } else {
-    line.splice(index + 1, 0, node);
-  }
-};
-
-const join = (...lines: DocLine[]): DocLine => {
-  const line: Writeable<DocLine> = [];
-  for (let i = 0; i < lines.length; i++) {
-    const current = lines[i]!;
-    if (!line.length) {
-      line.push(...current);
+const merge = (...lines: DocLine[]): DocLine => {
+  const result: Writeable<DocLine> = [];
+  for (const line of lines) {
+    if (!result.length) {
+      result.push(...line);
     } else {
-      for (const node of current) {
-        insertNodeAfter(line, line.length - 1, node);
+      for (const node of line) {
+        const index = result.length - 1;
+        const target = result[index]!;
+        if (isTextNode(node) && isTextNode(target)) {
+          result[index] = { type: NODE_TEXT, text: target.text + node.text };
+        } else {
+          result.push(node);
+        }
       }
     }
   }
-  return line;
+  return result;
 };
 
 const split = (line: DocLine, offset: number): [DocLine, DocLine] => {
   for (let i = 0; i < line.length; i++) {
     const node = line[i]!;
-    const length = getNodeSize(node);
-    if (length > offset) {
+    const size = getNodeSize(node);
+    if (size > offset) {
       const before = line.slice(0, i);
       const after = line.slice(i + 1);
       if (isTextNode(node)) {
@@ -65,16 +57,12 @@ const split = (line: DocLine, offset: number): [DocLine, DocLine] => {
           after.unshift({ type: NODE_TEXT, text: afterText });
         }
       } else {
-        // TODO improve
-        if (offset === 0) {
-          after.unshift(node);
-        } else {
-          before.push(node);
-        }
+        // node size must be 1
+        after.unshift(node);
       }
       return [before, after];
     }
-    offset -= length;
+    offset -= size;
   }
   return [line, []];
 };
@@ -123,10 +111,10 @@ const replaceRange = (
 
   const lines: Writeable<DocFragment> = [...fragment];
   if (lines.length) {
-    lines[0] = join(before, lines[0]!);
-    lines[lines.length - 1] = join(lines[lines.length - 1]!, after);
+    lines[0] = merge(before, lines[0]!);
+    lines[lines.length - 1] = merge(lines[lines.length - 1]!, after);
   } else {
-    lines.push(join(before, after));
+    lines.push(merge(before, after));
   }
 
   doc.splice(startLine, endLine - startLine + 1, ...lines);
@@ -231,18 +219,18 @@ export const flatten = (
 
   for (let i = 0; i < doc.length; i++) {
     for (const node of doc[i]!) {
-      const length = getNodeSize(node);
+      const size = getNodeSize(node);
       if (i < anchorLine) {
-        offsetBeforeAnchor += length;
+        offsetBeforeAnchor += size;
       }
       if (i < focusLine) {
-        offsetBeforeFocus += length;
+        offsetBeforeFocus += size;
       }
     }
   }
 
   return [
-    [join(...doc)],
+    [merge(...doc)],
     [
       [0, offsetBeforeAnchor + anchorOffset],
       [0, offsetBeforeFocus + focusOffset],
