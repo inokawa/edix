@@ -31,3 +31,13 @@ export const comparePosition = (posA: Position, posB: Position): 0 | 1 | -1 => {
     return line;
   }
 };
+
+/**
+ * @internal
+ */
+export const edges = (
+  a: Position,
+  b: Position
+): [start: Position, end: Position] => {
+  return comparePosition(a, b) === -1 ? [b, a] : [a, b];
+};

@@ -535,13 +535,8 @@ export const readDocAll = (
 /**
  * @internal
  */
-export const getSelectedRange = (
-  root: Element,
-  config: ParserConfig
-): [readonly [Position, Position], Range] | undefined => {
-  const range = getSelectionRangeInEditor(getDOMSelection(root), root);
-  if (!range) return;
-  return [serializeRange(root, config, range), range];
+export const getSelectedRange = (root: Element): Range | void => {
+  return getSelectionRangeInEditor(getDOMSelection(root), root);
 };
 
 /**
