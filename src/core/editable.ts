@@ -4,11 +4,12 @@ import {
   takeSelectionSnapshot,
   setSelectionToDOM,
   getEmptySelectionSnapshot,
-  getSelectedRange,
   getPointedCaretPosition,
   readDocAll,
   defaultIsBlockNode,
   readEditAndRevert,
+  getSelectionRangeInEditor,
+  getDOMSelection,
 } from "./dom";
 import { createMutationObserver } from "./mutation";
 import { DocFragment, SelectionSnapshot, Writeable } from "./doc/types";
@@ -374,7 +375,10 @@ export const editable = <T>(
         sliceDoc(history.get()[0], ...edges(...currentSelection)),
         () =>
           // DOM range must exist here
-          getSelectedRange(element)!.cloneContents()
+          getSelectionRangeInEditor(
+            getDOMSelection(element),
+            element
+          )!.cloneContents()
       );
     }
   };

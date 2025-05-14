@@ -37,12 +37,18 @@ const DOCUMENT_POSITION_FOLLOWING = 0x04;
 export const getCurrentDocument = (node: Element): Document =>
   node.ownerDocument;
 
-const getDOMSelection = (element: Element): Selection => {
+/**
+ * @internal
+ */
+export const getDOMSelection = (element: Element): Selection => {
   // TODO support ShadowRoot
   return getCurrentDocument(element).getSelection()!;
 };
 
-const getSelectionRangeInEditor = (
+/**
+ * @internal
+ */
+export const getSelectionRangeInEditor = (
   selection: Selection,
   root: Element
 ): Range | void => {
@@ -253,21 +259,6 @@ export const getEmptySelectionSnapshot = (): SelectionSnapshot => {
 
 const compareDomPosition = (a: Node, b: Node) => a.compareDocumentPosition(b);
 
-const serializeRange = (
-  root: Element,
-  config: ParserConfig,
-  { startOffset, startContainer, endOffset, endContainer }: Range,
-  backward?: boolean
-): SelectionSnapshot => {
-  const start = serializePosition(root, startContainer, startOffset, config);
-  const end =
-    startContainer === endContainer && startOffset === endOffset
-      ? start
-      : serializePosition(root, endContainer, endOffset, config);
-
-  return backward ? [end, start] : [start, end];
-};
-
 /**
  * @internal
  */
@@ -281,16 +272,25 @@ export const takeSelectionSnapshot = (
     return getEmptySelectionSnapshot();
   }
 
-  return serializeRange(
-    root,
-    config,
-    range,
+  const { startOffset, startContainer, endOffset, endContainer } = range;
+
+  const start = serializePosition(root, startContainer, startOffset, config);
+  const end =
+    startContainer === endContainer && startOffset === endOffset
+      ? start
+      : serializePosition(root, endContainer, endOffset, config);
+
+  return (
     // https://stackoverflow.com/questions/9180405/detect-direction-of-user-selection-with-javascript
-    selection.anchorNode === selection.focusNode
-      ? selection.anchorOffset > selection.focusOffset
-      : (compareDomPosition(selection.anchorNode!, selection.focusNode!) &
-          DOCUMENT_POSITION_PRECEDING) !==
+    (
+      selection.anchorNode === selection.focusNode
+        ? selection.anchorOffset > selection.focusOffset
+        : (compareDomPosition(selection.anchorNode!, selection.focusNode!) &
+            DOCUMENT_POSITION_PRECEDING) !==
           0
+    )
+      ? [end, start]
+      : [start, end]
   );
 };
 
@@ -530,13 +530,6 @@ export const readDocAll = (
   serializeVoid: (node: Element) => Record<string, unknown> | void
 ): DocFragment => {
   return refToDoc(readDom(root, config), serializeVoid);
-};
-
-/**
- * @internal
- */
-export const getSelectedRange = (root: Element): Range | void => {
-  return getSelectionRangeInEditor(getDOMSelection(root), root);
 };
 
 /**
