@@ -1,8 +1,10 @@
 let walker: TreeWalker | null;
 let node: Node | null;
 let tokenType: TokenType | null;
+let startNode: Node | null;
 let endNode: Node | null;
 let isEndNodeVisited = false;
+let shouldExcludeStart = false;
 let shouldExcludeEnd = false;
 let isBlockNode: (node: Element) => boolean;
 
@@ -12,6 +14,13 @@ let isBlockNode: (node: Element) => boolean;
 export interface ParserConfig {
   _document: Document;
   _isBlock: (node: Element) => boolean;
+}
+
+interface ParserOption {
+  _startNode?: Node;
+  _endNode?: Node;
+  _excludeStart?: boolean;
+  _excludeEnd?: boolean;
 }
 
 const SHOW_ELEMENT = 0x1;
@@ -152,6 +161,14 @@ const readNext = (): TokenType | void => {
       break;
     }
 
+    if (startNode && shouldExcludeStart) {
+      if (startNode.contains(node)) {
+        continue;
+      } else {
+        shouldExcludeStart = false;
+      }
+    }
+
     if (endNode) {
       if (endNode.contains(node)) {
         isEndNodeVisited = true;
@@ -166,13 +183,17 @@ const readNext = (): TokenType | void => {
     }
 
     if (isTextNode(node)) {
-      // Especially Shift+Enter in Chrome
-      if (node.data === "\n") {
-        return (tokenType = isValidSoftBreak(node)
-          ? TOKEN_SOFT_BREAK
-          : TOKEN_INVALID_SOFT_BREAK);
-      } else {
-        return (tokenType = TOKEN_TEXT);
+      const text = node.data;
+      // Ignore empty text nodes some frameworks may generate
+      if (text) {
+        // Especially Shift+Enter in Chrome
+        if (text === "\n") {
+          return (tokenType = isValidSoftBreak(node)
+            ? TOKEN_SOFT_BREAK
+            : TOKEN_INVALID_SOFT_BREAK);
+        } else {
+          return (tokenType = TOKEN_TEXT);
+        }
       }
     } else if (isElementNode(node)) {
       const tagName = node.tagName;
@@ -201,11 +222,7 @@ export const parse = <T>(
   scopeFn: (read: typeof readNext) => T,
   root: Node,
   { _document: document, _isBlock: isBlock }: ParserConfig,
-  option?: {
-    _startNode?: Node;
-    _endNode?: Node;
-    _excludeEnd?: boolean;
-  }
+  option?: ParserOption
 ): T => {
   try {
     isBlockNode = isBlock;
@@ -214,18 +231,19 @@ export const parse = <T>(
 
     if (option) {
       if (option._startNode) {
-        walker.currentNode = option._startNode;
+        walker.currentNode = startNode = option._startNode;
         walker.previousNode();
       }
       if (option._endNode) {
         endNode = option._endNode;
       }
+      shouldExcludeStart = option._excludeStart || false;
       shouldExcludeEnd = option._excludeEnd || false;
     }
 
     return scopeFn(readNext);
   } finally {
-    walker = node = tokenType = endNode = null;
-    isEndNodeVisited = shouldExcludeEnd = false;
+    walker = node = tokenType = startNode = endNode = null;
+    isEndNodeVisited = shouldExcludeStart = shouldExcludeEnd = false;
   }
 };
