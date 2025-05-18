@@ -27,8 +27,8 @@ export { defaultIsBlockNode } from "./default";
 // const DOCUMENT_POSITION_DISCONNECTED = 0x01;
 const DOCUMENT_POSITION_PRECEDING = 0x02;
 const DOCUMENT_POSITION_FOLLOWING = 0x04;
-// const DOCUMENT_POSITION_CONTAINS = 0x08;
-// const DOCUMENT_POSITION_CONTAINED_BY = 0x10;
+const DOCUMENT_POSITION_CONTAINS = 0x08;
+const DOCUMENT_POSITION_CONTAINED_BY = 0x10;
 // const DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20;
 
 /**
@@ -324,131 +324,104 @@ export const refToDoc = (
 export const readDom = (
   root: Node,
   config: ParserConfig,
-  range?: { _startNode: Node; _endNode: Node }
+  option?: {
+    _startNode?: Node;
+    _endNode?: Node;
+    _isStartSibling: boolean;
+    _isEndSibling: boolean;
+  }
 ): NodeRef[][] => {
+  const isStartSib = option && option._isStartSibling;
+  const isEndSib = option && option._isEndSibling;
+
   return parse(
     (next) => {
       let type: TokenType | void;
       let row: NodeRef[] | null = null;
       let text = "";
+      let hasContent = false;
 
       const rows: NodeRef[][] = [];
 
       const completeText = () => {
-        if (!row) {
-          row = [];
-        }
         if (text) {
+          if (!row) {
+            row = [];
+          }
           row.push(text);
           text = "";
         }
       };
       const completeRow = () => {
         completeText();
+        if (!row && hasContent) {
+          row = [];
+        }
         if (row) {
           rows.push(row);
         }
         row = null;
+        hasContent = false;
       };
 
+      if (
+        isStartSib &&
+        isElementNode(option._startNode! /* TODO improve type */) &&
+        config._isBlock(option._startNode)
+      ) {
+        rows.push([]);
+      }
+
       while ((type = next())) {
-        if (type === TOKEN_TEXT) {
-          text += getDomNode<typeof type>().data;
-        } else if (type === TOKEN_VOID) {
-          completeText();
-          row!.push(getDomNode<typeof type>());
-        } else if (type === TOKEN_BLOCK) {
-          const prev = getDomNode<typeof type>().previousElementSibling;
-          if (prev && config._isBlock(prev)) {
+        if (type === TOKEN_BLOCK) {
+          completeRow();
+        } else {
+          hasContent = true;
+          if (type === TOKEN_TEXT) {
+            text += getDomNode<typeof type>().data;
+          } else if (type === TOKEN_VOID) {
+            completeText();
+            row!.push(getDomNode<typeof type>());
+          } else if (type === TOKEN_SOFT_BREAK) {
             completeRow();
           }
-        } else if (type === TOKEN_SOFT_BREAK) {
-          completeRow();
         }
       }
       completeRow();
+
+      if (
+        isEndSib &&
+        isElementNode(option._endNode! /* TODO improve type */) &&
+        config._isBlock(option._endNode)
+      ) {
+        rows.push([]);
+      }
+
+      if (!rows.length) {
+        // delete all
+        rows.push([]);
+      }
 
       return rows;
     },
     root,
     config,
-    range
+    option && {
+      _startNode: option._startNode,
+      _endNode: option._endNode,
+      _excludeStart: isStartSib,
+      _excludeEnd: isEndSib,
+    }
   );
 };
 
-const detectMutationRange = (
-  root: Element,
-  nodes: Set<Node>,
-  config: ParserConfig
-):
-  | {
-      _range: [Position, Position];
-      _start: Node;
-      _end: Node;
-      _isBlock: boolean;
-    }
-  | undefined => {
-  let start: Node | undefined;
-  let end: Node | undefined;
-  let startChild: Node | undefined;
-  let endChild: Node | undefined;
-
-  for (const n of nodes) {
-    if (n.isConnected && (isTextNode(n) || isElementNode(n))) {
-      if (
-        !start ||
-        compareDomPosition(start, n) & DOCUMENT_POSITION_PRECEDING
-      ) {
-        start = n;
-      }
-      if (!end || compareDomPosition(end, n) & DOCUMENT_POSITION_FOLLOWING) {
-        end = n;
-      }
-    }
-  }
-
-  if (!start || !end) {
-    return;
-  }
-  const startBlock = findClosestBlockNode(root, start);
-
-  parse(
-    (next) => {
-      let type: TokenType | void;
-      while ((type = next())) {
-        if (type !== TOKEN_BLOCK) {
-          endChild = getDomNode<typeof type>();
-          if (!startChild) {
-            startChild = endChild;
-          }
-        }
-      }
-    },
-    root,
-    config,
-    { _startNode: start, _endNode: end }
-  );
-  if (!startChild || !endChild) {
-    return;
-  }
-
-  return {
-    _range: [
-      serializePosition(root, startChild, 0, config, true),
-      serializePosition(
-        root,
-        endChild,
-        0, // TODO unused
-        config,
-        true,
-        true
-      ),
-    ],
-    _start: startChild,
-    _end: endChild,
-    _isBlock: startBlock === start && config._isBlock(startBlock),
-  };
-};
+const MUTATION_SELF = 0;
+const MUTATION_SIBLING = 1;
+const MUTATION_ALL = 2;
+type MutationType =
+  | typeof MUTATION_SELF
+  | typeof MUTATION_SIBLING
+  | typeof MUTATION_ALL;
 
 /**
  * @internal
@@ -458,39 +431,139 @@ export const readEditAndRevert = (
   config: ParserConfig,
   queue: MutationRecord[],
   serializeVoid: (node: Element) => Record<string, unknown> | void
-): [
-  {
-    _range: [Position, Position];
-    _isBlock: boolean;
-  } | null,
-  {
-    _start: Position;
-    _isBlock: boolean;
-    _doc: DocFragment;
-  } | null
-] => {
-  const nodes = new Set<Node>();
-  for (const m of queue) {
-    if (m.type === "childList") {
-      for (const n of m.addedNodes) {
-        nodes.add(n);
+):
+  | [
+      start: Position | undefined,
+      end: Position | undefined,
+      doc: DocFragment
+    ] => {
+  const updates = new Set<Node>();
+  const addedOrRemoved = new Set<Node>();
+  const prev = new Set<Node>();
+  const next = new Set<Node>();
+
+  let start: Node | undefined;
+  let end: Node | undefined;
+
+  let isDocStart = false;
+  let isDocEnd = false;
+  for (const {
+    type,
+    target,
+    addedNodes,
+    removedNodes,
+    previousSibling,
+    nextSibling,
+  } of queue) {
+    let isSelfUpdate = false;
+    if (type === "childList") {
+      for (const n of addedNodes) {
+        addedOrRemoved.add(n);
       }
-      for (const n of m.removedNodes) {
-        nodes.add(n);
+      for (const n of removedNodes) {
+        addedOrRemoved.add(n);
+      }
+
+      if (previousSibling) {
+        prev.add(previousSibling);
+      } else {
+        if (target === root) {
+          isDocStart = true;
+        } else {
+          isSelfUpdate = true;
+        }
+      }
+      if (nextSibling) {
+        next.add(nextSibling);
+      } else {
+        if (target === root) {
+          isDocEnd = true;
+        } else {
+          isSelfUpdate = true;
+        }
       }
     } else {
-      nodes.add(m.target);
+      isSelfUpdate = true;
+    }
+
+    if (isSelfUpdate) {
+      prev.add(target);
+      next.add(target);
+      updates.add(target);
     }
   }
 
-  const afterRange = detectMutationRange(root, nodes, config);
+  if (!isDocStart) {
+    for (const n of prev) {
+      if (
+        n !== root &&
+        !addedOrRemoved.has(n) &&
+        n.isConnected &&
+        (isTextNode(n) || isElementNode(n))
+      ) {
+        if (
+          !start ||
+          compareDomPosition(start, n) &
+            (DOCUMENT_POSITION_PRECEDING | DOCUMENT_POSITION_CONTAINS)
+        ) {
+          start = n;
+        }
+      }
+    }
+  }
+  if (!isDocEnd) {
+    for (const n of next) {
+      if (
+        n !== root &&
+        !addedOrRemoved.has(n) &&
+        n.isConnected &&
+        (isTextNode(n) || isElementNode(n))
+      ) {
+        if (
+          !end ||
+          compareDomPosition(end, n) &
+            (DOCUMENT_POSITION_FOLLOWING | DOCUMENT_POSITION_CONTAINS)
+        ) {
+          end = n;
+        }
+      }
+    }
+  }
 
-  const afterSlicedDom = afterRange
-    ? readDom(root, config, {
-        _startNode: afterRange._start,
-        _endNode: afterRange._end,
-      })
-    : [];
+  if (start && end) {
+    const compare = compareDomPosition(start, end);
+    if (compare & DOCUMENT_POSITION_CONTAINS) {
+      start = end;
+    } else if (compare & DOCUMENT_POSITION_CONTAINED_BY) {
+      end = start;
+    }
+  }
+
+  const startType: MutationType = !start
+    ? MUTATION_ALL
+    : [...updates].some(
+        (n) =>
+          n === start ||
+          compareDomPosition(n, start) & DOCUMENT_POSITION_CONTAINS
+      )
+    ? MUTATION_SELF
+    : MUTATION_SIBLING;
+
+  const endType: MutationType = !end
+    ? MUTATION_ALL
+    : [...updates].some(
+        (n) =>
+          n === end || compareDomPosition(n, end) & DOCUMENT_POSITION_CONTAINS
+      )
+    ? MUTATION_SELF
+    : MUTATION_SIBLING;
+
+  const afterSlicedDom = readDom(root, config, {
+    _startNode: start,
+    _endNode: end,
+    _isStartSibling: startType === MUTATION_SIBLING,
+    _isEndSibling: endType === MUTATION_SIBLING,
+  });
 
   // Revert DOM
   let m: MutationRecord | undefined;
@@ -508,22 +581,26 @@ export const readEditAndRevert = (
     }
   }
 
-  const beforeRange = detectMutationRange(root, nodes, config);
-
   return [
-    beforeRange
-      ? {
-          _range: beforeRange._range,
-          _isBlock: beforeRange._isBlock,
-        }
-      : null,
-    afterRange
-      ? {
-          _start: afterRange._range[0],
-          _isBlock: afterRange._isBlock,
-          _doc: refToDoc(afterSlicedDom, serializeVoid),
-        }
-      : null,
+    start &&
+      serializePosition(
+        root,
+        start,
+        0,
+        config,
+        true,
+        startType === MUTATION_SIBLING
+      ),
+    end &&
+      serializePosition(
+        root,
+        end,
+        0, // TODO unused
+        config,
+        true,
+        !(endType === MUTATION_SIBLING)
+      ),
+    refToDoc(afterSlicedDom, serializeVoid),
   ];
 };
 

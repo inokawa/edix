@@ -64,41 +64,22 @@ export const MoveTo: EditableCommand<[anchor: Position, focus?: Position]> = (
   selection[1] = focus;
 };
 
-const movePositionPrevIfExist = (doc: DocFragment, pos: Position): Position => {
-  return pos[0] === 0 ? [0, 0] : [pos[0] - 1, getLineSize(doc[pos[0] - 1]!)];
-};
-
 /**
  * @internal
  */
 export const Input: EditableCommand<
   [
-    deleteLines: { _range: [Position, Position]; _isBlock: boolean } | null,
-    insertLines: {
-      _start: Position;
-      _isBlock: boolean;
-      _doc: DocFragment;
-    } | null
+    start: Position | undefined,
+    end: Position | undefined,
+    fragment: DocFragment
   ]
-> = (doc, selection, deleteLines, insertLines) => {
-  if (deleteLines) {
-    deleteEdit(
-      doc,
-      selection,
-      deleteLines._isBlock
-        ? movePositionPrevIfExist(doc, deleteLines._range[0])
-        : deleteLines._range[0],
-      deleteLines._range[1]
-    );
-  }
-  if (insertLines) {
-    insertEdit(
-      doc,
-      selection,
-      insertLines._isBlock ? [[], ...insertLines._doc] : insertLines._doc,
-      insertLines._isBlock
-        ? movePositionPrevIfExist(doc, insertLines._start)
-        : insertLines._start
-    );
-  }
+> = (
+  doc,
+  selection,
+  start = [0, 0],
+  end = [doc.length - 1, getLineSize(doc[doc.length - 1]!)],
+  fragment
+) => {
+  deleteEdit(doc, selection, start, end);
+  insertEdit(doc, selection, fragment, start);
 };
