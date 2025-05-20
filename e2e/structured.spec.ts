@@ -7,6 +7,7 @@ import {
   NON_EDITABLE_PLACEHOLDER,
   insertAt,
   deleteAt,
+  moveSelectionToOrigin,
 } from "./edix";
 import { getEditable, input, loop, readClipboard, storyUrl } from "./utils";
 
@@ -80,6 +81,50 @@ test.describe("smoke node", () => {
     expect(await getSelection(editable)).toEqual(
       createSelection({ offset: nodeOffset })
     );
+
+    // undo
+    await page.keyboard.press(`ControlOrMeta+Z`);
+    await moveSelectionToOrigin(editable);
+    expect(await getText(editable)).toEqual(initialValue);
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: 0 })
+    );
+
+    // delete selected custom node and texts
+    await loop(nodeOffset - 1, () => page.keyboard.press("ArrowRight"));
+    await page.keyboard.press("Shift+ArrowRight");
+    await page.keyboard.press("Shift+ArrowRight");
+    await page.keyboard.press("Shift+ArrowRight");
+    await page.keyboard.press("Backspace");
+    expect(await getText(editable)).toEqual(
+      deleteAt(initialValue, 3, [0, nodeOffset - 1])
+    );
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: nodeOffset - 1 })
+    );
+
+    // undo
+    await page.keyboard.press(`ControlOrMeta+Z`);
+    await moveSelectionToOrigin(editable);
+    expect(await getText(editable)).toEqual(initialValue);
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: 0 })
+    );
+
+    // replace selected custom node
+    const replaceText = "Z";
+    await loop(nodeOffset, () => page.keyboard.press("ArrowRight"));
+    await page.keyboard.press("Shift+ArrowRight");
+    await input(editable, replaceText);
+    expect(await getText(editable)).toEqual(
+      insertAt(deleteAt(initialValue, 1, [0, nodeOffset]), replaceText, [
+        0,
+        nodeOffset,
+      ])
+    );
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: nodeOffset + 1 })
+    );
   });
 
   test("img", async ({ page }) => {
@@ -147,6 +192,50 @@ test.describe("smoke node", () => {
     expect(await getSelection(editable)).toEqual(
       createSelection({ offset: nodeOffset })
     );
+
+    // undo
+    await page.keyboard.press(`ControlOrMeta+Z`);
+    await moveSelectionToOrigin(editable);
+    expect(await getText(editable)).toEqual(initialValue);
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: 0 })
+    );
+
+    // delete selected custom node and texts
+    await loop(nodeOffset - 1, () => page.keyboard.press("ArrowRight"));
+    await page.keyboard.press("Shift+ArrowRight");
+    await page.keyboard.press("Shift+ArrowRight");
+    await page.keyboard.press("Shift+ArrowRight");
+    await page.keyboard.press("Backspace");
+    expect(await getText(editable)).toEqual(
+      deleteAt(initialValue, 3, [0, nodeOffset - 1])
+    );
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: nodeOffset - 1 })
+    );
+
+    // undo
+    await page.keyboard.press(`ControlOrMeta+Z`);
+    await moveSelectionToOrigin(editable);
+    expect(await getText(editable)).toEqual(initialValue);
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: 0 })
+    );
+
+    // replace selected custom node
+    const replaceText = "Z";
+    await loop(nodeOffset, () => page.keyboard.press("ArrowRight"));
+    await page.keyboard.press("Shift+ArrowRight");
+    await input(editable, replaceText);
+    expect(await getText(editable)).toEqual(
+      insertAt(deleteAt(initialValue, 1, [0, nodeOffset]), replaceText, [
+        0,
+        nodeOffset,
+      ])
+    );
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: nodeOffset + 1 })
+    );
   });
 
   test("video", async ({ page }) => {
@@ -204,15 +293,6 @@ test.describe("smoke node", () => {
     expect(await getText(editable)).toEqual(initialValue);
     expect(await getSelection(editable)).toEqual(
       createSelection({ offset: nodeOffset + 1 })
-    );
-
-    // delete custom node
-    await page.keyboard.press("Backspace");
-    expect(await getText(editable)).toEqual(
-      deleteAt(initialValue, 1, [0, nodeOffset])
-    );
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: nodeOffset })
     );
   });
 
@@ -343,7 +423,7 @@ test.describe("html paste", () => {
 export const editable = (
   element: HTMLElement,
   { readonly, nodes, onChange }: EditableOptions`;
-    const html = `<meta charset='utf-8'><div><br><div><span>export</span><span> </span><span>const</span><span> </span><span>editable</span><span> </span><span>=</span><span> (</span></div><div><span>  </span><span>element</span><span>:</span><span> </span><span>HTMLElement</span><span>,</span></div><div><span>  { </span><span>readonly</span><span>, </span><span>nodes</span><span>, </span><span>onChange</span><span> }</span><span>:</span><span> </span><span>EditableOptions</span></div></div>`;
+    const html = `<meta charset='utf-8'><div><br><div><span>export</span><span> </span><span>const</span><span> </span><span>editable</span><span> </span><span>=</span><span> (</span></div><div><span>  </span><span>element</span><span>:</span><span> </span><span>HTMLElement</span><span>,</span></div><div><span>  { </span><span>readonly</span><span>, </span><span>nodes</span><span>, </span><span>onChange</span><span> }</span><span>:</span><span> </span><span>EditableOptions</span></div><div><span></span></div></div>`;
 
     await writeHTML(page, html);
 

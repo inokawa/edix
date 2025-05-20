@@ -252,7 +252,9 @@ export const editable = <T>(
         parserConfig
       );
 
-      execCommand(Input, ...result);
+      if (result) {
+        execCommand(Input, ...result);
+      }
       execCommand(MoveTo, ...selection);
     }
   };
