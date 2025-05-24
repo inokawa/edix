@@ -1,4 +1,4 @@
-import { docToString, stringToDoc } from "../doc/edit";
+import { docToString, stringToDoc } from "../doc/utils";
 import type { EditableSchema } from "./types";
 
 /**

@@ -1,7 +1,7 @@
 import { isCommentNode } from "../dom/parser";
 import { NODE_TEXT, TextNode, type DocNode } from "../doc/types";
 import type { EditableSchema } from "./types";
-import { docToString, stringToDoc } from "../doc/edit";
+import { docToString, stringToDoc } from "../doc/utils";
 
 export interface EditableVoidSerializer<T> {
   is: (node: HTMLElement) => boolean;

@@ -5,7 +5,8 @@ import {
   type Writeable,
 } from "./types";
 import { comparePosition, edges } from "./position";
-import { deleteEdit, getLineSize, insertEdit, stringToDoc } from "./edit";
+import { deleteEdit, getLineSize, insertEdit } from "./edit";
+import { stringToDoc } from "./utils";
 
 export type EditableCommand<T extends unknown[]> = (
   doc: Writeable<DocFragment>,
