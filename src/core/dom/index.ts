@@ -296,7 +296,10 @@ export const takeSelectionSnapshot = (
 
 type NodeRef = Element | string;
 
-const refToDoc = (
+/**
+ * @internal
+ */
+export const refToDoc = (
   nodes: readonly (readonly NodeRef[])[],
   serializeVoid: (node: Element) => Record<string, unknown> | void
 ): DocFragment => {
@@ -315,7 +318,10 @@ const refToDoc = (
   );
 };
 
-const readDom = (
+/**
+ * @internal
+ */
+export const readDom = (
   root: Node,
   config: ParserConfig,
   range?: { _startNode: Node; _endNode: Node }
@@ -519,17 +525,6 @@ export const readEditAndRevert = (
         }
       : null,
   ];
-};
-
-/**
- * @internal
- */
-export const readDocAll = (
-  root: Node,
-  config: ParserConfig,
-  serializeVoid: (node: Element) => Record<string, unknown> | void
-): DocFragment => {
-  return refToDoc(readDom(root, config), serializeVoid);
 };
 
 /**

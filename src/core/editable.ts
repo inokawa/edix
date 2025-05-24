@@ -5,11 +5,12 @@ import {
   setSelectionToDOM,
   getEmptySelectionSnapshot,
   getPointedCaretPosition,
-  readDocAll,
   defaultIsBlockNode,
   readEditAndRevert,
   getSelectionRangeInEditor,
   getDOMSelection,
+  refToDoc,
+  readDom,
 } from "./dom";
 import { createMutationObserver } from "./mutation";
 import { DocFragment, SelectionSnapshot, Writeable } from "./doc/types";
@@ -168,11 +169,15 @@ export const editable = <T>(
 
   setContentEditable();
 
+  const readDocAll = (root: Node, config: ParserConfig): DocFragment => {
+    return refToDoc(readDom(root, config), serializeVoid);
+  };
+
   const commands: { _fn: EditableCommand<any[]>; _args: unknown[] }[] = [];
 
   const history = createHistory<
     readonly [doc: DocFragment, selection: SelectionSnapshot]
-  >([readDocAll(element, parserConfig, serializeVoid), currentSelection]);
+  >([readDocAll(element, parserConfig), currentSelection]);
 
   const observer = createMutationObserver(element, () => {
     if (hasFocus) {
@@ -384,9 +389,7 @@ export const editable = <T>(
   };
 
   const insertData = (dataTransfer: DataTransfer) => {
-    paste(dataTransfer, execCommand, (dom) =>
-      readDocAll(dom, parserConfig, serializeVoid)
-    );
+    paste(dataTransfer, execCommand, (dom) => readDocAll(dom, parserConfig));
   };
 
   const onCopy = (e: ClipboardEvent) => {

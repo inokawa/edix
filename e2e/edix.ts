@@ -36,14 +36,13 @@ export const getText = async (
     (element, [NON_EDITABLE_PLACEHOLDER, { blockTag }]) => {
       const document = element.ownerDocument;
       return window.edix
-        .readDocAll(
-          element,
-          {
+        .refToDoc(
+          window.edix.readDom(element, {
             _document: document,
             _isBlock: blockTag
               ? (n) => n.tagName === blockTag.toUpperCase()
               : window.edix.defaultIsBlockNode,
-          },
+          }),
           () => ({})
         )
         .map((r) => {
@@ -66,14 +65,13 @@ export const getSeletedText = (
       const selection = document.getSelection()!;
       const range = selection.getRangeAt(0)!.cloneContents();
       return window.edix
-        .readDocAll(
-          range,
-          {
+        .refToDoc(
+          window.edix.readDom(range, {
             _document: document,
             _isBlock: blockTag
               ? (n) => n.tagName === blockTag.toUpperCase()
               : window.edix.defaultIsBlockNode,
-          },
+          }),
           () => ({})
         )
         .map((r) => {
