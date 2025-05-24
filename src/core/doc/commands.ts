@@ -1,12 +1,11 @@
 import {
-  NODE_TEXT,
   type DocFragment,
   type Position,
   type SelectionSnapshot,
   type Writeable,
 } from "./types";
 import { comparePosition, edges } from "./position";
-import { deleteEdit, getLineSize, insertEdit } from "./edit";
+import { deleteEdit, getLineSize, insertEdit, stringToDoc } from "./edit";
 
 export type EditableCommand<T extends unknown[]> = (
   doc: Writeable<DocFragment>,
@@ -48,11 +47,7 @@ export const InsertText: EditableCommand<[text: string]> = (
   selection,
   text
 ) => {
-  InsertFragment(
-    doc,
-    selection,
-    text.split("\n").map((l) => [{ type: NODE_TEXT, text: l }])
-  );
+  InsertFragment(doc, selection, stringToDoc(text));
 };
 
 /**

@@ -164,6 +164,13 @@ export const docToString = (
 /**
  * @internal
  */
+export const stringToDoc = (text: string): DocFragment => {
+  return text.split("\n").map((l) => [{ type: NODE_TEXT, text: l }]);
+};
+
+/**
+ * @internal
+ */
 export const insertEdit = (
   doc: Writeable<DocFragment>,
   selection: Writeable<SelectionSnapshot>,

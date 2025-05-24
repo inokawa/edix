@@ -1,8 +1,7 @@
-import { InsertFragment, InsertText } from "../doc/commands";
 import { isCommentNode } from "../dom/parser";
 import { NODE_TEXT, TextNode, type DocNode } from "../doc/types";
 import type { EditableSchema } from "./types";
-import { docToString } from "../doc/edit";
+import { docToString, stringToDoc } from "../doc/edit";
 
 export interface EditableVoidSerializer<T> {
   is: (node: HTMLElement) => boolean;
@@ -121,7 +120,7 @@ export const schema = <
       wrapper.appendChild(dom());
       dataTransfer.setData("text/html", wrapper.innerHTML);
     },
-    paste: (dataTransfer, command, read) => {
+    paste: (dataTransfer, read) => {
       const html = dataTransfer.getData("text/html");
       if (html) {
         let dom: Node = new DOMParser().parseFromString(html, "text/html").body;
@@ -139,10 +138,9 @@ export const schema = <
             dom.appendChild(n);
           }
         }
-        command(InsertFragment, read(dom));
-        return;
+        return read(dom);
       }
-      command(InsertText, dataTransfer.getData("text/plain"));
+      return stringToDoc(dataTransfer.getData("text/plain"));
     },
   };
 };

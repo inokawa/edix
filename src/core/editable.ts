@@ -15,7 +15,13 @@ import {
 import { createMutationObserver } from "./mutation";
 import { DocFragment, SelectionSnapshot, Writeable } from "./doc/types";
 import { microtask } from "./utils";
-import { Delete, EditableCommand, MoveTo, Input } from "./doc/commands";
+import {
+  Delete,
+  EditableCommand,
+  MoveTo,
+  Input,
+  InsertFragment,
+} from "./doc/commands";
 import { flatten, sliceDoc } from "./doc/edit";
 import { EditableSchema } from "./schema";
 import { ParserConfig } from "./dom/parser";
@@ -389,7 +395,10 @@ export const editable = <T>(
   };
 
   const insertData = (dataTransfer: DataTransfer) => {
-    paste(dataTransfer, execCommand, (dom) => readDocAll(dom, parserConfig));
+    execCommand(
+      InsertFragment,
+      paste(dataTransfer, (dom) => readDocAll(dom, parserConfig))
+    );
   };
 
   const onCopy = (e: ClipboardEvent) => {
