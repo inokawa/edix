@@ -447,7 +447,6 @@ export const readEditAndRevert = (
     previousSibling,
     nextSibling,
   } of queue) {
-    let isSelfUpdate = false;
     if (type === "childList") {
       for (const n of addedNodes) {
         addedOrRemoved.add(n);
@@ -462,7 +461,8 @@ export const readEditAndRevert = (
         if (target === root) {
           isDocStart = true;
         } else {
-          isSelfUpdate = true;
+          prev.add(target);
+          updates.add(target);
         }
       }
       if (nextSibling) {
@@ -471,14 +471,11 @@ export const readEditAndRevert = (
         if (target === root) {
           isDocEnd = true;
         } else {
-          isSelfUpdate = true;
+          next.add(target);
+          updates.add(target);
         }
       }
     } else {
-      isSelfUpdate = true;
-    }
-
-    if (isSelfUpdate) {
       prev.add(target);
       next.add(target);
       updates.add(target);
