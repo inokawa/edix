@@ -415,14 +415,6 @@ export const readDom = (
   );
 };
 
-const MUTATION_SELF = 0;
-const MUTATION_SIBLING = 1;
-const MUTATION_ALL = 2;
-type MutationType =
-  | typeof MUTATION_SELF
-  | typeof MUTATION_SIBLING
-  | typeof MUTATION_ALL;
-
 /**
  * @internal
  */
@@ -539,30 +531,24 @@ export const readEditAndRevert = (
     }
   }
 
-  const startType: MutationType = !start
-    ? MUTATION_ALL
-    : [...updates].some(
-        (n) =>
-          n === start ||
-          compareDomPosition(n, start) & DOCUMENT_POSITION_CONTAINS
-      )
-    ? MUTATION_SELF
-    : MUTATION_SIBLING;
-
-  const endType: MutationType = !end
-    ? MUTATION_ALL
-    : [...updates].some(
-        (n) =>
-          n === end || compareDomPosition(n, end) & DOCUMENT_POSITION_CONTAINS
-      )
-    ? MUTATION_SELF
-    : MUTATION_SIBLING;
+  const isStartSibling =
+    !!start &&
+    ![...updates].some(
+      (n) =>
+        n === start || compareDomPosition(n, start) & DOCUMENT_POSITION_CONTAINS
+    );
+  const isEndSibling =
+    !!end &&
+    ![...updates].some(
+      (n) =>
+        n === end || compareDomPosition(n, end) & DOCUMENT_POSITION_CONTAINS
+    );
 
   const afterSlicedDom = readDom(root, config, {
     _startNode: start,
     _endNode: end,
-    _isStartSibling: startType === MUTATION_SIBLING,
-    _isEndSibling: endType === MUTATION_SIBLING,
+    _isStartSibling: isStartSibling,
+    _isEndSibling: isEndSibling,
   });
 
   // Revert DOM
@@ -582,15 +568,7 @@ export const readEditAndRevert = (
   }
 
   return [
-    start &&
-      serializePosition(
-        root,
-        start,
-        0,
-        config,
-        true,
-        startType === MUTATION_SIBLING
-      ),
+    start && serializePosition(root, start, 0, config, true, isStartSibling),
     end &&
       serializePosition(
         root,
@@ -598,7 +576,7 @@ export const readEditAndRevert = (
         0, // TODO unused
         config,
         true,
-        !(endType === MUTATION_SIBLING)
+        !isEndSibling
       ),
     refToDoc(afterSlicedDom, serializeVoid),
   ];
