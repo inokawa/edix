@@ -105,6 +105,13 @@ export const getSelectedRect = (editable: Locator): Promise<DOMRect> => {
   });
 };
 
+export const moveSelectionToOrigin = (editable: Locator) => {
+  return editable.evaluate((element) => {
+    const selection = element.ownerDocument.getSelection()!;
+    selection.setBaseAndExtent(element, 0, element, 0);
+  });
+};
+
 export const deleteAt = (
   value: readonly string[],
   length: number,
@@ -123,6 +130,15 @@ export const insertAt = (
   return value.map((r, i) =>
     i === line ? r.slice(0, offset) + text + r.slice(offset) : r
   );
+};
+
+export const replaceAt = (
+  value: readonly string[],
+  insertedText: string,
+  deleteLength: number,
+  pos: readonly [line: number, offset: number]
+): string[] => {
+  return insertAt(deleteAt(value, deleteLength, pos), insertedText, pos);
 };
 
 export const insertLineBreakAt = (
