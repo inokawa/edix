@@ -294,6 +294,15 @@ test.describe("smoke node", () => {
     expect(await getSelection(editable)).toEqual(
       createSelection({ offset: nodeOffset + 1 })
     );
+
+    // delete custom node
+    await page.keyboard.press("Backspace");
+    expect(await getText(editable)).toEqual(
+      deleteAt(initialValue, 1, [0, nodeOffset])
+    );
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: nodeOffset })
+    );
   });
 
   test("iframe", async ({ page }) => {
