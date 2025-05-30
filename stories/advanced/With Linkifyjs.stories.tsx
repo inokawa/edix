@@ -1,4 +1,4 @@
-import { StoryObj } from "@storybook/react";
+import { StoryObj } from "@storybook/react-vite";
 import React, { ReactElement, useEffect, useRef, useState } from "react";
 import { editable, plainSchema } from "../../src";
 import * as linkify from "linkifyjs";
