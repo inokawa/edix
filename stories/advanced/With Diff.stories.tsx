@@ -1,4 +1,4 @@
-import { StoryObj } from "@storybook/react-vite";
+import { StoryObj } from "@storybook/react";
 import React, { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { editable, plainSchema } from "../../src";
 import { diffLines, diffChars, Change } from "diff";

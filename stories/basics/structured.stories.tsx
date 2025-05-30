@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { StoryObj } from "@storybook/react-vite";
+import { StoryObj } from "@storybook/react";
 import { editable, schema, voidNode, InferDoc } from "../../src";
 
 export default {
