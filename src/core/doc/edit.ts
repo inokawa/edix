@@ -143,8 +143,8 @@ export const sliceDoc = (
 export const insertEdit = (
   doc: Writeable<DocFragment>,
   selection: Writeable<SelectionSnapshot>,
-  lines: DocFragment,
-  pos: Position
+  pos: Position,
+  lines: DocFragment
 ) => {
   const [anchor, focus] = selection;
 

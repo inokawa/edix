@@ -37,9 +37,9 @@ export const InsertFragment: EditableCommand<[lines: DocFragment]> = (
   insertEdit(
     doc,
     selection,
-    lines,
     // selection was collapsed with delete command
-    selection[0]
+    selection[0],
+    lines
   );
 };
 
@@ -81,5 +81,5 @@ export const Input: EditableCommand<
   fragment
 ) => {
   deleteEdit(doc, selection, start, end);
-  insertEdit(doc, selection, fragment, start);
+  insertEdit(doc, selection, start, fragment);
 };
