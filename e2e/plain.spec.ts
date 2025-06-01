@@ -118,26 +118,78 @@ test.describe("type word", () => {
       expect(await getSelection(editable)).toEqual(createSelection());
 
       const client = await page.context().newCDPSession(page);
+
+      // insert with IME
       await client.send("Input.imeSetComposition", {
-        selectionStart: -1,
-        selectionEnd: -1,
-        text: "😂😂",
+        selectionStart: 0,
+        selectionEnd: 0,
+        text: "s",
       });
       await client.send("Input.imeSetComposition", {
-        selectionStart: 1,
-        selectionEnd: 2,
-        text: "😭",
+        selectionStart: 0,
+        selectionEnd: 0,
+        text: "す",
+      });
+      await client.send("Input.imeSetComposition", {
+        selectionStart: 0,
+        selectionEnd: 0,
+        text: "すs",
+      });
+      await client.send("Input.imeSetComposition", {
+        selectionStart: 0,
+        selectionEnd: 0,
+        text: "すし",
+      });
+      await client.send("Input.imeSetComposition", {
+        selectionStart: 0,
+        selectionEnd: 0,
+        text: "寿司",
       });
       await client.send("Input.insertText", {
-        text: "😂😭",
+        text: "寿司",
       });
+      const value2 = insertAt(initialValue, "寿司", [0, 0]);
+      const selection2 = createSelection({ offset: "寿司".length });
+      expect(await getText(editable)).toEqual(value2);
+      expect(await getSelection(editable)).toEqual(selection2);
 
+      // cancel IME
+      await client.send("Input.imeSetComposition", {
+        selectionStart: 0,
+        selectionEnd: 0,
+        text: "あ",
+      });
+      await client.send("Input.imeSetComposition", {
+        selectionStart: 0,
+        selectionEnd: 0,
+        text: "",
+      });
+      expect(await getText(editable)).toEqual(value2);
+
+      // compose already inserted texts
+      await client.send("Input.imeSetComposition", {
+        selectionStart: -2,
+        selectionEnd: 0,
+        text: "",
+      });
+      await client.send("Input.imeSetComposition", {
+        selectionStart: -2,
+        selectionEnd: 0,
+        text: "鮨",
+      });
+      await client.send("Input.imeSetComposition", {
+        selectionStart: -2,
+        selectionEnd: 0,
+        text: "🍣",
+      });
+      await client.send("Input.insertText", {
+        text: "🍣",
+      });
       expect(await getText(editable)).toEqual(
-        insertAt(initialValue, "😂😭", [0, 0])
+        insertAt(initialValue, "🍣", [0, 0])
       );
-      const textLength = "😂😭".length;
       expect(await getSelection(editable)).toEqual(
-        createSelection({ offset: textLength })
+        createSelection({ offset: "🍣".length })
       );
     });
   });
@@ -206,26 +258,78 @@ test.describe("type word", () => {
       expect(await getSelection(editable)).toEqual(createSelection());
 
       const client = await page.context().newCDPSession(page);
+
+      // insert with IME
       await client.send("Input.imeSetComposition", {
-        selectionStart: -1,
-        selectionEnd: -1,
-        text: "😂😂",
+        selectionStart: 0,
+        selectionEnd: 0,
+        text: "s",
       });
       await client.send("Input.imeSetComposition", {
-        selectionStart: 1,
-        selectionEnd: 2,
-        text: "😭",
+        selectionStart: 0,
+        selectionEnd: 0,
+        text: "す",
+      });
+      await client.send("Input.imeSetComposition", {
+        selectionStart: 0,
+        selectionEnd: 0,
+        text: "すs",
+      });
+      await client.send("Input.imeSetComposition", {
+        selectionStart: 0,
+        selectionEnd: 0,
+        text: "すし",
+      });
+      await client.send("Input.imeSetComposition", {
+        selectionStart: 0,
+        selectionEnd: 0,
+        text: "寿司",
       });
       await client.send("Input.insertText", {
-        text: "😂😭",
+        text: "寿司",
       });
+      const value2 = insertAt(initialValue, "寿司", [0, 0]);
+      const selection2 = createSelection({ offset: "寿司".length });
+      expect(await getText(editable)).toEqual(value2);
+      expect(await getSelection(editable)).toEqual(selection2);
 
+      // cancel IME
+      await client.send("Input.imeSetComposition", {
+        selectionStart: 0,
+        selectionEnd: 0,
+        text: "あ",
+      });
+      await client.send("Input.imeSetComposition", {
+        selectionStart: 0,
+        selectionEnd: 0,
+        text: "",
+      });
+      expect(await getText(editable)).toEqual(value2);
+
+      // compose already inserted texts
+      await client.send("Input.imeSetComposition", {
+        selectionStart: -2,
+        selectionEnd: 0,
+        text: "",
+      });
+      await client.send("Input.imeSetComposition", {
+        selectionStart: -2,
+        selectionEnd: 0,
+        text: "鮨",
+      });
+      await client.send("Input.imeSetComposition", {
+        selectionStart: -2,
+        selectionEnd: 0,
+        text: "🍣",
+      });
+      await client.send("Input.insertText", {
+        text: "🍣",
+      });
       expect(await getText(editable)).toEqual(
-        insertAt(initialValue, "😂😭", [0, 0])
+        insertAt(initialValue, "🍣", [0, 0])
       );
-      const textLength = "😂😭".length;
       expect(await getSelection(editable)).toEqual(
-        createSelection({ offset: textLength })
+        createSelection({ offset: "🍣".length })
       );
     });
   });
