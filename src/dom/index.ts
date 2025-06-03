@@ -9,7 +9,7 @@ import {
   TOKEN_SOFT_BREAK,
   TOKEN_BLOCK,
   ParserConfig,
-  isTextNode,
+  isVoidNode,
 } from "./parser";
 import { comparePosition } from "../doc/position";
 import {
@@ -19,6 +19,7 @@ import {
   SelectionSnapshot,
   NODE_TEXT,
   NODE_VOID,
+  PositionRange,
 } from "../doc/types";
 import { min } from "../utils";
 
@@ -26,9 +27,9 @@ export { defaultIsBlockNode } from "./default";
 
 // const DOCUMENT_POSITION_DISCONNECTED = 0x01;
 const DOCUMENT_POSITION_PRECEDING = 0x02;
-const DOCUMENT_POSITION_FOLLOWING = 0x04;
-const DOCUMENT_POSITION_CONTAINS = 0x08;
-const DOCUMENT_POSITION_CONTAINED_BY = 0x10;
+// const DOCUMENT_POSITION_FOLLOWING = 0x04;
+// const DOCUMENT_POSITION_CONTAINS = 0x08;
+// const DOCUMENT_POSITION_CONTAINED_BY = 0x10;
 // const DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20;
 
 /**
@@ -150,14 +151,17 @@ export const setSelectionToDOM = (
 
 type DOMPosition = [node: Text | Element, offsetAtNode: number];
 
-const findPosition = (
+/**
+ * @internal
+ */
+export const findPosition = (
   root: Element,
   [line, offset]: Position,
   isSingleline: boolean,
   config: ParserConfig
-): DOMPosition | void => {
+): DOMPosition | undefined => {
   return parse(
-    (next): DOMPosition | void => {
+    (next): DOMPosition | undefined => {
       while (next()) {
         const length = getNodeSize();
         if (offset <= length) {
@@ -165,6 +169,7 @@ const findPosition = (
         }
         offset -= length;
       }
+      return;
     },
     isSingleline || root.childElementCount === 0 ? root : root.children[line]!,
     config
@@ -187,44 +192,37 @@ const serializePosition = (
   root: Element,
   node: Node,
   offsetAtNode: number,
-  config: ParserConfig,
-  isArtifitialPosition?: boolean,
-  includeEnd?: boolean
+  config: ParserConfig
 ): Position => {
   let row: Node;
   let lineIndex: number;
-  if (root === node) {
-    if (!root.hasChildNodes()) {
-      // for placeholder
-      return [0, 0];
-    }
-    // special case for Ctrl+A in firefox
-    const index = min(offsetAtNode, root.childNodes.length - 1);
-    return serializePosition(
-      root,
-      root.childNodes[index]!,
-      0,
-      config,
-      isArtifitialPosition,
-      index !== offsetAtNode
-    );
-  } else {
-    const maybeBlock = findClosestBlockNode(root, node);
-    if (config._isBlock(maybeBlock)) {
-      row = maybeBlock;
-      lineIndex = Array.prototype.indexOf.call(root.children, row);
-    } else {
-      row = root;
-      lineIndex = 0;
-    }
+  let excludeEnd = true;
+  if (root === node && !node.hasChildNodes()) {
+    // for placeholder
+    return [0, 0];
   }
 
-  if (!isArtifitialPosition && isElementNode(node)) {
-    // If anchor/focus of selection is not selectable node, it will have offset relative to its parent
+  if (isElementNode(node) && !isVoidNode(node) && node.hasChildNodes()) {
+    // If start/end of Range is not selectable node, it will have offset relative to its parent
     //      0  1       2               3
     // <div>aaaa<img /><span>bbbb</span></div>
-    node = node.childNodes[offsetAtNode]!;
+    //
+    // And there are other possible cases:
+    // - Selection with Ctrl+A in Firefox
+    // - getTargetRanges() when deleting contenteditable:false in Firefox
+    const index = min(offsetAtNode, node.childNodes.length - 1);
+    node = node.childNodes[index]!;
+    excludeEnd = index === offsetAtNode;
     offsetAtNode = 0;
+  }
+
+  const maybeBlock = findClosestBlockNode(root, node);
+  if (config._isBlock(maybeBlock)) {
+    row = maybeBlock;
+    lineIndex = Array.prototype.indexOf.call(root.children, row);
+  } else {
+    row = root;
+    lineIndex = 0;
   }
 
   return parse(
@@ -243,8 +241,25 @@ const serializePosition = (
     },
     row,
     config,
-    { _endNode: node, _excludeEnd: !includeEnd }
+    { _endNode: node, _excludeEnd: excludeEnd }
   );
+};
+
+/**
+ * @internal
+ */
+export const serializeRange = (
+  root: Element,
+  config: ParserConfig,
+  { startOffset, startContainer, endOffset, endContainer }: AbstractRange
+): PositionRange => {
+  const start = serializePosition(root, startContainer, startOffset, config);
+  return [
+    start,
+    startContainer === endContainer && startOffset === endOffset
+      ? start
+      : serializePosition(root, endContainer, endOffset, config),
+  ];
 };
 
 /**
@@ -267,18 +282,12 @@ export const takeSelectionSnapshot = (
   config: ParserConfig
 ): SelectionSnapshot => {
   const selection = getDOMSelection(root);
-  const range = getSelectionRangeInEditor(selection, root);
-  if (!range) {
+  const domRange = getSelectionRangeInEditor(selection, root);
+  if (!domRange) {
     return getEmptySelectionSnapshot();
   }
 
-  const { startOffset, startContainer, endOffset, endContainer } = range;
-
-  const start = serializePosition(root, startContainer, startOffset, config);
-  const end =
-    startContainer === endContainer && startOffset === endOffset
-      ? start
-      : serializePosition(root, endContainer, endOffset, config);
+  const range = serializeRange(root, config, domRange);
 
   return (
     // https://stackoverflow.com/questions/9180405/detect-direction-of-user-selection-with-javascript
@@ -289,8 +298,8 @@ export const takeSelectionSnapshot = (
             DOCUMENT_POSITION_PRECEDING) !==
           0
     )
-      ? [end, start]
-      : [start, end]
+      ? [range[1], range[0]]
+      : range
   );
 };
 
@@ -325,15 +334,10 @@ export const readDom = (
   root: Node,
   config: ParserConfig,
   option?: {
-    _startNode?: Node;
-    _endNode?: Node;
-    _isStartSibling: boolean;
-    _isEndSibling: boolean;
+    _start: [Node, number] | undefined;
+    _end: [Node, number];
   }
 ): NodeRef[][] => {
-  const isStartSib = option && option._isStartSibling;
-  const isEndSib = option && option._isEndSibling;
-
   return parse(
     (next) => {
       let type: TokenType | void;
@@ -364,24 +368,38 @@ export const readDom = (
         hasContent = false;
       };
 
-      if (
-        isStartSib &&
-        isElementNode(option._startNode! /* TODO improve type */) &&
-        config._isBlock(option._startNode)
-      ) {
-        rows.push([]);
-      }
-
       while ((type = next())) {
         if (type === TOKEN_BLOCK) {
           completeRow();
         } else {
           hasContent = true;
+
           if (type === TOKEN_TEXT) {
-            text += getDomNode<typeof type>().data;
+            const node = getDomNode<typeof type>();
+            let nodeText = node.data;
+            if (option) {
+              if (option._end[0] === node) {
+                nodeText = nodeText.slice(0, option._end[1]);
+              }
+              if (option._start && option._start[0] === node) {
+                nodeText = nodeText.slice(option._start[1]);
+              }
+            }
+            text += nodeText;
           } else if (type === TOKEN_VOID) {
             completeText();
-            row!.push(getDomNode<typeof type>());
+            const node = getDomNode<typeof type>();
+            if (option) {
+              if (
+                (option._end[0] === node && option._end[1] === 0) ||
+                (option._start &&
+                  option._start[0] === node &&
+                  option._start[1] !== 0)
+              ) {
+                continue;
+              }
+            }
+            row!.push(node);
           } else if (type === TOKEN_SOFT_BREAK) {
             completeRow();
           }
@@ -389,16 +407,7 @@ export const readDom = (
       }
       completeRow();
 
-      if (
-        isEndSib &&
-        isElementNode(option._endNode! /* TODO improve type */) &&
-        config._isBlock(option._endNode)
-      ) {
-        rows.push([]);
-      }
-
       if (!rows.length) {
-        // delete all
         rows.push([]);
       }
 
@@ -407,176 +416,10 @@ export const readDom = (
     root,
     config,
     option && {
-      _startNode: option._startNode,
-      _endNode: option._endNode,
-      _excludeStart: isStartSib,
-      _excludeEnd: isEndSib,
+      _startNode: option._start && option._start[0],
+      _endNode: option._end[0],
     }
   );
-};
-
-/**
- * @internal
- */
-export const readEditAndRevert = (
-  root: Element,
-  config: ParserConfig,
-  queue: MutationRecord[],
-  serializeVoid: (node: Element) => Record<string, unknown> | void
-):
-  | [
-      start: Position | undefined,
-      end: Position | undefined,
-      doc: DocFragment
-    ] => {
-  const updates = new Set<Node>();
-  const addedOrRemoved = new Set<Node>();
-  const prev = new Set<Node>();
-  const next = new Set<Node>();
-
-  let start: Node | undefined;
-  let end: Node | undefined;
-
-  let isDocStart = false;
-  let isDocEnd = false;
-  for (const {
-    type,
-    target,
-    addedNodes,
-    removedNodes,
-    previousSibling,
-    nextSibling,
-  } of queue) {
-    if (type === "childList") {
-      for (const n of addedNodes) {
-        addedOrRemoved.add(n);
-      }
-      for (const n of removedNodes) {
-        addedOrRemoved.add(n);
-      }
-
-      if (previousSibling) {
-        prev.add(previousSibling);
-      } else {
-        if (target === root) {
-          isDocStart = true;
-        } else {
-          prev.add(target);
-          updates.add(target);
-        }
-      }
-      if (nextSibling) {
-        next.add(nextSibling);
-      } else {
-        if (target === root) {
-          isDocEnd = true;
-        } else {
-          next.add(target);
-          updates.add(target);
-        }
-      }
-    } else {
-      prev.add(target);
-      next.add(target);
-      updates.add(target);
-    }
-  }
-
-  if (!isDocStart) {
-    for (const n of prev) {
-      if (
-        n !== root &&
-        !addedOrRemoved.has(n) &&
-        n.isConnected &&
-        (isTextNode(n) || isElementNode(n))
-      ) {
-        if (
-          !start ||
-          compareDomPosition(start, n) &
-            (DOCUMENT_POSITION_PRECEDING | DOCUMENT_POSITION_CONTAINS)
-        ) {
-          start = n;
-        }
-      }
-    }
-  }
-  if (!isDocEnd) {
-    for (const n of next) {
-      if (
-        n !== root &&
-        !addedOrRemoved.has(n) &&
-        n.isConnected &&
-        (isTextNode(n) || isElementNode(n))
-      ) {
-        if (
-          !end ||
-          compareDomPosition(end, n) &
-            (DOCUMENT_POSITION_FOLLOWING | DOCUMENT_POSITION_CONTAINS)
-        ) {
-          end = n;
-        }
-      }
-    }
-  }
-
-  if (start && end) {
-    const compare = compareDomPosition(start, end);
-    if (compare & DOCUMENT_POSITION_CONTAINS) {
-      start = end;
-    } else if (compare & DOCUMENT_POSITION_CONTAINED_BY) {
-      end = start;
-    }
-  }
-
-  const isStartSibling =
-    !!start &&
-    ![...updates].some(
-      (n) =>
-        n === start || compareDomPosition(n, start) & DOCUMENT_POSITION_CONTAINS
-    );
-  const isEndSibling =
-    !!end &&
-    ![...updates].some(
-      (n) =>
-        n === end || compareDomPosition(n, end) & DOCUMENT_POSITION_CONTAINS
-    );
-
-  const afterSlicedDom = readDom(root, config, {
-    _startNode: start,
-    _endNode: end,
-    _isStartSibling: isStartSibling,
-    _isEndSibling: isEndSibling,
-  });
-
-  // Revert DOM
-  let m: MutationRecord | undefined;
-  while ((m = queue.pop())) {
-    if (m.type === "childList") {
-      const { target, removedNodes, addedNodes, nextSibling } = m;
-      for (let i = removedNodes.length - 1; i >= 0; i--) {
-        target.insertBefore(removedNodes[i]!, nextSibling);
-      }
-      for (let i = addedNodes.length - 1; i >= 0; i--) {
-        target.removeChild(addedNodes[i]!);
-      }
-    } else {
-      (m.target as CharacterData).nodeValue = m.oldValue!;
-    }
-  }
-
-  return [
-    start && serializePosition(root, start, 0, config, true, isStartSibling),
-    end &&
-      serializePosition(
-        root,
-        end,
-        0, // TODO unused
-        config,
-        true,
-        !isEndSibling
-      ),
-    refToDoc(afterSlicedDom, serializeVoid),
-  ];
 };
 
 /**

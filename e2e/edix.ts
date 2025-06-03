@@ -174,3 +174,66 @@ export const createSelection = (
     [line, focusOffset],
   ];
 };
+
+// export const logInput = (editable: Locator) =>
+//   editable.evaluate((e) => {
+//     return new Promise<[string, string, any, any, any]>((res) => {
+//       e.addEventListener(
+//         "beforeinput",
+//         (ev: Event) => {
+//           const range = (ev as InputEvent).getTargetRanges()[0];
+//           const serializeRange = (range: AbstractRange) => {
+//             const serializeNode = (node: Node) => {
+//               const nodeName = node.nodeName;
+//               return JSON.stringify([
+//                 nodeName,
+//                 node.nodeType === 3
+//                   ? (node as Text).data
+//                   : [...(node as Element).childNodes].map(serializeNode),
+//               ]);
+//             };
+//             return {
+//               startContainer: serializeNode(range.startContainer),
+//               startOffset: range.startOffset,
+//               endContainer: serializeNode(range.endContainer),
+//               endOffset: range.endOffset,
+//               js: window.edix.serializeRange(
+//                 e,
+//                 {
+//                   _document: e.ownerDocument,
+//                   _isBlock: window.edix.defaultIsBlockNode,
+//                 },
+//                 range
+//               ),
+//             } as const;
+//           };
+
+//           const targetRange = serializeRange(range);
+//           const prevSelection = serializeRange(
+//             e.ownerDocument.getSelection()!.getRangeAt(0)!
+//           );
+
+//           e.addEventListener(
+//             "input",
+//             () => {
+//               res([
+//                 e.innerHTML,
+//                 (ev as InputEvent).inputType,
+//                 targetRange,
+//                 prevSelection,
+//                 serializeRange(e.ownerDocument.getSelection()!.getRangeAt(0)!),
+//               ]);
+//             },
+//             {
+//               once: true,
+//               capture: true,
+//             }
+//           );
+//         },
+//         {
+//           once: true,
+//           capture: true,
+//         }
+//       );
+//     });
+//   });

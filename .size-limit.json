@@ -3,7 +3,7 @@
     "name": "editable",
     "path": "lib/index.mjs",
     "import": "{ editable }",
-    "limit": "4.2 kB"
+    "limit": "4.0 kB"
   },
   {
     "name": "Total",
