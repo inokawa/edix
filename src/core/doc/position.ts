@@ -1,4 +1,4 @@
-import type { Position } from "./types";
+import type { Position, PositionRange } from "./types";
 
 /**
  * @internal
@@ -35,9 +35,6 @@ export const comparePosition = (posA: Position, posB: Position): 0 | 1 | -1 => {
 /**
  * @internal
  */
-export const edges = (
-  a: Position,
-  b: Position
-): [start: Position, end: Position] => {
+export const edges = (a: Position, b: Position): PositionRange => {
   return comparePosition(a, b) === -1 ? [b, a] : [a, b];
 };

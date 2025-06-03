@@ -1,10 +1,8 @@
 let walker: TreeWalker | null;
 let node: Node | null;
 let tokenType: TokenType | null;
-let startNode: Node | null;
 let endNode: Node | null;
 let isEndNodeVisited = false;
-let shouldExcludeStart = false;
 let shouldExcludeEnd = false;
 let isBlockNode: (node: Element) => boolean;
 
@@ -19,7 +17,6 @@ export interface ParserConfig {
 interface ParserOption {
   _startNode?: Node;
   _endNode?: Node;
-  _excludeStart?: boolean;
   _excludeEnd?: boolean;
 }
 
@@ -87,6 +84,16 @@ const EMBEDDED_CONTENT_TAG_NAMES = new Set([
   "IFRAME",
   "OBJECT",
 ]);
+
+/**
+ * @internal
+ */
+export const isVoidNode = (node: Element): boolean => {
+  return (
+    (node as HTMLElement).contentEditable === "false" ||
+    EMBEDDED_CONTENT_TAG_NAMES.has(node.tagName)
+  );
+};
 
 /**
  * @internal
@@ -161,14 +168,6 @@ const readNext = (): TokenType | void => {
       break;
     }
 
-    if (startNode && shouldExcludeStart) {
-      if (startNode.contains(node)) {
-        continue;
-      } else {
-        shouldExcludeStart = false;
-      }
-    }
-
     if (endNode) {
       if (endNode.contains(node)) {
         isEndNodeVisited = true;
@@ -203,10 +202,7 @@ const readNext = (): TokenType | void => {
             TOKEN_SOFT_BREAK
           : // Returning <div><br/></div> is necessary to anchor selection
             TOKEN_EMPTY_BLOCK_ANCHOR);
-      } else if (
-        (node as HTMLElement).contentEditable === "false" ||
-        EMBEDDED_CONTENT_TAG_NAMES.has(tagName)
-      ) {
+      } else if (isVoidNode(node)) {
         return (tokenType = TOKEN_VOID);
       } else if (isBlockNode(node)) {
         return (tokenType = TOKEN_BLOCK);
@@ -231,19 +227,18 @@ export const parse = <T>(
 
     if (option) {
       if (option._startNode) {
-        walker.currentNode = startNode = option._startNode;
+        walker.currentNode = option._startNode;
         walker.previousNode();
       }
       if (option._endNode) {
         endNode = option._endNode;
       }
-      shouldExcludeStart = option._excludeStart || false;
       shouldExcludeEnd = option._excludeEnd || false;
     }
 
     return scopeFn(readNext);
   } finally {
-    walker = node = tokenType = startNode = endNode = null;
-    isEndNodeVisited = shouldExcludeStart = shouldExcludeEnd = false;
+    walker = node = tokenType = endNode = null;
+    isEndNodeVisited = shouldExcludeEnd = false;
   }
 };
