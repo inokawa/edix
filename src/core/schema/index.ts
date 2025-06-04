@@ -1,3 +1,3 @@
-export type { EditableSchema, InferDoc, InferNode } from "./types";
+export type { DocSchema, InferDoc, InferNode } from "./types";
 export * from "./plain";
 export * from "./structured";

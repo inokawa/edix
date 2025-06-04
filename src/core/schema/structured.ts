@@ -1,6 +1,6 @@
 import { isCommentNode } from "../dom/parser";
 import { NODE_TEXT, TextNode, type DocNode } from "../doc/types";
-import type { EditableSchema } from "./types";
+import type { DocSchema } from "./types";
 import { docToString, stringToDoc } from "../doc/utils";
 
 export interface EditableVoidSerializer<T> {
@@ -53,7 +53,7 @@ export const schema = <
 }: {
   multiline?: M;
   void?: V;
-}): EditableSchema<
+}): DocSchema<
   M extends true
     ? (ExtractVoidNode<V> | { type: "text"; text: string })[][]
     : (ExtractVoidNode<V> | { type: "text"; text: string })[]

@@ -23,7 +23,7 @@ import {
   InsertFragment,
 } from "./doc/commands";
 import { flatten, sliceDoc } from "./doc/edit";
-import { EditableSchema } from "./schema";
+import { DocSchema } from "./schema";
 import { ParserConfig } from "./dom/parser";
 import { comparePosition, edges } from "./doc/position";
 
@@ -85,7 +85,7 @@ export interface EditableOptions<T> {
   /**
    * TODO
    */
-  schema: EditableSchema<T>;
+  schema: DocSchema<T>;
   /**
    * TODO
    */
