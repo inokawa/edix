@@ -525,6 +525,34 @@ test.describe("replace range", () => {
       createSelection({ offset: charLength })
     );
   });
+
+  test("replace all with linebreak", async ({ page }) => {
+    await page.goto(storyUrl("basics-plain--multiline"));
+
+    const editable = await getEditable(page);
+    const initialValue = await getText(editable);
+
+    await editable.focus();
+
+    expect(await getSelection(editable)).toEqual(createSelection());
+
+    // Select All
+    await page.keyboard.press(`ControlOrMeta+A`);
+    expect(await getSelection(editable)).toEqual(
+      createSelection({
+        anchor: [0, 0],
+        focus: [
+          initialValue.length - 1,
+          initialValue[initialValue.length - 1].length,
+        ],
+      })
+    );
+
+    // Enter
+    await page.keyboard.press("Enter");
+    expect(await getText(editable)).toEqual(["", ""]);
+    expect(await getSelection(editable)).toEqual(createSelection({ line: 1 }));
+  });
 });
 
 test.describe("Keydown", () => {
