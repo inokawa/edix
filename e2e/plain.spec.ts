@@ -912,6 +912,7 @@ test.describe("Keydown", () => {
       expect(await getSelection(editable)).toEqual(
         createSelection({ line: 1 })
       );
+      await page.waitForTimeout(250);
 
       // Soft break again
       await page.keyboard.press("Shift+Enter");
@@ -920,6 +921,7 @@ test.describe("Keydown", () => {
       expect(await getSelection(editable)).toEqual(
         createSelection({ line: 2 })
       );
+      await page.waitForTimeout(250);
 
       // Insert empty line
       await page.keyboard.press("ArrowUp");
@@ -930,6 +932,7 @@ test.describe("Keydown", () => {
       expect(await getSelection(editable)).toEqual(
         createSelection({ line: 2 })
       );
+      await page.waitForTimeout(250);
 
       // Remove empty line
       await page.keyboard.press("Backspace");
@@ -938,6 +941,7 @@ test.describe("Keydown", () => {
       expect(await getSelection(editable)).toEqual(
         createSelection({ line: 2 })
       );
+      await page.waitForTimeout(250);
 
       // Remove soft break
       await page.keyboard.press("Backspace");
@@ -945,6 +949,7 @@ test.describe("Keydown", () => {
       expect(await getSelection(editable)).toEqual(
         createSelection({ line: 1 })
       );
+      await page.waitForTimeout(250);
 
       // Remove soft break again
       await page.keyboard.press("Backspace");
@@ -952,6 +957,7 @@ test.describe("Keydown", () => {
       expect(await getSelection(editable)).toEqual(
         createSelection({ offset: offset })
       );
+      await page.waitForTimeout(250);
 
       const endOffset = initialValue[0].length;
 
@@ -968,6 +974,7 @@ test.describe("Keydown", () => {
       expect(await getSelection(editable)).toEqual(
         createSelection({ line: 1 })
       );
+      await page.waitForTimeout(250);
 
       // Remove soft break
       await page.keyboard.press("Backspace");
