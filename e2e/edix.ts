@@ -1,17 +1,17 @@
 import { BrowserContext, Locator } from "@playwright/test";
 import * as esbuild from "esbuild";
 import * as path from "node:path";
-import { SelectionSnapshot } from "../src/core/doc/types";
+import { SelectionSnapshot } from "../src/doc/types.ts";
 
 declare global {
   interface Window {
-    edix: typeof import("../src/core/dom/index.ts");
+    edix: typeof import("../src/dom/index.ts");
   }
 }
 
 const edixDom = esbuild
   .build({
-    entryPoints: [path.join(__dirname, "../src/core/dom/index.ts")],
+    entryPoints: [path.join(__dirname, "../src/dom/index.ts")],
     bundle: true,
     write: false,
     format: "iife",
