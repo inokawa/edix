@@ -5,7 +5,7 @@ import {
   type Writeable,
 } from "./types";
 import { comparePosition, edges } from "./position";
-import { deleteEdit, getLineSize, insertEdit } from "./edit";
+import { deleteEdit, insertEdit } from "./edit";
 import { stringToDoc } from "./utils";
 
 export type EditableCommand<T extends unknown[]> = (
@@ -14,23 +14,37 @@ export type EditableCommand<T extends unknown[]> = (
   ...args: T
 ) => void;
 
-export const Delete: EditableCommand<[range?: SelectionSnapshot]> = (
-  doc,
-  selection,
-  [anchor, focus] = selection
-) => {
+/**
+ * @internal
+ */
+export const DeleteRange: EditableCommand<
+  [anchor: Position, focus: Position]
+> = (doc, selection, anchor, focus) => {
   if (comparePosition(anchor, focus) !== 0) {
     deleteEdit(doc, selection, ...edges(anchor, focus));
   }
 };
 
+export const Delete: EditableCommand<[]> = (doc, selection) => {
+  DeleteRange(doc, selection, ...selection);
+};
+
 /**
  * @internal
  */
-export const InsertFragment: EditableCommand<[lines: DocFragment]> = (
+export const InsertAt: EditableCommand<
+  [pos: Position, fragment: DocFragment]
+> = (doc, selection, pos, fragment) => {
+  insertEdit(doc, selection, pos, fragment);
+};
+
+/**
+ * @internal
+ */
+export const InsertFragment: EditableCommand<[fragment: DocFragment]> = (
   doc,
   selection,
-  lines
+  fragment
 ) => {
   Delete(doc, selection);
 
@@ -39,7 +53,7 @@ export const InsertFragment: EditableCommand<[lines: DocFragment]> = (
     selection,
     // selection was collapsed with delete command
     selection[0],
-    lines
+    fragment
   );
 };
 
@@ -62,24 +76,4 @@ export const MoveTo: EditableCommand<[anchor: Position, focus?: Position]> = (
 ) => {
   selection[0] = anchor;
   selection[1] = focus;
-};
-
-/**
- * @internal
- */
-export const Input: EditableCommand<
-  [
-    start: Position | undefined,
-    end: Position | undefined,
-    fragment: DocFragment
-  ]
-> = (
-  doc,
-  selection,
-  start = [0, 0],
-  end = [doc.length - 1, getLineSize(doc[doc.length - 1]!)],
-  fragment
-) => {
-  deleteEdit(doc, selection, start, end);
-  insertEdit(doc, selection, start, fragment);
 };

@@ -6,26 +6,33 @@ import {
   getEmptySelectionSnapshot,
   getPointedCaretPosition,
   defaultIsBlockNode,
-  readEditAndRevert,
   getSelectionRangeInEditor,
   getDOMSelection,
   refToDoc,
   readDom,
+  serializeRange,
+  findPosition,
 } from "./dom";
 import { createMutationObserver } from "./mutation";
-import { DocFragment, SelectionSnapshot, Writeable } from "./doc/types";
+import {
+  DocFragment,
+  PositionRange,
+  SelectionSnapshot,
+  Writeable,
+} from "./doc/types";
 import { microtask } from "./utils";
 import {
   Delete,
   EditableCommand,
   MoveTo,
-  Input,
   InsertFragment,
+  DeleteRange,
+  InsertAt,
 } from "./doc/commands";
 import { flatten, sliceDoc } from "./doc/edit";
 import { DocSchema } from "./schema";
-import { ParserConfig } from "./dom/parser";
-import { comparePosition, edges } from "./doc/position";
+import { isElementNode, ParserConfig } from "./dom/parser";
+import { comparePosition, edges, union } from "./doc/position";
 
 /**
  * https://www.w3.org/TR/input-events-1/#interface-InputEvent-Attributes
@@ -156,6 +163,7 @@ export const editable = <T>(
   let disposed = false;
   let selectionReverted = false;
   let currentSelection: SelectionSnapshot = getEmptySelectionSnapshot();
+  let editedRange: PositionRange | null = null;
   let restoreSelectionQueue: ReturnType<typeof setTimeout> | null = null;
   let isComposing = false;
   let hasFocus = false;
@@ -243,14 +251,70 @@ export const editable = <T>(
       // Get current document and selection from DOM
       const selection = takeSelectionSnapshot(element, parserConfig);
 
-      const result = readEditAndRevert(
-        element,
-        parserConfig,
-        queue,
-        serializeVoid
-      );
+      const editRange = editedRange!;
+      let deleteRange = edges(...currentSelection);
+      let isInsert = false;
+      if (comparePosition(...deleteRange) === 0 && !isComposing) {
+        if (comparePosition(...editRange) === 0) {
+          // insert
+          isInsert = true;
+        } else {
+          // backspace/delete
+          deleteRange = union(deleteRange, editRange);
+        }
+      } else {
+        // replace/delete range
+        isInsert = true;
+      }
+      const insertStart = deleteRange[0];
+      const insertEnd = edges(...selection)[1];
+
+      execCommand(DeleteRange, ...deleteRange);
+      if (isInsert && comparePosition(insertStart, insertEnd) === 1) {
+        const { endContainer, endOffset } = getSelectionRangeInEditor(
+          getDOMSelection(element),
+          element
+        )!;
+        const updatedFragment = refToDoc(
+          readDom(element, parserConfig, {
+            _start: findPosition(
+              element,
+              insertStart,
+              isSingleline,
+              parserConfig
+            ),
+            // TODO improve later
+            _end: isElementNode(endContainer)
+              ? [endContainer.childNodes[endOffset]!, 0]
+              : [endContainer, endOffset],
+          }),
+          serializeVoid
+        );
+
+        execCommand(InsertAt, insertStart, updatedFragment);
+      }
+      execCommand(MoveTo, ...selection);
+
+      // Revert DOM
+      let m: MutationRecord | undefined;
+      while ((m = queue.pop())) {
+        if (m.type === "childList") {
+          const { target, removedNodes, addedNodes, nextSibling } = m;
+          for (let i = removedNodes.length - 1; i >= 0; i--) {
+            target.insertBefore(removedNodes[i]!, nextSibling);
+          }
+          for (let i = addedNodes.length - 1; i >= 0; i--) {
+            target.removeChild(addedNodes[i]!);
+          }
+        } else {
+          (m.target as CharacterData).nodeValue = m.oldValue!;
+        }
+      }
 
       observer._flush();
+
+      isComposing = false;
+      editedRange = null;
 
       // Restore previous selection
       // Updating selection may schedule the next selectionchange event
@@ -262,9 +326,6 @@ export const editable = <T>(
         isSingleline,
         parserConfig
       );
-
-      execCommand(Input, ...result);
-      execCommand(MoveTo, ...selection);
     }
   };
 
@@ -332,10 +393,7 @@ export const editable = <T>(
   }) as (e: Event) => void;
   const onBeforeInput = (e: InputEvent) => {
     switch (e.inputType as InputType) {
-      case "historyUndo": {
-        e.preventDefault();
-        return;
-      }
+      case "historyUndo":
       case "historyRedo": {
         e.preventDefault();
         return;
@@ -349,13 +407,21 @@ export const editable = <T>(
       }
     }
 
+    const range = e.getTargetRanges()[0];
+    if (range) {
+      editedRange = serializeRange(element, parserConfig, range);
+    }
+
+    if (!isComposing) {
+      syncSelection();
+    }
     observer._accept(true);
   };
   const onCompositionStart = () => {
     isComposing = true;
+    syncSelection();
   };
   const onCompositionEnd = () => {
-    isComposing = false;
     queueTask(flushInput);
   };
 
@@ -431,7 +497,7 @@ export const editable = <T>(
       // move selection first to keep selection after modifications
       execCommand(MoveTo, droppedPosition);
       if (isDragging) {
-        execCommand(Delete, currentSelection);
+        execCommand(DeleteRange, ...currentSelection);
       } else {
         element.focus();
       }
