@@ -16,20 +16,18 @@ const getNodeSize = (node: DocNode): number =>
 const getLineSize = (line: DocLine): number =>
   line.reduce((acc, n) => acc + getNodeSize(n), 0);
 
-const merge = (...lines: DocLine[]): DocLine => {
-  const result: Writeable<DocLine> = [];
-  for (const line of lines) {
-    if (!result.length) {
-      result.push(...line);
-    } else {
-      for (const node of line) {
-        const index = result.length - 1;
-        const target = result[index]!;
-        if (isTextNode(node) && isTextNode(target)) {
-          result[index] = { type: NODE_TEXT, text: target.text + node.text };
-        } else {
-          result.push(node);
-        }
+const merge = (a: DocLine, b: DocLine): DocLine => {
+  const result: Writeable<DocLine> = [...a];
+  if (!result.length) {
+    result.push(...b);
+  } else {
+    for (const node of b) {
+      const index = result.length - 1;
+      const target = result[index]!;
+      if (isTextNode(node) && isTextNode(target)) {
+        result[index] = { type: NODE_TEXT, text: target.text + node.text };
+      } else {
+        result.push(node);
       }
     }
   }
@@ -203,7 +201,7 @@ export const flatten = (
   }
 
   return [
-    [merge(...doc)],
+    [doc.reduce((acc, l) => merge(acc, l), [] as DocLine)],
     [
       [0, offsetBeforeAnchor + anchorOffset],
       [0, offsetBeforeFocus + focusOffset],
