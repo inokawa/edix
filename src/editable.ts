@@ -8,7 +8,6 @@ import {
   defaultIsBlockNode,
   getSelectionRangeInEditor,
   getDOMSelection,
-  refToDoc,
   readDom,
   serializeRange,
   findPosition,
@@ -184,7 +183,7 @@ export const editable = <T>(
   setContentEditable();
 
   const readDocAll = (root: Node, config: ParserConfig): DocFragment => {
-    return refToDoc(readDom(root, config), serializeVoid);
+    return readDom(root, config, serializeVoid);
   };
 
   const commands: { _fn: EditableCommand<any[]>; _args: unknown[] }[] = [];
@@ -275,8 +274,11 @@ export const editable = <T>(
           getDOMSelection(element),
           element
         )!;
-        const updatedFragment = refToDoc(
-          readDom(element, parserConfig, {
+
+        execCommand(
+          InsertAt,
+          insertStart,
+          readDom(element, parserConfig, serializeVoid, {
             _start: findPosition(
               element,
               insertStart,
@@ -287,11 +289,8 @@ export const editable = <T>(
             _end: isElementNode(endContainer)
               ? [endContainer.childNodes[endOffset]!, 0]
               : [endContainer, endOffset],
-          }),
-          serializeVoid
+          })
         );
-
-        execCommand(InsertAt, insertStart, updatedFragment);
       }
       execCommand(MoveTo, ...selection);
 

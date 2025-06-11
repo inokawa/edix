@@ -303,56 +303,33 @@ export const takeSelectionSnapshot = (
   );
 };
 
-type NodeRef = Element | string;
-
-/**
- * @internal
- */
-export const refToDoc = (
-  nodes: readonly (readonly NodeRef[])[],
-  serializeVoid: (node: Element) => Record<string, unknown> | void
-): DocFragment => {
-  return nodes.map((l) =>
-    l.reduce((acc, n) => {
-      if (typeof n === "string") {
-        acc.push({ type: NODE_TEXT, text: n });
-      } else {
-        const data = serializeVoid(n);
-        if (data) {
-          acc.push({ type: NODE_VOID, data });
-        }
-      }
-      return acc;
-    }, [] as DocNode[])
-  );
-};
-
 /**
  * @internal
  */
 export const readDom = (
   root: Node,
   config: ParserConfig,
+  serializeVoid: (node: Element) => Record<string, unknown> | void,
   option?: {
     _start: [Node, number] | undefined;
     _end: [Node, number];
   }
-): NodeRef[][] => {
+): DocFragment => {
   return parse(
     (next) => {
       let type: TokenType | void;
-      let row: NodeRef[] | null = null;
+      let row: DocNode[] | null = null;
       let text = "";
       let hasContent = false;
 
-      const rows: NodeRef[][] = [];
+      const rows: DocNode[][] = [];
 
       const completeText = () => {
         if (text) {
           if (!row) {
             row = [];
           }
-          row.push(text);
+          row.push({ type: NODE_TEXT, text });
           text = "";
         }
       };
@@ -399,7 +376,10 @@ export const readDom = (
                 continue;
               }
             }
-            row!.push(node);
+            const data = serializeVoid(node);
+            if (data) {
+              row!.push({ type: NODE_VOID, data });
+            }
           } else if (type === TOKEN_SOFT_BREAK) {
             completeRow();
           }
