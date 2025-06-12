@@ -1,4 +1,4 @@
-import { StoryObj } from "@storybook/react";
+import { StoryObj } from "@storybook/react-vite";
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { editable, plainSchema } from "../../src";
