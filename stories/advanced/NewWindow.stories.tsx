@@ -1,7 +1,13 @@
 import { StoryObj } from "@storybook/react-vite";
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  ReactNode,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { editable, plainSchema } from "../../src";
-import NewWindow from "react-new-window";
+import { createPortal } from "react-dom";
 
 export default {
   component: editable,
@@ -31,6 +37,38 @@ const Content = () => {
   );
 };
 
+const NewWindow = ({
+  children,
+  onUnload,
+}: {
+  children: ReactNode;
+  onUnload: () => void;
+}) => {
+  const [container, setContainer] = useState<Element | null>(null);
+  useLayoutEffect(() => {
+    const externalWindow = window.open(
+      "",
+      "",
+      "width=600,height=400,left=200,top=200"
+    );
+
+    if (!externalWindow) return;
+
+    const container = externalWindow.document.createElement("div");
+
+    externalWindow.document.body.appendChild(container);
+    externalWindow.addEventListener("unload", onUnload, { once: true });
+
+    setContainer(container);
+
+    return () => {
+      externalWindow?.close();
+    };
+  }, []);
+
+  return container ? createPortal(children, container) : null;
+};
+
 export const Default: StoryObj = {
   name: "NewWindow",
 
@@ -47,7 +85,6 @@ export const Default: StoryObj = {
         </button>
         {isWindowOpened && (
           <NewWindow
-            features={{ width: 400, height: 200 }}
             onUnload={() => {
               setIsWindowOpened(false);
             }}
