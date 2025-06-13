@@ -1,4 +1,4 @@
-import { StoryObj } from "@storybook/react";
+import { StoryObj } from "@storybook/react-vite";
 import React, { useEffect, useRef, useState } from "react";
 import { editable, plainSchema } from "../../src";
 import { Highlight, themes } from "prism-react-renderer";

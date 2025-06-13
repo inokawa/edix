@@ -1,0 +1,26 @@
+diff --git a/node_modules/match-index/.DS_Store b/node_modules/match-index/.DS_Store
+new file mode 100644
+index 0000000..a7d5b34
+Binary files /dev/null and b/node_modules/match-index/.DS_Store differ
+diff --git a/node_modules/match-index/lib/match-index.js b/node_modules/match-index/lib/match-index.js
+index 47e9b42..c02968a 100644
+--- a/node_modules/match-index/lib/match-index.js
++++ b/node_modules/match-index/lib/match-index.js
+@@ -2,7 +2,7 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ var flagsGetter = require("regexp.prototype.flags");
+-var assert = require("assert");
++// var assert = require("assert");
+ /**
+  * @param {string} text
+  * @param {RegExp} regExp regExp should include capture
+@@ -10,7 +10,7 @@ var assert = require("assert");
+  */
+ function matchCaptureGroupAll(text, regExp) {
+     var source = regExp.source;
+-    assert(source.indexOf("(") >= 0, "RegExp should contains capture group at least one");
++    // assert(source.indexOf("(") >= 0, "RegExp should contains capture group at least one");
+     var all = matchAll(text, regExp);
+     var captureGroups = [];
+     all.forEach(function (match) {
