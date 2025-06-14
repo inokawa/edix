@@ -13,7 +13,7 @@ import {
 } from "./edix";
 import {
   getEditable,
-  input,
+  type,
   loop,
   grapheme,
   storyUrl,
@@ -38,7 +38,7 @@ test.describe("type word", () => {
 
       // Input
       const text = "test";
-      await input(editable, text);
+      await type(editable, text);
       expect(await getText(editable)).toEqual(
         insertAt(initialValue, text, [0, 0])
       );
@@ -66,7 +66,7 @@ test.describe("type word", () => {
 
       // Input
       const text = "test";
-      await input(editable, text);
+      await type(editable, text);
       expect(await getText(editable)).toEqual(
         insertAt(initialValue, text, [0, 1])
       );
@@ -95,7 +95,7 @@ test.describe("type word", () => {
 
       // Input
       const text = "test";
-      await input(editable, text);
+      await type(editable, text);
       expect(await getText(editable)).toEqual(
         insertAt(initialValue, text, [1, 1])
       );
@@ -207,7 +207,7 @@ test.describe("type word", () => {
 
       // Input
       const text = "test";
-      await input(editable, text);
+      await type(editable, text);
       expect(await getText(editable)).toEqual(
         insertAt(initialValue, text, [0, 0])
       );
@@ -235,7 +235,7 @@ test.describe("type word", () => {
 
       // Input
       const text = "test";
-      await input(editable, text);
+      await type(editable, text);
       expect(await getText(editable)).toEqual(
         insertAt(initialValue, text, [0, 1])
       );
@@ -349,7 +349,7 @@ test.describe("type word", () => {
 
       // Input
       const text = "test";
-      await input(editable, text);
+      await type(editable, text);
       expect(await getText(editable, { blockTag: "span" })).toEqual(
         insertAt(initialValue, text, [0, 0])
       );
@@ -379,7 +379,7 @@ test.describe("type word", () => {
 
       // Input
       const text = "test";
-      await input(editable, text);
+      await type(editable, text);
       expect(await getText(editable, { blockTag: "span" })).toEqual(
         insertAt(initialValue, text, [0, 1])
       );
@@ -410,7 +410,7 @@ test.describe("type word", () => {
 
       // Input
       const text = "test";
-      await input(editable, text);
+      await type(editable, text);
       expect(await getText(editable, { blockTag: "span" })).toEqual(
         insertAt(initialValue, text, [1, 1])
       );
@@ -448,7 +448,7 @@ test.describe("replace range", () => {
     // Input
     const char = "a";
     const charLength = char.length;
-    await input(editable, char);
+    await type(editable, char);
     expect(await getText(editable)).toEqual(
       replaceAt(initialValue, char, selLength, [0, 1])
     );
@@ -482,7 +482,7 @@ test.describe("replace range", () => {
     // Input
     const char = "a";
     const charLength = char.length;
-    await input(editable, char);
+    await type(editable, char);
 
     expect(await getText(editable)).toEqual([
       initialValue[0].slice(0, len) + char + initialValue[1].slice(len),
@@ -518,7 +518,7 @@ test.describe("replace range", () => {
     // Input
     const char = "a";
     const charLength = char.length;
-    await input(editable, char);
+    await type(editable, char);
 
     expect(await getText(editable)).toEqual([char]);
     expect(await getSelection(editable)).toEqual(
@@ -1656,7 +1656,7 @@ test.describe("undo and redo", () => {
     expect(await getSelection(editable)).toEqual(createSelection());
 
     const text = "z";
-    await input(editable, text);
+    await type(editable, text);
 
     const editedValue = insertAt(initialValue, text, [0, 0]);
     expect(await getText(editable)).toEqual(editedValue);
@@ -1724,7 +1724,7 @@ test("rtl", async ({ page }) => {
   {
     // Input
     const text = "test";
-    await input(editable, text);
+    await type(editable, text);
     const textLength = text.length;
     expect(await getText(editable)).toEqual(
       insertAt(initialValue, text, [0, 1])
@@ -1760,7 +1760,7 @@ test.describe("emoji", () => {
       createSelection({ offset: afterOffset })
     );
     // insert
-    await input(editable, char);
+    await type(editable, char);
     expect(await getText(editable)).toEqual(
       insertAt(initialValue, char, [0, afterOffset])
     );
@@ -1799,7 +1799,7 @@ test.describe("emoji", () => {
       createSelection({ offset: afterOffset })
     );
     // insert
-    await input(editable, char);
+    await type(editable, char);
     expect(await getText(editable)).toEqual(
       insertAt(initialValue, char, [0, afterOffset])
     );
@@ -1838,7 +1838,7 @@ test.describe("emoji", () => {
       createSelection({ offset: afterOffset })
     );
     // insert
-    await input(editable, char);
+    await type(editable, char);
     expect(await getText(editable)).toEqual(
       insertAt(initialValue, char, [0, afterOffset])
     );
@@ -1931,7 +1931,7 @@ test("placeholder", async ({ page }) => {
 
   // Input
   const char = "a";
-  await input(editable, char);
+  await type(editable, char);
 
   const value1 = await getText(editable);
   expect(value1).toEqual(insertAt(initialValue, char, [0, 0]));
@@ -1971,7 +1971,7 @@ test.describe("keep state on render", () => {
     );
 
     // insert
-    await input(editable, char);
+    await type(editable, char);
     expect(await getText(editable)).toEqual(
       insertAt(initialValue, char, [0, markedOffset])
     );
@@ -1993,7 +1993,7 @@ test.describe("keep state on render", () => {
     );
 
     // insert
-    await input(editable, char);
+    await type(editable, char);
     expect(await getText(editable)).toEqual(
       insertAt(initialValue, char, [0, markedOffset + 1])
     );
@@ -2015,7 +2015,7 @@ test.describe("keep state on render", () => {
     );
 
     // insert
-    await input(editable, char);
+    await type(editable, char);
     expect(await getText(editable)).toEqual(
       insertAt(initialValue, char, [0, markedOffset + searchValueLength])
     );
@@ -2066,7 +2066,7 @@ test.describe("keep state on render", () => {
     );
 
     // insert
-    await input(editable, char);
+    await type(editable, char);
     expect(await getText(editable)).toEqual(
       insertAt(initialValue, char, [0, markedOffset])
     );
@@ -2088,7 +2088,7 @@ test.describe("keep state on render", () => {
     );
 
     // insert
-    await input(editable, char);
+    await type(editable, char);
     expect(await getText(editable)).toEqual(
       insertAt(initialValue, char, [0, markedOffset + 1])
     );
@@ -2126,7 +2126,7 @@ test("new window", async ({ page, context }) => {
 
   // Input
   const text = "test";
-  await input(editable, text);
+  await type(editable, text);
   expect(await getText(editable)).toEqual(insertAt(initialValue, text, [0, 1]));
   const textLength = text.length;
   expect(await getSelection(editable)).toEqual(

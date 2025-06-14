@@ -9,7 +9,7 @@ import {
   deleteAt,
   moveSelectionToOrigin,
 } from "./edix";
-import { getEditable, input, loop, readClipboard, storyUrl } from "./utils";
+import { getEditable, type, loop, readClipboard, storyUrl } from "./utils";
 
 test.beforeEach(async ({ context }) => {
   await initEdixHelpers(context);
@@ -36,7 +36,7 @@ test.describe("smoke node", () => {
     );
 
     // insert
-    await input(editable, char);
+    await type(editable, char);
     expect(await getText(editable)).toEqual(
       insertAt(initialValue, char, [0, nodeOffset])
     );
@@ -58,7 +58,7 @@ test.describe("smoke node", () => {
     );
 
     // insert
-    await input(editable, char);
+    await type(editable, char);
     expect(await getText(editable)).toEqual(
       insertAt(initialValue, char, [0, nodeOffset + 1])
     );
@@ -115,7 +115,7 @@ test.describe("smoke node", () => {
     const replaceText = "Z";
     await loop(nodeOffset, () => page.keyboard.press("ArrowRight"));
     await page.keyboard.press("Shift+ArrowRight");
-    await input(editable, replaceText);
+    await type(editable, replaceText);
     expect(await getText(editable)).toEqual(
       insertAt(deleteAt(initialValue, 1, [0, nodeOffset]), replaceText, [
         0,
@@ -147,7 +147,7 @@ test.describe("smoke node", () => {
     );
 
     // insert
-    await input(editable, char);
+    await type(editable, char);
     expect(await getText(editable)).toEqual(
       insertAt(initialValue, char, [0, nodeOffset])
     );
@@ -169,7 +169,7 @@ test.describe("smoke node", () => {
     );
 
     // insert
-    await input(editable, char);
+    await type(editable, char);
     expect(await getText(editable)).toEqual(
       insertAt(initialValue, char, [0, nodeOffset + 1])
     );
@@ -226,7 +226,7 @@ test.describe("smoke node", () => {
     const replaceText = "Z";
     await loop(nodeOffset, () => page.keyboard.press("ArrowRight"));
     await page.keyboard.press("Shift+ArrowRight");
-    await input(editable, replaceText);
+    await type(editable, replaceText);
     expect(await getText(editable)).toEqual(
       insertAt(deleteAt(initialValue, 1, [0, nodeOffset]), replaceText, [
         0,
@@ -258,7 +258,7 @@ test.describe("smoke node", () => {
     );
 
     // insert
-    await input(editable, char);
+    await type(editable, char);
     expect(await getText(editable)).toEqual(
       insertAt(initialValue, char, [0, nodeOffset])
     );
@@ -280,7 +280,7 @@ test.describe("smoke node", () => {
     );
 
     // insert
-    await input(editable, char);
+    await type(editable, char);
     expect(await getText(editable)).toEqual(
       insertAt(initialValue, char, [0, nodeOffset + 1])
     );
@@ -325,7 +325,7 @@ test.describe("smoke node", () => {
     );
 
     // insert
-    await input(editable, char);
+    await type(editable, char);
     expect(await getText(editable)).toEqual(
       insertAt(initialValue, char, [0, nodeOffset])
     );
@@ -347,7 +347,7 @@ test.describe("smoke node", () => {
     );
 
     // insert
-    await input(editable, char);
+    await type(editable, char);
     expect(await getText(editable)).toEqual(
       insertAt(initialValue, char, [0, nodeOffset + 1])
     );

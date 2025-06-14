@@ -9,19 +9,8 @@ export const getEditable = async (page: Page) => {
   return editable;
 };
 
-export const input = async (editable: Locator, text: string) => {
+export const type = async (editable: Locator, text: string) => {
   for (const t of text.split("")) {
-    // playwright doesn't fire beforeinput event on press
-    await editable.evaluate((e, t) => {
-      e.dispatchEvent(
-        new InputEvent("beforeinput", {
-          data: t,
-          bubbles: true,
-          cancelable: true,
-          inputType: "insertText",
-        })
-      );
-    }, t);
     await editable.press(t);
   }
 };

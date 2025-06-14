@@ -7,7 +7,7 @@ import {
   insertAt,
   insertLineBreakAt,
 } from "./edix";
-import { getEditable, input } from "./utils";
+import { getEditable, type } from "./utils";
 
 test.beforeEach(async ({ context }) => {
   await initEdixHelpers(context);
@@ -29,7 +29,7 @@ test("smoke", async ({ page }) => {
 
   // Input
   const text = "test";
-  await input(editable, text);
+  await type(editable, text);
 
   const value1 = insertAt(initialValue, text, [0, 1]);
   expect(await getText(editable)).toEqual(value1);
