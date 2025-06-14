@@ -5,7 +5,7 @@ import {
   type Writeable,
 } from "./types";
 import { comparePosition, edges } from "./position";
-import { deleteEdit, insertEdit } from "./edit";
+import { deleteEdit, insertEdit, getLineSize } from "./edit";
 import { stringToDoc } from "./utils";
 
 export type EditableCommand<T extends unknown[]> = (
@@ -63,6 +63,20 @@ export const InsertText: EditableCommand<[text: string]> = (
   text
 ) => {
   InsertFragment(doc, selection, stringToDoc(text));
+};
+
+export const ReplaceAll: EditableCommand<[text: string]> = (
+  doc,
+  selection,
+  text
+) => {
+  deleteEdit(
+    doc,
+    selection,
+    [0, 0],
+    [doc.length - 1, getLineSize(doc[doc.length - 1]!)]
+  );
+  insertEdit(doc, selection, [0, 0], stringToDoc(text));
 };
 
 /**
