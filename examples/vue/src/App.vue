@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue';
-import { editable, EditableHandle, plainSchema } from "edix";
+import { editable, Editor, plainSchema } from "edix";
 
 const value = ref("Hello World.\nこんにちは。\n👍❤️🧑‍🧑‍🧒")
 const element = ref<HTMLDivElement>()
-let editor: EditableHandle | null = null
+let editor: Editor | null = null
 onMounted(() => {
   editor = editable(element.value!, {
     schema: plainSchema({ multiline: true }),

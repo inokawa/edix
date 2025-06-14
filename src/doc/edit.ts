@@ -9,6 +9,56 @@ import {
   Writeable,
 } from "./types";
 
+const DELETE_EDIT = 1;
+type DeleteEdit = Readonly<{
+  _type: typeof DELETE_EDIT;
+  _start: Position;
+  _end: Position;
+}>;
+
+const INSERT_EDIT = 2;
+type InsertEdit = Readonly<{
+  _type: typeof INSERT_EDIT;
+  _pos: Position;
+  _fragment: DocFragment;
+}>;
+
+const MOVE_EDIT = 3;
+type MoveEdit = Readonly<{
+  _type: typeof MOVE_EDIT;
+  _anchor: Position;
+  _focus: Position;
+}>;
+export type Edit = DeleteEdit | InsertEdit | MoveEdit;
+
+/**
+ * @internal
+ */
+export const deleteEdit = (start: Position, end: Position): DeleteEdit => ({
+  _type: DELETE_EDIT,
+  _start: start,
+  _end: end,
+});
+/**
+ * @internal
+ */
+export const insertEdit = (
+  pos: Position,
+  fragment: DocFragment
+): InsertEdit => ({
+  _type: INSERT_EDIT,
+  _pos: pos,
+  _fragment: fragment,
+});
+/**
+ * @internal
+ */
+export const moveEdit = (anchor: Position, focus: Position): MoveEdit => ({
+  _type: MOVE_EDIT,
+  _anchor: anchor,
+  _focus: focus,
+});
+
 const isTextNode = (node: DocNode) => node.type === NODE_TEXT;
 const getNodeSize = (node: DocNode): number =>
   isTextNode(node) ? node.text.length : 1;
@@ -135,46 +185,61 @@ export const sliceDoc = (
 /**
  * @internal
  */
-export const insertEdit = (
+export const applyEdit = (
   doc: Writeable<DocFragment>,
   selection: Writeable<SelectionSnapshot>,
-  pos: Position,
-  lines: DocFragment
+  edit: Edit
 ) => {
-  const [anchor, focus] = selection;
+  switch (edit._type) {
+    case DELETE_EDIT: {
+      const { _start: start, _end: end } = edit;
 
-  const lineLength = lines.length;
-  const lineDiff = lineLength - 1;
-  const lastRowLength = getLineSize(lines[lineLength - 1]!);
+      const [anchor, focus] = selection;
 
-  replaceRange(doc, lines, pos);
+      replaceRange(doc, [], start, end);
 
-  if (comparePosition(anchor, pos) !== 1) {
-    selection[0] = fixPositionAfterInsert(anchor, pos, lineDiff, lastRowLength);
-  }
-  if (comparePosition(focus, pos) !== 1) {
-    selection[1] = fixPositionAfterInsert(focus, pos, lineDiff, lastRowLength);
-  }
-};
+      if (comparePosition(anchor, start) !== 1) {
+        selection[0] = fixPositionAfterDelete(anchor, start, end);
+      }
+      if (comparePosition(focus, start) !== 1) {
+        selection[1] = fixPositionAfterDelete(focus, start, end);
+      }
+      break;
+    }
+    case INSERT_EDIT: {
+      const { _pos: pos, _fragment: lines } = edit;
 
-/**
- * @internal
- */
-export const deleteEdit = (
-  doc: Writeable<DocFragment>,
-  selection: Writeable<SelectionSnapshot>,
-  start: Position,
-  end: Position
-) => {
-  const [anchor, focus] = selection;
+      const [anchor, focus] = selection;
 
-  replaceRange(doc, [], start, end);
+      const lineLength = lines.length;
+      const lineDiff = lineLength - 1;
+      const lastRowLength = getLineSize(lines[lineLength - 1]!);
 
-  if (comparePosition(anchor, start) !== 1) {
-    selection[0] = fixPositionAfterDelete(anchor, start, end);
-  }
-  if (comparePosition(focus, start) !== 1) {
-    selection[1] = fixPositionAfterDelete(focus, start, end);
+      replaceRange(doc, lines, pos);
+
+      if (comparePosition(anchor, pos) !== 1) {
+        selection[0] = fixPositionAfterInsert(
+          anchor,
+          pos,
+          lineDiff,
+          lastRowLength
+        );
+      }
+      if (comparePosition(focus, pos) !== 1) {
+        selection[1] = fixPositionAfterInsert(
+          focus,
+          pos,
+          lineDiff,
+          lastRowLength
+        );
+      }
+      break;
+    }
+    case MOVE_EDIT: {
+      selection[0] = edit._anchor;
+      selection[1] = edit._focus;
+      break;
+    }
   }
 };
 

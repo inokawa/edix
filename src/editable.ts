@@ -24,11 +24,10 @@ import {
   Delete,
   EditableCommand,
   MoveTo,
-  InsertFragment,
   DeleteRange,
   InsertAt,
 } from "./doc/commands";
-import { flatten, sliceDoc } from "./doc/edit";
+import { applyEdit, Edit, flatten, sliceDoc } from "./doc/edit";
 import { DocSchema } from "./schema";
 import { isElementNode, ParserConfig } from "./dom/parser";
 import { comparePosition, edges, union } from "./doc/position";
@@ -105,7 +104,17 @@ export interface EditableOptions<T> {
 /**
  * Methods of editor instance.
  */
-export interface EditableHandle {
+export interface Editor {
+  /**
+   * TODO
+   * @internal
+   */
+  get doc(): DocFragment;
+  /**
+   * TODO
+   * @internal
+   */
+  get sel(): SelectionSnapshot;
   /**
    * Disposes editor and restores previous DOM state.
    */
@@ -139,7 +148,7 @@ export const editable = <T>(
     isBlock = defaultIsBlockNode,
     onChange,
   }: EditableOptions<T>
-): EditableHandle => {
+): Editor => {
   // https://w3c.github.io/contentEditable/
   // https://w3c.github.io/editing/docs/execCommand/
   // https://w3c.github.io/selection-api/
@@ -186,7 +195,11 @@ export const editable = <T>(
     return readDom(root, config, serializeVoid);
   };
 
-  const commands: { _fn: EditableCommand<any[]>; _args: unknown[] }[] = [];
+  const edits: Edit[] = [];
+  const apply = (arg: Edit) => {
+    edits.unshift(arg);
+    queueTask(flushEdit);
+  };
 
   const history = createHistory<
     readonly [doc: DocFragment, selection: SelectionSnapshot]
@@ -268,14 +281,14 @@ export const editable = <T>(
       const insertStart = deleteRange[0];
       const insertEnd = edges(...selection)[1];
 
-      execCommand(DeleteRange, ...deleteRange);
+      command(DeleteRange, ...deleteRange);
       if (isInsert && comparePosition(insertStart, insertEnd) === 1) {
         const { endContainer, endOffset } = getSelectionRangeInEditor(
           getDOMSelection(element),
           element
         )!;
 
-        execCommand(
+        command(
           InsertAt,
           insertStart,
           readDom(element, parserConfig, serializeVoid, {
@@ -292,7 +305,7 @@ export const editable = <T>(
           })
         );
       }
-      execCommand(MoveTo, ...selection);
+      command(MoveTo, ...selection);
 
       // Revert DOM
       let m: MutationRecord | undefined;
@@ -328,14 +341,14 @@ export const editable = <T>(
     }
   };
 
-  const flushCommand = () => {
-    if (commands.length) {
-      let selection: Writeable<SelectionSnapshot> = [...currentSelection];
-      let doc: Writeable<DocFragment> = [...history.get()[0]];
+  const flushEdit = () => {
+    if (edits.length) {
+      let doc: Writeable<DocFragment> = [...editor.doc];
+      let selection: Writeable<SelectionSnapshot> = [...editor.sel];
 
-      let command: (typeof commands)[number] | undefined;
-      while ((command = commands.pop())) {
-        command._fn(doc, selection, ...command._args);
+      let edit: Edit | undefined;
+      while ((edit = edits.pop())) {
+        applyEdit(doc, selection, edit);
       }
 
       if (!readonly) {
@@ -343,10 +356,10 @@ export const editable = <T>(
           [doc, selection] = flatten(doc, selection);
         }
 
-        // TODO improve
-        const prevDoc = history.get()[0];
-        const prevSelection = currentSelection;
+        const prevDoc = editor.doc;
+        const prevSelection = editor.sel;
 
+        // TODO improve
         if (
           doc.length !== prevDoc.length ||
           doc.some((l, i) => l !== prevDoc[i])
@@ -361,10 +374,8 @@ export const editable = <T>(
     }
   };
 
-  const execCommand: EditableHandle["command"] = (fn, ...args) => {
-    commands.unshift({ _fn: fn, _args: args });
-
-    queueTask(flushCommand);
+  const command: Editor["command"] = (fn, ...args) => {
+    fn(editor, apply, ...args);
   };
 
   const onKeyDown = (e: KeyboardEvent) => {
@@ -459,11 +470,8 @@ export const editable = <T>(
     }
   };
 
-  const insertData = (dataTransfer: DataTransfer) => {
-    execCommand(
-      InsertFragment,
-      paste(dataTransfer, (dom) => readDocAll(dom, parserConfig))
-    );
+  const dataTransferToDoc = (dataTransfer: DataTransfer): DocFragment => {
+    return paste(dataTransfer, (dom) => readDocAll(dom, parserConfig));
   };
 
   const onCopy = (e: ClipboardEvent) => {
@@ -474,12 +482,17 @@ export const editable = <T>(
     e.preventDefault();
     if (!readonly) {
       copySelected(e.clipboardData!);
-      execCommand(Delete);
+      command(Delete);
     }
   };
   const onPaste = (e: ClipboardEvent) => {
     e.preventDefault();
-    insertData(e.clipboardData!);
+    command(Delete);
+    command(
+      InsertAt,
+      edges(...editor.sel)[0],
+      dataTransferToDoc(e.clipboardData!)
+    );
   };
 
   const onDrop = (e: DragEvent) => {
@@ -494,13 +507,12 @@ export const editable = <T>(
     );
     if (dataTransfer && droppedPosition) {
       // move selection first to keep selection after modifications
-      execCommand(MoveTo, droppedPosition);
+      command(MoveTo, droppedPosition);
+      command(InsertAt, droppedPosition, dataTransferToDoc(dataTransfer));
       if (isDragging) {
-        execCommand(DeleteRange, ...currentSelection);
-      } else {
-        element.focus();
+        command(DeleteRange, ...editor.sel);
       }
-      insertData(dataTransfer);
+      element.focus();
     }
   };
   const onDragStart = (e: DragEvent) => {
@@ -526,7 +538,13 @@ export const editable = <T>(
   element.addEventListener("dragstart", onDragStart);
   element.addEventListener("dragend", onDragEnd);
 
-  return {
+  const editor: Editor = {
+    get doc() {
+      return history.get()[0];
+    },
+    get sel() {
+      return currentSelection;
+    },
     dispose: () => {
       if (disposed) return;
       disposed = true;
@@ -554,10 +572,11 @@ export const editable = <T>(
       element.removeEventListener("dragstart", onDragStart);
       element.removeEventListener("dragend", onDragEnd);
     },
-    command: execCommand,
+    command: command,
     readonly: (value) => {
       readonly = value;
       setContentEditable();
     },
   };
+  return editor;
 };
