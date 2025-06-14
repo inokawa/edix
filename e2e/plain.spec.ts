@@ -10,6 +10,7 @@ import {
   getSelectedRect,
   getSeletedText,
   replaceAt,
+  moveSelectionToOrigin,
 } from "./edix";
 import {
   getEditable,
@@ -1590,14 +1591,22 @@ test.describe("Paste", () => {
 });
 
 test.describe("Drag and Drop", () => {
-  const dragSelectionToNextLine = async (page: Page, editable: Locator) => {
+  const dragSelectionTo = async (
+    page: Page,
+    editable: Locator,
+    { line = 0, char = 0 }: { line?: number; char?: number }
+  ) => {
+    const selectedTextLength = (await getSeletedText(editable)).join("").length;
     const selected = await getSelectedRect(editable);
     const x = selected.x + selected.width / 2;
     const y = selected.y + selected.height / 2;
     await page.mouse.move(x, y);
     await page.mouse.down();
     await new Promise((resolve) => setTimeout(resolve, 250));
-    await page.mouse.move(x, y + selected.height);
+    await page.mouse.move(
+      x + char * (selected.width / selectedTextLength),
+      y + selected.height * line
+    );
     await page.mouse.up();
   };
 
@@ -1611,33 +1620,97 @@ test.describe("Drag and Drop", () => {
 
     expect(await getSelection(editable)).toEqual(createSelection());
 
-    // Move caret
-    await page.keyboard.press("ArrowRight");
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: 1 })
-    );
-    // Expand selection
-    const selLength = 3;
-    await loop(selLength, () => page.keyboard.press("Shift+ArrowRight"));
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: 1, extent: selLength })
-    );
+    {
+      // Select [0,1]-[0,4]
+      await page.keyboard.press("ArrowRight");
+      const selLength = 3;
+      await loop(selLength, () => page.keyboard.press("Shift+ArrowRight"));
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ offset: 1, extent: selLength })
+      );
 
-    const [selectedText] = await getSeletedText(editable);
+      // drop text to next line
+      const [selectedText] = await getSeletedText(editable);
+      await dragSelectionTo(page, editable, { line: 1 });
+      expect(await getText(editable)).toEqual(
+        insertAt(
+          deleteAt(initialValue, selLength, [0, 1]),
+          selectedText,
+          [1, 1]
+        )
+      );
+      // TODO check selection anchor also
+      expect((await getSelection(editable))[1]).toEqual(
+        createSelection({ line: 1, offset: 1, extent: selLength })[1]
+      );
+    }
 
-    await dragSelectionToNextLine(page, editable);
-    expect(await getText(editable)).toEqual(
-      insertAt(deleteAt(initialValue, selLength, [0, 1]), selectedText, [1, 1])
-    );
-    // TODO check selection anchor also
-    expect((await getSelection(editable))[1]).toEqual(
-      createSelection({ line: 1, offset: 1, extent: selLength })[1]
-    );
+    // reset
+    await page.keyboard.press(`ControlOrMeta+Z`);
+    await moveSelectionToOrigin(editable);
+    expect(await getText(editable)).toEqual(initialValue);
+    expect(await getSelection(editable)).toEqual(createSelection());
+
+    {
+      // Select [1,2]-[1,4]
+      await page.keyboard.press("ArrowDown");
+      const selStart = 2;
+      await loop(selStart, () => page.keyboard.press("ArrowRight"));
+      const selLength = 2;
+      await loop(selLength, () => page.keyboard.press("Shift+ArrowRight"));
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ line: 1, offset: selStart, extent: selLength })
+      );
+
+      // drop text to swap
+      const [selectedText] = await getSeletedText(editable);
+      await dragSelectionTo(page, editable, { char: -2 });
+      expect(await getText(editable)).toEqual(
+        insertAt(
+          deleteAt(initialValue, selLength, [1, selStart]),
+          selectedText,
+          [1, selStart - 1]
+        )
+      );
+      // TODO check selection anchor also
+      expect((await getSelection(editable))[1]).toEqual(
+        createSelection({ line: 1, offset: selStart - 1, extent: selLength })[1]
+      );
+    }
+
+    // reset
+    await page.keyboard.press(`ControlOrMeta+Z`);
+    await moveSelectionToOrigin(editable);
+    expect(await getText(editable)).toEqual(initialValue);
+    expect(await getSelection(editable)).toEqual(createSelection());
+
+    {
+      // Select [1,1]-[1,3]
+      await page.keyboard.press("ArrowDown");
+      const selStart = 1;
+      await loop(selStart, () => page.keyboard.press("ArrowRight"));
+      const selLength = 2;
+      await loop(selLength, () => page.keyboard.press("Shift+ArrowRight"));
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ line: 1, offset: selStart, extent: selLength })
+      );
+
+      // drop text to swap
+      const [selectedText] = await getSeletedText(editable);
+      await dragSelectionTo(page, editable, { char: 2 });
+      expect(await getText(editable)).toEqual(
+        insertAt(
+          deleteAt(initialValue, selLength, [1, selStart]),
+          selectedText,
+          [1, selStart + 1]
+        )
+      );
+      // TODO check selection anchor also
+      expect((await getSelection(editable))[1]).toEqual(
+        createSelection({ line: 1, offset: selStart + 1, extent: selLength })[1]
+      );
+    }
   });
-
-  // test("move linebreak", async ({ page }) => {
-  //   // TODO
-  // });
 
   // test("drop external", async ({ page }) => {
   //   // TODO
