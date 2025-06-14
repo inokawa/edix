@@ -1,16 +1,12 @@
-import {
-  type DocFragment,
-  type Position,
-  type SelectionSnapshot,
-  type Writeable,
-} from "./types";
+import { type DocFragment, type Position } from "./types";
 import { comparePosition, edges } from "./position";
-import { deleteEdit, insertEdit } from "./edit";
+import { deleteEdit, Edit, insertEdit, moveEdit } from "./edit";
 import { stringToDoc } from "./utils";
+import { Editor } from "../editable";
 
 export type EditableCommand<T extends unknown[]> = (
-  doc: Writeable<DocFragment>,
-  selection: Writeable<SelectionSnapshot>,
+  editor: Editor,
+  apply: (edit: Edit) => void,
   ...args: T
 ) => void;
 
@@ -19,14 +15,14 @@ export type EditableCommand<T extends unknown[]> = (
  */
 export const DeleteRange: EditableCommand<
   [anchor: Position, focus: Position]
-> = (doc, selection, anchor, focus) => {
+> = (_editor, apply, anchor, focus) => {
   if (comparePosition(anchor, focus) !== 0) {
-    deleteEdit(doc, selection, ...edges(anchor, focus));
+    apply(deleteEdit(...edges(anchor, focus)));
   }
 };
 
-export const Delete: EditableCommand<[]> = (doc, selection) => {
-  DeleteRange(doc, selection, ...selection);
+export const Delete: EditableCommand<[]> = (editor, apply) => {
+  DeleteRange(editor, apply, ...editor.sel);
 };
 
 /**
@@ -34,46 +30,34 @@ export const Delete: EditableCommand<[]> = (doc, selection) => {
  */
 export const InsertAt: EditableCommand<
   [pos: Position, fragment: DocFragment]
-> = (doc, selection, pos, fragment) => {
-  insertEdit(doc, selection, pos, fragment);
-};
-
-/**
- * @internal
- */
-export const InsertFragment: EditableCommand<[fragment: DocFragment]> = (
-  doc,
-  selection,
-  fragment
-) => {
-  Delete(doc, selection);
-
-  insertEdit(
-    doc,
-    selection,
-    // selection was collapsed with delete command
-    selection[0],
-    fragment
-  );
+> = (_editor, apply, pos, fragment) => {
+  apply(insertEdit(pos, fragment));
 };
 
 export const InsertText: EditableCommand<[text: string]> = (
-  doc,
-  selection,
+  editor,
+  apply,
   text
 ) => {
-  InsertFragment(doc, selection, stringToDoc(text));
+  Delete(editor, apply);
+
+  apply(
+    insertEdit(
+      // selection was collapsed with delete command
+      edges(...editor.sel)[0],
+      stringToDoc(text)
+    )
+  );
 };
 
 /**
  * @internal
  */
 export const MoveTo: EditableCommand<[anchor: Position, focus?: Position]> = (
-  _doc,
-  selection,
+  _editor,
+  apply,
   anchor,
   focus = anchor
 ) => {
-  selection[0] = anchor;
-  selection[1] = focus;
+  apply(moveEdit(anchor, focus));
 };

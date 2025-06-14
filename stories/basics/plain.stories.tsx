@@ -1,12 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { StoryObj } from "@storybook/react-vite";
-import {
-  Delete,
-  editable,
-  EditableHandle,
-  InsertText,
-  plainSchema,
-} from "../../src";
+import { Delete, editable, Editor, InsertText, plainSchema } from "../../src";
 
 export default {
   component: editable,
@@ -75,14 +69,14 @@ export const Readonly: StoryObj = {
     const ref = useRef<HTMLDivElement>(null);
     const [value, setValue] = useState(`Hello world.`);
     const [readonly, setReadonly] = useState(false);
-    const handle = useRef<EditableHandle | null>(null);
+    const editorRef = useRef<Editor | null>(null);
     useEffect(() => {
       if (!ref.current) return;
       const editor = editable(ref.current, {
         schema: plainSchema(),
         onChange: setValue,
       });
-      handle.current = editor;
+      editorRef.current = editor;
       return editor.dispose;
     }, []);
     return (
@@ -90,9 +84,9 @@ export const Readonly: StoryObj = {
         <div>
           <button
             onClick={() => {
-              if (!handle.current) return;
+              if (!editorRef.current) return;
               const value = !readonly;
-              handle.current.readonly(value);
+              editorRef.current.readonly(value);
               setReadonly(value);
             }}
           >
@@ -205,10 +199,10 @@ export const Command: StoryObj = {
     const [value, setValue] = useState(
       "Hello World.\nこんにちは。\n👍❤️🧑‍🧑‍🧒"
     );
-    const handle = useRef<EditableHandle | null>(null);
+    const editor = useRef<Editor | null>(null);
     useEffect(() => {
       if (!ref.current) return;
-      return (handle.current = editable(ref.current, {
+      return (editor.current = editable(ref.current, {
         schema: plainSchema({ multiline: true }),
         onChange: setValue,
       })).dispose;
@@ -228,7 +222,7 @@ export const Command: StoryObj = {
             />
             <button
               onClick={() => {
-                handle.current?.command(InsertText, text);
+                editor.current?.command(InsertText, text);
               }}
             >
               insert
@@ -237,7 +231,7 @@ export const Command: StoryObj = {
           <div>
             <button
               onClick={() => {
-                handle.current?.command(Delete);
+                editor.current?.command(Delete);
               }}
             >
               delete selection

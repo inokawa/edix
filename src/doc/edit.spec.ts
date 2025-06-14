@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { deleteEdit, insertEdit } from "./edit";
+import { applyEdit, deleteEdit, insertEdit } from "./edit";
 import {
   NODE_TEXT,
   type DocFragment,
@@ -58,7 +58,11 @@ describe(insertEdit.name, () => {
     ];
     const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
-    insertEdit(doc, sel, [0, 1], [[{ type: NODE_TEXT, text: text }]]);
+    applyEdit(
+      doc,
+      sel,
+      insertEdit([0, 1], [[{ type: NODE_TEXT, text: text }]])
+    );
 
     expect(doc).toEqual([
       [{ type: NODE_TEXT, text: insertAt(docText, 1, text) }],
@@ -81,11 +85,13 @@ describe(insertEdit.name, () => {
     const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
     const text2 = "DEFG";
-    insertEdit(
+    applyEdit(
       doc,
       sel,
-      [0, 1],
-      [[{ type: NODE_TEXT, text: text }], [{ type: NODE_TEXT, text: text2 }]]
+      insertEdit(
+        [0, 1],
+        [[{ type: NODE_TEXT, text: text }], [{ type: NODE_TEXT, text: text2 }]]
+      )
     );
 
     const [before, after] = splitAt(docText, 1);
@@ -106,7 +112,11 @@ describe(insertEdit.name, () => {
     ];
     const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
-    insertEdit(doc, sel, [0, 1], [[{ type: NODE_TEXT, text: text }]]);
+    applyEdit(
+      doc,
+      sel,
+      insertEdit([0, 1], [[{ type: NODE_TEXT, text: text }]])
+    );
 
     expect(doc).toEqual([
       [{ type: NODE_TEXT, text: insertAt(docText, 1, text) }],
@@ -129,7 +139,11 @@ describe(insertEdit.name, () => {
     ];
     const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
-    insertEdit(doc, sel, [1, 1], [[{ type: NODE_TEXT, text: text }]]);
+    applyEdit(
+      doc,
+      sel,
+      insertEdit([1, 1], [[{ type: NODE_TEXT, text: text }]])
+    );
 
     expect(doc).toEqual([
       [{ type: NODE_TEXT, text: docText }],
@@ -149,11 +163,13 @@ describe(insertEdit.name, () => {
     const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
     const text2 = "DEFG";
-    insertEdit(
+    applyEdit(
       doc,
       sel,
-      [0, 1],
-      [[{ type: NODE_TEXT, text: text }], [{ type: NODE_TEXT, text: text2 }]]
+      insertEdit(
+        [0, 1],
+        [[{ type: NODE_TEXT, text: text }], [{ type: NODE_TEXT, text: text2 }]]
+      )
     );
 
     const [before, after] = splitAt(docText, 1);
@@ -175,7 +191,11 @@ describe(insertEdit.name, () => {
     ];
     const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
-    insertEdit(doc, sel, [0, 2], [[{ type: NODE_TEXT, text: text }]]);
+    applyEdit(
+      doc,
+      sel,
+      insertEdit([0, 2], [[{ type: NODE_TEXT, text: text }]])
+    );
 
     expect(doc).toEqual([
       [{ type: NODE_TEXT, text: insertAt(docText, 2, text) }],
@@ -193,11 +213,13 @@ describe(insertEdit.name, () => {
     const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
     const text2 = "DEFG";
-    insertEdit(
+    applyEdit(
       doc,
       sel,
-      [0, 2],
-      [[{ type: NODE_TEXT, text: text }], [{ type: NODE_TEXT, text: text2 }]]
+      insertEdit(
+        [0, 2],
+        [[{ type: NODE_TEXT, text: text }], [{ type: NODE_TEXT, text: text2 }]]
+      )
     );
 
     const [before, after] = splitAt(docText, 2);
@@ -219,7 +241,11 @@ describe(insertEdit.name, () => {
     ];
     const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
-    insertEdit(doc, sel, [0, 2], [[{ type: NODE_TEXT, text: text }]]);
+    applyEdit(
+      doc,
+      sel,
+      insertEdit([0, 2], [[{ type: NODE_TEXT, text: text }]])
+    );
 
     expect(doc).toEqual([
       [{ type: NODE_TEXT, text: insertAt(docText, 2, text) }],
@@ -237,11 +263,13 @@ describe(insertEdit.name, () => {
     const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
     const text2 = "DEFG";
-    insertEdit(
+    applyEdit(
       doc,
       sel,
-      [0, 2],
-      [[{ type: NODE_TEXT, text: text }], [{ type: NODE_TEXT, text: text2 }]]
+      insertEdit(
+        [0, 2],
+        [[{ type: NODE_TEXT, text: text }], [{ type: NODE_TEXT, text: text2 }]]
+      )
     );
 
     const [before, after] = splitAt(docText, 2);
@@ -266,7 +294,11 @@ describe(insertEdit.name, () => {
     ];
     const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
-    insertEdit(doc, sel, [0, 3], [[{ type: NODE_TEXT, text: text }]]);
+    applyEdit(
+      doc,
+      sel,
+      insertEdit([0, 3], [[{ type: NODE_TEXT, text: text }]])
+    );
 
     expect(doc).toEqual([
       [{ type: NODE_TEXT, text: insertAt(docText, 3, text) }],
@@ -289,7 +321,11 @@ describe(insertEdit.name, () => {
     ];
     const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
-    insertEdit(doc, sel, [1, 3], [[{ type: NODE_TEXT, text: text }]]);
+    applyEdit(
+      doc,
+      sel,
+      insertEdit([1, 3], [[{ type: NODE_TEXT, text: text }]])
+    );
 
     expect(doc).toEqual([
       [{ type: NODE_TEXT, text: docText }],
@@ -309,11 +345,13 @@ describe(insertEdit.name, () => {
     const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
     const text2 = "DEFG";
-    insertEdit(
+    applyEdit(
       doc,
       sel,
-      [0, 3],
-      [[{ type: NODE_TEXT, text: text }], [{ type: NODE_TEXT, text: text2 }]]
+      insertEdit(
+        [0, 3],
+        [[{ type: NODE_TEXT, text: text }], [{ type: NODE_TEXT, text: text2 }]]
+      )
     );
 
     const [before, after] = splitAt(docText, 3);
@@ -337,7 +375,11 @@ describe(insertEdit.name, () => {
     ];
     const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
-    insertEdit(doc, sel, [1, 1], [[{ type: NODE_TEXT, text: text }]]);
+    applyEdit(
+      doc,
+      sel,
+      insertEdit([1, 1], [[{ type: NODE_TEXT, text: text }]])
+    );
 
     expect(doc).toEqual([
       [{ type: NODE_TEXT, text: docText }],
@@ -360,11 +402,13 @@ describe(insertEdit.name, () => {
     const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
     const text2 = "DEFG";
-    insertEdit(
+    applyEdit(
       doc,
       sel,
-      [1, 1],
-      [[{ type: NODE_TEXT, text: text }], [{ type: NODE_TEXT, text: text2 }]]
+      insertEdit(
+        [1, 1],
+        [[{ type: NODE_TEXT, text: text }], [{ type: NODE_TEXT, text: text2 }]]
+      )
     );
 
     const [before, after] = splitAt(docText2, 1);
@@ -387,7 +431,7 @@ describe(deleteEdit.name, () => {
     ];
     const initialDoc: DocFragment = structuredClone(doc);
     const initialSel: SelectionSnapshot = structuredClone(sel);
-    deleteEdit(doc, sel, [0, 1], [0, 1]);
+    applyEdit(doc, sel, deleteEdit([0, 1], [0, 1]));
 
     expect(doc).toEqual(initialDoc);
     expect(sel).toEqual(initialSel);
@@ -405,7 +449,7 @@ describe(deleteEdit.name, () => {
       [1, 2],
     ];
     const initialSel: SelectionSnapshot = structuredClone(sel);
-    deleteEdit(doc, sel, [0, 1], [0, 2]);
+    applyEdit(doc, sel, deleteEdit([0, 1], [0, 2]));
 
     expect(doc).toEqual([
       [{ type: NODE_TEXT, text: deleteAt(docText, 1, 1) }],
@@ -426,7 +470,7 @@ describe(deleteEdit.name, () => {
       [1, 3],
     ];
 
-    deleteEdit(doc, sel, [0, 2], [1, 1]);
+    applyEdit(doc, sel, deleteEdit([0, 2], [1, 1]));
 
     expect(doc).toEqual([
       [
@@ -451,7 +495,7 @@ describe(deleteEdit.name, () => {
       [0, 3],
     ];
     const initialSel: SelectionSnapshot = structuredClone(sel);
-    deleteEdit(doc, sel, [0, 1], [0, 2]);
+    applyEdit(doc, sel, deleteEdit([0, 1], [0, 2]));
 
     expect(doc).toEqual([[{ type: NODE_TEXT, text: deleteAt(docText, 1, 1) }]]);
     expect(sel).toEqual(moveOffset(initialSel, -1));
@@ -471,7 +515,7 @@ describe(deleteEdit.name, () => {
       [1, 3],
     ];
     const initialSel: SelectionSnapshot = structuredClone(sel);
-    deleteEdit(doc, sel, [1, 1], [1, 2]);
+    applyEdit(doc, sel, deleteEdit([1, 1], [1, 2]));
 
     expect(doc).toEqual([
       [{ type: NODE_TEXT, text: docText }],
@@ -489,7 +533,7 @@ describe(deleteEdit.name, () => {
       [0, 3],
     ];
     const initialSel: SelectionSnapshot = structuredClone(sel);
-    deleteEdit(doc, sel, [0, 2], [0, 3]);
+    applyEdit(doc, sel, deleteEdit([0, 2], [0, 3]));
 
     expect(doc).toEqual([[{ type: NODE_TEXT, text: deleteAt(docText, 2, 1) }]]);
     expect(sel).toEqual(moveOffset(initialSel, -1));
@@ -503,7 +547,7 @@ describe(deleteEdit.name, () => {
       [0, 3],
     ];
     const initialSel: SelectionSnapshot = structuredClone(sel);
-    deleteEdit(doc, sel, [0, 2], [0, 4]);
+    applyEdit(doc, sel, deleteEdit([0, 2], [0, 4]));
 
     expect(doc).toEqual([[{ type: NODE_TEXT, text: deleteAt(docText, 2, 2) }]]);
     expect(sel).toEqual(moveOffset(initialSel, -1));
@@ -516,7 +560,7 @@ describe(deleteEdit.name, () => {
       [0, 2],
       [0, 4],
     ];
-    deleteEdit(doc, sel, [0, 1], [0, 5]);
+    applyEdit(doc, sel, deleteEdit([0, 1], [0, 5]));
 
     expect(doc).toEqual([[{ type: NODE_TEXT, text: deleteAt(docText, 1, 4) }]]);
     expect(sel).toEqual([
@@ -533,7 +577,7 @@ describe(deleteEdit.name, () => {
       [0, 4],
     ];
     const initialSel: SelectionSnapshot = structuredClone(sel);
-    deleteEdit(doc, sel, [0, 1], [0, 3]);
+    applyEdit(doc, sel, deleteEdit([0, 1], [0, 3]));
 
     expect(doc).toEqual([[{ type: NODE_TEXT, text: deleteAt(docText, 1, 2) }]]);
     expect(sel).toEqual(moveOffset(initialSel, { anchor: 1 - 2, focus: -2 }));
@@ -547,7 +591,7 @@ describe(deleteEdit.name, () => {
       [0, 4],
     ];
     const initialSel: SelectionSnapshot = structuredClone(sel);
-    deleteEdit(doc, sel, [0, 3], [0, 5]);
+    applyEdit(doc, sel, deleteEdit([0, 3], [0, 5]));
 
     expect(doc).toEqual([[{ type: NODE_TEXT, text: deleteAt(docText, 3, 2) }]]);
     expect(sel).toEqual(moveOffset(initialSel, { focus: 1 - 2 }));
@@ -564,7 +608,7 @@ describe(deleteEdit.name, () => {
       [0, 2],
       [1, 2],
     ];
-    deleteEdit(doc, sel, [0, 3], [1, 1]);
+    applyEdit(doc, sel, deleteEdit([0, 3], [1, 1]));
 
     expect(doc).toEqual([
       [
@@ -588,7 +632,7 @@ describe(deleteEdit.name, () => {
       [0, 3],
     ];
     const initialSel: SelectionSnapshot = structuredClone(sel);
-    deleteEdit(doc, sel, [0, 3], [0, 4]);
+    applyEdit(doc, sel, deleteEdit([0, 3], [0, 4]));
 
     expect(doc).toEqual([[{ type: NODE_TEXT, text: deleteAt(docText, 3, 1) }]]);
     expect(sel).toEqual(initialSel);
@@ -602,7 +646,7 @@ describe(deleteEdit.name, () => {
       [0, 3],
     ];
     const initialSel: SelectionSnapshot = structuredClone(sel);
-    deleteEdit(doc, sel, [0, 4], [0, 5]);
+    applyEdit(doc, sel, deleteEdit([0, 4], [0, 5]));
 
     expect(doc).toEqual([[{ type: NODE_TEXT, text: deleteAt(docText, 4, 1) }]]);
     expect(sel).toEqual(initialSel);
@@ -622,7 +666,7 @@ describe(deleteEdit.name, () => {
       [1, 3],
     ];
     const initialSel: SelectionSnapshot = structuredClone(sel);
-    deleteEdit(doc, sel, [1, 4], [1, 5]);
+    applyEdit(doc, sel, deleteEdit([1, 4], [1, 5]));
 
     expect(doc).toEqual([
       [{ type: NODE_TEXT, text: docText }],
@@ -644,7 +688,7 @@ describe(deleteEdit.name, () => {
       [0, 2],
     ];
     const initialSel: SelectionSnapshot = structuredClone(sel);
-    deleteEdit(doc, sel, [1, 1], [1, 2]);
+    applyEdit(doc, sel, deleteEdit([1, 1], [1, 2]));
 
     expect(doc).toEqual([
       [{ type: NODE_TEXT, text: docText }],
@@ -667,7 +711,7 @@ describe(deleteEdit.name, () => {
       [0, 2],
     ];
     const initialSel: SelectionSnapshot = structuredClone(sel);
-    deleteEdit(doc, sel, [1, 1], [2, 1]);
+    applyEdit(doc, sel, deleteEdit([1, 1], [2, 1]));
 
     expect(doc).toEqual([
       [{ type: NODE_TEXT, text: docText }],
