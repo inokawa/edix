@@ -8,10 +8,10 @@ import { comparePosition, edges } from "./doc/position";
 import { deleteEdit, insertEdit, getLineSize } from "./doc/edit";
 import { stringToDoc } from "./doc/utils";
 
-export type EditableCommand<T extends unknown[]> = (
+export type EditableCommand<A extends unknown[]> = (
   doc: Writeable<DocFragment>,
   selection: Writeable<SelectionSnapshot>,
-  ...args: T
+  ...args: A
 ) => void;
 
 /**
