@@ -28,10 +28,11 @@ import {
   DeleteRange,
   InsertAt,
 } from "./commands";
-import { flatten, sliceDoc } from "./doc/edit";
+import { flatten } from "./doc/edit";
 import { DocSchema } from "./schema";
 import { isElementNode, ParserConfig } from "./dom/parser";
 import { comparePosition, edges, union } from "./doc/position";
+import { EditableQuery, SelectedNodes } from "./queries";
 
 /**
  * https://www.w3.org/TR/input-events-1/#interface-InputEvent-Attributes
@@ -121,6 +122,12 @@ export interface EditableHandle {
    * Disposes editor and restores previous DOM state.
    */
   dispose: () => void;
+  /**
+   * Execute query to get editor state.
+   * @param fn query function
+   * @param args arguments of query
+   */
+  query: <A extends unknown[], V>(fn: EditableQuery<A, V>, ...args: A) => V;
   /**
    * Dispatches editing command.
    * @param fn command function
@@ -371,6 +378,10 @@ export const editable = <T>(
     }
   };
 
+  const execQuery: EditableHandle["query"] = (fn, ...args) => {
+    return fn(history.get()[0], currentSelection, ...args);
+  };
+
   const execCommand: EditableHandle["command"] = (fn, ...args) => {
     if (!readonly) {
       commands.unshift({ _fn: fn, _args: args });
@@ -466,15 +477,12 @@ export const editable = <T>(
   const copySelected = (dataTransfer: DataTransfer) => {
     syncSelection();
     if (comparePosition(...currentSelection) !== 0) {
-      copy(
-        dataTransfer,
-        sliceDoc(history.get()[0], ...edges(...currentSelection)),
-        () =>
-          // DOM range must exist here
-          getSelectionRangeInEditor(
-            getDOMSelection(element),
-            element
-          )!.cloneContents()
+      copy(dataTransfer, execQuery(SelectedNodes), () =>
+        // DOM range must exist here
+        getSelectionRangeInEditor(
+          getDOMSelection(element),
+          element
+        )!.cloneContents()
       );
     }
   };
@@ -574,6 +582,7 @@ export const editable = <T>(
       element.removeEventListener("dragstart", onDragStart);
       element.removeEventListener("dragend", onDragEnd);
     },
+    query: execQuery,
     command: execCommand,
     readonly: (value) => {
       readonly = value;
