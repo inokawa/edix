@@ -3,10 +3,10 @@ import {
   type Position,
   type SelectionSnapshot,
   type Writeable,
-} from "./types";
-import { comparePosition, edges } from "./position";
-import { deleteEdit, insertEdit, getLineSize } from "./edit";
-import { stringToDoc } from "./utils";
+} from "./doc/types";
+import { comparePosition, edges } from "./doc/position";
+import { deleteEdit, insertEdit, getLineSize } from "./doc/edit";
+import { stringToDoc } from "./doc/utils";
 
 export type EditableCommand<T extends unknown[]> = (
   doc: Writeable<DocFragment>,

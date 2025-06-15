@@ -27,7 +27,7 @@ import {
   InsertFragment,
   DeleteRange,
   InsertAt,
-} from "./doc/commands";
+} from "./commands";
 import { flatten, sliceDoc } from "./doc/edit";
 import { DocSchema } from "./schema";
 import { isElementNode, ParserConfig } from "./dom/parser";
