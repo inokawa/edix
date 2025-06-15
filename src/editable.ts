@@ -338,23 +338,21 @@ export const editable = <T>(
         command._fn(doc, selection, ...command._args);
       }
 
-      if (!readonly) {
-        if (isSingleline) {
-          [doc, selection] = flatten(doc, selection);
-        }
+      if (isSingleline) {
+        [doc, selection] = flatten(doc, selection);
+      }
 
-        // TODO improve
-        const prevDoc = history.get()[0];
-        const prevSelection = currentSelection;
+      // TODO improve
+      const prevDoc = history.get()[0];
+      const prevSelection = currentSelection;
 
-        if (
-          doc.length !== prevDoc.length ||
-          doc.some((l, i) => l !== prevDoc[i])
-        ) {
-          history.set([prevDoc, prevSelection]);
-          history.push([doc, selection]);
-          onChange(docToJS(doc));
-        }
+      if (
+        doc.length !== prevDoc.length ||
+        doc.some((l, i) => l !== prevDoc[i])
+      ) {
+        history.set([prevDoc, prevSelection]);
+        history.push([doc, selection]);
+        onChange(docToJS(doc));
       }
 
       restoreSelectionOnTimeout(selection);
@@ -362,9 +360,11 @@ export const editable = <T>(
   };
 
   const execCommand: EditableHandle["command"] = (fn, ...args) => {
-    commands.unshift({ _fn: fn, _args: args });
+    if (!readonly) {
+      commands.unshift({ _fn: fn, _args: args });
 
-    queueTask(flushCommand);
+      queueTask(flushCommand);
+    }
   };
 
   const onKeyDown = (e: KeyboardEvent) => {
