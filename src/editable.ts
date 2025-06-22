@@ -518,7 +518,7 @@ export const editable = <T>(
       if (isDragging) {
         execCommand(DeleteRange, ...currentSelection);
       } else {
-        element.focus();
+        element.focus({ preventScroll: true });
       }
       insertData(dataTransfer);
     }
