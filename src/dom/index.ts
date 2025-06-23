@@ -10,6 +10,7 @@ import {
   TOKEN_BLOCK,
   ParserConfig,
   isVoidNode,
+  moveToBlock,
 } from "./parser";
 import { comparePosition } from "../doc/position";
 import {
@@ -82,7 +83,6 @@ export const setSelectionToDOM = (
   document: Document,
   root: Element,
   [anchor, focus]: SelectionSnapshot,
-  isSingleline: boolean,
   config: ParserConfig
 ): boolean => {
   const posDiff = comparePosition(anchor, focus);
@@ -105,14 +105,12 @@ export const setSelectionToDOM = (
     return true;
   }
 
-  const domStart = findPosition(root, start, isSingleline, config);
+  const domStart = findPosition(root, start, config);
   if (!domStart) {
     return false;
   }
 
-  const domEnd = isCollapsed
-    ? domStart
-    : findPosition(root, end, isSingleline, config);
+  const domEnd = isCollapsed ? domStart : findPosition(root, end, config);
   if (!domEnd) {
     return false;
   }
@@ -157,21 +155,31 @@ type DOMPosition = [node: Text | Element, offsetAtNode: number];
 export const findPosition = (
   root: Element,
   [line, offset]: Position,
-  isSingleline: boolean,
   config: ParserConfig
 ): DOMPosition | undefined => {
   return parse(
     (next): DOMPosition | undefined => {
-      while (next()) {
-        const length = getNodeSize();
-        if (offset <= length) {
-          return [getDomNode(), offset];
+      let type: TokenType | void;
+      let isBlockVisited = false;
+      while ((type = next())) {
+        if (type === TOKEN_BLOCK) {
+          if (!isBlockVisited) {
+            isBlockVisited = true;
+            if (line !== 0) {
+              moveToBlock(line);
+            }
+          }
+        } else {
+          const length = getNodeSize();
+          if (offset <= length) {
+            return [getDomNode(), offset];
+          }
+          offset -= length;
         }
-        offset -= length;
       }
       return;
     },
-    isSingleline || root.childElementCount === 0 ? root : root.children[line]!,
+    root,
     config
   );
 };

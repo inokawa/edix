@@ -207,13 +207,7 @@ export const editable = <T>(
   const observer = createMutationObserver(element, () => {
     if (hasFocus) {
       // Mutation to selected DOM may change selection, so restore it.
-      setSelectionToDOM(
-        document,
-        element,
-        currentSelection,
-        isSingleline,
-        parserConfig
-      );
+      setSelectionToDOM(document, element, currentSelection, parserConfig);
       if (restoreSelectionQueue != null) {
         clearTimeout(restoreSelectionQueue);
         restoreSelectionQueue = null;
@@ -240,13 +234,7 @@ export const editable = <T>(
     // However frameworks may not rerender for optimization in some case, for example if selection is updated but document is the same.
     // So we also schedule restoring on timeout for safe.
     restoreSelectionQueue = setTimeout(() => {
-      setSelectionToDOM(
-        document,
-        element,
-        nextSelection,
-        isSingleline,
-        parserConfig
-      );
+      setSelectionToDOM(document, element, nextSelection, parserConfig);
     });
   };
 
@@ -291,12 +279,7 @@ export const editable = <T>(
           InsertAt,
           insertStart,
           readDom(element, parserConfig, serializeVoid, {
-            _start: findPosition(
-              element,
-              insertStart,
-              isSingleline,
-              parserConfig
-            ),
+            _start: findPosition(element, insertStart, parserConfig),
             // TODO improve later
             _end: isElementNode(endContainer)
               ? [endContainer.childNodes[endOffset]!, 0]
@@ -334,7 +317,6 @@ export const editable = <T>(
         document,
         element,
         currentSelection,
-        isSingleline,
         parserConfig
       );
     }
