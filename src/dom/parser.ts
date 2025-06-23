@@ -119,6 +119,13 @@ export const getNodeSize = (): number => {
     : 0;
 };
 
+/**
+ * @internal
+ */
+export const moveToBlock = (index: number) => {
+  walker!.currentNode = walker!.currentNode.parentNode!.children[index]!;
+};
+
 const isValidSoftBreak = (node: Node): boolean => {
   const next = node.nextSibling;
 
