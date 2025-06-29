@@ -47,7 +47,7 @@ export const getText = async (
           () => ({})
         )
         .map((r) => {
-          return r.reduce<string>((acc, n) => {
+          return r.nodes.reduce<string>((acc, n) => {
             return acc + ("text" in n ? n.text : NON_EDITABLE_PLACEHOLDER);
           }, "");
         });
@@ -77,7 +77,7 @@ export const getSeletedText = (
           () => ({})
         )
         .map((r) => {
-          return r.reduce<string>((acc, n) => {
+          return r.nodes.reduce<string>((acc, n) => {
             return acc + ("text" in n ? n.text : NON_EDITABLE_PLACEHOLDER);
           }, "");
         });
