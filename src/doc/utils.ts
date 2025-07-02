@@ -1,4 +1,5 @@
-import { NODE_TEXT, type DocFragment, type VoidNode } from "./types";
+import { isTextNode } from "./edit";
+import { type DocFragment, type VoidNode } from "./types";
 
 /**
  * @internal
@@ -15,8 +16,7 @@ export const docToString = (
       acc +
       r.reduce(
         (acc, n) =>
-          acc +
-          (n.type === NODE_TEXT ? n.text : voidToString ? voidToString(n) : ""),
+          acc + (isTextNode(n) ? n.text : voidToString ? voidToString(n) : ""),
         ""
       )
     );
@@ -27,5 +27,5 @@ export const docToString = (
  * @internal
  */
 export const stringToDoc = (text: string): DocFragment => {
-  return text.split("\n").map((l) => [{ type: NODE_TEXT, text: l }]);
+  return text.split("\n").map((l) => [{ text: l }]);
 };

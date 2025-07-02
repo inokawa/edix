@@ -1,11 +1,7 @@
-export const NODE_TEXT = 1;
-export const NODE_VOID = 2;
 export type TextNode = Readonly<{
-  type: typeof NODE_TEXT;
   text: string;
 }>;
 export type VoidNode = Readonly<{
-  type: typeof NODE_VOID;
   data: Record<string, unknown>;
 }>;
 export type DocNode = TextNode | VoidNode;
