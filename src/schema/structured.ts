@@ -1,5 +1,5 @@
 import { isCommentNode } from "../dom/parser";
-import { TextNode, type DocNode } from "../doc/types";
+import { BlockNode, TextNode } from "../doc/types";
 import type { DocSchema } from "./types";
 import { docToString, stringToDoc } from "../doc/utils";
 import { isTextNode } from "../doc/edit";
@@ -70,8 +70,8 @@ export const schema = <
   // TODO replace VoidNodeData with VoidNode
   const voidCache = new WeakMap<VoidNodeData, VoidNodeType>();
 
-  const serializeRow = (r: readonly DocNode[]): RowType => {
-    return r.reduce((acc, t) => {
+  const serializeRow = (r: BlockNode): RowType => {
+    return r.nodes.reduce((acc, t) => {
       if (isTextNode(t)) {
         let text = textCache.get(t);
         if (!text) {

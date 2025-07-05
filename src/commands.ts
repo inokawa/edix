@@ -5,7 +5,7 @@ import {
   type Writeable,
 } from "./doc/types";
 import { comparePosition, edges } from "./doc/position";
-import { deleteEdit, insertEdit, getLineSize } from "./doc/edit";
+import { deleteEdit, insertEdit, getBlockSize } from "./doc/edit";
 import { stringToDoc } from "./doc/utils";
 
 export type EditableCommand<A extends unknown[]> = (
@@ -74,7 +74,7 @@ export const ReplaceAll: EditableCommand<[text: string]> = (
     doc,
     selection,
     [0, 0],
-    [doc.length - 1, getLineSize(doc[doc.length - 1]!)]
+    [doc.length - 1, getBlockSize(doc[doc.length - 1]!)]
   );
   insertEdit(doc, selection, [0, 0], stringToDoc(text));
 };

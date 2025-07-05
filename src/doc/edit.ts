@@ -1,32 +1,33 @@
 import { compareLine, comparePosition } from "./position";
 import {
   DocFragment,
-  DocLine,
   DocNode,
   Position,
   SelectionSnapshot,
   Writeable,
+  BlockNode,
+  InlineNode,
 } from "./types";
 
 /**
  * @internal
  */
 export const isTextNode = (node: DocNode) => "text" in node;
-const getNodeSize = (node: DocNode): number =>
+const getNodeSize = (node: InlineNode): number =>
   isTextNode(node) ? node.text.length : 1;
 
 /**
  * @internal
  */
-export const getLineSize = (line: DocLine): number =>
-  line.reduce((acc, n) => acc + getNodeSize(n), 0);
+export const getBlockSize = (block: BlockNode): number =>
+  block.nodes.reduce((acc, n) => acc + getNodeSize(n), 0);
 
-const merge = (a: DocLine, b: DocLine): DocLine => {
-  const result: Writeable<DocLine> = [...a];
+const mergeBlock = (a: BlockNode, b: BlockNode): BlockNode => {
+  const result: InlineNode[] = [...a.nodes];
   if (!result.length) {
-    result.push(...b);
+    result.push(...b.nodes);
   } else {
-    for (const node of b) {
+    for (const node of b.nodes) {
       const index = result.length - 1;
       const target = result[index]!;
       if (isTextNode(node) && isTextNode(target)) {
@@ -36,16 +37,20 @@ const merge = (a: DocLine, b: DocLine): DocLine => {
       }
     }
   }
-  return result;
+  return { nodes: result };
 };
 
-const split = (line: DocLine, offset: number): [DocLine, DocLine] => {
-  for (let i = 0; i < line.length; i++) {
-    const node = line[i]!;
+const splitBlock = (
+  block: BlockNode,
+  offset: number
+): [BlockNode, BlockNode] => {
+  const nodes = block.nodes;
+  for (let i = 0; i < nodes.length; i++) {
+    const node = nodes[i]!;
     const size = getNodeSize(node);
     if (size > offset) {
-      const before = line.slice(0, i);
-      const after = line.slice(i + 1);
+      const before = nodes.slice(0, i);
+      const after = nodes.slice(i + 1);
       if (isTextNode(node)) {
         const beforeText = node.text.slice(0, offset);
         const afterText = node.text.slice(offset);
@@ -59,11 +64,11 @@ const split = (line: DocLine, offset: number): [DocLine, DocLine] => {
         // node size must be 1
         after.unshift(node);
       }
-      return [before, after];
+      return [{ nodes: before }, { nodes: after }];
     }
     offset -= size;
   }
-  return [line, []];
+  return [block, { nodes: [] }];
 };
 
 const fixPositionAfterInsert = (
@@ -104,16 +109,16 @@ const replaceRange = (
   const [startLine] = start;
   const [endLine] = end || start;
 
-  const splitByStart = split(doc[start[0]]!, start[1]);
+  const splitByStart = splitBlock(doc[start[0]]!, start[1]);
   const before = splitByStart[0];
-  const after = end ? split(doc[end[0]]!, end[1])[1] : splitByStart[1];
+  const after = end ? splitBlock(doc[end[0]]!, end[1])[1] : splitByStart[1];
 
   const lines: Writeable<DocFragment> = [...fragment];
   if (lines.length) {
-    lines[0] = merge(before, lines[0]!);
-    lines[lines.length - 1] = merge(lines[lines.length - 1]!, after);
+    lines[0] = mergeBlock(before, lines[0]!);
+    lines[lines.length - 1] = mergeBlock(lines[lines.length - 1]!, after);
   } else {
-    lines.push(merge(before, after));
+    lines.push(mergeBlock(before, after));
   }
 
   doc.splice(startLine, endLine - startLine + 1, ...lines);
@@ -128,12 +133,12 @@ export const sliceDoc = (
   end: Position
 ): DocFragment => {
   if (compareLine(start, end) === 0) {
-    return [split(split(doc[start[0]]!, end[1])[0], start[1])[1]];
+    return [splitBlock(splitBlock(doc[start[0]]!, end[1])[0], start[1])[1]];
   }
   return [
-    split(doc[start[0]]!, start[1])[1],
+    splitBlock(doc[start[0]]!, start[1])[1],
     ...doc.slice(start[0] + 1, end[0]),
-    split(doc[end[0]]!, end[1])[0],
+    splitBlock(doc[end[0]]!, end[1])[0],
   ];
 };
 
@@ -150,7 +155,7 @@ export const insertEdit = (
 
   const lineLength = lines.length;
   const lineDiff = lineLength - 1;
-  const lastRowLength = getLineSize(lines[lineLength - 1]!);
+  const lastRowLength = getBlockSize(lines[lineLength - 1]!);
 
   replaceRange(doc, lines, pos);
 
@@ -194,7 +199,7 @@ export const flatten = (
   let offsetBeforeFocus = 0;
 
   for (let i = 0; i < doc.length; i++) {
-    for (const node of doc[i]!) {
+    for (const node of doc[i]!.nodes) {
       const size = getNodeSize(node);
       if (i < anchorLine) {
         offsetBeforeAnchor += size;
@@ -206,7 +211,11 @@ export const flatten = (
   }
 
   return [
-    [doc.reduce((acc, l) => merge(acc, l), [] as DocLine)],
+    [
+      doc.reduce<BlockNode>((acc, l) => mergeBlock(acc, l), {
+        nodes: [],
+      }),
+    ],
     [
       [0, offsetBeforeAnchor + anchorOffset],
       [0, offsetBeforeFocus + focusOffset],

@@ -16,9 +16,10 @@ import { comparePosition } from "../doc/position";
 import {
   DocFragment,
   Position,
-  DocNode,
   SelectionSnapshot,
   PositionRange,
+  BlockNode,
+  InlineNode,
 } from "../doc/types";
 import { min } from "../utils";
 
@@ -324,11 +325,11 @@ export const readDom = (
   return parse(
     (next) => {
       let type: TokenType | void;
-      let row: DocNode[] | null = null;
+      let row: InlineNode[] | null = null;
       let text = "";
       let hasContent = false;
 
-      const rows: DocNode[][] = [];
+      const rows: BlockNode[] = [];
 
       const completeText = () => {
         if (text) {
@@ -345,7 +346,7 @@ export const readDom = (
           row = [];
         }
         if (row) {
-          rows.push(row);
+          rows.push({ nodes: row });
         }
         row = null;
         hasContent = false;
@@ -394,7 +395,7 @@ export const readDom = (
       completeRow();
 
       if (!rows.length) {
-        rows.push([]);
+        rows.push({ nodes: [] });
       }
 
       return rows;

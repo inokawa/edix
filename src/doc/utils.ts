@@ -14,7 +14,7 @@ export const docToString = (
     }
     return (
       acc +
-      r.reduce(
+      r.nodes.reduce(
         (acc, n) =>
           acc + (isTextNode(n) ? n.text : voidToString ? voidToString(n) : ""),
         ""
@@ -27,5 +27,5 @@ export const docToString = (
  * @internal
  */
 export const stringToDoc = (text: string): DocFragment => {
-  return text.split("\n").map((l) => [{ text: l }]);
+  return text.split("\n").map((l) => ({ nodes: [{ text: l }] }));
 };
