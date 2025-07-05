@@ -18,8 +18,6 @@ import {
   Position,
   DocNode,
   SelectionSnapshot,
-  NODE_TEXT,
-  NODE_VOID,
   PositionRange,
 } from "../doc/types";
 import { min } from "../utils";
@@ -337,7 +335,7 @@ export const readDom = (
           if (!row) {
             row = [];
           }
-          row.push({ type: NODE_TEXT, text });
+          row.push({ text });
           text = "";
         }
       };
@@ -386,7 +384,7 @@ export const readDom = (
             }
             const data = serializeVoid(node);
             if (data) {
-              row!.push({ type: NODE_VOID, data });
+              row!.push({ data });
             }
           } else if (type === TOKEN_SOFT_BREAK) {
             completeRow();

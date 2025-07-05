@@ -2,14 +2,16 @@ import { compareLine, comparePosition } from "./position";
 import {
   DocFragment,
   DocLine,
-  NODE_TEXT,
   DocNode,
   Position,
   SelectionSnapshot,
   Writeable,
 } from "./types";
 
-const isTextNode = (node: DocNode) => node.type === NODE_TEXT;
+/**
+ * @internal
+ */
+export const isTextNode = (node: DocNode) => "text" in node;
 const getNodeSize = (node: DocNode): number =>
   isTextNode(node) ? node.text.length : 1;
 
@@ -28,7 +30,7 @@ const merge = (a: DocLine, b: DocLine): DocLine => {
       const index = result.length - 1;
       const target = result[index]!;
       if (isTextNode(node) && isTextNode(target)) {
-        result[index] = { type: NODE_TEXT, text: target.text + node.text };
+        result[index] = { text: target.text + node.text };
       } else {
         result.push(node);
       }
@@ -48,10 +50,10 @@ const split = (line: DocLine, offset: number): [DocLine, DocLine] => {
         const beforeText = node.text.slice(0, offset);
         const afterText = node.text.slice(offset);
         if (beforeText) {
-          before.push({ type: NODE_TEXT, text: beforeText });
+          before.push({ text: beforeText });
         }
         if (afterText) {
-          after.unshift({ type: NODE_TEXT, text: afterText });
+          after.unshift({ text: afterText });
         }
       } else {
         // node size must be 1

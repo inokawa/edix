@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { deleteEdit, insertEdit } from "./edit";
 import {
-  NODE_TEXT,
   type DocFragment,
   type SelectionSnapshot,
   type Writeable,
@@ -49,8 +48,8 @@ describe(insertEdit.name, () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Writeable<DocFragment> = [
-      [{ type: NODE_TEXT, text: docText }],
-      [{ type: NODE_TEXT, text: docText2 }],
+      [{ text: docText }],
+      [{ text: docText2 }],
     ];
     const sel: Writeable<SelectionSnapshot> = [
       [1, 2],
@@ -58,11 +57,11 @@ describe(insertEdit.name, () => {
     ];
     const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
-    insertEdit(doc, sel, [0, 1], [[{ type: NODE_TEXT, text: text }]]);
+    insertEdit(doc, sel, [0, 1], [[{ text: text }]]);
 
     expect(doc).toEqual([
-      [{ type: NODE_TEXT, text: insertAt(docText, 1, text) }],
-      [{ type: NODE_TEXT, text: docText2 }],
+      [{ text: insertAt(docText, 1, text) }],
+      [{ text: docText2 }],
     ]);
     expect(sel).toEqual(initialSel);
   });
@@ -71,8 +70,8 @@ describe(insertEdit.name, () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Writeable<DocFragment> = [
-      [{ type: NODE_TEXT, text: docText }],
-      [{ type: NODE_TEXT, text: docText2 }],
+      [{ text: docText }],
+      [{ text: docText2 }],
     ];
     const sel: Writeable<SelectionSnapshot> = [
       [1, 2],
@@ -81,36 +80,29 @@ describe(insertEdit.name, () => {
     const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
     const text2 = "DEFG";
-    insertEdit(
-      doc,
-      sel,
-      [0, 1],
-      [[{ type: NODE_TEXT, text: text }], [{ type: NODE_TEXT, text: text2 }]]
-    );
+    insertEdit(doc, sel, [0, 1], [[{ text: text }], [{ text: text2 }]]);
 
     const [before, after] = splitAt(docText, 1);
     expect(doc).toEqual([
-      [{ type: NODE_TEXT, text: before + text }],
-      [{ type: NODE_TEXT, text: text2 + after }],
-      [{ type: NODE_TEXT, text: docText2 }],
+      [{ text: before + text }],
+      [{ text: text2 + after }],
+      [{ text: docText2 }],
     ]);
     expect(sel).toEqual(moveLine(initialSel, 1));
   });
 
   it("should insert text before caret", () => {
     const docText = "abcde";
-    const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
+    const doc: Writeable<DocFragment> = [[{ text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 2],
       [0, 2],
     ];
     const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
-    insertEdit(doc, sel, [0, 1], [[{ type: NODE_TEXT, text: text }]]);
+    insertEdit(doc, sel, [0, 1], [[{ text: text }]]);
 
-    expect(doc).toEqual([
-      [{ type: NODE_TEXT, text: insertAt(docText, 1, text) }],
-    ]);
+    expect(doc).toEqual([[{ text: insertAt(docText, 1, text) }]]);
     expect(sel).toEqual(moveOffset(initialSel, text.length));
   });
 
@@ -119,9 +111,9 @@ describe(insertEdit.name, () => {
     const docText2 = "fghi";
     const docText3 = "jkl";
     const doc: Writeable<DocFragment> = [
-      [{ type: NODE_TEXT, text: docText }],
-      [{ type: NODE_TEXT, text: docText2 }],
-      [{ type: NODE_TEXT, text: docText3 }],
+      [{ text: docText }],
+      [{ text: docText2 }],
+      [{ text: docText3 }],
     ];
     const sel: Writeable<SelectionSnapshot> = [
       [1, 2],
@@ -129,19 +121,19 @@ describe(insertEdit.name, () => {
     ];
     const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
-    insertEdit(doc, sel, [1, 1], [[{ type: NODE_TEXT, text: text }]]);
+    insertEdit(doc, sel, [1, 1], [[{ text: text }]]);
 
     expect(doc).toEqual([
-      [{ type: NODE_TEXT, text: docText }],
-      [{ type: NODE_TEXT, text: insertAt(docText2, 1, text) }],
-      [{ type: NODE_TEXT, text: docText3 }],
+      [{ text: docText }],
+      [{ text: insertAt(docText2, 1, text) }],
+      [{ text: docText3 }],
     ]);
     expect(sel).toEqual(moveOffset(initialSel, text.length));
   });
 
   it("should insert lines before caret", () => {
     const docText = "abcde";
-    const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
+    const doc: Writeable<DocFragment> = [[{ text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 2],
       [0, 2],
@@ -149,18 +141,10 @@ describe(insertEdit.name, () => {
     const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
     const text2 = "DEFG";
-    insertEdit(
-      doc,
-      sel,
-      [0, 1],
-      [[{ type: NODE_TEXT, text: text }], [{ type: NODE_TEXT, text: text2 }]]
-    );
+    insertEdit(doc, sel, [0, 1], [[{ text: text }], [{ text: text2 }]]);
 
     const [before, after] = splitAt(docText, 1);
-    expect(doc).toEqual([
-      [{ type: NODE_TEXT, text: before + text }],
-      [{ type: NODE_TEXT, text: text2 + after }],
-    ]);
+    expect(doc).toEqual([[{ text: before + text }], [{ text: text2 + after }]]);
     expect(sel).toEqual(
       moveLine(moveOffset(initialSel, -before.length + text2.length), 1)
     );
@@ -168,24 +152,22 @@ describe(insertEdit.name, () => {
 
   it("should insert text on caret", () => {
     const docText = "abcde";
-    const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
+    const doc: Writeable<DocFragment> = [[{ text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 2],
       [0, 2],
     ];
     const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
-    insertEdit(doc, sel, [0, 2], [[{ type: NODE_TEXT, text: text }]]);
+    insertEdit(doc, sel, [0, 2], [[{ text: text }]]);
 
-    expect(doc).toEqual([
-      [{ type: NODE_TEXT, text: insertAt(docText, 2, text) }],
-    ]);
+    expect(doc).toEqual([[{ text: insertAt(docText, 2, text) }]]);
     expect(sel).toEqual(moveOffset(initialSel, text.length));
   });
 
   it("should insert lines on caret", () => {
     const docText = "abcde";
-    const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
+    const doc: Writeable<DocFragment> = [[{ text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 2],
       [0, 2],
@@ -193,18 +175,10 @@ describe(insertEdit.name, () => {
     const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
     const text2 = "DEFG";
-    insertEdit(
-      doc,
-      sel,
-      [0, 2],
-      [[{ type: NODE_TEXT, text: text }], [{ type: NODE_TEXT, text: text2 }]]
-    );
+    insertEdit(doc, sel, [0, 2], [[{ text: text }], [{ text: text2 }]]);
 
     const [before, after] = splitAt(docText, 2);
-    expect(doc).toEqual([
-      [{ type: NODE_TEXT, text: before + text }],
-      [{ type: NODE_TEXT, text: text2 + after }],
-    ]);
+    expect(doc).toEqual([[{ text: before + text }], [{ text: text2 + after }]]);
     expect(sel).toEqual(
       moveLine(moveOffset(initialSel, -before.length + text2.length), 1)
     );
@@ -212,24 +186,22 @@ describe(insertEdit.name, () => {
 
   it("should insert text inside selection", () => {
     const docText = "abcde";
-    const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
+    const doc: Writeable<DocFragment> = [[{ text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 1],
       [0, 3],
     ];
     const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
-    insertEdit(doc, sel, [0, 2], [[{ type: NODE_TEXT, text: text }]]);
+    insertEdit(doc, sel, [0, 2], [[{ text: text }]]);
 
-    expect(doc).toEqual([
-      [{ type: NODE_TEXT, text: insertAt(docText, 2, text) }],
-    ]);
+    expect(doc).toEqual([[{ text: insertAt(docText, 2, text) }]]);
     expect(sel).toEqual(moveOffset(initialSel, { focus: text.length }));
   });
 
   it("should insert lines inside selection", () => {
     const docText = "abcde";
-    const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
+    const doc: Writeable<DocFragment> = [[{ text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 1],
       [0, 3],
@@ -237,18 +209,10 @@ describe(insertEdit.name, () => {
     const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
     const text2 = "DEFG";
-    insertEdit(
-      doc,
-      sel,
-      [0, 2],
-      [[{ type: NODE_TEXT, text: text }], [{ type: NODE_TEXT, text: text2 }]]
-    );
+    insertEdit(doc, sel, [0, 2], [[{ text: text }], [{ text: text2 }]]);
 
     const [before, after] = splitAt(docText, 2);
-    expect(doc).toEqual([
-      [{ type: NODE_TEXT, text: before + text }],
-      [{ type: NODE_TEXT, text: text2 + after }],
-    ]);
+    expect(doc).toEqual([[{ text: before + text }], [{ text: text2 + after }]]);
     expect(sel).toEqual(
       moveLine(
         moveOffset(initialSel, { focus: -before.length + text2.length }),
@@ -259,18 +223,16 @@ describe(insertEdit.name, () => {
 
   it("should insert text after caret", () => {
     const docText = "abcde";
-    const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
+    const doc: Writeable<DocFragment> = [[{ text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 2],
       [0, 2],
     ];
     const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
-    insertEdit(doc, sel, [0, 3], [[{ type: NODE_TEXT, text: text }]]);
+    insertEdit(doc, sel, [0, 3], [[{ text: text }]]);
 
-    expect(doc).toEqual([
-      [{ type: NODE_TEXT, text: insertAt(docText, 3, text) }],
-    ]);
+    expect(doc).toEqual([[{ text: insertAt(docText, 3, text) }]]);
     expect(sel).toEqual(initialSel);
   });
 
@@ -279,9 +241,9 @@ describe(insertEdit.name, () => {
     const docText2 = "fghi";
     const docText3 = "jkl";
     const doc: Writeable<DocFragment> = [
-      [{ type: NODE_TEXT, text: docText }],
-      [{ type: NODE_TEXT, text: docText2 }],
-      [{ type: NODE_TEXT, text: docText3 }],
+      [{ text: docText }],
+      [{ text: docText2 }],
+      [{ text: docText3 }],
     ];
     const sel: Writeable<SelectionSnapshot> = [
       [1, 2],
@@ -289,19 +251,19 @@ describe(insertEdit.name, () => {
     ];
     const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
-    insertEdit(doc, sel, [1, 3], [[{ type: NODE_TEXT, text: text }]]);
+    insertEdit(doc, sel, [1, 3], [[{ text: text }]]);
 
     expect(doc).toEqual([
-      [{ type: NODE_TEXT, text: docText }],
-      [{ type: NODE_TEXT, text: insertAt(docText2, 3, text) }],
-      [{ type: NODE_TEXT, text: docText3 }],
+      [{ text: docText }],
+      [{ text: insertAt(docText2, 3, text) }],
+      [{ text: docText3 }],
     ]);
     expect(sel).toEqual(initialSel);
   });
 
   it("should insert lines after caret", () => {
     const docText = "abcde";
-    const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
+    const doc: Writeable<DocFragment> = [[{ text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 2],
       [0, 2],
@@ -309,18 +271,10 @@ describe(insertEdit.name, () => {
     const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
     const text2 = "DEFG";
-    insertEdit(
-      doc,
-      sel,
-      [0, 3],
-      [[{ type: NODE_TEXT, text: text }], [{ type: NODE_TEXT, text: text2 }]]
-    );
+    insertEdit(doc, sel, [0, 3], [[{ text: text }], [{ text: text2 }]]);
 
     const [before, after] = splitAt(docText, 3);
-    expect(doc).toEqual([
-      [{ type: NODE_TEXT, text: before + text }],
-      [{ type: NODE_TEXT, text: text2 + after }],
-    ]);
+    expect(doc).toEqual([[{ text: before + text }], [{ text: text2 + after }]]);
     expect(sel).toEqual(initialSel);
   });
 
@@ -328,8 +282,8 @@ describe(insertEdit.name, () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Writeable<DocFragment> = [
-      [{ type: NODE_TEXT, text: docText }],
-      [{ type: NODE_TEXT, text: docText2 }],
+      [{ text: docText }],
+      [{ text: docText2 }],
     ];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 2],
@@ -337,11 +291,11 @@ describe(insertEdit.name, () => {
     ];
     const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
-    insertEdit(doc, sel, [1, 1], [[{ type: NODE_TEXT, text: text }]]);
+    insertEdit(doc, sel, [1, 1], [[{ text: text }]]);
 
     expect(doc).toEqual([
-      [{ type: NODE_TEXT, text: docText }],
-      [{ type: NODE_TEXT, text: insertAt(docText2, 1, text) }],
+      [{ text: docText }],
+      [{ text: insertAt(docText2, 1, text) }],
     ]);
     expect(sel).toEqual(initialSel);
   });
@@ -350,8 +304,8 @@ describe(insertEdit.name, () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Writeable<DocFragment> = [
-      [{ type: NODE_TEXT, text: docText }],
-      [{ type: NODE_TEXT, text: docText2 }],
+      [{ text: docText }],
+      [{ text: docText2 }],
     ];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 2],
@@ -360,18 +314,13 @@ describe(insertEdit.name, () => {
     const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
     const text2 = "DEFG";
-    insertEdit(
-      doc,
-      sel,
-      [1, 1],
-      [[{ type: NODE_TEXT, text: text }], [{ type: NODE_TEXT, text: text2 }]]
-    );
+    insertEdit(doc, sel, [1, 1], [[{ text: text }], [{ text: text2 }]]);
 
     const [before, after] = splitAt(docText2, 1);
     expect(doc).toEqual([
-      [{ type: NODE_TEXT, text: docText }],
-      [{ type: NODE_TEXT, text: before + text }],
-      [{ type: NODE_TEXT, text: text2 + after }],
+      [{ text: docText }],
+      [{ text: before + text }],
+      [{ text: text2 + after }],
     ]);
     expect(sel).toEqual(initialSel);
   });
@@ -380,7 +329,7 @@ describe(insertEdit.name, () => {
 describe(deleteEdit.name, () => {
   it("should do nothing if start and end is the same", () => {
     const docText = "abcde";
-    const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
+    const doc: Writeable<DocFragment> = [[{ text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 2],
       [0, 2],
@@ -397,8 +346,8 @@ describe(deleteEdit.name, () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Writeable<DocFragment> = [
-      [{ type: NODE_TEXT, text: docText }],
-      [{ type: NODE_TEXT, text: docText2 }],
+      [{ text: docText }],
+      [{ text: docText2 }],
     ];
     const sel: Writeable<SelectionSnapshot> = [
       [1, 2],
@@ -408,8 +357,8 @@ describe(deleteEdit.name, () => {
     deleteEdit(doc, sel, [0, 1], [0, 2]);
 
     expect(doc).toEqual([
-      [{ type: NODE_TEXT, text: deleteAt(docText, 1, 1) }],
-      [{ type: NODE_TEXT, text: docText2 }],
+      [{ text: deleteAt(docText, 1, 1) }],
+      [{ text: docText2 }],
     ]);
     expect(sel).toEqual(initialSel);
   });
@@ -418,8 +367,8 @@ describe(deleteEdit.name, () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Writeable<DocFragment> = [
-      [{ type: NODE_TEXT, text: docText }],
-      [{ type: NODE_TEXT, text: docText2 }],
+      [{ text: docText }],
+      [{ text: docText2 }],
     ];
     const sel: Writeable<SelectionSnapshot> = [
       [1, 3],
@@ -431,7 +380,6 @@ describe(deleteEdit.name, () => {
     expect(doc).toEqual([
       [
         {
-          type: NODE_TEXT,
           text:
             deleteAt(docText, 2, docText.length - 1) + deleteAt(docText2, 0, 1),
         },
@@ -445,7 +393,7 @@ describe(deleteEdit.name, () => {
 
   it("should delete text before caret", () => {
     const docText = "abcde";
-    const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
+    const doc: Writeable<DocFragment> = [[{ text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 3],
       [0, 3],
@@ -453,7 +401,7 @@ describe(deleteEdit.name, () => {
     const initialSel: SelectionSnapshot = structuredClone(sel);
     deleteEdit(doc, sel, [0, 1], [0, 2]);
 
-    expect(doc).toEqual([[{ type: NODE_TEXT, text: deleteAt(docText, 1, 1) }]]);
+    expect(doc).toEqual([[{ text: deleteAt(docText, 1, 1) }]]);
     expect(sel).toEqual(moveOffset(initialSel, -1));
   });
 
@@ -462,9 +410,9 @@ describe(deleteEdit.name, () => {
     const docText2 = "fghi";
     const docText3 = "jkl";
     const doc: Writeable<DocFragment> = [
-      [{ type: NODE_TEXT, text: docText }],
-      [{ type: NODE_TEXT, text: docText2 }],
-      [{ type: NODE_TEXT, text: docText3 }],
+      [{ text: docText }],
+      [{ text: docText2 }],
+      [{ text: docText3 }],
     ];
     const sel: Writeable<SelectionSnapshot> = [
       [1, 3],
@@ -474,16 +422,16 @@ describe(deleteEdit.name, () => {
     deleteEdit(doc, sel, [1, 1], [1, 2]);
 
     expect(doc).toEqual([
-      [{ type: NODE_TEXT, text: docText }],
-      [{ type: NODE_TEXT, text: deleteAt(docText2, 1, 1) }],
-      [{ type: NODE_TEXT, text: docText3 }],
+      [{ text: docText }],
+      [{ text: deleteAt(docText2, 1, 1) }],
+      [{ text: docText3 }],
     ]);
     expect(sel).toEqual(moveOffset(initialSel, -1));
   });
 
   it("should delete text just before caret", () => {
     const docText = "abcde";
-    const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
+    const doc: Writeable<DocFragment> = [[{ text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 3],
       [0, 3],
@@ -491,13 +439,13 @@ describe(deleteEdit.name, () => {
     const initialSel: SelectionSnapshot = structuredClone(sel);
     deleteEdit(doc, sel, [0, 2], [0, 3]);
 
-    expect(doc).toEqual([[{ type: NODE_TEXT, text: deleteAt(docText, 2, 1) }]]);
+    expect(doc).toEqual([[{ text: deleteAt(docText, 2, 1) }]]);
     expect(sel).toEqual(moveOffset(initialSel, -1));
   });
 
   it("should delete text around caret", () => {
     const docText = "abcde";
-    const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
+    const doc: Writeable<DocFragment> = [[{ text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 3],
       [0, 3],
@@ -505,20 +453,20 @@ describe(deleteEdit.name, () => {
     const initialSel: SelectionSnapshot = structuredClone(sel);
     deleteEdit(doc, sel, [0, 2], [0, 4]);
 
-    expect(doc).toEqual([[{ type: NODE_TEXT, text: deleteAt(docText, 2, 2) }]]);
+    expect(doc).toEqual([[{ text: deleteAt(docText, 2, 2) }]]);
     expect(sel).toEqual(moveOffset(initialSel, -1));
   });
 
   it("should delete text around selection", () => {
     const docText = "abcde";
-    const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
+    const doc: Writeable<DocFragment> = [[{ text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 2],
       [0, 4],
     ];
     deleteEdit(doc, sel, [0, 1], [0, 5]);
 
-    expect(doc).toEqual([[{ type: NODE_TEXT, text: deleteAt(docText, 1, 4) }]]);
+    expect(doc).toEqual([[{ text: deleteAt(docText, 1, 4) }]]);
     expect(sel).toEqual([
       [0, 1],
       [0, 1],
@@ -527,7 +475,7 @@ describe(deleteEdit.name, () => {
 
   it("should delete text around selection anchor", () => {
     const docText = "abcde";
-    const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
+    const doc: Writeable<DocFragment> = [[{ text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 2],
       [0, 4],
@@ -535,13 +483,13 @@ describe(deleteEdit.name, () => {
     const initialSel: SelectionSnapshot = structuredClone(sel);
     deleteEdit(doc, sel, [0, 1], [0, 3]);
 
-    expect(doc).toEqual([[{ type: NODE_TEXT, text: deleteAt(docText, 1, 2) }]]);
+    expect(doc).toEqual([[{ text: deleteAt(docText, 1, 2) }]]);
     expect(sel).toEqual(moveOffset(initialSel, { anchor: 1 - 2, focus: -2 }));
   });
 
   it("should delete text around selection focus", () => {
     const docText = "abcde";
-    const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
+    const doc: Writeable<DocFragment> = [[{ text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 2],
       [0, 4],
@@ -549,7 +497,7 @@ describe(deleteEdit.name, () => {
     const initialSel: SelectionSnapshot = structuredClone(sel);
     deleteEdit(doc, sel, [0, 3], [0, 5]);
 
-    expect(doc).toEqual([[{ type: NODE_TEXT, text: deleteAt(docText, 3, 2) }]]);
+    expect(doc).toEqual([[{ text: deleteAt(docText, 3, 2) }]]);
     expect(sel).toEqual(moveOffset(initialSel, { focus: 1 - 2 }));
   });
 
@@ -557,8 +505,8 @@ describe(deleteEdit.name, () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Writeable<DocFragment> = [
-      [{ type: NODE_TEXT, text: docText }],
-      [{ type: NODE_TEXT, text: docText2 }],
+      [{ text: docText }],
+      [{ text: docText2 }],
     ];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 2],
@@ -569,7 +517,6 @@ describe(deleteEdit.name, () => {
     expect(doc).toEqual([
       [
         {
-          type: NODE_TEXT,
           text: splitAt(docText, 3)[0] + splitAt(docText2, 1)[1],
         },
       ],
@@ -582,7 +529,7 @@ describe(deleteEdit.name, () => {
 
   it("should delete text just after caret", () => {
     const docText = "abcde";
-    const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
+    const doc: Writeable<DocFragment> = [[{ text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 3],
       [0, 3],
@@ -590,13 +537,13 @@ describe(deleteEdit.name, () => {
     const initialSel: SelectionSnapshot = structuredClone(sel);
     deleteEdit(doc, sel, [0, 3], [0, 4]);
 
-    expect(doc).toEqual([[{ type: NODE_TEXT, text: deleteAt(docText, 3, 1) }]]);
+    expect(doc).toEqual([[{ text: deleteAt(docText, 3, 1) }]]);
     expect(sel).toEqual(initialSel);
   });
 
   it("should delete text after caret", () => {
     const docText = "abcde";
-    const doc: Writeable<DocFragment> = [[{ type: NODE_TEXT, text: docText }]];
+    const doc: Writeable<DocFragment> = [[{ text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 3],
       [0, 3],
@@ -604,7 +551,7 @@ describe(deleteEdit.name, () => {
     const initialSel: SelectionSnapshot = structuredClone(sel);
     deleteEdit(doc, sel, [0, 4], [0, 5]);
 
-    expect(doc).toEqual([[{ type: NODE_TEXT, text: deleteAt(docText, 4, 1) }]]);
+    expect(doc).toEqual([[{ text: deleteAt(docText, 4, 1) }]]);
     expect(sel).toEqual(initialSel);
   });
 
@@ -613,9 +560,9 @@ describe(deleteEdit.name, () => {
     const docText2 = "fghi";
     const docText3 = "jkl";
     const doc: Writeable<DocFragment> = [
-      [{ type: NODE_TEXT, text: docText }],
-      [{ type: NODE_TEXT, text: docText2 }],
-      [{ type: NODE_TEXT, text: docText3 }],
+      [{ text: docText }],
+      [{ text: docText2 }],
+      [{ text: docText3 }],
     ];
     const sel: Writeable<SelectionSnapshot> = [
       [1, 3],
@@ -625,9 +572,9 @@ describe(deleteEdit.name, () => {
     deleteEdit(doc, sel, [1, 4], [1, 5]);
 
     expect(doc).toEqual([
-      [{ type: NODE_TEXT, text: docText }],
-      [{ type: NODE_TEXT, text: deleteAt(docText2, 4, 1) }],
-      [{ type: NODE_TEXT, text: docText3 }],
+      [{ text: docText }],
+      [{ text: deleteAt(docText2, 4, 1) }],
+      [{ text: docText3 }],
     ]);
     expect(sel).toEqual(initialSel);
   });
@@ -636,8 +583,8 @@ describe(deleteEdit.name, () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Writeable<DocFragment> = [
-      [{ type: NODE_TEXT, text: docText }],
-      [{ type: NODE_TEXT, text: docText2 }],
+      [{ text: docText }],
+      [{ text: docText2 }],
     ];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 2],
@@ -647,8 +594,8 @@ describe(deleteEdit.name, () => {
     deleteEdit(doc, sel, [1, 1], [1, 2]);
 
     expect(doc).toEqual([
-      [{ type: NODE_TEXT, text: docText }],
-      [{ type: NODE_TEXT, text: deleteAt(docText2, 1, 1) }],
+      [{ text: docText }],
+      [{ text: deleteAt(docText2, 1, 1) }],
     ]);
     expect(sel).toEqual(initialSel);
   });
@@ -658,9 +605,9 @@ describe(deleteEdit.name, () => {
     const docText2 = "fghij";
     const docText3 = "klmno";
     const doc: Writeable<DocFragment> = [
-      [{ type: NODE_TEXT, text: docText }],
-      [{ type: NODE_TEXT, text: docText2 }],
-      [{ type: NODE_TEXT, text: docText3 }],
+      [{ text: docText }],
+      [{ text: docText2 }],
+      [{ text: docText3 }],
     ];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 2],
@@ -670,10 +617,9 @@ describe(deleteEdit.name, () => {
     deleteEdit(doc, sel, [1, 1], [2, 1]);
 
     expect(doc).toEqual([
-      [{ type: NODE_TEXT, text: docText }],
+      [{ text: docText }],
       [
         {
-          type: NODE_TEXT,
           text:
             deleteAt(docText2, 1, docText2.length - 1) +
             deleteAt(docText3, 0, 1),

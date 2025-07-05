@@ -1,7 +1,8 @@
 import { isCommentNode } from "../dom/parser";
-import { NODE_TEXT, TextNode, type DocNode } from "../doc/types";
+import { TextNode, type DocNode } from "../doc/types";
 import type { DocSchema } from "./types";
 import { docToString, stringToDoc } from "../doc/utils";
+import { isTextNode } from "../doc/edit";
 
 export interface EditableVoidSerializer<T> {
   is: (node: HTMLElement) => boolean;
@@ -71,7 +72,7 @@ export const schema = <
 
   const serializeRow = (r: readonly DocNode[]): RowType => {
     return r.reduce((acc, t) => {
-      if (t.type === NODE_TEXT) {
+      if (isTextNode(t)) {
         let text = textCache.get(t);
         if (!text) {
           textCache.set(t, (text = { type: "text", text: t.text }));
