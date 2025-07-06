@@ -42,31 +42,51 @@ type ExtractVoidNode<T> = Prettify<
   }[keyof T]
 >;
 
+type MarkType = "boolean" | "number" | "string";
+
+type MarkToJS<T extends MarkType> = T extends "boolean"
+  ? boolean
+  : T extends "number"
+  ? number
+  : T extends "string"
+  ? string
+  : never;
+
+type TextNodeType<T extends Record<string, MarkType> | void> = T extends void
+  ? { type: "text"; text: string }
+  : {
+      type: "text";
+      text: string;
+      data?: { [key in keyof T]?: MarkToJS<T[key]> };
+    };
+
 /**
  * Defines structured text schema.
  */
 export const schema = <
+  D extends Record<string, MarkType> | void = void,
   V extends Record<string, EditableVoidSerializer<any>> = {},
   M extends boolean = false
 >({
   multiline,
+  mark: marks,
   void: voids = {} as V,
 }: {
   multiline?: M;
+  mark?: D;
   void?: V;
 }): DocSchema<
   M extends true
-    ? (ExtractVoidNode<V> | { type: "text"; text: string })[][]
-    : (ExtractVoidNode<V> | { type: "text"; text: string })[]
+    ? (ExtractVoidNode<V> | TextNodeType<D>)[][]
+    : (ExtractVoidNode<V> | TextNodeType<D>)[]
 > => {
   type VoidNodeData = ExtractVoidData<V[keyof V]>;
-  type TextNodeType = { type: "text"; text: string };
   type VoidNodeType = ExtractVoidNode<V>;
-  type RowType = (TextNodeType | VoidNodeType)[];
+  type RowType = (TextNodeType<D> | VoidNodeType)[];
 
   const voidSerializers = Object.entries(voids);
 
-  const textCache = new WeakMap<TextNode, TextNodeType>();
+  const textCache = new WeakMap<TextNode, TextNodeType<D>>();
   // TODO replace VoidNodeData with VoidNode
   const voidCache = new WeakMap<VoidNodeData, VoidNodeType>();
 
@@ -75,7 +95,9 @@ export const schema = <
       if (isTextNode(t)) {
         let text = textCache.get(t);
         if (!text) {
-          textCache.set(t, (text = { type: "text", text: t.text }));
+          // TODO improve
+          text = { type: "text", ...t };
+          textCache.set(t, text);
         }
         acc.push(text);
       } else {
