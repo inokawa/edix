@@ -23,6 +23,12 @@ npm install edix
 
 `typescript >=5.0` is recommended.
 
+### Supported browsers
+
+Browser versions supporting [beforeinput event](https://developer.mozilla.org/en-US/docs/Web/API/Element/beforeinput_event#browser_compatibility) are supported.
+
+Mobile browsers are also supported, but with some issues (https://github.com/inokawa/edix/issues/97).
+
 ## Getting started
 
 1. Define your contents declaratively. There are rules you have to follow:
