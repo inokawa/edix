@@ -11,7 +11,7 @@ declare global {
 
 const edixDom = esbuild
   .build({
-    entryPoints: [path.join(__dirname, "../src/dom/index.ts")],
+    entryPoints: [path.join(import.meta.dirname, "../src/dom/index.ts")],
     bundle: true,
     write: false,
     format: "iife",
