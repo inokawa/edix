@@ -324,6 +324,9 @@ describe(insertEdit.name, () => {
     ]);
     expect(sel).toEqual(initialSel);
   });
+
+  // TODO test merge marked text
+  // insert before/after/mid
 });
 
 describe(deleteEdit.name, () => {

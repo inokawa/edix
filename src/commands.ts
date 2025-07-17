@@ -5,7 +5,7 @@ import {
   type Writeable,
 } from "./doc/types";
 import { comparePosition, edges } from "./doc/position";
-import { deleteEdit, insertEdit, getLineSize } from "./doc/edit";
+import { deleteEdit, insertEdit, setDataEdit, getLineSize } from "./doc/edit";
 import { stringToDoc } from "./doc/utils";
 
 export type EditableCommand<A extends unknown[]> = (
@@ -78,6 +78,18 @@ export const ReplaceAll: EditableCommand<[text: string]> = (
   );
   insertEdit(doc, selection, [0, 0], stringToDoc(text));
 };
+
+export const SetFormat: EditableCommand<[data: { [key: string]: unknown }]> = (
+  doc,
+  [anchor, focus],
+  data
+) => {
+  if (comparePosition(anchor, focus) !== 0) {
+    setDataEdit(doc, data, ...edges(anchor, focus));
+  }
+};
+
+// TODO toggle format
 
 /**
  * @internal
