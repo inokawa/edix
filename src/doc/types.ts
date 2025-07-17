@@ -4,9 +4,13 @@ export type TextNode = Readonly<{
 export type VoidNode = Readonly<{
   data: Record<string, unknown>;
 }>;
-export type DocNode = TextNode | VoidNode;
-export type DocLine = readonly DocNode[];
-export type DocFragment = readonly DocLine[];
+export type InlineNode = TextNode | VoidNode;
+export type DocNode = BlockNode | InlineNode;
+export type BlockNode = Readonly<{
+  nodes: readonly InlineNode[];
+}>;
+
+export type DocFragment = readonly BlockNode[];
 
 export type Position = readonly [line: number, offset: number];
 export type PositionRange = readonly [start: Position, end: Position];
