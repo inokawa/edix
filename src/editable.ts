@@ -20,15 +20,9 @@ import {
   Writeable,
 } from "./doc/types";
 import { microtask } from "./utils";
-import {
-  Delete,
-  EditableCommand,
-  MoveTo,
-  InsertFragment,
-  DeleteRange,
-  InsertAt,
-} from "./commands";
-import { flatten, sliceDoc } from "./doc/edit";
+import { EditableCommand } from "./commands";
+import { applyTransaction, Transaction, sliceDoc } from "./doc/edit";
+import { singleline } from "./plugins/singleline";
 import { DocSchema } from "./schema";
 import { isElementNode, ParserConfig } from "./dom/parser";
 import { comparePosition, edges, union } from "./doc/position";
@@ -198,7 +192,15 @@ export const editable = <T>(
     return readDom(root, config, serializeVoid);
   };
 
-  const commands: { _fn: EditableCommand<any[]>; _args: unknown[] }[] = [];
+  const currentDoc = (): DocFragment => history.get()[0];
+
+  const transactions: Transaction[] = [];
+  const apply = (arg: Transaction) => {
+    if (!readonly) {
+      transactions.unshift(arg);
+      queueTask(flushEdit);
+    }
+  };
 
   const history = createHistory<
     readonly [doc: DocFragment, selection: SelectionSnapshot]
@@ -247,36 +249,35 @@ export const editable = <T>(
 
     observer._accept(false);
     if (queue.length) {
-      // Get current document and selection from DOM
-      const selection = takeSelectionSnapshot(element, parserConfig);
-
       const editRange = editedRange!;
-      let deleteRange = edges(...currentSelection);
+      let selectedRange = edges(...currentSelection);
       let isInsert = false;
-      if (comparePosition(...deleteRange) === 0 && !isComposing) {
+      if (comparePosition(...selectedRange) === 0 && !isComposing) {
         if (comparePosition(...editRange) === 0) {
           // insert
           isInsert = true;
         } else {
           // backspace/delete
-          deleteRange = union(deleteRange, editRange);
+          selectedRange = union(selectedRange, editRange);
         }
       } else {
         // replace/delete range
         isInsert = true;
       }
-      const insertStart = deleteRange[0];
-      const insertEnd = edges(...selection)[1];
 
-      execCommand(DeleteRange, ...deleteRange);
-      if (isInsert && comparePosition(insertStart, insertEnd) === 1) {
+      const tr = new Transaction()
+        .move(...currentSelection)
+        .delete(...selectedRange);
+
+      if (isInsert) {
+        const insertStart = selectedRange[0];
+
         const { endContainer, endOffset } = getSelectionRangeInEditor(
           getDOMSelection(element),
           element
         )!;
 
-        execCommand(
-          InsertAt,
+        tr.insert(
           insertStart,
           readDom(element, parserConfig, serializeVoid, {
             _start: findPosition(element, insertStart, parserConfig),
@@ -287,7 +288,6 @@ export const editable = <T>(
           })
         );
       }
-      execCommand(MoveTo, ...selection);
 
       // Revert DOM
       let m: MutationRecord | undefined;
@@ -310,6 +310,8 @@ export const editable = <T>(
       isComposing = false;
       editedRange = null;
 
+      apply(tr);
+
       // Restore previous selection
       // Updating selection may schedule the next selectionchange event
       // It should be ignored especially in firefox not to confuse editor state
@@ -322,24 +324,23 @@ export const editable = <T>(
     }
   };
 
-  const flushCommand = () => {
-    if (commands.length) {
+  const flushEdit = () => {
+    if (transactions.length) {
+      let doc: Writeable<DocFragment> = [...currentDoc()];
       let selection: Writeable<SelectionSnapshot> = [...currentSelection];
-      let doc: Writeable<DocFragment> = [...history.get()[0]];
 
-      let command: (typeof commands)[number] | undefined;
-      while ((command = commands.pop())) {
-        command._fn(doc, selection, ...command._args);
+      let tr: Transaction | undefined;
+      while ((tr = transactions.pop())) {
+        if (isSingleline) {
+          tr = singleline(tr);
+        }
+        applyTransaction(doc, selection, tr);
       }
 
-      if (isSingleline) {
-        [doc, selection] = flatten(doc, selection);
-      }
-
-      // TODO improve
-      const prevDoc = history.get()[0];
+      const prevDoc = currentDoc();
       const prevSelection = currentSelection;
 
+      // TODO improve
       if (
         doc.length !== prevDoc.length ||
         doc.some((l, i) => l !== prevDoc[i])
@@ -353,11 +354,10 @@ export const editable = <T>(
     }
   };
 
-  const execCommand: EditableHandle["command"] = (fn, ...args) => {
-    if (!readonly) {
-      commands.unshift({ _fn: fn, _args: args });
-
-      queueTask(flushCommand);
+  const command: EditableHandle["command"] = (fn, ...args) => {
+    const tr = fn(currentDoc(), currentSelection, ...args);
+    if (tr) {
+      apply(tr);
     }
   };
 
@@ -388,23 +388,16 @@ export const editable = <T>(
     }
   };
 
-  const onInput = (() => {
+  const onInput = () => {
     if (isComposing) return;
     queueTask(flushInput);
-  }) as (e: Event) => void;
+  };
   const onBeforeInput = (e: InputEvent) => {
     switch (e.inputType as InputType) {
       case "historyUndo":
       case "historyRedo": {
         e.preventDefault();
         return;
-      }
-      case "insertLineBreak":
-      case "insertParagraph": {
-        if (isSingleline) {
-          e.preventDefault();
-          return;
-        }
       }
     }
 
@@ -450,7 +443,7 @@ export const editable = <T>(
     if (comparePosition(...currentSelection) !== 0) {
       copy(
         dataTransfer,
-        sliceDoc(history.get()[0], ...edges(...currentSelection)),
+        sliceDoc(currentDoc(), ...edges(...currentSelection)),
         () =>
           // DOM range must exist here
           getSelectionRangeInEditor(
@@ -461,11 +454,8 @@ export const editable = <T>(
     }
   };
 
-  const insertData = (dataTransfer: DataTransfer) => {
-    execCommand(
-      InsertFragment,
-      paste(dataTransfer, (dom) => readDocAll(dom, parserConfig))
-    );
+  const docFromDataTransfer = (dataTransfer: DataTransfer): DocFragment => {
+    return paste(dataTransfer, (dom) => readDocAll(dom, parserConfig));
   };
 
   const onCopy = (e: ClipboardEvent) => {
@@ -476,12 +466,17 @@ export const editable = <T>(
     e.preventDefault();
     if (!readonly) {
       copySelected(e.clipboardData!);
-      execCommand(Delete);
+      apply(new Transaction().delete(...edges(...currentSelection)));
     }
   };
   const onPaste = (e: ClipboardEvent) => {
     e.preventDefault();
-    insertData(e.clipboardData!);
+    const [start, end] = edges(...currentSelection);
+    apply(
+      new Transaction()
+        .delete(start, end)
+        .insert(start, docFromDataTransfer(e.clipboardData!))
+    );
   };
 
   const onDrop = (e: DragEvent) => {
@@ -495,14 +490,14 @@ export const editable = <T>(
       parserConfig
     );
     if (dataTransfer && droppedPosition) {
-      // move selection first to keep selection after modifications
-      execCommand(MoveTo, droppedPosition);
+      const tr = new Transaction();
       if (isDragging) {
-        execCommand(DeleteRange, ...currentSelection);
-      } else {
-        element.focus({ preventScroll: true });
+        tr.delete(...edges(...currentSelection));
       }
-      insertData(dataTransfer);
+      const pos = tr.rebasePos(droppedPosition);
+      tr.move(pos).insert(pos, docFromDataTransfer(dataTransfer));
+      apply(tr);
+      element.focus({ preventScroll: true });
     }
   };
   const onDragStart = (e: DragEvent) => {
@@ -556,7 +551,7 @@ export const editable = <T>(
       element.removeEventListener("dragstart", onDragStart);
       element.removeEventListener("dragend", onDragEnd);
     },
-    command: execCommand,
+    command: command,
     readonly: (value) => {
       readonly = value;
       setContentEditable();

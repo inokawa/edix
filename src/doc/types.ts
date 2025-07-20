@@ -13,10 +13,6 @@ export type PositionRange = readonly [start: Position, end: Position];
 
 export type SelectionSnapshot = readonly [anchor: Position, focus: Position];
 
-export type Writeable<T> = T extends
-  | Record<string, unknown>
-  | readonly unknown[]
-  ? {
-      -readonly [key in keyof T]: T[key];
-    }
-  : T;
+export type Writeable<T> = {
+  -readonly [key in keyof T]: T[key];
+};
