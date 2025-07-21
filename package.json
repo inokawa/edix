@@ -36,7 +36,7 @@
     "@rollup/plugin-typescript": "11.1.6",
     "@size-limit/preset-small-lib": "^11.0.2",
     "@storybook/react-vite": "^9.0.9",
-    "@textlint/kernel": "^14.8.0",
+    "@textlint/kernel": "^15.0.0",
     "@textlint/textlint-plugin-text": "^15.0.0",
     "@types/diff": "^8.0.0",
     "@types/react": "^19.1.8",
