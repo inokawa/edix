@@ -1,6 +1,13 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { CSSProperties, useEffect, useRef, useState } from "react";
 import { StoryObj } from "@storybook/react-vite";
-import { editable, schema, voidNode, InferDoc } from "../../src";
+import {
+  editable,
+  schema,
+  voidNode,
+  InferDoc,
+  EditableHandle,
+  SetFormat,
+} from "../../src";
 
 export default {
   component: editable,
@@ -40,6 +47,127 @@ export const Multiline: StoryObj = {
             {r.length ? r.map((n, j) => <span key={j}>{n.text}</span>) : <br />}
           </div>
         ))}
+      </div>
+    );
+  },
+};
+
+const richSchema = schema({
+  multiline: true,
+  mark: {
+    bold: "boolean",
+    italic: "boolean",
+    underline: "boolean",
+    strike: "boolean",
+  },
+});
+
+const Text = (props: {
+  text: string;
+  bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+  strike?: boolean;
+}) => {
+  const Element = props.bold ? "strong" : "span";
+  const style: CSSProperties = {};
+  if (props.italic) {
+    style.fontStyle = "italic";
+  }
+  if (props.underline) {
+    style.textDecoration = "underline";
+  }
+  if (props.strike) {
+    style.textDecoration = style.textDecoration
+      ? `${style.textDecoration} line-through`
+      : "line-through";
+  }
+  return <Element style={style}>{props.text}</Element>;
+};
+
+export const RichText: StoryObj = {
+  render: () => {
+    const ref = useRef<HTMLDivElement>(null);
+    const handle = useRef<EditableHandle | null>(null);
+
+    type Doc = InferDoc<typeof richSchema>;
+    const [value, setValue] = useState<Doc>([
+      [
+        { type: "text", text: "Hello", data: { bold: true } },
+        { type: "text", text: " " },
+        { type: "text", text: "World", data: { italic: true } },
+        { type: "text", text: "." },
+      ],
+      [{ type: "text", text: "こんにちは。" }],
+      [{ type: "text", text: "👍❤️🧑‍🧑‍🧒" }],
+    ]);
+    useEffect(() => {
+      if (!ref.current) return;
+      return (handle.current = editable(ref.current, {
+        schema: basicSchema,
+        onChange: setValue,
+      })).dispose;
+    }, []);
+
+    return (
+      <div>
+        <div>
+          <button
+            onClick={() => {
+              handle.current?.command(SetFormat, { bold: true });
+            }}
+          >
+            bold
+          </button>
+          <button
+            onClick={() => {
+              handle.current?.command(SetFormat, { italic: true });
+            }}
+          >
+            italic
+          </button>
+          <button
+            onClick={() => {
+              handle.current?.command(SetFormat, { underline: true });
+            }}
+          >
+            underline
+          </button>
+          <button
+            onClick={() => {
+              handle.current?.command(SetFormat, { strike: true });
+            }}
+          >
+            strike
+          </button>
+        </div>
+        <div
+          ref={ref}
+          style={{
+            backgroundColor: "white",
+            border: "solid 1px darkgray",
+            padding: 8,
+          }}
+        >
+          {value.map((r, i) => (
+            <div key={i}>
+              {r.length ? (
+                r.map((n, j) => (
+                  <Text
+                    key={j}
+                    text={n.text}
+                    bold={n.data?.bold}
+                    italic={n.data?.italic}
+                    underline={n.data?.underline}
+                    strike={n.data?.strike}
+                  />
+                ))
+              ) : (
+                <br />
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     );
   },
