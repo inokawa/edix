@@ -38,18 +38,3 @@ export const comparePosition = (posA: Position, posB: Position): 0 | 1 | -1 => {
 export const edges = (a: Position, b: Position): PositionRange => {
   return comparePosition(a, b) === -1 ? [b, a] : [a, b];
 };
-
-/**
- * @internal
- */
-export const union = (
-  a: readonly [Position, Position],
-  b: readonly [Position, Position]
-): PositionRange => {
-  const [aStart, aEnd] = edges(...a);
-  const [bStart, bEnd] = edges(...b);
-  return [
-    comparePosition(aStart, bStart) === -1 ? bStart : aStart,
-    comparePosition(aEnd, bEnd) === 1 ? bEnd : aEnd,
-  ];
-};

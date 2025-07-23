@@ -147,10 +147,7 @@ export const setSelectionToDOM = (
 
 type DOMPosition = [node: Text | Element, offsetAtNode: number];
 
-/**
- * @internal
- */
-export const findPosition = (
+const findPosition = (
   root: Element,
   [line, offset]: Position,
   config: ParserConfig

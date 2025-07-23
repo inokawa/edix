@@ -33,7 +33,7 @@ export const createMutationObserver = (
   });
 
   return {
-    _accept(enable: boolean) {
+    _record(enable: boolean) {
       if (!isInputing && enable) {
         sync();
       }

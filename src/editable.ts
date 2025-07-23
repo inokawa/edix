@@ -10,7 +10,6 @@ import {
   getDOMSelection,
   readDom,
   serializeRange,
-  findPosition,
 } from "./dom";
 import { createMutationObserver } from "./mutation";
 import {
@@ -24,8 +23,9 @@ import { EditableCommand } from "./commands";
 import { applyTransaction, Transaction, sliceDoc } from "./doc/edit";
 import { singleline } from "./plugins/singleline";
 import { DocSchema } from "./schema";
-import { isElementNode, ParserConfig } from "./dom/parser";
-import { comparePosition, edges, union } from "./doc/position";
+import { ParserConfig } from "./dom/parser";
+import { comparePosition, edges } from "./doc/position";
+import { stringToDoc } from "./doc/utils";
 
 /**
  * https://www.w3.org/TR/input-events-1/#interface-InputEvent-Attributes
@@ -76,7 +76,12 @@ type InputType =
   | "formatSetInlineTextDirection" // set the text inline direction
   | "formatBackColor" // change the background color
   | "formatFontColor" // change the font color
-  | "formatFontName"; // change the font-family
+  | "formatFontName" // change the font-family
+  // Legacy events older Chrome/Safari may dispatch
+  // https://github.com/w3c/input-events/pull/122
+  | "deleteCompositionText"
+  | "deleteByComposition"
+  | "insertFromComposition";
 
 export type KeyboardPayload = Pick<
   KeyboardEvent,
@@ -146,6 +151,17 @@ export const editable = <T>(
     onKeyDown: onKeyDownCallback,
   }: EditableOptions<T>
 ): EditableHandle => {
+  if (
+    !(
+      window.InputEvent &&
+      typeof InputEvent.prototype.getTargetRanges === "function"
+    )
+  ) {
+    console.error("beforeinput event is not supported.");
+    const dummy = () => {};
+    return { dispose: dummy, command: dummy, readonly: dummy };
+  }
+
   // https://w3c.github.io/contentEditable/
   // https://w3c.github.io/editing/docs/execCommand/
   // https://w3c.github.io/selection-api/
@@ -168,7 +184,7 @@ export const editable = <T>(
   let disposed = false;
   let selectionReverted = false;
   let currentSelection: SelectionSnapshot = getEmptySelectionSnapshot();
-  let editedRange: PositionRange | null = null;
+  let inputTransaction: Transaction | null = null;
   let restoreSelectionQueue: ReturnType<typeof setTimeout> | null = null;
   let isComposing = false;
   let hasFocus = false;
@@ -244,51 +260,27 @@ export const editable = <T>(
     currentSelection = takeSelectionSnapshot(element, parserConfig);
   };
 
+  const readInput = (data: string | null, range: PositionRange) => {
+    if (!inputTransaction) {
+      inputTransaction = new Transaction().select(...currentSelection);
+    }
+
+    if (comparePosition(...range) !== 0) {
+      // replace or delete
+      inputTransaction.delete(...range);
+    }
+    if (data) {
+      // replace or insert
+      inputTransaction.insert(range[0], stringToDoc(data));
+    }
+  };
+
   const flushInput = () => {
     const queue = observer._flush();
 
-    observer._accept(false);
+    observer._record(false);
+
     if (queue.length) {
-      const editRange = editedRange!;
-      let selectedRange = edges(...currentSelection);
-      let isInsert = false;
-      if (comparePosition(...selectedRange) === 0 && !isComposing) {
-        if (comparePosition(...editRange) === 0) {
-          // insert
-          isInsert = true;
-        } else {
-          // backspace/delete
-          selectedRange = union(selectedRange, editRange);
-        }
-      } else {
-        // replace/delete range
-        isInsert = true;
-      }
-
-      const tr = new Transaction()
-        .move(...currentSelection)
-        .delete(...selectedRange);
-
-      if (isInsert) {
-        const insertStart = selectedRange[0];
-
-        const { endContainer, endOffset } = getSelectionRangeInEditor(
-          getDOMSelection(element),
-          element
-        )!;
-
-        tr.insert(
-          insertStart,
-          readDom(element, parserConfig, serializeVoid, {
-            _start: findPosition(element, insertStart, parserConfig),
-            // TODO improve later
-            _end: isElementNode(endContainer)
-              ? [endContainer.childNodes[endOffset]!, 0]
-              : [endContainer, endOffset],
-          })
-        );
-      }
-
       // Revert DOM
       let m: MutationRecord | undefined;
       while ((m = queue.pop())) {
@@ -304,24 +296,23 @@ export const editable = <T>(
           (m.target as CharacterData).nodeValue = m.oldValue!;
         }
       }
-
       observer._flush();
-
-      isComposing = false;
-      editedRange = null;
-
-      apply(tr);
-
-      // Restore previous selection
-      // Updating selection may schedule the next selectionchange event
-      // It should be ignored especially in firefox not to confuse editor state
-      selectionReverted = setSelectionToDOM(
-        document,
-        element,
-        currentSelection,
-        parserConfig
-      );
     }
+
+    apply(inputTransaction!);
+
+    isComposing = false;
+    inputTransaction = null;
+
+    // Restore previous selection
+    // Updating selection may schedule the next selectionchange event
+    // It should be ignored especially in firefox not to confuse editor state
+    selectionReverted = setSelectionToDOM(
+      document,
+      element,
+      currentSelection,
+      parserConfig
+    );
   };
 
   const flushEdit = () => {
@@ -375,7 +366,7 @@ export const editable = <T>(
     if ((e.metaKey || e.ctrlKey) && !e.altKey && e.code === "KeyZ") {
       e.preventDefault();
 
-      observer._accept(false);
+      observer._record(false);
       if (!readonly) {
         const nextHistory = e.shiftKey ? history.redo() : history.undo();
 
@@ -389,34 +380,52 @@ export const editable = <T>(
   };
 
   const onInput = () => {
-    if (isComposing) return;
-    queueTask(flushInput);
+    if (!isComposing) {
+      flushInput();
+    }
   };
   const onBeforeInput = (e: InputEvent) => {
-    switch (e.inputType as InputType) {
-      case "historyUndo":
-      case "historyRedo": {
-        e.preventDefault();
-        return;
-      }
+    e.preventDefault();
+
+    const inputType = e.inputType as InputType;
+
+    if (inputType.startsWith("format")) {
+      // Format inputs are probably caused by document.execCommand(). Ignore them.
+      return;
+    }
+    if (inputType === "historyUndo" || inputType === "historyRedo") {
+      // Cancel for now.
+      return;
+    }
+
+    if (isComposing) {
+      // Unfortunately, input events related to composition are not cancellable.
+      // So we record mutations to DOM and revert them after composition ended.
+      observer._record(true);
+    } else {
+      syncSelection();
     }
 
     const range = e.getTargetRanges()[0];
     if (range) {
-      editedRange = serializeRange(element, parserConfig, range);
+      readInput(
+        inputType === "insertParagraph" || inputType === "insertLineBreak"
+          ? "\n"
+          : e.data,
+        serializeRange(element, parserConfig, range)
+      );
     }
 
     if (!isComposing) {
-      syncSelection();
+      flushInput();
     }
-    observer._accept(true);
   };
   const onCompositionStart = () => {
     isComposing = true;
     syncSelection();
   };
   const onCompositionEnd = () => {
-    queueTask(flushInput);
+    flushInput();
   };
 
   const onFocus = () => {
@@ -495,7 +504,7 @@ export const editable = <T>(
         tr.delete(...edges(...currentSelection));
       }
       const pos = tr.rebasePos(droppedPosition);
-      tr.move(pos).insert(pos, docFromDataTransfer(dataTransfer));
+      tr.select(pos).insert(pos, docFromDataTransfer(dataTransfer));
       apply(tr);
       element.focus({ preventScroll: true });
     }

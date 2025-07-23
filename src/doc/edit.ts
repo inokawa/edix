@@ -22,14 +22,14 @@ type InsertOperation = Readonly<{
   _fragment: DocFragment;
 }>;
 
-const TYPE_MOVE = 3;
-type MoveOperataion = Readonly<{
-  _type: typeof TYPE_MOVE;
+const TYPE_SELECT = 3;
+type SelectOperataion = Readonly<{
+  _type: typeof TYPE_SELECT;
   _anchor: Position;
   _focus: Position;
 }>;
 type EditOperation = DeleteOperation | InsertOperation;
-export type Operation = EditOperation | MoveOperataion;
+export type Operation = EditOperation | SelectOperataion;
 
 export class Transaction extends Array<Operation> {
   static from(tr: Transaction | Array<Operation>): Transaction {
@@ -54,9 +54,9 @@ export class Transaction extends Array<Operation> {
     return this;
   }
 
-  move(anchor: Position, focus: Position = anchor): this {
+  select(anchor: Position, focus: Position = anchor): this {
     this.push({
-      _type: TYPE_MOVE,
+      _type: TYPE_SELECT,
       _anchor: anchor,
       _focus: focus,
     });
@@ -65,7 +65,7 @@ export class Transaction extends Array<Operation> {
 
   rebasePos(pos: Position): Position {
     return this.reduce(
-      (acc, op) => (op._type === TYPE_MOVE ? acc : rebasePosition(acc, op)),
+      (acc, op) => (op._type === TYPE_SELECT ? acc : rebasePosition(acc, op)),
       pos
     );
   }
@@ -271,7 +271,7 @@ export const applyTransaction = (
   try {
     for (const op of tr) {
       if (isValidOperation(op)) {
-        if (op._type !== TYPE_MOVE) {
+        if (op._type !== TYPE_SELECT) {
           updateDoc(doc, op);
           selection[0] = rebasePosition(selection[0], op);
           selection[1] = rebasePosition(selection[1], op);
