@@ -24,7 +24,7 @@ import { applyTransaction, Transaction, sliceDoc } from "./doc/edit";
 import { singleline } from "./plugins/singleline";
 import { DocSchema } from "./schema";
 import { ParserConfig } from "./dom/parser";
-import { comparePosition, edges } from "./doc/position";
+import { comparePosition, range } from "./doc/position";
 import { stringToDoc } from "./doc/utils";
 
 /**
@@ -408,12 +408,18 @@ export const editable = <T>(
 
     const range = e.getTargetRanges()[0];
     if (range) {
-      readInput(
+      let data =
         inputType === "insertParagraph" || inputType === "insertLineBreak"
           ? "\n"
-          : e.data,
-        serializeRange(element, parserConfig, range)
-      );
+          : e.data;
+      if (data == null) {
+        const dataTransfer = e.dataTransfer;
+        if (dataTransfer) {
+          // In some cases (e.g. insertReplacementText), dataTransfer contains text.
+          data = dataTransfer.getData("text/plain");
+        }
+      }
+      readInput(data, serializeRange(element, parserConfig, range));
     }
 
     if (!isComposing) {
@@ -421,8 +427,10 @@ export const editable = <T>(
     }
   };
   const onCompositionStart = () => {
+    if (!isComposing) {
+      syncSelection();
+    }
     isComposing = true;
-    syncSelection();
   };
   const onCompositionEnd = () => {
     flushInput();
@@ -452,7 +460,7 @@ export const editable = <T>(
     if (comparePosition(...currentSelection) !== 0) {
       copy(
         dataTransfer,
-        sliceDoc(currentDoc(), ...edges(...currentSelection)),
+        sliceDoc(currentDoc(), ...range(currentSelection)),
         () =>
           // DOM range must exist here
           getSelectionRangeInEditor(
@@ -475,12 +483,12 @@ export const editable = <T>(
     e.preventDefault();
     if (!readonly) {
       copySelected(e.clipboardData!);
-      apply(new Transaction().delete(...edges(...currentSelection)));
+      apply(new Transaction().delete(...range(currentSelection)));
     }
   };
   const onPaste = (e: ClipboardEvent) => {
     e.preventDefault();
-    const [start, end] = edges(...currentSelection);
+    const [start, end] = range(currentSelection);
     apply(
       new Transaction()
         .delete(start, end)
@@ -501,10 +509,12 @@ export const editable = <T>(
     if (dataTransfer && droppedPosition) {
       const tr = new Transaction();
       if (isDragging) {
-        tr.delete(...edges(...currentSelection));
+        tr.delete(...range(currentSelection));
       }
       const pos = tr.rebasePos(droppedPosition);
-      tr.select(pos).insert(pos, docFromDataTransfer(dataTransfer));
+      tr.select(pos, pos)
+        .insert(pos, docFromDataTransfer(dataTransfer))
+        .select(pos);
       apply(tr);
       element.focus({ preventScroll: true });
     }

@@ -35,6 +35,6 @@ export const comparePosition = (posA: Position, posB: Position): 0 | 1 | -1 => {
 /**
  * @internal
  */
-export const edges = (a: Position, b: Position): PositionRange => {
+export const range = ([a, b]: readonly [Position, Position]): PositionRange => {
   return comparePosition(a, b) === -1 ? [b, a] : [a, b];
 };

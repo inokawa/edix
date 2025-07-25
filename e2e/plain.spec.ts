@@ -1683,9 +1683,8 @@ test.describe("Drag and Drop", () => {
           [1, 1]
         )
       );
-      // TODO check selection anchor also
-      expect((await getSelection(editable))[1]).toEqual(
-        createSelection({ line: 1, offset: 1, extent: selLength })[1]
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ line: 1, offset: 1, extent: selLength })
       );
     }
 
@@ -1716,9 +1715,8 @@ test.describe("Drag and Drop", () => {
           [1, selStart - 1]
         )
       );
-      // TODO check selection anchor also
-      expect((await getSelection(editable))[1]).toEqual(
-        createSelection({ line: 1, offset: selStart - 1, extent: selLength })[1]
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ line: 1, offset: selStart - 1, extent: selLength })
       );
     }
 
@@ -1749,9 +1747,8 @@ test.describe("Drag and Drop", () => {
           [1, selStart + 1]
         )
       );
-      // TODO check selection anchor also
-      expect((await getSelection(editable))[1]).toEqual(
-        createSelection({ line: 1, offset: selStart + 1, extent: selLength })[1]
+      expect(await getSelection(editable)).toEqual(
+        createSelection({ line: 1, offset: selStart + 1, extent: selLength })
       );
     }
   });

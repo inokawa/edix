@@ -1,5 +1,5 @@
 import { type DocFragment, type SelectionSnapshot } from "./doc/types";
-import { edges } from "./doc/position";
+import { range } from "./doc/position";
 import { getLineSize, Transaction } from "./doc/edit";
 import { stringToDoc } from "./doc/utils";
 
@@ -10,7 +10,7 @@ export type EditableCommand<A extends unknown[]> = (
 ) => Transaction | void;
 
 export const Delete: EditableCommand<[]> = (_doc, selection) => {
-  return new Transaction().delete(...edges(...selection));
+  return new Transaction().delete(...range(selection));
 };
 
 export const InsertText: EditableCommand<[text: string]> = (
@@ -20,7 +20,7 @@ export const InsertText: EditableCommand<[text: string]> = (
 ) => {
   const tr = Delete(doc, selection)!;
 
-  return tr.insert(edges(...selection)[0], stringToDoc(text));
+  return tr.insert(range(selection)[0], stringToDoc(text));
 };
 
 export const ReplaceAll: EditableCommand<[text: string]> = (
