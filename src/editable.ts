@@ -15,7 +15,12 @@ import { createMutationObserver } from "./mutation";
 import { DocFragment, SelectionSnapshot, Writeable } from "./doc/types";
 import { microtask } from "./utils";
 import { EditableCommand } from "./commands";
-import { applyTransaction, Transaction, sliceDoc } from "./doc/edit";
+import {
+  applyTransaction,
+  Transaction,
+  sliceDoc,
+  isDocEqual,
+} from "./doc/edit";
 import { singleline } from "./plugins/singleline";
 import { DocSchema } from "./schema";
 import { ParserConfig } from "./dom/parser";
@@ -311,11 +316,7 @@ export const editable = <T>(
       const prevDoc = currentDoc();
       const prevSelection = currentSelection;
 
-      // TODO improve
-      if (
-        doc.length !== prevDoc.length ||
-        doc.some((l, i) => l !== prevDoc[i])
-      ) {
+      if (!isDocEqual(doc, prevDoc)) {
         history.set([prevDoc, prevSelection]);
         history.push([doc, selection]);
         onChange(docToJS(doc));

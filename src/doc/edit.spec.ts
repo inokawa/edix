@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { Transaction, applyTransaction } from "./edit";
+import { Transaction, applyTransaction, isDocEqual } from "./edit";
 import {
   type DocFragment,
   type SelectionSnapshot,
@@ -74,13 +74,35 @@ it("rollback if error", () => {
   );
 
   expect(consoleSpy).toHaveBeenCalledOnce();
-  expect(doc).toEqual(docSnapshot);
-  expect(doc.every((n, i) => n === docSnapshot[i])).toBe(true);
+  expect(isDocEqual(doc, docSnapshot)).toBe(true);
   expect(sel).toEqual(selSnapshot);
   expect(sel.every((n, i) => n === selSnapshot[i])).toBe(true);
 });
 
 describe("insert", () => {
+  it("should ignore empty text", () => {
+    const docText = "abcde";
+    const docText2 = "fghij";
+    const doc: Writeable<DocFragment> = [
+      [{ text: docText }],
+      [{ text: docText2 }],
+    ];
+    const sel: Writeable<SelectionSnapshot> = [
+      [1, 2],
+      [1, 2],
+    ];
+    const docSnapshot = [...doc];
+    const selSnapshot = [...sel];
+    applyTransaction(
+      doc,
+      sel,
+      new Transaction().insert([0, 1], [[{ text: "" }]])
+    );
+
+    expect(isDocEqual(doc, docSnapshot)).toBe(true);
+    expect(sel).toEqual(selSnapshot);
+  });
+
   it("should insert text at line before caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
@@ -420,18 +442,18 @@ describe("insert", () => {
 });
 
 describe("delete", () => {
-  it("should do nothing if start and end is the same", () => {
+  it("should ignore if start and end is the same", () => {
     const docText = "abcde";
     const doc: Writeable<DocFragment> = [[{ text: docText }]];
     const sel: Writeable<SelectionSnapshot> = [
       [0, 2],
       [0, 2],
     ];
-    const initialDoc: DocFragment = structuredClone(doc);
-    const initialSel: SelectionSnapshot = structuredClone(sel);
+    const docSnapshot = [...doc];
+    const initialSel = [...sel];
     applyTransaction(doc, sel, new Transaction().delete([0, 1], [0, 1]));
 
-    expect(doc).toEqual(initialDoc);
+    expect(isDocEqual(doc, docSnapshot)).toBe(true);
     expect(sel).toEqual(initialSel);
   });
 

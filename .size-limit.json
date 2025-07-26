@@ -3,7 +3,7 @@
     "name": "editable",
     "path": "lib/index.js",
     "import": "{ editable }",
-    "limit": "4.0 kB"
+    "limit": "4.1 kB"
   },
   {
     "name": "Total",

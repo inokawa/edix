@@ -7,6 +7,7 @@ import {
   SelectionSnapshot,
   Writeable,
 } from "./types";
+import { docToString } from "./utils";
 
 const TYPE_DELETE = 1;
 type DeleteOperation = Readonly<{
@@ -72,6 +73,13 @@ export class Transaction extends Array<Operation> {
     );
   }
 }
+
+/**
+ * @internal
+ */
+export const isDocEqual = (docA: DocFragment, docB: DocFragment): boolean =>
+  // TODO improve
+  docA.length === docB.length && docA.every((l, i) => l === docB[i]);
 
 /**
  * @internal
@@ -180,6 +188,10 @@ const isValidOperation = (op: Operation): boolean => {
   switch (op._type) {
     case TYPE_DELETE: {
       return comparePosition(op._start, op._end) === 1;
+    }
+    case TYPE_INSERT: {
+      // TODO optimize later
+      return !!docToString(op._fragment);
     }
   }
   return true;
