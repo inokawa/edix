@@ -1,0 +1,1 @@
+import{r,s,T as a,g as o}from"./editable-2Ya03nl1.js";const l=(e,t)=>new a().delete(...r(t)),g=(e,t,n)=>l(e,t).insert(r(t)[0],s(n)),T=(e,t,n)=>new a().delete([0,0],[e.length-1,o(e[e.length-1])]).insert([0,0],s(n));export{l as D,g as I,T as R};
