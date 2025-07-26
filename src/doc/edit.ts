@@ -8,6 +8,71 @@ import {
   Writeable,
 } from "./types";
 
+const TYPE_DELETE = 1;
+type DeleteOperation = Readonly<{
+  _type: typeof TYPE_DELETE;
+  _start: Position;
+  _end: Position;
+}>;
+
+const TYPE_INSERT = 2;
+type InsertOperation = Readonly<{
+  _type: typeof TYPE_INSERT;
+  _pos: Position;
+  _fragment: DocFragment;
+}>;
+
+const TYPE_SELECT = 3;
+type SelectOperataion = Readonly<{
+  _type: typeof TYPE_SELECT;
+  _anchor: Position | undefined;
+  _focus: Position | undefined;
+}>;
+type EditOperation = DeleteOperation | InsertOperation;
+export type Operation = EditOperation | SelectOperataion;
+
+const isEditOperation = (op: Operation) => op._type !== TYPE_SELECT;
+
+export class Transaction extends Array<Operation> {
+  static from(tr: Transaction | Array<Operation>): Transaction {
+    return new Transaction(...tr);
+  }
+
+  insert(start: Position, fragment: DocFragment): this {
+    this.push({
+      _type: TYPE_INSERT,
+      _pos: start,
+      _fragment: fragment,
+    });
+    return this;
+  }
+
+  delete(start: Position, end: Position): this {
+    this.push({
+      _type: TYPE_DELETE,
+      _start: start,
+      _end: end,
+    });
+    return this;
+  }
+
+  select(anchor?: Position, focus?: Position): this {
+    this.push({
+      _type: TYPE_SELECT,
+      _anchor: anchor,
+      _focus: focus,
+    });
+    return this;
+  }
+
+  rebasePos(position: Position): Position {
+    return this.reduce(
+      (acc, op) => (isEditOperation(op) ? rebasePosition(acc, op) : acc),
+      position
+    );
+  }
+}
+
 /**
  * @internal
  */
@@ -21,7 +86,10 @@ const getNodeSize = (node: DocNode): number =>
 export const getLineSize = (line: DocLine): number =>
   line.reduce((acc, n) => acc + getNodeSize(n), 0);
 
-const merge = (a: DocLine, b: DocLine): DocLine => {
+/**
+ * @internal
+ */
+export const merge = (a: DocLine, b: DocLine): DocLine => {
   const result: Writeable<DocLine> = [...a];
   if (!result.length) {
     result.push(...b);
@@ -66,35 +134,6 @@ const split = (line: DocLine, offset: number): [DocLine, DocLine] => {
   return [line, []];
 };
 
-const fixPositionAfterInsert = (
-  selectionPos: Position,
-  pos: Position,
-  lineDiff: number,
-  lastRowLength: number
-): Position => {
-  return [
-    selectionPos[0] + lineDiff,
-    selectionPos[1] +
-      (compareLine(selectionPos, pos) === 0
-        ? lastRowLength - (lineDiff === 0 ? 0 : pos[1])
-        : 0),
-  ];
-};
-
-const fixPositionAfterDelete = (
-  selectionPos: Position,
-  start: Position,
-  end: Position
-): Position => {
-  return comparePosition(end, selectionPos) === 1
-    ? [
-        selectionPos[0] + start[0] - end[0],
-        selectionPos[1] +
-          (compareLine(end, selectionPos) === 0 ? start[1] - end[1] : 0),
-      ]
-    : start;
-};
-
 const replaceRange = (
   doc: Writeable<DocFragment>,
   fragment: DocFragment,
@@ -137,79 +176,107 @@ export const sliceDoc = (
   ];
 };
 
-/**
- * @internal
- */
-export const insertEdit = (
-  doc: Writeable<DocFragment>,
-  selection: Writeable<SelectionSnapshot>,
-  pos: Position,
-  lines: DocFragment
-) => {
-  const [anchor, focus] = selection;
-
-  const lineLength = lines.length;
-  const lineDiff = lineLength - 1;
-  const lastRowLength = getLineSize(lines[lineLength - 1]!);
-
-  replaceRange(doc, lines, pos);
-
-  if (comparePosition(anchor, pos) !== 1) {
-    selection[0] = fixPositionAfterInsert(anchor, pos, lineDiff, lastRowLength);
-  }
-  if (comparePosition(focus, pos) !== 1) {
-    selection[1] = fixPositionAfterInsert(focus, pos, lineDiff, lastRowLength);
-  }
-};
-
-/**
- * @internal
- */
-export const deleteEdit = (
-  doc: Writeable<DocFragment>,
-  selection: Writeable<SelectionSnapshot>,
-  start: Position,
-  end: Position
-) => {
-  const [anchor, focus] = selection;
-
-  replaceRange(doc, [], start, end);
-
-  if (comparePosition(anchor, start) !== 1) {
-    selection[0] = fixPositionAfterDelete(anchor, start, end);
-  }
-  if (comparePosition(focus, start) !== 1) {
-    selection[1] = fixPositionAfterDelete(focus, start, end);
-  }
-};
-
-/**
- * @internal
- */
-export const flatten = (
-  doc: DocFragment,
-  [[anchorLine, anchorOffset], [focusLine, focusOffset]]: SelectionSnapshot
-): [Writeable<DocFragment>, Writeable<SelectionSnapshot>] => {
-  let offsetBeforeAnchor = 0;
-  let offsetBeforeFocus = 0;
-
-  for (let i = 0; i < doc.length; i++) {
-    for (const node of doc[i]!) {
-      const size = getNodeSize(node);
-      if (i < anchorLine) {
-        offsetBeforeAnchor += size;
-      }
-      if (i < focusLine) {
-        offsetBeforeFocus += size;
-      }
+const isValidOperation = (op: Operation): boolean => {
+  switch (op._type) {
+    case TYPE_DELETE: {
+      return comparePosition(op._start, op._end) === 1;
     }
   }
+  return true;
+};
 
-  return [
-    [doc.reduce((acc, l) => merge(acc, l), [] as DocLine)],
-    [
-      [0, offsetBeforeAnchor + anchorOffset],
-      [0, offsetBeforeFocus + focusOffset],
-    ],
-  ];
+const updateDoc = (doc: Writeable<DocFragment>, op: EditOperation): void => {
+  switch (op._type) {
+    case TYPE_DELETE: {
+      replaceRange(doc, [], op._start, op._end);
+      break;
+    }
+    case TYPE_INSERT: {
+      replaceRange(doc, op._fragment, op._pos);
+      break;
+    }
+    default: {
+      op satisfies never;
+    }
+  }
+};
+
+const rebasePosition = (position: Position, op: EditOperation): Position => {
+  switch (op._type) {
+    case TYPE_DELETE: {
+      const { _start: start, _end: end } = op;
+
+      if (comparePosition(position, start) !== 1) {
+        return comparePosition(end, position) === 1
+          ? [
+              position[0] + start[0] - end[0],
+              position[1] +
+                (compareLine(end, position) === 0 ? start[1] - end[1] : 0),
+            ]
+          : start;
+      }
+      break;
+    }
+    case TYPE_INSERT: {
+      const { _pos: pos, _fragment: lines } = op;
+
+      const lineLength = lines.length;
+      const lineDiff = lineLength - 1;
+
+      if (comparePosition(position, pos) !== 1) {
+        return [
+          position[0] + lineDiff,
+          position[1] +
+            (compareLine(position, pos) === 0
+              ? getLineSize(lines[lineLength - 1]!) -
+                (lineDiff === 0 ? 0 : pos[1])
+              : 0),
+        ];
+      }
+      break;
+    }
+    default: {
+      op satisfies never;
+    }
+  }
+  return position;
+};
+
+/**
+ * @internal
+ */
+export const applyTransaction = (
+  doc: Writeable<DocFragment>,
+  selection: Writeable<SelectionSnapshot>,
+  tr: Transaction
+): void => {
+  const docSnapshot: DocFragment = [...doc];
+  const selectionSnapshot: SelectionSnapshot = [...selection];
+
+  try {
+    for (const op of tr) {
+      if (isValidOperation(op)) {
+        if (isEditOperation(op)) {
+          updateDoc(doc, op);
+          selection[0] = rebasePosition(selection[0], op);
+          selection[1] = rebasePosition(selection[1], op);
+        } else {
+          if (op._anchor) {
+            selection[0] = op._anchor;
+          }
+          if (op._focus) {
+            selection[1] = op._focus;
+          }
+        }
+      }
+    }
+  } catch (e) {
+    // rollback
+    console.error("rollback transaction:", e);
+
+    doc.length = 0;
+    doc.push(...docSnapshot);
+    selection[0] = selectionSnapshot[0];
+    selection[1] = selectionSnapshot[1];
+  }
 };
