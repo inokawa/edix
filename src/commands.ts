@@ -14,13 +14,12 @@ export const Delete: EditableCommand<[]> = (_doc, selection) => {
 };
 
 export const InsertText: EditableCommand<[text: string]> = (
-  doc,
+  _doc,
   selection,
   text
 ) => {
-  const tr = Delete(doc, selection)!;
-
-  return tr.insert(range(selection)[0], stringToDoc(text));
+  const [start, end] = range(selection);
+  return new Transaction().delete(start, end).insert(start, stringToDoc(text));
 };
 
 export const ReplaceAll: EditableCommand<[text: string]> = (

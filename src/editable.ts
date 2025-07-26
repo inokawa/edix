@@ -12,12 +12,7 @@ import {
   serializeRange,
 } from "./dom";
 import { createMutationObserver } from "./mutation";
-import {
-  DocFragment,
-  PositionRange,
-  SelectionSnapshot,
-  Writeable,
-} from "./doc/types";
+import { DocFragment, SelectionSnapshot, Writeable } from "./doc/types";
 import { microtask } from "./utils";
 import { EditableCommand } from "./commands";
 import { applyTransaction, Transaction, sliceDoc } from "./doc/edit";
@@ -260,21 +255,6 @@ export const editable = <T>(
     currentSelection = takeSelectionSnapshot(element, parserConfig);
   };
 
-  const readInput = (data: string | null, range: PositionRange) => {
-    if (!inputTransaction) {
-      inputTransaction = new Transaction().select(...currentSelection);
-    }
-
-    if (comparePosition(...range) !== 0) {
-      // replace or delete
-      inputTransaction.delete(...range);
-    }
-    if (data) {
-      // replace or insert
-      inputTransaction.insert(range[0], stringToDoc(data));
-    }
-  };
-
   const flushInput = () => {
     const queue = observer._flush();
 
@@ -406,8 +386,10 @@ export const editable = <T>(
       syncSelection();
     }
 
-    const range = e.getTargetRanges()[0];
-    if (range) {
+    const domRange = e.getTargetRanges()[0];
+    if (domRange) {
+      // Read input
+      const range = serializeRange(element, parserConfig, domRange);
       let data =
         inputType === "insertParagraph" || inputType === "insertLineBreak"
           ? "\n"
@@ -419,7 +401,18 @@ export const editable = <T>(
           data = dataTransfer.getData("text/plain");
         }
       }
-      readInput(data, serializeRange(element, parserConfig, range));
+
+      if (!inputTransaction) {
+        inputTransaction = new Transaction().select(...currentSelection);
+      }
+      if (comparePosition(...range) !== 0) {
+        // replace or delete
+        inputTransaction.delete(...range);
+      }
+      if (data) {
+        // replace or insert
+        inputTransaction.insert(range[0], stringToDoc(data));
+      }
     }
 
     if (!isComposing) {
