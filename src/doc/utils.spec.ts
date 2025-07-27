@@ -6,18 +6,11 @@ describe(stringToDoc.name, () => {
   const tests: [string, DocFragment][] = [
     ["Hello world", [[{ text: "Hello world" }]]],
     ["Hello\n world", [[{ text: "Hello" }], [{ text: " world" }]]],
-    ["", [[{ text: "" }]]],
-    ["\n", [[{ text: "" }], [{ text: "" }]]],
+    ["", [[]]],
+    ["\n", [[], []]],
     [
       "\nHello\n\n\n world\n",
-      [
-        [{ text: "" }],
-        [{ text: "Hello" }],
-        [{ text: "" }],
-        [{ text: "" }],
-        [{ text: " world" }],
-        [{ text: "" }],
-      ],
+      [[], [{ text: "Hello" }], [], [], [{ text: " world" }], []],
     ],
   ];
 
