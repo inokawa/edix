@@ -219,13 +219,16 @@ const rebasePosition = (position: Position, op: EditOperation): Position => {
       const { _start: start, _end: end } = op;
 
       if (comparePosition(position, start) !== 1) {
+        // start <= position
         return comparePosition(end, position) === 1
-          ? [
+          ? // start <= end < position
+            [
               position[0] + start[0] - end[0],
               position[1] +
                 (compareLine(end, position) === 0 ? start[1] - end[1] : 0),
             ]
-          : start;
+          : // start <= position <= end
+            start;
       }
       break;
     }
@@ -236,6 +239,7 @@ const rebasePosition = (position: Position, op: EditOperation): Position => {
       const lineDiff = lineLength - 1;
 
       if (comparePosition(position, pos) !== 1) {
+        // pos <= position
         return [
           position[0] + lineDiff,
           position[1] +
