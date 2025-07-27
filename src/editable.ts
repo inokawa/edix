@@ -371,7 +371,7 @@ export const editable = <T>(
     const inputType = e.inputType as InputType;
 
     if (inputType.startsWith("format")) {
-      // Format inputs are probably caused by document.execCommand(). Ignore them.
+      // Ignore format inputs from document.execCommand() or shortcuts like mod+b. 
       return;
     }
     if (inputType === "historyUndo" || inputType === "historyRedo") {
