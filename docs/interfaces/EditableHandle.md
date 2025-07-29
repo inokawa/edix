@@ -4,7 +4,7 @@
 
 # Interface: EditableHandle
 
-Defined in: [editable.ts:97](https://github.com/inokawa/edix/blob/131b1e7d8f29930f3bf50bbd826431898e430ef2/src/core/editable.ts#L97)
+Defined in: [editable.ts:118](https://github.com/inokawa/edix/blob/48ffe0d01c66f9540b747e27424142d5598f2bec/src/editable.ts#L118)
 
 Methods of editor instance.
 
@@ -14,7 +14,7 @@ Methods of editor instance.
 
 > **dispose**: () => `void`
 
-Defined in: [editable.ts:101](https://github.com/inokawa/edix/blob/131b1e7d8f29930f3bf50bbd826431898e430ef2/src/core/editable.ts#L101)
+Defined in: [editable.ts:122](https://github.com/inokawa/edix/blob/48ffe0d01c66f9540b747e27424142d5598f2bec/src/editable.ts#L122)
 
 Disposes editor and restores previous DOM state.
 
@@ -28,13 +28,15 @@ Disposes editor and restores previous DOM state.
 
 > **command**: \<`A`\>(`fn`, ...`args`) => `void`
 
-Defined in: [editable.ts:107](https://github.com/inokawa/edix/blob/131b1e7d8f29930f3bf50bbd826431898e430ef2/src/core/editable.ts#L107)
+Defined in: [editable.ts:128](https://github.com/inokawa/edix/blob/48ffe0d01c66f9540b747e27424142d5598f2bec/src/editable.ts#L128)
 
 Dispatches editing command.
 
 #### Type Parameters
 
-• **A** *extends* `unknown`[]
+##### A
+
+`A` *extends* `unknown`[]
 
 #### Parameters
 
@@ -60,7 +62,7 @@ arguments of command
 
 > **readonly**: (`value`) => `void`
 
-Defined in: [editable.ts:112](https://github.com/inokawa/edix/blob/131b1e7d8f29930f3bf50bbd826431898e430ef2/src/core/editable.ts#L112)
+Defined in: [editable.ts:133](https://github.com/inokawa/edix/blob/48ffe0d01c66f9540b747e27424142d5598f2bec/src/editable.ts#L133)
 
 Changes editor's read-only state.
 

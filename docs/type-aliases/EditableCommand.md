@@ -2,30 +2,32 @@
 
 ***
 
-# Type Alias: EditableCommand()\<T\>
+# Type Alias: EditableCommand()\<A\>
 
-> **EditableCommand**\<`T`\>: (`doc`, `selection`, ...`args`) => `void`
+> **EditableCommand**\<`A`\> = (`doc`, `selection`, ...`args`) => `Transaction` \| `void`
 
-Defined in: [commands/index.ts:11](https://github.com/inokawa/edix/blob/131b1e7d8f29930f3bf50bbd826431898e430ef2/src/core/commands/index.ts#L11)
+Defined in: [commands.ts:6](https://github.com/inokawa/edix/blob/48ffe0d01c66f9540b747e27424142d5598f2bec/src/commands.ts#L6)
 
 ## Type Parameters
 
-• **T** *extends* `unknown`[]
+### A
+
+`A` *extends* `unknown`[]
 
 ## Parameters
 
 ### doc
 
-`Writeable`\<`DocFragment`\>
+`DocFragment`
 
 ### selection
 
-`Writeable`\<`SelectionSnapshot`\>
+`SelectionSnapshot`
 
 ### args
 
-...`T`
+...`A`
 
 ## Returns
 
-`void`
+`Transaction` \| `void`

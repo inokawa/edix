@@ -4,10 +4,12 @@
 
 # Type Alias: InferNode\<T\>
 
-> **InferNode**\<`T`\>: `T` *extends* [`EditableSchema`](../interfaces/EditableSchema.md)\<infer N\> ? `ExtractItem`\<`N`\> : `never`
+> **InferNode**\<`T`\> = `T` *extends* [`DocSchema`](../interfaces/DocSchema.md)\<infer N\> ? `ExtractItem`\<`N`\> : `never`
 
-Defined in: [schema/types.ts:14](https://github.com/inokawa/edix/blob/131b1e7d8f29930f3bf50bbd826431898e430ef2/src/core/schema/types.ts#L14)
+Defined in: [schema/types.ts:17](https://github.com/inokawa/edix/blob/48ffe0d01c66f9540b747e27424142d5598f2bec/src/schema/types.ts#L17)
 
 ## Type Parameters
 
-• **T**
+### T
+
+`T`

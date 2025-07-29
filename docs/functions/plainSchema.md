@@ -4,9 +4,9 @@
 
 # Function: plainSchema()
 
-> **plainSchema**(`__namedParameters`): [`EditableSchema`](../interfaces/EditableSchema.md)\<`string`\>
+> **plainSchema**(`__namedParameters`): [`DocSchema`](../interfaces/DocSchema.md)\<`string`\>
 
-Defined in: [schema/plain.ts:18](https://github.com/inokawa/edix/blob/131b1e7d8f29930f3bf50bbd826431898e430ef2/src/core/schema/plain.ts#L18)
+Defined in: [schema/plain.ts:7](https://github.com/inokawa/edix/blob/48ffe0d01c66f9540b747e27424142d5598f2bec/src/schema/plain.ts#L7)
 
 Defines plain text schema.
 
@@ -20,4 +20,4 @@ Defines plain text schema.
 
 ## Returns
 
-[`EditableSchema`](../interfaces/EditableSchema.md)\<`string`\>
+[`DocSchema`](../interfaces/DocSchema.md)\<`string`\>

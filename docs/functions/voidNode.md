@@ -6,11 +6,13 @@
 
 > **voidNode**\<`D`\>(`__namedParameters`): [`EditableVoidSerializer`](../interfaces/EditableVoidSerializer.md)\<`D`\>
 
-Defined in: [schema/structured.ts:13](https://github.com/inokawa/edix/blob/131b1e7d8f29930f3bf50bbd826431898e430ef2/src/core/schema/structured.ts#L13)
+Defined in: [schema/structured.ts:15](https://github.com/inokawa/edix/blob/48ffe0d01c66f9540b747e27424142d5598f2bec/src/schema/structured.ts#L15)
 
 ## Type Parameters
 
-• **D**
+### D
+
+`D`
 
 ## Parameters
 
