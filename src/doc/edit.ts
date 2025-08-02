@@ -35,7 +35,7 @@ export type Operation = EditOperation | SelectOperataion;
 const isEditOperation = (op: Operation) => op._type !== TYPE_SELECT;
 
 export class Transaction extends Array<Operation> {
-  static from(tr: Transaction | Array<Operation>): Transaction {
+  static from(tr: ReadonlyArray<Operation>): Transaction {
     return new Transaction(...tr);
   }
 
