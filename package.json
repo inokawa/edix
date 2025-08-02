@@ -31,7 +31,7 @@
     "prepublishOnly": "npm run typedoc && rimraf lib && npm run build"
   },
   "devDependencies": {
-    "@playwright/test": "^1.52.0",
+    "@playwright/test": "1.52.0",
     "@rollup/plugin-terser": "0.4.4",
     "@rollup/plugin-typescript": "11.1.6",
     "@size-limit/preset-small-lib": "^11.0.2",
