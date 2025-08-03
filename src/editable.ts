@@ -325,13 +325,6 @@ export const editable = <T>(
     }
   };
 
-  const command: EditableHandle["command"] = (fn, ...args) => {
-    const tr = fn(doc(), selection, ...args);
-    if (tr) {
-      apply(tr);
-    }
-  };
-
   // spec compliant: keydown -> beforeinput -> input (-> keyup)
   // Safari (IME)  : beforeinput -> input -> keydown (-> keyup)
   // https://w3c.github.io/uievents/#events-keyboard-event-order
@@ -560,7 +553,12 @@ export const editable = <T>(
       element.removeEventListener("dragstart", onDragStart);
       element.removeEventListener("dragend", onDragEnd);
     },
-    command: command,
+    command: (fn, ...args) => {
+      const tr = fn(doc(), selection, ...args);
+      if (tr) {
+        apply(tr);
+      }
+    },
     readonly: (value) => {
       readonly = value;
       setContentEditable();
