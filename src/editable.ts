@@ -428,6 +428,7 @@ export const editable = <T>(
   };
   const onBlur = () => {
     hasFocus = false;
+    selection = getEmptySelectionSnapshot();
   };
 
   const onSelectionChange = () => {
