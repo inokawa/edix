@@ -183,7 +183,7 @@ export const editable = <T>(
   let readonly = false;
   let disposed = false;
   let selectionReverted = false;
-  let currentSelection: SelectionSnapshot = getEmptySelectionSnapshot();
+  let selection: SelectionSnapshot = getEmptySelectionSnapshot();
   let inputTransaction: Transaction | null = null;
   let restoreSelectionQueue: ReturnType<typeof setTimeout> | null = null;
   let isComposing = false;
@@ -208,7 +208,7 @@ export const editable = <T>(
     return readDom(root, config, serializeVoid);
   };
 
-  const currentDoc = (): DocFragment => history.get()[0];
+  const doc = (): DocFragment => history.get()[0];
 
   const transactions: Transaction[] = [];
   const apply = (arg: Transaction) => {
@@ -220,12 +220,12 @@ export const editable = <T>(
 
   const history = createHistory<
     readonly [doc: DocFragment, selection: SelectionSnapshot]
-  >([readDocAll(element, parserConfig), currentSelection]);
+  >([readDocAll(element, parserConfig), selection]);
 
   const observer = createMutationObserver(element, () => {
     if (hasFocus) {
       // Mutation to selected DOM may change selection, so restore it.
-      setSelectionToDOM(document, element, currentSelection, parserConfig);
+      setSelectionToDOM(document, element, selection, parserConfig);
       if (restoreSelectionQueue != null) {
         clearTimeout(restoreSelectionQueue);
         restoreSelectionQueue = null;
@@ -247,7 +247,7 @@ export const editable = <T>(
   };
 
   const restoreSelectionOnTimeout = (nextSelection: SelectionSnapshot) => {
-    currentSelection = nextSelection;
+    selection = nextSelection;
     // We set updated selection after the next rerender, because it will modify DOM and selection again.
     // However frameworks may not rerender for optimization in some case, for example if selection is updated but document is the same.
     // So we also schedule restoring on timeout for safe.
@@ -257,7 +257,7 @@ export const editable = <T>(
   };
 
   const syncSelection = () => {
-    currentSelection = takeSelectionSnapshot(element, parserConfig);
+    selection = takeSelectionSnapshot(element, parserConfig);
   };
 
   const flushInput = () => {
@@ -295,39 +295,38 @@ export const editable = <T>(
     selectionReverted = setSelectionToDOM(
       document,
       element,
-      currentSelection,
+      selection,
       parserConfig
     );
   };
 
   const flushEdit = () => {
     if (transactions.length) {
-      let doc: Writeable<DocFragment> = [...currentDoc()];
-      let selection: Writeable<SelectionSnapshot> = [...currentSelection];
+      let nextDoc: Writeable<DocFragment> = [...doc()];
+      let nextSelection: Writeable<SelectionSnapshot> = [...selection];
 
       let tr: Transaction | undefined;
       while ((tr = transactions.pop())) {
         if (isSingleline) {
           tr = singleline(tr);
         }
-        applyTransaction(doc, selection, tr);
+        applyTransaction(nextDoc, nextSelection, tr);
       }
 
-      const prevDoc = currentDoc();
-      const prevSelection = currentSelection;
+      const currentDoc = doc();
 
-      if (!isDocEqual(doc, prevDoc)) {
-        history.set([prevDoc, prevSelection]);
-        history.push([doc, selection]);
-        onChange(docToJS(doc));
+      if (!isDocEqual(nextDoc, currentDoc)) {
+        history.set([currentDoc, selection]);
+        history.push([nextDoc, nextSelection]);
+        onChange(docToJS(nextDoc));
       }
 
-      restoreSelectionOnTimeout(selection);
+      restoreSelectionOnTimeout(nextSelection);
     }
   };
 
   const command: EditableHandle["command"] = (fn, ...args) => {
-    const tr = fn(currentDoc(), currentSelection, ...args);
+    const tr = fn(doc(), selection, ...args);
     if (tr) {
       apply(tr);
     }
@@ -371,7 +370,7 @@ export const editable = <T>(
     const inputType = e.inputType as InputType;
 
     if (inputType.startsWith("format")) {
-      // Ignore format inputs from document.execCommand() or shortcuts like mod+b. 
+      // Ignore format inputs from document.execCommand() or shortcuts like mod+b.
       return;
     }
     if (inputType === "historyUndo" || inputType === "historyRedo") {
@@ -404,7 +403,7 @@ export const editable = <T>(
       }
 
       if (!inputTransaction) {
-        inputTransaction = new Transaction().select(...currentSelection);
+        inputTransaction = new Transaction().select(...selection);
       }
       if (comparePosition(...range) !== 0) {
         // replace or delete
@@ -451,16 +450,13 @@ export const editable = <T>(
 
   const copySelected = (dataTransfer: DataTransfer) => {
     syncSelection();
-    if (comparePosition(...currentSelection) !== 0) {
-      copy(
-        dataTransfer,
-        sliceDoc(currentDoc(), ...range(currentSelection)),
-        () =>
-          // DOM range must exist here
-          getSelectionRangeInEditor(
-            getDOMSelection(element),
-            element
-          )!.cloneContents()
+    if (comparePosition(...selection) !== 0) {
+      copy(dataTransfer, sliceDoc(doc(), ...range(selection)), () =>
+        // DOM range must exist here
+        getSelectionRangeInEditor(
+          getDOMSelection(element),
+          element
+        )!.cloneContents()
       );
     }
   };
@@ -477,12 +473,12 @@ export const editable = <T>(
     e.preventDefault();
     if (!readonly) {
       copySelected(e.clipboardData!);
-      apply(new Transaction().delete(...range(currentSelection)));
+      apply(new Transaction().delete(...range(selection)));
     }
   };
   const onPaste = (e: ClipboardEvent) => {
     e.preventDefault();
-    const [start, end] = range(currentSelection);
+    const [start, end] = range(selection);
     apply(
       new Transaction()
         .delete(start, end)
@@ -503,7 +499,7 @@ export const editable = <T>(
     if (dataTransfer && droppedPosition) {
       const tr = new Transaction();
       if (isDragging) {
-        tr.delete(...range(currentSelection));
+        tr.delete(...range(selection));
       }
       const pos = tr.rebasePos(droppedPosition);
       tr.select(pos, pos)
