@@ -191,13 +191,21 @@ const findClosestBlockNode = (root: Element, startNode: Node): Element => {
   return temp;
 };
 
+const indexOf = (node: Element): number => {
+  let i = 0;
+  while ((node = node.previousElementSibling!)) {
+    i++;
+  }
+  return i;
+};
+
 const serializePosition = (
   root: Element,
   node: Node,
   offsetAtNode: number,
   config: ParserConfig
 ): Position => {
-  let row: Node;
+  let row: Element;
   let lineIndex: number;
   let excludeEnd = true;
   if (root === node && !node.hasChildNodes()) {
@@ -222,7 +230,7 @@ const serializePosition = (
   const maybeBlock = findClosestBlockNode(root, node);
   if (config._isBlock(maybeBlock)) {
     row = maybeBlock;
-    lineIndex = Array.prototype.indexOf.call(root.children, row);
+    lineIndex = indexOf(row);
   } else {
     row = root;
     lineIndex = 0;
