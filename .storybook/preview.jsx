@@ -6,4 +6,7 @@ export const parameters = {
       order: ["basics", ["plain", "structured"], "advanced"],
     },
   },
+  docs: {
+    codePanel: true,
+  },
 };
