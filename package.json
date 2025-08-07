@@ -60,7 +60,7 @@
     "typedoc": "^0.28.0",
     "typedoc-plugin-markdown": "^4.6.3",
     "typescript": "^5.8.3",
-    "vite": "^6.3.5",
+    "vite": "^7.0.0",
     "vitest": "^3.2.3"
   },
   "repository": {
