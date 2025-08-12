@@ -1,1 +1,0 @@
-import{r as a,T as s,s as o,g as c}from"./editable-CCMxu8sI.js";const g=(e,t)=>new s().delete(...a(t)),d=(e,t,n)=>{const[r,l]=a(t);return new s().delete(r,l).insert(r,o(n))},T=(e,t,n)=>new s().delete([0,0],[e.length-1,c(e[e.length-1])]).insert([0,0],o(n));export{g as D,d as I,T as R};
