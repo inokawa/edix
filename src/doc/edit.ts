@@ -265,7 +265,7 @@ export const applyTransaction = (
   doc: Writeable<DocFragment>,
   selection: Writeable<SelectionSnapshot>,
   tr: Transaction
-): void => {
+): boolean => {
   const docSnapshot: DocFragment = [...doc];
   const selectionSnapshot: SelectionSnapshot = [...selection];
 
@@ -286,6 +286,7 @@ export const applyTransaction = (
         }
       }
     }
+    return true;
   } catch (e) {
     // rollback
     console.error("rollback transaction:", e);
@@ -294,5 +295,6 @@ export const applyTransaction = (
     doc.push(...docSnapshot);
     selection[0] = selectionSnapshot[0];
     selection[1] = selectionSnapshot[1];
+    return false;
   }
 };

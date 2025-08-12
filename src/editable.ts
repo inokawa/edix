@@ -180,16 +180,6 @@ export const editable = <T>(
     element.ariaMultiLine = "true";
   }
 
-  let readonly = false;
-  let disposed = false;
-  let selectionReverted = false;
-  let selection: SelectionSnapshot = getEmptySelectionSnapshot();
-  let inputTransaction: Transaction | null = null;
-  let restoreSelectionQueue: ReturnType<typeof setTimeout> | null = null;
-  let isComposing = false;
-  let hasFocus = false;
-  let isDragging = false;
-
   const document = getCurrentDocument(element);
 
   const parserConfig: ParserConfig = {
@@ -197,18 +187,27 @@ export const editable = <T>(
     _isBlock: isBlock as ParserConfig["_isBlock"],
   };
 
+  const readDocAll = (root: Node, config: ParserConfig): DocFragment => {
+    return readDom(root, config, serializeVoid);
+  };
+
+  let readonly = false;
+  let disposed = false;
+  let selectionReverted = false;
+  let doc: DocFragment = readDocAll(element, parserConfig);
+  let selection: SelectionSnapshot = getEmptySelectionSnapshot();
+  let inputTransaction: Transaction | null = null;
+  let restoreSelectionQueue: ReturnType<typeof setTimeout> | null = null;
+  let isComposing = false;
+  let hasFocus = false;
+  let isDragging = false;
+
   const setContentEditable = () => {
     element.contentEditable = readonly ? "false" : "true";
     element.ariaReadOnly = readonly ? "true" : null;
   };
 
   setContentEditable();
-
-  const readDocAll = (root: Node, config: ParserConfig): DocFragment => {
-    return readDom(root, config, serializeVoid);
-  };
-
-  const doc = (): DocFragment => history.get()[0];
 
   const transactions: Transaction[] = [];
   const apply = (arg: Transaction) => {
@@ -218,9 +217,7 @@ export const editable = <T>(
     }
   };
 
-  const history = createHistory<
-    readonly [doc: DocFragment, selection: SelectionSnapshot]
-  >([readDocAll(element, parserConfig), selection]);
+  const history = createHistory(() => doc, apply);
 
   const observer = createMutationObserver(element, () => {
     if (hasFocus) {
@@ -302,7 +299,8 @@ export const editable = <T>(
 
   const flushEdit = () => {
     if (transactions.length) {
-      let nextDoc: Writeable<DocFragment> = [...doc()];
+      const appliedTr = new Transaction();
+      let nextDoc: Writeable<DocFragment> = [...doc];
       let nextSelection: Writeable<SelectionSnapshot> = [...selection];
 
       let tr: Transaction | undefined;
@@ -310,14 +308,13 @@ export const editable = <T>(
         if (isSingleline) {
           tr = singleline(tr);
         }
-        applyTransaction(nextDoc, nextSelection, tr);
+        if (applyTransaction(nextDoc, nextSelection, tr)) {
+          appliedTr.push(...tr);
+        }
       }
 
-      const currentDoc = doc();
-
-      if (!isDocEqual(nextDoc, currentDoc)) {
-        history.set([currentDoc, selection]);
-        history.push([nextDoc, nextSelection]);
+      if (!isDocEqual(nextDoc, doc)) {
+        history.push(appliedTr);
         onChange(docToJS(nextDoc));
       }
 
@@ -341,12 +338,10 @@ export const editable = <T>(
 
       observer._record(false);
       if (!readonly) {
-        const nextHistory = e.shiftKey ? history.redo() : history.undo();
-
-        if (nextHistory) {
-          onChange(docToJS(nextHistory[0]));
-
-          restoreSelectionOnTimeout(nextHistory[1]);
+        if (e.shiftKey) {
+          history.redo();
+        } else {
+          history.undo();
         }
       }
     }
@@ -444,7 +439,7 @@ export const editable = <T>(
   const copySelected = (dataTransfer: DataTransfer) => {
     syncSelection();
     if (comparePosition(...selection) !== 0) {
-      copy(dataTransfer, sliceDoc(doc(), ...range(selection)), () =>
+      copy(dataTransfer, sliceDoc(doc, ...range(selection)), () =>
         // DOM range must exist here
         getSelectionRangeInEditor(
           getDOMSelection(element),
@@ -554,7 +549,7 @@ export const editable = <T>(
       element.removeEventListener("dragend", onDragEnd);
     },
     command: (fn, ...args) => {
-      const tr = fn(doc(), selection, ...args);
+      const tr = fn(doc, selection, ...args);
       if (tr) {
         apply(tr);
       }
