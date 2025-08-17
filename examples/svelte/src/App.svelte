@@ -2,7 +2,7 @@
   import { onDestroy, onMount } from "svelte";
   import { editable, plainSchema, type EditableHandle } from "edix";
 
-  let value = $state("Hello World.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
+  let value = $state("Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
   let ref: HTMLElement | undefined = $state();
   let editor: EditableHandle | null = null;
   onMount(() => {

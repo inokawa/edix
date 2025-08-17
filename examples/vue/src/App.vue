@@ -2,7 +2,7 @@
 import { onMounted, onUnmounted, ref } from 'vue';
 import { editable, EditableHandle, plainSchema } from "edix";
 
-const value = ref("Hello World.\nこんにちは。\n👍❤️🧑‍🧑‍🧒")
+const value = ref("Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒")
 const element = ref<HTMLDivElement>()
 let editor: EditableHandle | null = null
 onMounted(() => {

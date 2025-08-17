@@ -2,7 +2,7 @@ import { component$, useSignal, useVisibleTask$ } from "@builder.io/qwik";
 import { editable, plainSchema } from "edix";
 
 export const App = component$(() => {
-  const value = useSignal("Hello World.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
+  const value = useSignal("Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
   const ref = useSignal<HTMLDivElement>();
 
   useVisibleTask$(({ cleanup }) => {

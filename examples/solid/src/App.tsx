@@ -4,7 +4,7 @@ import { editable, plainSchema } from "edix";
 function App() {
   let ref: HTMLDivElement | undefined;
   const [value, setValue] = createSignal(
-    "Hello World.\nこんにちは。\n👍❤️🧑‍🧑‍🧒"
+    "Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒"
   );
   onMount(() => {
     const editor = editable(ref!, {

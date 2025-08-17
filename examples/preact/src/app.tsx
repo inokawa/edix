@@ -4,7 +4,7 @@ import { editable, plainSchema } from "edix";
 export function App() {
   const ref = useRef<HTMLDivElement>(null);
   const [value, setValue] = useState(
-    "Hello World.\nこんにちは。\n👍❤️🧑‍🧑‍🧒"
+    "Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒"
   );
   useEffect(() => {
     if (!ref.current) return;

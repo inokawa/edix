@@ -14,7 +14,7 @@ export const Multiline: StoryObj = {
 
     type Doc = InferDoc<typeof basicSchema>;
     const [value, setValue] = useState<Doc>([
-      [{ type: "text", text: "Hello World." }],
+      [{ type: "text", text: "Hello world." }],
       [{ type: "text", text: "こんにちは。" }],
       [{ type: "text", text: "👍❤️🧑‍🧑‍🧒" }],
     ]);

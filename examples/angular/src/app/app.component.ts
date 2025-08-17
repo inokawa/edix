@@ -8,7 +8,7 @@ import { editable, EditableHandle, plainSchema } from 'edix';
 })
 export class AppComponent {
   ref = viewChild<ElementRef<HTMLDivElement>>('ref');
-  value = signal('Hello World.\nこんにちは。\n👍❤️🧑‍🧑‍🧒');
+  value = signal('Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒');
   editor: EditableHandle | null = null;
 
   ngAfterViewInit() {

@@ -532,10 +532,10 @@ export const editable = (
 
     await editable.focus();
 
-    const plain = `World`;
+    const plain = `world`;
     const html = `<html>
 <body>
-<!--StartFragment-->World<!--EndFragment-->
+<!--StartFragment-->world<!--EndFragment-->
 </body>
 </html>`;
 

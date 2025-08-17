@@ -16,7 +16,7 @@ export const Multiline: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
     const [value, setValue] = useState(
-      "Hello World.\nこんにちは。\n👍❤️🧑‍🧑‍🧒"
+      "Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒"
     );
     useEffect(() => {
       if (!ref.current) return;
@@ -46,7 +46,7 @@ export const Multiline: StoryObj = {
 export const Singleline: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
-    const [value, setValue] = useState("Hello World.");
+    const [value, setValue] = useState("Hello world.");
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
@@ -203,7 +203,7 @@ export const Command: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
     const [value, setValue] = useState(
-      "Hello World.\nこんにちは。\n👍❤️🧑‍🧑‍🧒"
+      "Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒"
     );
     const handle = useRef<EditableHandle | null>(null);
     useEffect(() => {
@@ -305,7 +305,7 @@ export const SpanAsBlock: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
     const [value, setValue] = useState(
-      "Hello World.\nこんにちは。\n👍❤️🧑‍🧑‍🧒"
+      "Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒"
     );
     useEffect(() => {
       if (!ref.current) return;
