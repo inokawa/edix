@@ -138,9 +138,10 @@ export const WithTextlint: StoryObj = {
     }, [text]);
 
     const tokensByLine = tokens.reduce((acc, t) => {
-      if (!acc[t.line]) acc[t.line] = {};
-      if (!acc[t.line][t.column]) acc[t.line][t.column] = [];
-      acc[t.line][t.column].push(t);
+      const { line, column } = t.loc.start;
+      if (!acc[line]) acc[line] = {};
+      if (!acc[line][column]) acc[line][column] = [];
+      acc[line][column].push(t);
       return acc;
     }, {} as { [key: number]: { [column: number]: TextlintMessage[] } });
 
@@ -152,8 +153,8 @@ export const WithTextlint: StoryObj = {
             const tokensMap = tokensByLine[i + 1] || {};
             let prevEnd = 0;
             for (const token of Object.values(tokensMap)) {
-              const start = token[0].column - 1;
-              const end = start + 1;
+              const start = token[0].loc.start.column - 1;
+              const end = token[0].loc.end.column - 1;
               texts.push(l.slice(prevEnd, start));
               texts.push(
                 <Mark key={start} token={token}>
