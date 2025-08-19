@@ -3,6 +3,7 @@ import { TextNode, type DocNode } from "../doc/types";
 import type { DocSchema } from "./types";
 import { docToString, stringToDoc } from "../doc/utils";
 import { isTextNode } from "../doc/edit";
+import { readDom } from "../dom";
 
 export interface EditableVoidSerializer<T> {
   is: (node: HTMLElement) => boolean;
@@ -85,6 +86,21 @@ export const schema = <
     }, [] as RowType);
   };
 
+  const serializeVoid = (element: Element) => {
+    for (const [type, s] of voidSerializers) {
+      if (s.is(element as HTMLElement)) {
+        const data = s.data(element as HTMLElement) as VoidNodeData;
+        // TODO improve
+        voidCache.set(data, {
+          type,
+          data: { ...data },
+        } as VoidNodeType);
+        return data;
+      }
+    }
+    return;
+  };
+
   return {
     single: !multiline,
     js: multiline
@@ -94,20 +110,7 @@ export const schema = <
       : (doc) => {
           return serializeRow(doc[0]!) satisfies RowType as any; // TODO improve type
         },
-    void: (element) => {
-      for (const [type, s] of voidSerializers) {
-        if (s.is(element as HTMLElement)) {
-          const data = s.data(element as HTMLElement) as VoidNodeData;
-          // TODO improve
-          voidCache.set(data, {
-            type,
-            data: { ...data },
-          } as VoidNodeType);
-          return data;
-        }
-      }
-      return;
-    },
+    void: serializeVoid,
     copy: (dataTransfer, doc, dom) => {
       dataTransfer.setData(
         "text/plain",
@@ -121,7 +124,7 @@ export const schema = <
       wrapper.appendChild(dom());
       dataTransfer.setData("text/html", wrapper.innerHTML);
     },
-    paste: (dataTransfer, read) => {
+    paste: (dataTransfer, config) => {
       const html = dataTransfer.getData("text/html");
       if (html) {
         let dom: Node = new DOMParser().parseFromString(html, "text/html").body;
@@ -139,7 +142,8 @@ export const schema = <
             dom.appendChild(n);
           }
         }
-        return read(dom);
+
+        return readDom(dom, config, serializeVoid);
       }
       return stringToDoc(dataTransfer.getData("text/plain"));
     },

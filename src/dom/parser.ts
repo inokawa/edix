@@ -6,11 +6,14 @@ let isEndNodeVisited = false;
 let shouldExcludeEnd = false;
 let isBlockNode: (node: Element) => boolean;
 
-/**
- * @internal
- */
 export interface ParserConfig {
+  /**
+   * @internal
+   */
   _document: Document;
+  /**
+   * @internal
+   */
   _isBlock: (node: Element) => boolean;
 }
 

@@ -204,10 +204,6 @@ export const editable = <T>(
 
   setContentEditable();
 
-  const readDocAll = (root: Node, config: ParserConfig): DocFragment => {
-    return readDom(root, config, serializeVoid);
-  };
-
   const doc = (): DocFragment => history.get()[0];
 
   const transactions: Transaction[] = [];
@@ -220,7 +216,7 @@ export const editable = <T>(
 
   const history = createHistory<
     readonly [doc: DocFragment, selection: SelectionSnapshot]
-  >([readDocAll(element, parserConfig), selection]);
+  >([readDom(element, parserConfig, serializeVoid), selection]);
 
   const observer = createMutationObserver(element, () => {
     if (hasFocus) {
@@ -454,10 +450,6 @@ export const editable = <T>(
     }
   };
 
-  const docFromDataTransfer = (dataTransfer: DataTransfer): DocFragment => {
-    return paste(dataTransfer, (dom) => readDocAll(dom, parserConfig));
-  };
-
   const onCopy = (e: ClipboardEvent) => {
     e.preventDefault();
     copySelected(e.clipboardData!);
@@ -475,7 +467,7 @@ export const editable = <T>(
     apply(
       new Transaction()
         .delete(start, end)
-        .insert(start, docFromDataTransfer(e.clipboardData!))
+        .insert(start, paste(e.clipboardData!, parserConfig))
     );
   };
 
@@ -496,7 +488,7 @@ export const editable = <T>(
       }
       const pos = tr.rebasePos(droppedPosition);
       tr.select(pos, pos)
-        .insert(pos, docFromDataTransfer(dataTransfer))
+        .insert(pos, paste(dataTransfer, parserConfig))
         .select(pos);
       apply(tr);
       element.focus({ preventScroll: true });
