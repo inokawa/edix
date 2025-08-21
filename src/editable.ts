@@ -6,8 +6,6 @@ import {
   getEmptySelectionSnapshot,
   getPointedCaretPosition,
   defaultIsBlockNode,
-  getSelectionRangeInEditor,
-  getDOMSelection,
   readDom,
   serializeRange,
 } from "./dom";
@@ -440,13 +438,7 @@ export const editable = <T>(
   const copySelected = (dataTransfer: DataTransfer) => {
     syncSelection();
     if (comparePosition(...selection) !== 0) {
-      copy(dataTransfer, sliceDoc(doc(), ...range(selection)), () =>
-        // DOM range must exist here
-        getSelectionRangeInEditor(
-          getDOMSelection(element),
-          element
-        )!.cloneContents()
-      );
+      copy(dataTransfer, sliceDoc(doc(), ...range(selection)), element);
     }
   };
 

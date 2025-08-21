@@ -3,7 +3,7 @@ import { TextNode, type DocNode } from "../doc/types";
 import type { DocSchema } from "./types";
 import { docToString, stringToDoc } from "../doc/utils";
 import { isTextNode } from "../doc/edit";
-import { readDom } from "../dom";
+import { getDOMSelection, getSelectionRangeInEditor, readDom } from "../dom";
 
 export interface EditableVoidSerializer<T> {
   is: (node: HTMLElement) => boolean;
@@ -111,7 +111,7 @@ export const schema = <
           return serializeRow(doc[0]!) satisfies RowType as any; // TODO improve type
         },
     void: serializeVoid,
-    copy: (dataTransfer, doc, dom) => {
+    copy: (dataTransfer, doc, element) => {
       dataTransfer.setData(
         "text/plain",
         docToString(doc, (node) => {
@@ -121,7 +121,13 @@ export const schema = <
       );
 
       const wrapper = document.createElement("div");
-      wrapper.appendChild(dom());
+      wrapper.appendChild(
+        // DOM range must exist here
+        getSelectionRangeInEditor(
+          getDOMSelection(element),
+          element
+        )!.cloneContents()
+      );
       dataTransfer.setData("text/html", wrapper.innerHTML);
     },
     paste: (dataTransfer, config) => {

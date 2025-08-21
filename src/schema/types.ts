@@ -5,7 +5,11 @@ export interface DocSchema<T> {
   single: boolean;
   js: (doc: DocFragment) => T;
   void: (element: Element) => Record<string, unknown> | void;
-  copy: (dataTransfer: DataTransfer, doc: DocFragment, dom: () => Node) => void;
+  copy: (
+    dataTransfer: DataTransfer,
+    doc: DocFragment,
+    element: Element
+  ) => void;
   paste: (dataTransfer: DataTransfer, config: ParserConfig) => DocFragment;
 }
 
