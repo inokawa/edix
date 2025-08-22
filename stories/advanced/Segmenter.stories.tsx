@@ -1,9 +1,9 @@
 import { StoryObj } from "@storybook/react-vite";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { editable, plainSchema } from "../../src";
+import { createEditor, plainSchema } from "../../src";
 
 export default {
-  component: editable,
+  component: createEditor,
 };
 
 const style: React.CSSProperties = {
@@ -41,11 +41,11 @@ export const Segmenter: StoryObj = {
     const ref = useRef<HTMLDivElement>(null);
     useEffect(() => {
       if (!ref.current) return;
-      return editable(ref.current, {
+      return createEditor({
         doc: text,
         schema: plainSchema({ multiline: true }),
         onChange: setText,
-      }).dispose;
+      }).input(ref.current);
     }, []);
 
     const [locale, setLocale] = useState("ja");

@@ -1,4 +1,4 @@
-export type { EditableCommand } from "./commands";
+export type { EditorCommand } from "./commands";
 export { Delete, InsertText, ReplaceAll } from "./commands";
 export * from "./editable";
 export * from "./schema";

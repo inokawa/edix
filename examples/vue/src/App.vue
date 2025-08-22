@@ -1,21 +1,21 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue';
-import { editable, EditableHandle, plainSchema } from "edix";
+import { createEditor, plainSchema } from "edix";
 
 const value = ref("Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒")
 const element = ref<HTMLDivElement>()
-let editor: EditableHandle | null = null
+let cleanup: (() => void) | null = null
 onMounted(() => {
-  editor = editable(element.value!, {
+  cleanup = createEditor({
     doc: value.value,
     schema: plainSchema({ multiline: true }),
     onChange: (v) => {
       value.value = v
     },
-  });
+  }).input(element.value!)
 })
 onUnmounted(() => {
-  editor?.dispose()
+  cleanup?.()
 })
 </script>
 

@@ -1,8 +1,8 @@
 [
   {
-    "name": "editable",
+    "name": "Editor",
     "path": "lib/index.js",
-    "import": "{ editable }",
+    "import": "{ createEditor }",
     "limit": "4.1 kB"
   },
   {

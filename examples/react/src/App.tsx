@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { editable, plainSchema } from "edix";
+import { createEditor, plainSchema } from "edix";
 
 function App() {
   const ref = useRef<HTMLDivElement>(null);
@@ -7,11 +7,11 @@ function App() {
     "Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒"
   );
   useEffect(() => {
-    return editable(ref.current!, {
+    return createEditor({
       doc: value,
       schema: plainSchema({ multiline: true }),
       onChange: setValue,
-    }).dispose;
+    }).input(ref.current!);
   }, []);
 
   return (

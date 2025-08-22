@@ -1,28 +1,23 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { StoryObj } from "@storybook/react-vite";
-import {
-  Delete,
-  editable,
-  EditableHandle,
-  InsertText,
-  plainSchema,
-} from "../../src";
+import { Delete, createEditor, InsertText, plainSchema } from "../../src";
 
 export default {
-  component: editable,
+  component: createEditor,
 };
 
 export const Empty: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
     const [value, setValue] = useState("");
+
     useEffect(() => {
       if (!ref.current) return;
-      return editable(ref.current, {
+      return createEditor({
         doc: value,
         schema: plainSchema({ multiline: true }),
         onChange: setValue,
-      }).dispose;
+      }).input(ref.current);
     }, []);
 
     return (
@@ -50,11 +45,11 @@ export const Multiline: StoryObj = {
     );
     useEffect(() => {
       if (!ref.current) return;
-      return editable(ref.current, {
+      return createEditor({
         doc: value,
         schema: plainSchema({ multiline: true }),
         onChange: setValue,
-      }).dispose;
+      }).input(ref.current);
     }, []);
 
     return (
@@ -80,11 +75,11 @@ export const Singleline: StoryObj = {
     const [value, setValue] = useState("Hello world.");
     useEffect(() => {
       if (!ref.current) return;
-      return editable(ref.current, {
+      return createEditor({
         doc: value,
         schema: plainSchema(),
         onChange: setValue,
-      }).dispose;
+      }).input(ref.current);
     }, []);
 
     return (
@@ -106,26 +101,27 @@ export const Readonly: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
     const [value, setValue] = useState(`Hello world.`);
+    const editor = useMemo(
+      () =>
+        createEditor({
+          doc: value,
+          schema: plainSchema(),
+          onChange: setValue,
+        }),
+      []
+    );
     const [readonly, setReadonly] = useState(false);
-    const handle = useRef<EditableHandle | null>(null);
     useEffect(() => {
       if (!ref.current) return;
-      const editor = editable(ref.current, {
-        doc: value,
-        schema: plainSchema(),
-        onChange: setValue,
-      });
-      handle.current = editor;
-      return editor.dispose;
+      return editor.input(ref.current);
     }, []);
     return (
       <div>
         <div>
           <button
             onClick={() => {
-              if (!handle.current) return;
               const value = !readonly;
-              handle.current.readonly(value);
+              editor.readonly(value);
               setReadonly(value);
             }}
           >
@@ -152,11 +148,11 @@ export const Placeholder: StoryObj = {
     const [value, setValue] = useState("");
     useEffect(() => {
       if (!ref.current) return;
-      return editable(ref.current, {
+      return createEditor({
         doc: value,
         schema: plainSchema(),
         onChange: setValue,
-      }).dispose;
+      }).input(ref.current);
     }, []);
     return (
       <>
@@ -193,11 +189,11 @@ export const Highlight: StoryObj = {
 
     useEffect(() => {
       if (!ref.current) return;
-      return editable(ref.current, {
+      return createEditor({
         doc: value,
         schema: plainSchema({ multiline: true }),
         onChange: setValue,
-      }).dispose;
+      }).input(ref.current);
     }, []);
 
     const reg = searchText ? new RegExp(`(${searchText})`) : null;
@@ -240,14 +236,18 @@ export const Command: StoryObj = {
     const [value, setValue] = useState(
       "Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒"
     );
-    const handle = useRef<EditableHandle | null>(null);
+    const editor = useMemo(
+      () =>
+        createEditor({
+          doc: value,
+          schema: plainSchema({ multiline: true }),
+          onChange: setValue,
+        }),
+      []
+    );
     useEffect(() => {
       if (!ref.current) return;
-      return (handle.current = editable(ref.current, {
-        doc: value,
-        schema: plainSchema({ multiline: true }),
-        onChange: setValue,
-      })).dispose;
+      return editor.input(ref.current);
     }, []);
 
     const [text, setText] = useState("text");
@@ -264,7 +264,7 @@ export const Command: StoryObj = {
             />
             <button
               onClick={() => {
-                handle.current?.command(InsertText, text);
+                editor.command(InsertText, text);
               }}
             >
               insert
@@ -273,7 +273,7 @@ export const Command: StoryObj = {
           <div>
             <button
               onClick={() => {
-                handle.current?.command(Delete);
+                editor.command(Delete);
               }}
             >
               delete selection
@@ -345,12 +345,12 @@ export const SpanAsBlock: StoryObj = {
     );
     useEffect(() => {
       if (!ref.current) return;
-      return editable(ref.current, {
+      return createEditor({
         doc: value,
         schema: plainSchema({ multiline: true }),
         isBlock: (node) => !!node.dataset.line,
         onChange: setValue,
-      }).dispose;
+      }).input(ref.current);
     }, []);
 
     return (
@@ -380,11 +380,11 @@ two !
 שְׁלוֹשָׁה !`);
     useEffect(() => {
       if (!ref.current) return;
-      return editable(ref.current, {
+      return createEditor({
         doc: value,
         schema: plainSchema({ multiline: true }),
         onChange: setValue,
-      }).dispose;
+      }).input(ref.current);
     }, []);
     return (
       <div
@@ -412,11 +412,11 @@ export const Vertical: StoryObj = {
 冬は、つとめて。雪の降りたるは、言ふべきにもあらず。霜のいと白きも。またさらでも、いと寒きに、火など急ぎおこして、炭持てわたるも、いとつきづきし。昼になりて、ぬるくゆるびもていけば、火桶の火も、白き灰がちになりて、わろし。`);
     useEffect(() => {
       if (!ref.current) return;
-      return editable(ref.current, {
+      return createEditor({
         doc: value,
         schema: plainSchema({ multiline: true }),
         onChange: setValue,
-      }).dispose;
+      }).input(ref.current);
     }, []);
     return (
       <div

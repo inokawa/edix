@@ -39,9 +39,10 @@ Mobile browsers are also supported, but with some issues (https://github.com/ino
      - `true`, direct children of the root are treated as rows. They must be elements, not text.
    - (TODO)
 
-2. Call `editable` on mount, with `HTMLElement` which is the root of editable contents.
-3. Update your state with `onChange`, which will be called on edit.
-4. Call `dispose` on unmount for cleanup.
+2. Initialize `Editor` with `createEditor`.
+3. Call `Editor.input` on mount, with `HTMLElement` which is the root of editable contents.
+4. Update your state with `onChange`, which will be called on edit.
+5. Call returned function from `Editor.input` on unmount for cleanup.
 
 Here is an example for React.
 
@@ -49,7 +50,7 @@ Here is an example for React.
 
 ```tsx
 import { useState, useEffect, useRef } from "react";
-import { editable, plainSchema } from "edix";
+import { createEditor, plainSchema } from "edix";
 
 export const App = () => {
   const ref = useRef<HTMLDivElement>(null);
@@ -57,17 +58,19 @@ export const App = () => {
 
   useEffect(() => {
     // 2. init
-    const editor = editable(ref.current, {
+    const editor = createEditor({
       doc: value,
       schema: plainSchema(),
       onChange: (v) => {
-        // 3. update state
+        // 4. update state
         setValue(v);
       },
     });
+    // 3. bind to DOM
+    const cleanup = editor.input(ref.current);
     return () => {
-      // 4. cleanup
-      editor.dispose();
+      // 5. cleanup DOM
+      cleanup();
     };
   }, []);
 
@@ -91,7 +94,7 @@ export const App = () => {
 
 ```tsx
 import { useState, useEffect, useRef } from "react";
-import { editable, plainSchema } from "edix";
+import { createEditor, plainSchema } from "edix";
 
 export const App = () => {
   const ref = useRef<HTMLDivElement>(null);
@@ -99,17 +102,19 @@ export const App = () => {
 
   useEffect(() => {
     // 2. init
-    const editor = editable(ref.current, {
+    const editor = createEditor({
       doc: value,
       schema: plainSchema({ multiline: true }),
       onChange: (v) => {
-        // 3. update state
+        // 4. update state
         setValue(v);
       },
     });
+    // 3. bind to DOM
+    const cleanup = editor.input(ref.current);
     return () => {
-      // 4. cleanup
-      editor.dispose();
+      // 5. cleanup DOM
+      cleanup();
     };
   }, []);
 

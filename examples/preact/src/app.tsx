@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "preact/hooks";
-import { editable, plainSchema } from "edix";
+import { createEditor, plainSchema } from "edix";
 
 export function App() {
   const ref = useRef<HTMLDivElement>(null);
@@ -8,11 +8,11 @@ export function App() {
   );
   useEffect(() => {
     if (!ref.current) return;
-    return editable(ref.current, {
+    return createEditor({
       doc: value,
       schema: plainSchema({ multiline: true }),
       onChange: setValue,
-    }).dispose;
+    }).input(ref.current);
   }, []);
 
   return (
