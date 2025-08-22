@@ -152,6 +152,7 @@ export const App = () => {
 ## Documentation
 
 - [API reference](./docs/API.md)
+- [Storybook examples](./stories) for more usages
 
 ## Contribute
 
