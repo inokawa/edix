@@ -7,6 +7,7 @@
   let editor: EditableHandle | null = null;
   onMount(() => {
     editor = editable(ref!, {
+      doc: value,
       schema: plainSchema({ multiline: true }),
       onChange: (v) => {
         value = v;

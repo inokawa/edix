@@ -13,6 +13,7 @@ export class AppComponent {
 
   ngAfterViewInit() {
     this.editor = editable(this.ref()!.nativeElement, {
+      doc: this.value(),
       schema: plainSchema({ multiline: true }),
       onChange: (v) => {
         this.value.set(v);

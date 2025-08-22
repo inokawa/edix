@@ -542,6 +542,7 @@ export const Combobox: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return (handle.current = editable(ref.current, {
+        doc: value,
         schema: plainSchema(),
         onChange: setValue,
         onKeyDown: (e) => onKeyDownRef.current(e),

@@ -8,6 +8,7 @@ function App() {
   );
   useEffect(() => {
     return editable(ref.current!, {
+      doc: value,
       schema: plainSchema({ multiline: true }),
       onChange: setValue,
     }).dispose;

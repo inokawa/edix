@@ -7,6 +7,7 @@ const element = ref<HTMLDivElement>()
 let editor: EditableHandle | null = null
 onMounted(() => {
   editor = editable(element.value!, {
+    doc: value.value,
     schema: plainSchema({ multiline: true }),
     onChange: (v) => {
       value.value = v

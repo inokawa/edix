@@ -4,7 +4,7 @@ import type { ParserConfig } from "../dom/parser";
 export interface DocSchema<T> {
   single: boolean;
   js: (doc: DocFragment) => T;
-  void: (element: Element) => Record<string, unknown> | void;
+  doc: (state: T) => DocFragment;
   copy: (
     dataTransfer: DataTransfer,
     doc: DocFragment,

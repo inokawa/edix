@@ -6,7 +6,6 @@ import {
   getEmptySelectionSnapshot,
   getPointedCaretPosition,
   defaultIsBlockNode,
-  readDom,
   serializeRange,
 } from "./dom";
 import { createMutationObserver } from "./mutation";
@@ -95,13 +94,17 @@ export interface EditableOptions<T> {
    */
   schema: DocSchema<T>;
   /**
+   * Initial document state.
+   */
+  doc: T;
+  /**
    * TODO
    */
   isBlock?: (node: HTMLElement) => boolean;
   /**
    * Callback invoked when document state changes.
    */
-  onChange: (value: T) => void;
+  onChange: (doc: T) => void;
   /**
    * Callback invoked when `keydown` events are dispatched.
    *
@@ -137,13 +140,8 @@ export interface EditableHandle {
 export const editable = <T>(
   element: HTMLElement,
   {
-    schema: {
-      single: isSingleline,
-      js: docToJS,
-      void: serializeVoid,
-      copy,
-      paste,
-    },
+    schema: { single: isSingleline, js: docToJS, doc: jsToDoc, copy, paste },
+    doc: initialDoc,
     isBlock = defaultIsBlockNode,
     onChange,
     onKeyDown: onKeyDownCallback,
@@ -214,7 +212,7 @@ export const editable = <T>(
 
   const history = createHistory<
     readonly [doc: DocFragment, selection: SelectionSnapshot]
-  >([readDom(element, parserConfig, serializeVoid), selection]);
+  >([jsToDoc(initialDoc), selection]);
 
   const observer = createMutationObserver(element, () => {
     if (hasFocus) {

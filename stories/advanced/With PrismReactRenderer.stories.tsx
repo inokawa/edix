@@ -30,6 +30,7 @@ function Example() {
     useEffect(() => {
       if (!ref.current) return;
       return editable(ref.current, {
+        doc: text,
         schema: plainSchema({ multiline: true }),
         onChange: setText,
       }).dispose;

@@ -12,7 +12,7 @@ export const plainSchema = ({
   return {
     single: !multiline,
     js: docToString,
-    void: () => {}, // not supported
+    doc: stringToDoc,
     copy: (dataTransfer, data) => {
       dataTransfer.setData("text/plain", docToString(data));
     },
