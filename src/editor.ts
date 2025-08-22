@@ -125,6 +125,8 @@ export interface EditorOptions<T> {
  * Methods of editor instance.
  */
 export interface Editor {
+  readonly doc: DocFragment;
+  readonly selection: SelectionSnapshot;
   /**
    * A function to make DOM editable.
    * @returns A function to stop subscribing DOM changes and restores previous DOM state.
@@ -135,7 +137,7 @@ export interface Editor {
    * @param fn command function
    * @param args arguments of command
    */
-  command: <A extends unknown[]>(fn: EditorCommand<A>, ...args: A) => void;
+  command: <A extends unknown[]>(fn: EditorCommand<A>, ...args: A) => this;
   /**
    * Changes editor's read-only state.
    * @param value `true` to read-only. `false` to editable.
@@ -225,7 +227,13 @@ export const createEditor = <T>({
     }
   };
 
-  return {
+  const editor: Editor = {
+    get doc() {
+      return doc();
+    },
+    get selection() {
+      return selection;
+    },
     input: (element) => {
       if (
         !(
@@ -551,14 +559,17 @@ export const createEditor = <T>({
       };
     },
     command: (fn, ...args) => {
-      const tr = fn(doc(), selection, ...args);
+      const tr = fn.call(editor, ...args);
       if (tr) {
         apply(tr);
       }
+      return editor;
     },
     readonly: (value) => {
       readonly = value;
       setContentEditable();
     },
   };
+
+  return editor;
 };
