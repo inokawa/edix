@@ -7,15 +7,14 @@ import React, {
   useState,
 } from "react";
 import {
-  editable,
-  EditableHandle,
+  createEditor,
   KeyboardPayload,
   plainSchema,
   ReplaceAll,
 } from "../../src";
 
 export default {
-  component: editable,
+  component: createEditor,
 };
 
 const COMBOBOX_INPUT_HEIGHT = 20;
@@ -487,7 +486,6 @@ const CHARACTERS = [
 export const Combobox: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
-    const handle = useRef<EditableHandle | null>(null);
     const [value, setValue] = useState("");
 
     const [index, setIndex] = useState<number>(-1);
@@ -506,12 +504,6 @@ export const Combobox: StoryObj = {
     if (index > length - 1) {
       setIndex(-1);
     }
-
-    const complete = (i: number) => {
-      if (!handle.current) return;
-      handle.current.command(ReplaceAll, filtered[i]);
-      setIndex(-1);
-    };
 
     const onKeyDown = (e: KeyboardPayload): boolean | void => {
       if (!length) return;
@@ -539,14 +531,25 @@ export const Combobox: StoryObj = {
       onKeyDownRef.current = onKeyDown;
     }, [onKeyDown]);
 
+    const editor = useMemo(
+      () =>
+        createEditor({
+          doc: value,
+          schema: plainSchema(),
+          onChange: setValue,
+          onKeyDown: (e) => onKeyDownRef.current(e),
+        }),
+      []
+    );
+
+    const complete = (i: number) => {
+      editor.command(ReplaceAll, filtered[i]);
+      setIndex(-1);
+    };
+
     useEffect(() => {
       if (!ref.current) return;
-      return (handle.current = editable(ref.current, {
-        doc: value,
-        schema: plainSchema(),
-        onChange: setValue,
-        onKeyDown: (e) => onKeyDownRef.current(e),
-      })).dispose;
+      return editor.input(ref.current);
     }, []);
 
     const selected = length === 1 && filtered[0] === value;

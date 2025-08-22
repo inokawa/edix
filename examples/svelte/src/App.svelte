@@ -1,21 +1,21 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
-  import { editable, plainSchema, type EditableHandle } from "edix";
+  import { createEditor, plainSchema, type Editor } from "edix";
 
   let value = $state("Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
   let ref: HTMLElement | undefined = $state();
-  let editor: EditableHandle | null = null;
+  let cleanup: (() => void) | null = null;
   onMount(() => {
-    editor = editable(ref!, {
+    cleanup = createEditor({
       doc: value,
       schema: plainSchema({ multiline: true }),
       onChange: (v) => {
         value = v;
       },
-    });
+    }).input(ref!);
   });
   onDestroy(() => {
-    editor?.dispose();
+    cleanup?.();
   });
 </script>
 

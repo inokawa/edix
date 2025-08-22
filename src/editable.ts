@@ -11,7 +11,7 @@ import {
 import { createMutationObserver } from "./mutation";
 import { DocFragment, SelectionSnapshot, Writeable } from "./doc/types";
 import { microtask } from "./utils";
-import { EditableCommand } from "./commands";
+import { EditorCommand } from "./commands";
 import {
   applyTransaction,
   Transaction,
@@ -23,6 +23,8 @@ import { DocSchema } from "./schema";
 import { ParserConfig } from "./dom/parser";
 import { comparePosition, range } from "./doc/position";
 import { stringToDoc } from "./doc/utils";
+
+const noop = () => {};
 
 /**
  * https://www.w3.org/TR/input-events-1/#interface-InputEvent-Attributes
@@ -86,9 +88,9 @@ export type KeyboardPayload = Pick<
 >;
 
 /**
- * Options of {@link editable}.
+ * Options of {@link createEditor}.
  */
-export interface EditableOptions<T> {
+export interface EditorOptions<T> {
   /**
    * TODO
    */
@@ -116,17 +118,18 @@ export interface EditableOptions<T> {
 /**
  * Methods of editor instance.
  */
-export interface EditableHandle {
+export interface Editor {
   /**
-   * Disposes editor and restores previous DOM state.
+   * A function to make DOM editable.
+   * @returns A function to stop subscribing DOM changes and restores previous DOM state.
    */
-  dispose: () => void;
+  input: (element: HTMLElement) => () => void;
   /**
    * Dispatches editing command.
    * @param fn command function
    * @param args arguments of command
    */
-  command: <A extends unknown[]>(fn: EditableCommand<A>, ...args: A) => void;
+  command: <A extends unknown[]>(fn: EditorCommand<A>, ...args: A) => void;
   /**
    * Changes editor's read-only state.
    * @param value `true` to read-only. `false` to editable.
@@ -135,72 +138,25 @@ export interface EditableHandle {
 }
 
 /**
- * A function to make DOM editable.
+ * A function to initialize editor.
  */
-export const editable = <T>(
-  element: HTMLElement,
-  {
-    schema: { single: isSingleline, js: docToJS, doc: jsToDoc, copy, paste },
-    doc: initialDoc,
-    isBlock = defaultIsBlockNode,
-    onChange,
-    onKeyDown: onKeyDownCallback,
-  }: EditableOptions<T>
-): EditableHandle => {
-  if (
-    !(
-      window.InputEvent &&
-      typeof InputEvent.prototype.getTargetRanges === "function"
-    )
-  ) {
-    console.error("beforeinput event is not supported.");
-    const dummy = () => {};
-    return { dispose: dummy, command: dummy, readonly: dummy };
-  }
-
-  // https://w3c.github.io/contentEditable/
-  // https://w3c.github.io/editing/docs/execCommand/
-  // https://w3c.github.io/selection-api/
-  const {
-    contentEditable: prevContentEditable,
-    role: prevRole,
-    ariaMultiLine: prevAriaMultiLine,
-    ariaReadOnly: prevAriaReadOnly,
-  } = element;
-  const prevWhiteSpace = element.style.whiteSpace;
-
-  element.role = "textbox";
-  // https://html.spec.whatwg.org/multipage/interaction.html#best-practices-for-in-page-editors
-  element.style.whiteSpace = "pre-wrap";
-  if (!isSingleline) {
-    element.ariaMultiLine = "true";
-  }
-
-  let readonly = false;
-  let disposed = false;
-  let selectionReverted = false;
+export const createEditor = <T>({
+  schema: { single: isSingleline, js: docToJS, doc: jsToDoc, copy, paste },
+  doc: initialDoc,
+  isBlock = defaultIsBlockNode,
+  onChange,
+  onKeyDown: onKeyDownCallback,
+}: EditorOptions<T>): Editor => {
   let selection: SelectionSnapshot = getEmptySelectionSnapshot();
-  let inputTransaction: Transaction | null = null;
-  let restoreSelectionQueue: ReturnType<typeof setTimeout> | null = null;
-  let isComposing = false;
-  let hasFocus = false;
-  let isDragging = false;
-
-  const document = getCurrentDocument(element);
-
-  const parserConfig: ParserConfig = {
-    _document: document,
-    _isBlock: isBlock as ParserConfig["_isBlock"],
-  };
-
-  const setContentEditable = () => {
-    element.contentEditable = readonly ? "false" : "true";
-    element.ariaReadOnly = readonly ? "true" : null;
-  };
-
-  setContentEditable();
+  let readonly = false;
+  let setContentEditable: () => void = noop;
+  let restoreSelectionOnTimeout: (sel: SelectionSnapshot) => void = noop;
 
   const doc = (): DocFragment => history.get()[0];
+
+  const history = createHistory<
+    readonly [doc: DocFragment, selection: SelectionSnapshot]
+  >([jsToDoc(initialDoc), selection]);
 
   const transactions: Transaction[] = [];
   const apply = (arg: Transaction) => {
@@ -209,21 +165,6 @@ export const editable = <T>(
       queueTask(flushEdit);
     }
   };
-
-  const history = createHistory<
-    readonly [doc: DocFragment, selection: SelectionSnapshot]
-  >([jsToDoc(initialDoc), selection]);
-
-  const observer = createMutationObserver(element, () => {
-    if (hasFocus) {
-      // Mutation to selected DOM may change selection, so restore it.
-      setSelectionToDOM(document, element, selection, parserConfig);
-      if (restoreSelectionQueue != null) {
-        clearTimeout(restoreSelectionQueue);
-        restoreSelectionQueue = null;
-      }
-    }
-  });
 
   const tasks = new Set<() => void>();
 
@@ -236,60 +177,6 @@ export const editable = <T>(
         fn();
       });
     }
-  };
-
-  const restoreSelectionOnTimeout = (nextSelection: SelectionSnapshot) => {
-    selection = nextSelection;
-    // We set updated selection after the next rerender, because it will modify DOM and selection again.
-    // However frameworks may not rerender for optimization in some case, for example if selection is updated but document is the same.
-    // So we also schedule restoring on timeout for safe.
-    restoreSelectionQueue = setTimeout(() => {
-      setSelectionToDOM(document, element, nextSelection, parserConfig);
-    });
-  };
-
-  const syncSelection = () => {
-    selection = takeSelectionSnapshot(element, parserConfig);
-  };
-
-  const flushInput = () => {
-    const queue = observer._flush();
-
-    observer._record(false);
-
-    if (queue.length) {
-      // Revert DOM
-      let m: MutationRecord | undefined;
-      while ((m = queue.pop())) {
-        if (m.type === "childList") {
-          const { target, removedNodes, addedNodes, nextSibling } = m;
-          for (let i = removedNodes.length - 1; i >= 0; i--) {
-            target.insertBefore(removedNodes[i]!, nextSibling);
-          }
-          for (let i = addedNodes.length - 1; i >= 0; i--) {
-            target.removeChild(addedNodes[i]!);
-          }
-        } else {
-          (m.target as CharacterData).nodeValue = m.oldValue!;
-        }
-      }
-      observer._flush();
-    }
-
-    apply(inputTransaction!);
-
-    isComposing = false;
-    inputTransaction = null;
-
-    // Restore previous selection
-    // Updating selection may schedule the next selectionchange event
-    // It should be ignored especially in firefox not to confuse editor state
-    selectionReverted = setSelectionToDOM(
-      document,
-      element,
-      selection,
-      parserConfig
-    );
   };
 
   const flushEdit = () => {
@@ -317,223 +204,343 @@ export const editable = <T>(
     }
   };
 
-  // spec compliant: keydown -> beforeinput -> input (-> keyup)
-  // Safari (IME)  : beforeinput -> input -> keydown (-> keyup)
-  // https://w3c.github.io/uievents/#events-keyboard-event-order
-  // https://bugs.webkit.org/show_bug.cgi?id=165004
-  const onKeyDown = (e: KeyboardEvent) => {
-    if (isComposing) return;
-
-    if (onKeyDownCallback && onKeyDownCallback(e)) {
-      e.preventDefault();
-      return;
-    }
-    if ((e.metaKey || e.ctrlKey) && !e.altKey && e.code === "KeyZ") {
-      e.preventDefault();
-
-      observer._record(false);
-      if (!readonly) {
-        const nextHistory = e.shiftKey ? history.redo() : history.undo();
-
-        if (nextHistory) {
-          onChange(docToJS(nextHistory[0]));
-
-          restoreSelectionOnTimeout(nextHistory[1]);
-        }
-      }
-    }
-  };
-
-  const onInput = () => {
-    if (!isComposing) {
-      flushInput();
-    }
-  };
-  const onBeforeInput = (e: InputEvent) => {
-    e.preventDefault();
-
-    const inputType = e.inputType as InputType;
-
-    if (inputType.startsWith("format")) {
-      // Ignore format inputs from document.execCommand() or shortcuts like mod+b.
-      return;
-    }
-    if (inputType === "historyUndo" || inputType === "historyRedo") {
-      // Cancel for now.
-      return;
-    }
-
-    if (isComposing) {
-      // Unfortunately, input events related to composition are not cancellable.
-      // So we record mutations to DOM and revert them after composition ended.
-      observer._record(true);
-    } else {
-      syncSelection();
-    }
-
-    const domRange = e.getTargetRanges()[0];
-    if (domRange) {
-      // Read input
-      const range = serializeRange(element, parserConfig, domRange);
-      let data =
-        inputType === "insertParagraph" || inputType === "insertLineBreak"
-          ? "\n"
-          : e.data;
-      if (data == null) {
-        const dataTransfer = e.dataTransfer;
-        if (dataTransfer) {
-          // In some cases (e.g. insertReplacementText), dataTransfer contains text.
-          data = dataTransfer.getData("text/plain");
-        }
-      }
-
-      if (!inputTransaction) {
-        inputTransaction = new Transaction().select(...selection);
-      }
-      if (comparePosition(...range) !== 0) {
-        // replace or delete
-        inputTransaction.delete(...range);
-      }
-      if (data) {
-        // replace or insert
-        inputTransaction.insert(range[0], stringToDoc(data));
-      }
-    }
-
-    if (!isComposing) {
-      flushInput();
-    }
-  };
-  const onCompositionStart = () => {
-    if (!isComposing) {
-      syncSelection();
-    }
-    isComposing = true;
-  };
-  const onCompositionEnd = () => {
-    flushInput();
-  };
-
-  const onFocus = () => {
-    hasFocus = true;
-    syncSelection();
-  };
-  const onBlur = () => {
-    hasFocus = false;
-  };
-
-  const onSelectionChange = () => {
-    if (selectionReverted) {
-      selectionReverted = false;
-      return;
-    }
-    // Safari may dispatch selectionchange event after dragstart
-    if (hasFocus && !isComposing && !isDragging) {
-      syncSelection();
-    }
-  };
-
-  const copySelected = (dataTransfer: DataTransfer) => {
-    syncSelection();
-    if (comparePosition(...selection) !== 0) {
-      copy(dataTransfer, sliceDoc(doc(), ...range(selection)), element);
-    }
-  };
-
-  const onCopy = (e: ClipboardEvent) => {
-    e.preventDefault();
-    copySelected(e.clipboardData!);
-  };
-  const onCut = (e: ClipboardEvent) => {
-    e.preventDefault();
-    if (!readonly) {
-      copySelected(e.clipboardData!);
-      apply(new Transaction().delete(...range(selection)));
-    }
-  };
-  const onPaste = (e: ClipboardEvent) => {
-    e.preventDefault();
-    const [start, end] = range(selection);
-    apply(
-      new Transaction()
-        .delete(start, end)
-        .insert(start, paste(e.clipboardData!, parserConfig))
-    );
-  };
-
-  const onDrop = (e: DragEvent) => {
-    e.preventDefault();
-
-    const dataTransfer = e.dataTransfer;
-    const droppedPosition = getPointedCaretPosition(
-      document,
-      element,
-      e,
-      parserConfig
-    );
-    if (dataTransfer && droppedPosition) {
-      const tr = new Transaction();
-      if (isDragging) {
-        tr.delete(...range(selection));
-      }
-      const pos = tr.rebasePos(droppedPosition);
-      tr.select(pos, pos)
-        .insert(pos, paste(dataTransfer, parserConfig))
-        .select(pos);
-      apply(tr);
-      element.focus({ preventScroll: true });
-    }
-  };
-  const onDragStart = (e: DragEvent) => {
-    isDragging = true;
-    copySelected(e.dataTransfer!);
-  };
-  const onDragEnd = () => {
-    isDragging = false;
-  };
-
-  document.addEventListener("selectionchange", onSelectionChange);
-  element.addEventListener("keydown", onKeyDown);
-  element.addEventListener("input", onInput);
-  element.addEventListener("beforeinput", onBeforeInput);
-  element.addEventListener("compositionstart", onCompositionStart);
-  element.addEventListener("compositionend", onCompositionEnd);
-  element.addEventListener("focus", onFocus);
-  element.addEventListener("blur", onBlur);
-  element.addEventListener("copy", onCopy);
-  element.addEventListener("cut", onCut);
-  element.addEventListener("paste", onPaste);
-  element.addEventListener("drop", onDrop);
-  element.addEventListener("dragstart", onDragStart);
-  element.addEventListener("dragend", onDragEnd);
-
   return {
-    dispose: () => {
-      if (disposed) return;
-      disposed = true;
+    input: (element) => {
+      if (
+        !(
+          window.InputEvent &&
+          typeof InputEvent.prototype.getTargetRanges === "function"
+        )
+      ) {
+        console.error("beforeinput event is not supported.");
+        return noop;
+      }
 
-      element.contentEditable = prevContentEditable;
-      element.role = prevRole;
-      element.ariaMultiLine = prevAriaMultiLine;
-      element.ariaReadOnly = prevAriaReadOnly;
-      element.style.whiteSpace = prevWhiteSpace;
+      // https://w3c.github.io/contentEditable/
+      // https://w3c.github.io/editing/docs/execCommand/
+      // https://w3c.github.io/selection-api/
+      const {
+        contentEditable: prevContentEditable,
+        role: prevRole,
+        ariaMultiLine: prevAriaMultiLine,
+        ariaReadOnly: prevAriaReadOnly,
+      } = element;
+      const prevWhiteSpace = element.style.whiteSpace;
 
-      observer._dispose();
+      element.role = "textbox";
+      // https://html.spec.whatwg.org/multipage/interaction.html#best-practices-for-in-page-editors
+      element.style.whiteSpace = "pre-wrap";
+      if (!isSingleline) {
+        element.ariaMultiLine = "true";
+      }
 
-      document.removeEventListener("selectionchange", onSelectionChange);
-      element.removeEventListener("keydown", onKeyDown);
-      element.removeEventListener("input", onInput);
-      element.removeEventListener("beforeinput", onBeforeInput);
-      element.removeEventListener("compositionstart", onCompositionStart);
-      element.removeEventListener("compositionend", onCompositionEnd);
-      element.removeEventListener("focus", onFocus);
-      element.removeEventListener("blur", onBlur);
-      element.removeEventListener("copy", onCopy);
-      element.removeEventListener("cut", onCut);
-      element.removeEventListener("paste", onPaste);
-      element.removeEventListener("drop", onDrop);
-      element.removeEventListener("dragstart", onDragStart);
-      element.removeEventListener("dragend", onDragEnd);
+      let disposed = false;
+      let selectionReverted = false;
+      let inputTransaction: Transaction | null = null;
+      let restoreSelectionQueue: ReturnType<typeof setTimeout> | null = null;
+      let isComposing = false;
+      let hasFocus = false;
+      let isDragging = false;
+
+      const document = getCurrentDocument(element);
+
+      const parserConfig: ParserConfig = {
+        _document: document,
+        _isBlock: isBlock as ParserConfig["_isBlock"],
+      };
+
+      setContentEditable = () => {
+        element.contentEditable = readonly ? "false" : "true";
+        element.ariaReadOnly = readonly ? "true" : null;
+      };
+
+      setContentEditable();
+
+      const observer = createMutationObserver(element, () => {
+        if (hasFocus) {
+          // Mutation to selected DOM may change selection, so restore it.
+          setSelectionToDOM(document, element, selection, parserConfig);
+          if (restoreSelectionQueue != null) {
+            clearTimeout(restoreSelectionQueue);
+            restoreSelectionQueue = null;
+          }
+        }
+      });
+
+      restoreSelectionOnTimeout = (nextSelection: SelectionSnapshot) => {
+        selection = nextSelection;
+        // We set updated selection after the next rerender, because it will modify DOM and selection again.
+        // However frameworks may not rerender for optimization in some case, for example if selection is updated but document is the same.
+        // So we also schedule restoring on timeout for safe.
+        restoreSelectionQueue = setTimeout(() => {
+          setSelectionToDOM(document, element, nextSelection, parserConfig);
+        });
+      };
+
+      const syncSelection = () => {
+        selection = takeSelectionSnapshot(element, parserConfig);
+      };
+
+      const flushInput = () => {
+        const queue = observer._flush();
+
+        observer._record(false);
+
+        if (queue.length) {
+          // Revert DOM
+          let m: MutationRecord | undefined;
+          while ((m = queue.pop())) {
+            if (m.type === "childList") {
+              const { target, removedNodes, addedNodes, nextSibling } = m;
+              for (let i = removedNodes.length - 1; i >= 0; i--) {
+                target.insertBefore(removedNodes[i]!, nextSibling);
+              }
+              for (let i = addedNodes.length - 1; i >= 0; i--) {
+                target.removeChild(addedNodes[i]!);
+              }
+            } else {
+              (m.target as CharacterData).nodeValue = m.oldValue!;
+            }
+          }
+          observer._flush();
+        }
+
+        apply(inputTransaction!);
+
+        isComposing = false;
+        inputTransaction = null;
+
+        // Restore previous selection
+        // Updating selection may schedule the next selectionchange event
+        // It should be ignored especially in firefox not to confuse editor state
+        selectionReverted = setSelectionToDOM(
+          document,
+          element,
+          selection,
+          parserConfig
+        );
+      };
+
+      // spec compliant: keydown -> beforeinput -> input (-> keyup)
+      // Safari (IME)  : beforeinput -> input -> keydown (-> keyup)
+      // https://w3c.github.io/uievents/#events-keyboard-event-order
+      // https://bugs.webkit.org/show_bug.cgi?id=165004
+      const onKeyDown = (e: KeyboardEvent) => {
+        if (isComposing) return;
+
+        if (onKeyDownCallback && onKeyDownCallback(e)) {
+          e.preventDefault();
+          return;
+        }
+        if ((e.metaKey || e.ctrlKey) && !e.altKey && e.code === "KeyZ") {
+          e.preventDefault();
+
+          observer._record(false);
+          if (!readonly) {
+            const nextHistory = e.shiftKey ? history.redo() : history.undo();
+
+            if (nextHistory) {
+              onChange(docToJS(nextHistory[0]));
+
+              restoreSelectionOnTimeout(nextHistory[1]);
+            }
+          }
+        }
+      };
+
+      const onInput = () => {
+        if (!isComposing) {
+          flushInput();
+        }
+      };
+      const onBeforeInput = (e: InputEvent) => {
+        e.preventDefault();
+
+        const inputType = e.inputType as InputType;
+
+        if (inputType.startsWith("format")) {
+          // Ignore format inputs from document.execCommand() or shortcuts like mod+b.
+          return;
+        }
+        if (inputType === "historyUndo" || inputType === "historyRedo") {
+          // Cancel for now.
+          return;
+        }
+
+        if (isComposing) {
+          // Unfortunately, input events related to composition are not cancellable.
+          // So we record mutations to DOM and revert them after composition ended.
+          observer._record(true);
+        } else {
+          syncSelection();
+        }
+
+        const domRange = e.getTargetRanges()[0];
+        if (domRange) {
+          // Read input
+          const range = serializeRange(element, parserConfig, domRange);
+          let data =
+            inputType === "insertParagraph" || inputType === "insertLineBreak"
+              ? "\n"
+              : e.data;
+          if (data == null) {
+            const dataTransfer = e.dataTransfer;
+            if (dataTransfer) {
+              // In some cases (e.g. insertReplacementText), dataTransfer contains text.
+              data = dataTransfer.getData("text/plain");
+            }
+          }
+
+          if (!inputTransaction) {
+            inputTransaction = new Transaction().select(...selection);
+          }
+          if (comparePosition(...range) !== 0) {
+            // replace or delete
+            inputTransaction.delete(...range);
+          }
+          if (data) {
+            // replace or insert
+            inputTransaction.insert(range[0], stringToDoc(data));
+          }
+        }
+
+        if (!isComposing) {
+          flushInput();
+        }
+      };
+      const onCompositionStart = () => {
+        if (!isComposing) {
+          syncSelection();
+        }
+        isComposing = true;
+      };
+      const onCompositionEnd = () => {
+        flushInput();
+      };
+
+      const onFocus = () => {
+        hasFocus = true;
+        syncSelection();
+      };
+      const onBlur = () => {
+        hasFocus = false;
+      };
+
+      const onSelectionChange = () => {
+        if (selectionReverted) {
+          selectionReverted = false;
+          return;
+        }
+        // Safari may dispatch selectionchange event after dragstart
+        if (hasFocus && !isComposing && !isDragging) {
+          syncSelection();
+        }
+      };
+
+      const copySelected = (dataTransfer: DataTransfer) => {
+        syncSelection();
+        if (comparePosition(...selection) !== 0) {
+          copy(dataTransfer, sliceDoc(doc(), ...range(selection)), element);
+        }
+      };
+
+      const onCopy = (e: ClipboardEvent) => {
+        e.preventDefault();
+        copySelected(e.clipboardData!);
+      };
+      const onCut = (e: ClipboardEvent) => {
+        e.preventDefault();
+        if (!readonly) {
+          copySelected(e.clipboardData!);
+          apply(new Transaction().delete(...range(selection)));
+        }
+      };
+      const onPaste = (e: ClipboardEvent) => {
+        e.preventDefault();
+        const [start, end] = range(selection);
+        apply(
+          new Transaction()
+            .delete(start, end)
+            .insert(start, paste(e.clipboardData!, parserConfig))
+        );
+      };
+
+      const onDrop = (e: DragEvent) => {
+        e.preventDefault();
+
+        const dataTransfer = e.dataTransfer;
+        const droppedPosition = getPointedCaretPosition(
+          document,
+          element,
+          e,
+          parserConfig
+        );
+        if (dataTransfer && droppedPosition) {
+          const tr = new Transaction();
+          if (isDragging) {
+            tr.delete(...range(selection));
+          }
+          const pos = tr.rebasePos(droppedPosition);
+          tr.select(pos, pos)
+            .insert(pos, paste(dataTransfer, parserConfig))
+            .select(pos);
+          apply(tr);
+          element.focus({ preventScroll: true });
+        }
+      };
+      const onDragStart = (e: DragEvent) => {
+        isDragging = true;
+        copySelected(e.dataTransfer!);
+      };
+      const onDragEnd = () => {
+        isDragging = false;
+      };
+
+      document.addEventListener("selectionchange", onSelectionChange);
+      element.addEventListener("keydown", onKeyDown);
+      element.addEventListener("input", onInput);
+      element.addEventListener("beforeinput", onBeforeInput);
+      element.addEventListener("compositionstart", onCompositionStart);
+      element.addEventListener("compositionend", onCompositionEnd);
+      element.addEventListener("focus", onFocus);
+      element.addEventListener("blur", onBlur);
+      element.addEventListener("copy", onCopy);
+      element.addEventListener("cut", onCut);
+      element.addEventListener("paste", onPaste);
+      element.addEventListener("drop", onDrop);
+      element.addEventListener("dragstart", onDragStart);
+      element.addEventListener("dragend", onDragEnd);
+
+      return () => {
+        if (disposed) return;
+        disposed = true;
+
+        // TODO improve
+        setContentEditable = restoreSelectionOnTimeout = noop;
+
+        element.contentEditable = prevContentEditable;
+        element.role = prevRole;
+        element.ariaMultiLine = prevAriaMultiLine;
+        element.ariaReadOnly = prevAriaReadOnly;
+        element.style.whiteSpace = prevWhiteSpace;
+
+        observer._dispose();
+
+        document.removeEventListener("selectionchange", onSelectionChange);
+        element.removeEventListener("keydown", onKeyDown);
+        element.removeEventListener("input", onInput);
+        element.removeEventListener("beforeinput", onBeforeInput);
+        element.removeEventListener("compositionstart", onCompositionStart);
+        element.removeEventListener("compositionend", onCompositionEnd);
+        element.removeEventListener("focus", onFocus);
+        element.removeEventListener("blur", onBlur);
+        element.removeEventListener("copy", onCopy);
+        element.removeEventListener("cut", onCut);
+        element.removeEventListener("paste", onPaste);
+        element.removeEventListener("drop", onDrop);
+        element.removeEventListener("dragstart", onDragStart);
+        element.removeEventListener("dragend", onDragEnd);
+      };
     },
     command: (fn, ...args) => {
       const tr = fn(doc(), selection, ...args);

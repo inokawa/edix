@@ -3,17 +3,17 @@ import { range } from "./doc/position";
 import { getLineSize, Transaction } from "./doc/edit";
 import { stringToDoc } from "./doc/utils";
 
-export type EditableCommand<A extends unknown[]> = (
+export type EditorCommand<A extends unknown[]> = (
   doc: DocFragment,
   selection: SelectionSnapshot,
   ...args: A
 ) => Transaction | void;
 
-export const Delete: EditableCommand<[]> = (_doc, selection) => {
+export const Delete: EditorCommand<[]> = (_doc, selection) => {
   return new Transaction().delete(...range(selection));
 };
 
-export const InsertText: EditableCommand<[text: string]> = (
+export const InsertText: EditorCommand<[text: string]> = (
   _doc,
   selection,
   text
@@ -22,7 +22,7 @@ export const InsertText: EditableCommand<[text: string]> = (
   return new Transaction().delete(start, end).insert(start, stringToDoc(text));
 };
 
-export const ReplaceAll: EditableCommand<[text: string]> = (
+export const ReplaceAll: EditorCommand<[text: string]> = (
   doc,
   _selection,
   text

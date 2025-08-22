@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { StoryObj } from "@storybook/react-vite";
-import { editable, schema, voidNode, InferDoc } from "../../src";
+import { createEditor, schema, voidNode, InferDoc } from "../../src";
 
 export default {
-  component: editable,
+  component: createEditor,
 };
 
 const basicSchema = schema({ multiline: true });
@@ -20,11 +20,11 @@ export const Multiline: StoryObj = {
     ]);
     useEffect(() => {
       if (!ref.current) return;
-      return editable(ref.current, {
+      return createEditor({
         doc: value,
         schema: basicSchema,
         onChange: setValue,
-      }).dispose;
+      }).input(ref.current);
     }, []);
 
     return (
@@ -70,11 +70,11 @@ export const Tag: StoryObj = {
 
     useEffect(() => {
       if (!ref.current) return;
-      return editable(ref.current, {
+      return createEditor({
         doc: value,
         schema: tagSchema,
         onChange: setValue,
-      }).dispose;
+      }).input(ref.current);
     }, []);
 
     return (
@@ -151,11 +151,11 @@ export const Image: StoryObj = {
     ]);
     useEffect(() => {
       if (!ref.current) return;
-      return editable(ref.current, {
+      return createEditor({
         doc: value,
         schema: imageSchema,
         onChange: setValue,
-      }).dispose;
+      }).input(ref.current);
     }, []);
 
     return (
@@ -219,11 +219,11 @@ export const Video: StoryObj = {
     ]);
     useEffect(() => {
       if (!ref.current) return;
-      return editable(ref.current, {
+      return createEditor({
         doc: value,
         schema: videoSchema,
         onChange: setValue,
-      }).dispose;
+      }).input(ref.current);
     }, []);
 
     return (
@@ -310,11 +310,11 @@ export const Iframe: StoryObj = {
     ]);
     useEffect(() => {
       if (!ref.current) return;
-      return editable(ref.current, {
+      return createEditor({
         doc: value,
         schema: youtubeSchema,
         onChange: setValue,
-      }).dispose;
+      }).input(ref.current);
     }, []);
 
     return (

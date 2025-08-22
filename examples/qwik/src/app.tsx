@@ -1,5 +1,5 @@
 import { component$, useSignal, useVisibleTask$ } from "@builder.io/qwik";
-import { editable, plainSchema } from "edix";
+import { createEditor, plainSchema } from "edix";
 
 export const App = component$(() => {
   const value = useSignal("Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
@@ -7,15 +7,16 @@ export const App = component$(() => {
 
   useVisibleTask$(({ cleanup }) => {
     if (!ref.value) return;
-    const editor = editable(ref.value, {
+    const editor = createEditor({
       doc: value.value,
       schema: plainSchema({ multiline: true }),
       onChange: (v) => {
         value.value = v;
       },
     });
+    const dispose = editor.input(ref.value);
     cleanup(() => {
-      editor.dispose();
+      dispose();
     });
   });
 

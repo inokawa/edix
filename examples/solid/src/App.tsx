@@ -1,5 +1,5 @@
 import { createMemo, createSignal, For, onCleanup, onMount } from "solid-js";
-import { editable, plainSchema } from "edix";
+import { createEditor, plainSchema } from "edix";
 
 function App() {
   let ref: HTMLDivElement | undefined;
@@ -7,13 +7,14 @@ function App() {
     "Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒"
   );
   onMount(() => {
-    const editor = editable(ref!, {
+    const editor = createEditor({
       doc: value(),
       schema: plainSchema({ multiline: true }),
       onChange: setValue,
     });
+    const dispose = editor.input(ref!);
     onCleanup(() => {
-      editor.dispose();
+      dispose();
     });
   });
 

@@ -1,10 +1,10 @@
 import { StoryObj } from "@storybook/react-vite";
 import React, { ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import { editable, plainSchema } from "../../src";
+import { createEditor, plainSchema } from "../../src";
 import { diffLines, diffChars, Change } from "diff";
 
 export default {
-  component: editable,
+  component: createEditor,
 };
 
 type DiffResult = { [line: number]: boolean | Change[] | undefined };
@@ -44,11 +44,11 @@ const Editor = ({
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!ref.current) return;
-    return editable(ref.current, {
+    return createEditor({
       doc: value,
       schema: plainSchema({ multiline: true }),
       onChange,
-    }).dispose;
+    }).input(ref.current);
   }, []);
   return (
     <div ref={ref} style={{ background: "white", padding: 4, flex: 1 }}>

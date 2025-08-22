@@ -1,11 +1,11 @@
 import { StoryObj } from "@storybook/react-vite";
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { editable, plainSchema } from "../../src";
+import { createEditor, plainSchema } from "../../src";
 import { getTokenizer, Tokenizer, KuromojiToken } from "kuromojin";
 
 export default {
-  component: editable,
+  component: createEditor,
 };
 
 const style: React.CSSProperties = {
@@ -92,11 +92,11 @@ const Editor = ({ tokenizer }: { tokenizer: Tokenizer }) => {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!ref.current) return;
-    return editable(ref.current, {
+    return createEditor({
       doc: text,
       schema: plainSchema({ multiline: true }),
       onChange: setText,
-    }).dispose;
+    }).input(ref.current);
   }, []);
 
   return (

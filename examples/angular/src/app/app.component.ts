@@ -1,5 +1,5 @@
 import { Component, ElementRef, signal, viewChild } from '@angular/core';
-import { editable, EditableHandle, plainSchema } from 'edix';
+import { createEditor, plainSchema } from 'edix';
 
 @Component({
   selector: 'app-root',
@@ -9,19 +9,20 @@ import { editable, EditableHandle, plainSchema } from 'edix';
 export class AppComponent {
   ref = viewChild<ElementRef<HTMLDivElement>>('ref');
   value = signal('Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒');
-  editor: EditableHandle | null = null;
+  cleanup: (() => void) | null = null;
 
   ngAfterViewInit() {
-    this.editor = editable(this.ref()!.nativeElement, {
+    const editor = createEditor({
       doc: this.value(),
       schema: plainSchema({ multiline: true }),
       onChange: (v) => {
         this.value.set(v);
       },
     });
+    this.cleanup = editor.input(this.ref()!.nativeElement);
   }
 
   ngOnDestroy() {
-    this.editor?.dispose();
+    this.cleanup?.();
   }
 }
