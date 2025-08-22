@@ -4,6 +4,6 @@
 
 # Variable: Delete
 
-> `const` **Delete**: [`EditableCommand`](../type-aliases/EditableCommand.md)\<\[\]\>
+> `const` **Delete**: [`EditorCommand`](../type-aliases/EditorCommand.md)\<\[\]\>
 
-Defined in: [commands.ts:12](https://github.com/inokawa/edix/blob/48ffe0d01c66f9540b747e27424142d5598f2bec/src/commands.ts#L12)
+Defined in: [commands.ts:12](https://github.com/inokawa/edix/blob/431c5fd4f91f9cb402acd852f95a41766a4cc2e5/src/commands.ts#L12)

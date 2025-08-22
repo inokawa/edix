@@ -6,7 +6,7 @@
 
 > **InferDoc**\<`T`\> = `T` *extends* [`DocSchema`](../interfaces/DocSchema.md)\<infer N\> ? `N` : `never`
 
-Defined in: [schema/types.ts:16](https://github.com/inokawa/edix/blob/48ffe0d01c66f9540b747e27424142d5598f2bec/src/schema/types.ts#L16)
+Defined in: [schema/types.ts:18](https://github.com/inokawa/edix/blob/431c5fd4f91f9cb402acd852f95a41766a4cc2e5/src/schema/types.ts#L18)
 
 ## Type Parameters
 

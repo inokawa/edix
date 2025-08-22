@@ -6,22 +6,22 @@
 
 ## Functions
 
-- [editable](functions/editable.md)
+- [createEditor](functions/createEditor.md)
 - [plainSchema](functions/plainSchema.md)
 - [voidNode](functions/voidNode.md)
 - [schema](functions/schema.md)
 
 ## Interfaces
 
-- [EditableOptions](interfaces/EditableOptions.md)
-- [EditableHandle](interfaces/EditableHandle.md)
+- [EditorOptions](interfaces/EditorOptions.md)
+- [Editor](interfaces/Editor.md)
 - [EditableVoidSerializer](interfaces/EditableVoidSerializer.md)
 - [DocSchema](interfaces/DocSchema.md)
 
 ## Type Aliases
 
 - [KeyboardPayload](type-aliases/KeyboardPayload.md)
-- [EditableCommand](type-aliases/EditableCommand.md)
+- [EditorCommand](type-aliases/EditorCommand.md)
 - [InferDoc](type-aliases/InferDoc.md)
 - [InferNode](type-aliases/InferNode.md)
 

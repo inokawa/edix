@@ -4,7 +4,7 @@
 
 # Interface: DocSchema\<T\>
 
-Defined in: [schema/types.ts:3](https://github.com/inokawa/edix/blob/48ffe0d01c66f9540b747e27424142d5598f2bec/src/schema/types.ts#L3)
+Defined in: [schema/types.ts:4](https://github.com/inokawa/edix/blob/431c5fd4f91f9cb402acd852f95a41766a4cc2e5/src/schema/types.ts#L4)
 
 ## Type Parameters
 
@@ -18,7 +18,7 @@ Defined in: [schema/types.ts:3](https://github.com/inokawa/edix/blob/48ffe0d01c6
 
 > **single**: `boolean`
 
-Defined in: [schema/types.ts:4](https://github.com/inokawa/edix/blob/48ffe0d01c66f9540b747e27424142d5598f2bec/src/schema/types.ts#L4)
+Defined in: [schema/types.ts:5](https://github.com/inokawa/edix/blob/431c5fd4f91f9cb402acd852f95a41766a4cc2e5/src/schema/types.ts#L5)
 
 ***
 
@@ -26,7 +26,7 @@ Defined in: [schema/types.ts:4](https://github.com/inokawa/edix/blob/48ffe0d01c6
 
 > **js**: (`doc`) => `T`
 
-Defined in: [schema/types.ts:5](https://github.com/inokawa/edix/blob/48ffe0d01c66f9540b747e27424142d5598f2bec/src/schema/types.ts#L5)
+Defined in: [schema/types.ts:6](https://github.com/inokawa/edix/blob/431c5fd4f91f9cb402acd852f95a41766a4cc2e5/src/schema/types.ts#L6)
 
 #### Parameters
 
@@ -40,29 +40,29 @@ Defined in: [schema/types.ts:5](https://github.com/inokawa/edix/blob/48ffe0d01c6
 
 ***
 
-### void()
+### doc()
 
-> **void**: (`element`) => `void` \| `Record`\<`string`, `unknown`\>
+> **doc**: (`state`) => `DocFragment`
 
-Defined in: [schema/types.ts:6](https://github.com/inokawa/edix/blob/48ffe0d01c66f9540b747e27424142d5598f2bec/src/schema/types.ts#L6)
+Defined in: [schema/types.ts:7](https://github.com/inokawa/edix/blob/431c5fd4f91f9cb402acd852f95a41766a4cc2e5/src/schema/types.ts#L7)
 
 #### Parameters
 
-##### element
+##### state
 
-`Element`
+`T`
 
 #### Returns
 
-`void` \| `Record`\<`string`, `unknown`\>
+`DocFragment`
 
 ***
 
 ### copy()
 
-> **copy**: (`dataTransfer`, `doc`, `dom`) => `void`
+> **copy**: (`dataTransfer`, `doc`, `element`) => `void`
 
-Defined in: [schema/types.ts:7](https://github.com/inokawa/edix/blob/48ffe0d01c66f9540b747e27424142d5598f2bec/src/schema/types.ts#L7)
+Defined in: [schema/types.ts:8](https://github.com/inokawa/edix/blob/431c5fd4f91f9cb402acd852f95a41766a4cc2e5/src/schema/types.ts#L8)
 
 #### Parameters
 
@@ -74,9 +74,9 @@ Defined in: [schema/types.ts:7](https://github.com/inokawa/edix/blob/48ffe0d01c6
 
 `DocFragment`
 
-##### dom
+##### element
 
-() => `Node`
+`Element`
 
 #### Returns
 
@@ -86,9 +86,9 @@ Defined in: [schema/types.ts:7](https://github.com/inokawa/edix/blob/48ffe0d01c6
 
 ### paste()
 
-> **paste**: (`dataTransfer`, `readDom`) => `DocFragment`
+> **paste**: (`dataTransfer`, `config`) => `DocFragment`
 
-Defined in: [schema/types.ts:8](https://github.com/inokawa/edix/blob/48ffe0d01c66f9540b747e27424142d5598f2bec/src/schema/types.ts#L8)
+Defined in: [schema/types.ts:13](https://github.com/inokawa/edix/blob/431c5fd4f91f9cb402acd852f95a41766a4cc2e5/src/schema/types.ts#L13)
 
 #### Parameters
 
@@ -96,9 +96,9 @@ Defined in: [schema/types.ts:8](https://github.com/inokawa/edix/blob/48ffe0d01c6
 
 `DataTransfer`
 
-##### readDom
+##### config
 
-(`node`) => `DocFragment`
+`ParserConfig`
 
 #### Returns
 

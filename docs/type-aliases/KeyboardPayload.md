@@ -6,4 +6,4 @@
 
 > **KeyboardPayload** = `Pick`\<`KeyboardEvent`, `"key"` \| `"code"` \| `"ctrlKey"` \| `"shiftKey"` \| `"altKey"` \| `"metaKey"`\>
 
-Defined in: [editable.ts:86](https://github.com/inokawa/edix/blob/48ffe0d01c66f9540b747e27424142d5598f2bec/src/editable.ts#L86)
+Defined in: [editor.ts:85](https://github.com/inokawa/edix/blob/431c5fd4f91f9cb402acd852f95a41766a4cc2e5/src/editor.ts#L85)
