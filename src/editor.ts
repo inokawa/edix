@@ -236,7 +236,6 @@ export const createEditor = <T>({
       let disposed = false;
       let selectionReverted = false;
       let inputTransaction: Transaction | null = null;
-      let restoreSelectionQueue: ReturnType<typeof setTimeout> | null = null;
       let isComposing = false;
       let hasFocus = false;
       let isDragging = false;
@@ -259,10 +258,6 @@ export const createEditor = <T>({
         if (hasFocus) {
           // Mutation to selected DOM may change selection, so restore it.
           setSelectionToDOM(document, element, selection, parserConfig);
-          if (restoreSelectionQueue != null) {
-            clearTimeout(restoreSelectionQueue);
-            restoreSelectionQueue = null;
-          }
         }
       });
 
