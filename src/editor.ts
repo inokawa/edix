@@ -150,7 +150,6 @@ export const createEditor = <T>({
   let selection: SelectionSnapshot = getEmptySelectionSnapshot();
   let readonly = false;
   let setContentEditable: () => void = noop;
-  let restoreSelectionOnTimeout: (sel: SelectionSnapshot) => void = noop;
 
   const doc = (): DocFragment => history.get()[0];
 
@@ -200,7 +199,7 @@ export const createEditor = <T>({
         onChange(docToJS(nextDoc));
       }
 
-      restoreSelectionOnTimeout(nextSelection);
+      selection = nextSelection;
     }
   };
 
@@ -267,16 +266,6 @@ export const createEditor = <T>({
         }
       });
 
-      restoreSelectionOnTimeout = (nextSelection: SelectionSnapshot) => {
-        selection = nextSelection;
-        // We set updated selection after the next rerender, because it will modify DOM and selection again.
-        // However frameworks may not rerender for optimization in some case, for example if selection is updated but document is the same.
-        // So we also schedule restoring on timeout for safe.
-        restoreSelectionQueue = setTimeout(() => {
-          setSelectionToDOM(document, element, nextSelection, parserConfig);
-        });
-      };
-
       const syncSelection = () => {
         selection = takeSelectionSnapshot(element, parserConfig);
       };
@@ -303,22 +292,22 @@ export const createEditor = <T>({
             }
           }
           observer._flush();
+
+          // Restore previous selection
+          // Updating selection may schedule the next selectionchange event
+          // It should be ignored especially in firefox not to confuse editor state
+          selectionReverted = setSelectionToDOM(
+            document,
+            element,
+            selection,
+            parserConfig
+          );
         }
 
         apply(inputTransaction!);
 
         isComposing = false;
         inputTransaction = null;
-
-        // Restore previous selection
-        // Updating selection may schedule the next selectionchange event
-        // It should be ignored especially in firefox not to confuse editor state
-        selectionReverted = setSelectionToDOM(
-          document,
-          element,
-          selection,
-          parserConfig
-        );
       };
 
       // spec compliant: keydown -> beforeinput -> input (-> keyup)
@@ -342,7 +331,7 @@ export const createEditor = <T>({
             if (nextHistory) {
               onChange(docToJS(nextHistory[0]));
 
-              restoreSelectionOnTimeout(nextHistory[1]);
+              selection = nextHistory[1];
             }
           }
         }
@@ -516,7 +505,7 @@ export const createEditor = <T>({
         disposed = true;
 
         // TODO improve
-        setContentEditable = restoreSelectionOnTimeout = noop;
+        setContentEditable = noop;
 
         element.contentEditable = prevContentEditable;
         element.role = prevRole;
