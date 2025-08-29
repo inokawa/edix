@@ -66,7 +66,7 @@ export class Transaction extends Array<Operation> {
     return this;
   }
 
-  rebasePos(position: Position): Position {
+  transform(position: Position): Position {
     return this.reduce(
       (acc, op) => (isEditOperation(op) ? rebasePosition(acc, op) : acc),
       position

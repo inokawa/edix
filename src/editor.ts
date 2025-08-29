@@ -161,7 +161,7 @@ export const createEditor = <T>({
   const apply = (arg: Transaction) => {
     if (!readonly) {
       transactions.unshift(arg);
-      queueTask(flushEdit);
+      queueTask(commit);
     }
   };
 
@@ -178,7 +178,7 @@ export const createEditor = <T>({
     }
   };
 
-  const flushEdit = () => {
+  const commit = () => {
     if (transactions.length) {
       let nextDoc: Writeable<DocFragment> = [...doc()];
       let nextSelection: Writeable<SelectionSnapshot> = [...selection];
@@ -464,7 +464,7 @@ export const createEditor = <T>({
           if (isDragging) {
             tr.delete(...range(selection));
           }
-          const pos = tr.rebasePos(droppedPosition);
+          const pos = tr.transform(droppedPosition);
           tr.select(pos, pos)
             .insert(pos, paste(dataTransfer, parserConfig))
             .select(pos);
