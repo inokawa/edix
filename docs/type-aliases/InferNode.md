@@ -6,7 +6,7 @@
 
 > **InferNode**\<`T`\> = `T` *extends* [`DocSchema`](../interfaces/DocSchema.md)\<infer N\> ? `ExtractItem`\<`N`\> : `never`
 
-Defined in: [schema/types.ts:19](https://github.com/inokawa/edix/blob/431c5fd4f91f9cb402acd852f95a41766a4cc2e5/src/schema/types.ts#L19)
+Defined in: [schema/types.ts:19](https://github.com/inokawa/edix/blob/17eb027c6558be0f6b434fe5269f1a66a1077362/src/schema/types.ts#L19)
 
 ## Type Parameters
 

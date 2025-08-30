@@ -4,7 +4,7 @@
 
 # Interface: DocSchema\<T\>
 
-Defined in: [schema/types.ts:4](https://github.com/inokawa/edix/blob/431c5fd4f91f9cb402acd852f95a41766a4cc2e5/src/schema/types.ts#L4)
+Defined in: [schema/types.ts:4](https://github.com/inokawa/edix/blob/17eb027c6558be0f6b434fe5269f1a66a1077362/src/schema/types.ts#L4)
 
 ## Type Parameters
 
@@ -18,7 +18,7 @@ Defined in: [schema/types.ts:4](https://github.com/inokawa/edix/blob/431c5fd4f91
 
 > **single**: `boolean`
 
-Defined in: [schema/types.ts:5](https://github.com/inokawa/edix/blob/431c5fd4f91f9cb402acd852f95a41766a4cc2e5/src/schema/types.ts#L5)
+Defined in: [schema/types.ts:5](https://github.com/inokawa/edix/blob/17eb027c6558be0f6b434fe5269f1a66a1077362/src/schema/types.ts#L5)
 
 ***
 
@@ -26,7 +26,7 @@ Defined in: [schema/types.ts:5](https://github.com/inokawa/edix/blob/431c5fd4f91
 
 > **js**: (`doc`) => `T`
 
-Defined in: [schema/types.ts:6](https://github.com/inokawa/edix/blob/431c5fd4f91f9cb402acd852f95a41766a4cc2e5/src/schema/types.ts#L6)
+Defined in: [schema/types.ts:6](https://github.com/inokawa/edix/blob/17eb027c6558be0f6b434fe5269f1a66a1077362/src/schema/types.ts#L6)
 
 #### Parameters
 
@@ -44,7 +44,7 @@ Defined in: [schema/types.ts:6](https://github.com/inokawa/edix/blob/431c5fd4f91
 
 > **doc**: (`state`) => `DocFragment`
 
-Defined in: [schema/types.ts:7](https://github.com/inokawa/edix/blob/431c5fd4f91f9cb402acd852f95a41766a4cc2e5/src/schema/types.ts#L7)
+Defined in: [schema/types.ts:7](https://github.com/inokawa/edix/blob/17eb027c6558be0f6b434fe5269f1a66a1077362/src/schema/types.ts#L7)
 
 #### Parameters
 
@@ -62,7 +62,7 @@ Defined in: [schema/types.ts:7](https://github.com/inokawa/edix/blob/431c5fd4f91
 
 > **copy**: (`dataTransfer`, `doc`, `element`) => `void`
 
-Defined in: [schema/types.ts:8](https://github.com/inokawa/edix/blob/431c5fd4f91f9cb402acd852f95a41766a4cc2e5/src/schema/types.ts#L8)
+Defined in: [schema/types.ts:8](https://github.com/inokawa/edix/blob/17eb027c6558be0f6b434fe5269f1a66a1077362/src/schema/types.ts#L8)
 
 #### Parameters
 
@@ -88,7 +88,7 @@ Defined in: [schema/types.ts:8](https://github.com/inokawa/edix/blob/431c5fd4f91
 
 > **paste**: (`dataTransfer`, `config`) => `DocFragment`
 
-Defined in: [schema/types.ts:13](https://github.com/inokawa/edix/blob/431c5fd4f91f9cb402acd852f95a41766a4cc2e5/src/schema/types.ts#L13)
+Defined in: [schema/types.ts:13](https://github.com/inokawa/edix/blob/17eb027c6558be0f6b434fe5269f1a66a1077362/src/schema/types.ts#L13)
 
 #### Parameters
 

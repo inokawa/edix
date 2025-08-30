@@ -4,7 +4,7 @@
 
 # Interface: EditorOptions\<T\>
 
-Defined in: [editor.ts:93](https://github.com/inokawa/edix/blob/431c5fd4f91f9cb402acd852f95a41766a4cc2e5/src/editor.ts#L93)
+Defined in: [editor.ts:93](https://github.com/inokawa/edix/blob/17eb027c6558be0f6b434fe5269f1a66a1077362/src/editor.ts#L93)
 
 Options of [createEditor](../functions/createEditor.md).
 
@@ -20,7 +20,7 @@ Options of [createEditor](../functions/createEditor.md).
 
 > **schema**: [`DocSchema`](DocSchema.md)\<`T`\>
 
-Defined in: [editor.ts:97](https://github.com/inokawa/edix/blob/431c5fd4f91f9cb402acd852f95a41766a4cc2e5/src/editor.ts#L97)
+Defined in: [editor.ts:97](https://github.com/inokawa/edix/blob/17eb027c6558be0f6b434fe5269f1a66a1077362/src/editor.ts#L97)
 
 TODO
 
@@ -30,7 +30,7 @@ TODO
 
 > **doc**: `T`
 
-Defined in: [editor.ts:101](https://github.com/inokawa/edix/blob/431c5fd4f91f9cb402acd852f95a41766a4cc2e5/src/editor.ts#L101)
+Defined in: [editor.ts:101](https://github.com/inokawa/edix/blob/17eb027c6558be0f6b434fe5269f1a66a1077362/src/editor.ts#L101)
 
 Initial document state.
 
@@ -40,7 +40,7 @@ Initial document state.
 
 > `optional` **isBlock**: (`node`) => `boolean`
 
-Defined in: [editor.ts:105](https://github.com/inokawa/edix/blob/431c5fd4f91f9cb402acd852f95a41766a4cc2e5/src/editor.ts#L105)
+Defined in: [editor.ts:105](https://github.com/inokawa/edix/blob/17eb027c6558be0f6b434fe5269f1a66a1077362/src/editor.ts#L105)
 
 TODO
 
@@ -60,7 +60,7 @@ TODO
 
 > **onChange**: (`doc`) => `void`
 
-Defined in: [editor.ts:109](https://github.com/inokawa/edix/blob/431c5fd4f91f9cb402acd852f95a41766a4cc2e5/src/editor.ts#L109)
+Defined in: [editor.ts:109](https://github.com/inokawa/edix/blob/17eb027c6558be0f6b434fe5269f1a66a1077362/src/editor.ts#L109)
 
 Callback invoked when document state changes.
 
@@ -80,7 +80,7 @@ Callback invoked when document state changes.
 
 > `optional` **onKeyDown**: (`keyboard`) => `boolean` \| `void`
 
-Defined in: [editor.ts:115](https://github.com/inokawa/edix/blob/431c5fd4f91f9cb402acd852f95a41766a4cc2e5/src/editor.ts#L115)
+Defined in: [editor.ts:115](https://github.com/inokawa/edix/blob/17eb027c6558be0f6b434fe5269f1a66a1077362/src/editor.ts#L115)
 
 Callback invoked when `keydown` events are dispatched.
 
