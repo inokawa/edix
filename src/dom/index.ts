@@ -11,6 +11,7 @@ import {
   ParserConfig,
   isVoidNode,
   moveToBlock,
+  indexOf,
 } from "./parser";
 import { comparePosition } from "../doc/position";
 import {
@@ -189,14 +190,6 @@ const findClosestBlockNode = (root: Element, startNode: Node): Element => {
     temp = parent;
   }
   return temp;
-};
-
-const indexOf = (node: Element): number => {
-  let i = 0;
-  while ((node = node.previousElementSibling!)) {
-    i++;
-  }
-  return i;
 };
 
 const serializePosition = (
