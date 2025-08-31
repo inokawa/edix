@@ -144,6 +144,7 @@ export const App = () => {
 - Solid ([Demo](https://inokawa.github.io/edix/solid), [Source](./examples/solid))
 - Angular ([Demo](https://inokawa.github.io/edix/angular), [Source](./examples/angular))
 - Preact ([Demo](https://inokawa.github.io/edix/preact), [Source](./examples/preact))
+- Alpine ([Demo](https://inokawa.github.io/edix/alpine), [Source](./examples/alpine))
 - Vanilla ([Demo](https://inokawa.github.io/edix/vanilla), [Source](./examples/vanilla))
 
 ...and more! Contribution welcome!
