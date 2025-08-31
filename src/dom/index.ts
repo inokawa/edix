@@ -10,6 +10,7 @@ import {
   TOKEN_BLOCK,
   type ParserConfig,
   moveToBlock,
+  indexOf,
 } from "./parser.js";
 import { comparePosition } from "../doc/position.js";
 import type {
@@ -193,14 +194,6 @@ const findClosestBlockNode = (root: Element, startNode: Node): Element => {
     temp = parent;
   }
   return temp;
-};
-
-const indexOf = (node: Element): number => {
-  let i = 0;
-  while ((node = node.previousElementSibling!)) {
-    i++;
-  }
-  return i;
 };
 
 const serializePosition = (
