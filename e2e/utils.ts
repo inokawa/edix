@@ -1,6 +1,6 @@
 import { Locator, Page } from "@playwright/test";
 
-export const storyUrl = (id: string) =>
+export const storyUrl = (id: `${string}-${string}--${string}`) =>
   `http://localhost:6006/iframe.html?id=${id}&viewMode=story`;
 
 export const getEditable = async (page: Page) => {
