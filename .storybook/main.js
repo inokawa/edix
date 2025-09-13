@@ -1,3 +1,5 @@
+import { mergeConfig } from "vite";
+
 /** @type { import('@storybook/react-vite').StorybookConfig } */
 export default {
   stories: ["../stories/**/*.mdx", "../stories/**/*.stories.@(js|jsx|ts|tsx)"],
@@ -14,8 +16,6 @@ export default {
     },
   ],
   viteFinal: async (config) => {
-    const { mergeConfig } = await import("vite");
-
     return mergeConfig(config, {
       resolve: {
         alias: {
