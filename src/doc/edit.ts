@@ -1,4 +1,4 @@
-import { compareLine, comparePosition } from "./position";
+import { compareLine, comparePosition } from "./position.js";
 import {
   DocFragment,
   DocLine,
@@ -6,8 +6,8 @@ import {
   Position,
   SelectionSnapshot,
   Writeable,
-} from "./types";
-import { docToString } from "./utils";
+} from "./types.js";
+import { docToString } from "./utils.js";
 
 const TYPE_DELETE = 1;
 type DeleteOperation = Readonly<{

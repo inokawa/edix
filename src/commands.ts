@@ -1,7 +1,7 @@
-import { type DocFragment, type SelectionSnapshot } from "./doc/types";
-import { range } from "./doc/position";
-import { getLineSize, Transaction } from "./doc/edit";
-import { stringToDoc } from "./doc/utils";
+import { type DocFragment, type SelectionSnapshot } from "./doc/types.js";
+import { range } from "./doc/position.js";
+import { getLineSize, Transaction } from "./doc/edit.js";
+import { stringToDoc } from "./doc/utils.js";
 
 export type EditorCommand<A extends unknown[]> = (
   doc: DocFragment,

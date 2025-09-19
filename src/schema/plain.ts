@@ -1,5 +1,5 @@
-import { docToString, stringToDoc } from "../doc/utils";
-import type { DocSchema } from "./types";
+import { docToString, stringToDoc } from "../doc/utils.js";
+import type { DocSchema } from "./types.js";
 
 /**
  * Defines plain text schema.

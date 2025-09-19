@@ -1,5 +1,5 @@
-import type { DocFragment } from "../doc/types";
-import type { ParserConfig } from "../dom/parser";
+import type { DocFragment } from "../doc/types.js";
+import type { ParserConfig } from "../dom/parser.js";
 
 export interface DocSchema<T> {
   single: boolean;

@@ -1,5 +1,5 @@
-import { isTextNode } from "./edit";
-import { type DocFragment, type VoidNode } from "./types";
+import { isTextNode } from "./edit.js";
+import { type DocFragment, type VoidNode } from "./types.js";
 
 /**
  * @internal

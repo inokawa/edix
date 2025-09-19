@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { Transaction, applyTransaction, isDocEqual } from "./edit";
+import { Transaction, applyTransaction, isDocEqual } from "./edit.js";
 import {
   type DocFragment,
   type SelectionSnapshot,
   type Writeable,
-} from "./types";
+} from "./types.js";
 
 const splitAt = (targetStr: string, index: number): [string, string] => {
   return [targetStr.slice(0, index), targetStr.slice(index)];

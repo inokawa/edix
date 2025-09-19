@@ -1,4 +1,4 @@
-import type { Position, PositionRange } from "./types";
+import type { Position, PositionRange } from "./types.js";
 
 /**
  * @internal

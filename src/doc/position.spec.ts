@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { comparePosition } from "./position";
+import { comparePosition } from "./position.js";
 
 describe(comparePosition.name, () => {
   it("should return same if position is the same", () => {

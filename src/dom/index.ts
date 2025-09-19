@@ -11,18 +11,18 @@ import {
   ParserConfig,
   isVoidNode,
   moveToBlock,
-} from "./parser";
-import { comparePosition } from "../doc/position";
+} from "./parser.js";
+import { comparePosition } from "../doc/position.js";
 import {
   DocFragment,
   Position,
   DocNode,
   SelectionSnapshot,
   PositionRange,
-} from "../doc/types";
-import { min } from "../utils";
+} from "../doc/types.js";
+import { min } from "../utils.js";
 
-export { defaultIsBlockNode } from "./default";
+export { defaultIsBlockNode } from "./default.js";
 
 // const DOCUMENT_POSITION_DISCONNECTED = 0x01;
 const DOCUMENT_POSITION_PRECEDING = 0x02;
