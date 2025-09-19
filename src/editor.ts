@@ -1,4 +1,4 @@
-import { createHistory } from "./history";
+import { createHistory } from "./history.js";
 import {
   getCurrentDocument,
   takeSelectionSnapshot,
@@ -7,22 +7,22 @@ import {
   getPointedCaretPosition,
   defaultIsBlockNode,
   serializeRange,
-} from "./dom";
-import { createMutationObserver } from "./mutation";
-import { DocFragment, SelectionSnapshot, Writeable } from "./doc/types";
-import { microtask } from "./utils";
-import { EditorCommand } from "./commands";
+} from "./dom/index.js";
+import { createMutationObserver } from "./mutation.js";
+import { DocFragment, SelectionSnapshot, Writeable } from "./doc/types.js";
+import { microtask } from "./utils.js";
+import { EditorCommand } from "./commands.js";
 import {
   applyTransaction,
   Transaction,
   sliceDoc,
   isDocEqual,
-} from "./doc/edit";
-import { singleline } from "./plugins/singleline";
-import { DocSchema } from "./schema";
-import { ParserConfig } from "./dom/parser";
-import { comparePosition, range } from "./doc/position";
-import { stringToDoc } from "./doc/utils";
+} from "./doc/edit.js";
+import { singleline } from "./plugins/singleline.js";
+import { DocSchema } from "./schema/index.js";
+import { ParserConfig } from "./dom/parser.js";
+import { comparePosition, range } from "./doc/position.js";
+import { stringToDoc } from "./doc/utils.js";
 
 const noop = () => {};
 

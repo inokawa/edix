@@ -1,4 +1,4 @@
-export type { EditorCommand } from "./commands";
-export { Delete, InsertText, ReplaceAll } from "./commands";
-export * from "./editor";
-export * from "./schema";
+export type { EditorCommand } from "./commands.js";
+export { Delete, InsertText, ReplaceAll } from "./commands.js";
+export * from "./editor.js";
+export * from "./schema/index.js";
