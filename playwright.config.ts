@@ -65,9 +65,9 @@ export default defineConfig({
   webServer: [
     {
       command: FRAMEWORK_DIR
-        ? `(cd ${FRAMEWORK_DIR} && npm run build && npx http-server dist)`
+        ? `(cd ${FRAMEWORK_DIR} && npm run build && npx http-server dist -p 6006)`
         : "npm run storybook",
-      url: FRAMEWORK_DIR ? "http://127.0.0.1:8080" : "http://127.0.0.1:6006",
+      url: "http://127.0.0.1:6006",
       reuseExistingServer: !process.env.CI,
     },
   ],

@@ -25,6 +25,34 @@ test.beforeEach(async ({ context }) => {
   await initEdixHelpers(context);
 });
 
+test.describe("feature detection", () => {
+  test("newest", async ({ page }) => {
+    await page.goto(storyUrl("basics-plain--multiline"));
+
+    // check if editor contents are rendered
+    await expect(page.getByText("Hello world.")).toBeAttached();
+    // check if editable
+    await expect(page.locator('[contenteditable="true"]')).toBeAttached({
+      timeout: 1000,
+    });
+  });
+
+  test("beforeinput not implemented", async ({ page }) => {
+    await page.addInitScript(() => {
+      (InputEvent.prototype.inputType as any) = undefined;
+      (InputEvent.prototype.getTargetRanges as any) = undefined;
+    });
+    await page.goto(storyUrl("basics-plain--multiline"));
+
+    // check if editor contents are rendered
+    await expect(page.getByText("Hello world.")).toBeAttached();
+    // check if not editable
+    await expect(page.locator('[contenteditable="true"]')).not.toBeAttached({
+      timeout: 1000,
+    });
+  });
+});
+
 test.describe("type word", () => {
   test.describe("multiline", () => {
     test("on origin", async ({ page }) => {

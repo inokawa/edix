@@ -14,7 +14,7 @@ test.beforeEach(async ({ context }) => {
 });
 
 test("smoke", async ({ page }) => {
-  await page.goto("localhost:8080");
+  await page.goto("localhost:6006");
 
   const editable = await getEditable(page);
   const initialValue = await getText(editable);
