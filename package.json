@@ -33,7 +33,7 @@
   "devDependencies": {
     "@playwright/test": "1.52.0",
     "@rollup/plugin-terser": "0.4.4",
-    "@rollup/plugin-typescript": "11.1.6",
+    "@rollup/plugin-typescript": "12.3.0",
     "@size-limit/preset-small-lib": "^11.0.2",
     "@storybook/addon-docs": "^10.0.1",
     "@storybook/react-vite": "^10.0.1",
