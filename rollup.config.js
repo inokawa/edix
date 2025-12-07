@@ -1,5 +1,6 @@
 import typescript from "@rollup/plugin-typescript";
 import terser from "@rollup/plugin-terser";
+import { dirname } from 'node:path'
 import pkg from "./package.json" with { type: "json" };
 
 export default {
@@ -21,6 +22,7 @@ export default {
       tsconfig: "./tsconfig.json",
       outDir: ".",
       declaration: true,
+      declarationDir: dirname(pkg.types),
       exclude: ["**/*.{spec,stories}.*"],
     }),
     terser({
