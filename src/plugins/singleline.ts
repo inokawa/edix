@@ -1,5 +1,5 @@
-import { Operation, Transaction, merge } from "../doc/edit.js";
-import { DocLine } from "../doc/types.js";
+import { type Operation, Transaction, merge } from "../doc/edit.js";
+import { type DocLine } from "../doc/types.js";
 
 /**
  * @internal

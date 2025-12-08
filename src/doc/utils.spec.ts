@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { stringToDoc } from "./utils.js";
-import { DocFragment } from "./types.js";
+import { type DocFragment } from "./types.js";
 
 describe(stringToDoc.name, () => {
   const tests: [string, DocFragment][] = [

@@ -9,9 +9,9 @@ import {
   serializeRange,
 } from "./dom/index.js";
 import { createMutationObserver } from "./mutation.js";
-import { DocFragment, SelectionSnapshot, Writeable } from "./doc/types.js";
+import type { DocFragment, SelectionSnapshot, Writeable } from "./doc/types.js";
 import { microtask } from "./utils.js";
-import { EditorCommand } from "./commands.js";
+import type { EditorCommand } from "./commands.js";
 import {
   applyTransaction,
   Transaction,
@@ -19,8 +19,8 @@ import {
   isDocEqual,
 } from "./doc/edit.js";
 import { singleline } from "./plugins/singleline.js";
-import { DocSchema } from "./schema/index.js";
-import { ParserConfig } from "./dom/parser.js";
+import type { DocSchema } from "./schema/index.js";
+import type { ParserConfig } from "./dom/parser.js";
 import { comparePosition, range } from "./doc/position.js";
 import { stringToDoc } from "./doc/utils.js";
 

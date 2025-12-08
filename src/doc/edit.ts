@@ -1,5 +1,5 @@
 import { compareLine, comparePosition } from "./position.js";
-import {
+import type {
   DocFragment,
   DocLine,
   DocNode,

@@ -1,5 +1,5 @@
 import {
-  TokenType,
+  type TokenType,
   parse,
   getNodeSize,
   getDomNode,
@@ -8,12 +8,12 @@ import {
   TOKEN_VOID,
   TOKEN_SOFT_BREAK,
   TOKEN_BLOCK,
-  ParserConfig,
+  type ParserConfig,
   isVoidNode,
   moveToBlock,
 } from "./parser.js";
 import { comparePosition } from "../doc/position.js";
-import {
+import type {
   DocFragment,
   Position,
   DocNode,

@@ -1,9 +1,13 @@
 import { isCommentNode } from "../dom/parser.js";
-import { TextNode, type DocNode } from "../doc/types.js";
+import { type TextNode, type DocNode } from "../doc/types.js";
 import type { DocSchema } from "./types.js";
 import { docToString, stringToDoc } from "../doc/utils.js";
 import { isTextNode } from "../doc/edit.js";
-import { getDOMSelection, getSelectionRangeInEditor, readDom } from "../dom/index.js";
+import {
+  getDOMSelection,
+  getSelectionRangeInEditor,
+  readDom,
+} from "../dom/index.js";
 
 export interface EditableVoidSerializer<T> {
   is: (node: HTMLElement) => boolean;
