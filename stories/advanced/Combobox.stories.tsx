@@ -1,4 +1,4 @@
-import { StoryObj } from "@storybook/react-vite";
+import type { StoryObj } from "@storybook/react-vite";
 import React, {
   useEffect,
   useLayoutEffect,
@@ -8,7 +8,7 @@ import React, {
 } from "react";
 import {
   createEditor,
-  KeyboardPayload,
+  type KeyboardPayload,
   plainSchema,
   ReplaceAll,
 } from "../../src";
@@ -494,9 +494,9 @@ export const Combobox: StoryObj = {
     const filtered = useMemo(
       () =>
         CHARACTERS.filter((c) =>
-          c.toLowerCase().startsWith(value.toLowerCase())
+          c.toLowerCase().startsWith(value.toLowerCase()),
         ),
-      [value]
+      [value],
     );
 
     const length = filtered.length;
@@ -539,7 +539,7 @@ export const Combobox: StoryObj = {
           onChange: setValue,
           onKeyDown: (e) => onKeyDownRef.current(e),
         }),
-      []
+      [],
     );
 
     const complete = (i: number) => {

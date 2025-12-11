@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { StoryObj } from "@storybook/react-vite";
-import { createEditor, schema, voidNode, InferDoc } from "../../src";
+import type { StoryObj } from "@storybook/react-vite";
+import { createEditor, schema, voidNode, type InferDoc } from "../../src";
 
 export default {
   component: createEditor,
@@ -104,7 +104,7 @@ export const Tag: StoryObj = {
               </span>
             ) : (
               <span key={j}>{t.text}</span>
-            )
+            ),
           )
         ) : (
           <br />
@@ -174,7 +174,7 @@ export const Image: StoryObj = {
                   <img key={j} src={t.data.src} />
                 ) : (
                   <span key={j}>{t.text}</span>
-                )
+                ),
               )
             ) : (
               <br />
@@ -251,7 +251,7 @@ export const Video: StoryObj = {
                   </video>
                 ) : (
                   <span key={j}>{t.text}</span>
-                )
+                ),
               )
             ) : (
               <br />
@@ -344,7 +344,7 @@ export const Iframe: StoryObj = {
                     <Youtube key={j} id={t.data.id} />
                   ) : (
                     <span key={j}>{t.text}</span>
-                  )
+                  ),
                 )
               ) : (
                 <br />

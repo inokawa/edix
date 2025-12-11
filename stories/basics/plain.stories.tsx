@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { StoryObj } from "@storybook/react-vite";
+import type { StoryObj } from "@storybook/react-vite";
 import { Delete, createEditor, InsertText, plainSchema } from "../../src";
 
 export default {

@@ -1,7 +1,7 @@
-import { StoryObj } from "@storybook/react-vite";
+import type { StoryObj } from "@storybook/react-vite";
 import React, { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { createEditor, plainSchema } from "../../src";
-import { diffLines, diffChars, Change } from "diff";
+import { diffLines, diffChars, type Change } from "diff";
 
 export default {
   component: createEditor,
@@ -102,10 +102,10 @@ const Editor = ({
 export const WithDiff: StoryObj = {
   render: () => {
     const [baseText, setBaseText] = useState(
-      "This line is removed on the right.\njust some text\nabcd\nefgh\nSome more text\nSome more text\nSome more text"
+      "This line is removed on the right.\njust some text\nabcd\nefgh\nSome more text\nSome more text\nSome more text",
     );
     const [targetText, setTargetText] = useState(
-      "just some text\nabcz\nzzzzefgh\nSome more text.\nThis line is removed on the left."
+      "just some text\nabcz\nzzzzefgh\nSome more text.\nThis line is removed on the left.",
     );
 
     const result = useMemo(() => {

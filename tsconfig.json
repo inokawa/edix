@@ -23,6 +23,7 @@
     "noFallthroughCasesInSwitch": true,
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
+    "verbatimModuleSyntax": true,
     // "exactOptionalPropertyTypes": true,
     "stripInternal": true
   },
