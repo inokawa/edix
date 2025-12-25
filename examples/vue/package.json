@@ -10,12 +10,12 @@
   },
   "dependencies": {
     "edix": "0.2.0",
-    "vue": "^3.5.10"
+    "vue": "^3.5.26"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^5.1.4",
-    "typescript": "5.5.3",
-    "vite": "^5.4.17",
-    "vue-tsc": "2.1.6"
+    "@vitejs/plugin-vue": "^6.0.3",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.0",
+    "vue-tsc": "3.2.1"
   }
 }

@@ -13,12 +13,12 @@
     "edix": "0.2.0"
   },
   "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^4.0.0",
-    "@tsconfig/svelte": "^5.0.4",
+    "@sveltejs/vite-plugin-svelte": "^6.2.1",
+    "@tsconfig/svelte": "^5.0.6",
     "svelte": "^5.0.0",
-    "svelte-check": "^4.0.4",
+    "svelte-check": "^4.3.5",
     "tslib": "^2.7.0",
-    "typescript": "^5.5.3",
-    "vite": "^5.4.17"
+    "typescript": "^5.9.3",
+    "vite": "^7.3.0"
   }
 }
