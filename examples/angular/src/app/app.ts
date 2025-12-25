@@ -4,7 +4,7 @@ import { createEditor, plainSchema } from 'edix';
 @Component({
   selector: 'app-root',
   standalone: true,
-  templateUrl: './app.component.html',
+  templateUrl: './app.html',
 })
 export class AppComponent {
   ref = viewChild<ElementRef<HTMLDivElement>>('ref');
