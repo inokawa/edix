@@ -9,9 +9,13 @@ export const getEditable = async (page: Page) => {
   return editable;
 };
 
-export const type = async (editable: Locator, text: string) => {
+export const type = async (
+  editable: Locator,
+  text: string,
+  opts?: { delay?: number },
+) => {
   for (const t of text.split("")) {
-    await editable.press(t);
+    await editable.press(t, opts);
   }
 };
 
@@ -29,7 +33,7 @@ export const grapheme = (str: string): string[] => {
 
 export const readClipboard = async (
   page: Page,
-  type: "text/plain" | "text/html"
+  type: "text/plain" | "text/html",
 ): Promise<string | null> => {
   return page.evaluate(async (t) => {
     const contents = await navigator.clipboard.read();
