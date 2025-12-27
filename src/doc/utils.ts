@@ -1,25 +1,18 @@
 import { isTextNode } from "./edit.js";
-import { type DocFragment, type VoidNode } from "./types.js";
+import { type DocFragment, type DocNode } from "./types.js";
 
 /**
  * @internal
  */
 export const docToString = (
   doc: DocFragment,
-  voidToString?: (node: VoidNode) => string
+  serializer: (node: DocNode) => string = (n) => (isTextNode(n) ? n.text : ""),
 ): string => {
   return doc.reduce((acc, r, i) => {
     if (i !== 0) {
       acc += "\n";
     }
-    return (
-      acc +
-      r.reduce(
-        (acc, n) =>
-          acc + (isTextNode(n) ? n.text : voidToString ? voidToString(n) : ""),
-        ""
-      )
-    );
+    return acc + r.reduce((acc, n) => acc + serializer(n), "");
   }, "");
 };
 

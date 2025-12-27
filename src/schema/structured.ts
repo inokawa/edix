@@ -52,7 +52,7 @@ type ExtractVoidNode<T> = Prettify<
  */
 export const schema = <
   V extends Record<string, EditableVoidSerializer<any>> = {},
-  M extends boolean = false
+  M extends boolean = false,
 >({
   multiline,
   void: voids = {} as V,
@@ -106,7 +106,7 @@ export const schema = <
   };
 
   const nodeToDocNode = (
-    node: ExtractVoidNode<V> | { type: "text"; text: string }
+    node: ExtractVoidNode<V> | { type: "text"; text: string },
   ): DocNode => {
     if (node.type === "text") {
       return { text: (node as { type: "text"; text: string }).text };
@@ -120,7 +120,7 @@ export const schema = <
       {
         type,
         data,
-      } as VoidNodeType
+      } as VoidNodeType,
     );
     return { data };
   };
@@ -150,9 +150,12 @@ export const schema = <
       dataTransfer.setData(
         "text/plain",
         docToString(doc, (node) => {
+          if (isTextNode(node)) {
+            return node.text;
+          }
           const voidNode = voidCache.get(node.data as VoidNodeData)!;
           return voids[voidNode.type]!.plain(node.data);
-        })
+        }),
       );
 
       const wrapper = document.createElement("div");
@@ -160,8 +163,8 @@ export const schema = <
         // DOM range must exist here
         getSelectionRangeInEditor(
           getDOMSelection(element),
-          element
-        )!.cloneContents()
+          element,
+        )!.cloneContents(),
       );
       dataTransfer.setData("text/html", wrapper.innerHTML);
     },
