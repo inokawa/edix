@@ -50,7 +50,7 @@ export const getDOMSelection = (element: Element): Selection => {
  */
 export const getSelectionRangeInEditor = (
   selection: Selection,
-  root: Element
+  root: Element,
 ): Range | void => {
   if (selection.rangeCount) {
     const range = selection.getRangeAt(0);
@@ -63,7 +63,7 @@ export const getSelectionRangeInEditor = (
 const setRangeToSelection = (
   root: Element,
   range: Range,
-  backward?: boolean
+  backward?: boolean,
 ) => {
   const selection = getDOMSelection(root);
   selection.removeAllRanges();
@@ -81,7 +81,7 @@ export const setSelectionToDOM = (
   document: Document,
   root: Element,
   [anchor, focus]: SelectionSnapshot,
-  config: ParserConfig
+  config: ParserConfig,
 ): boolean => {
   const posDiff = comparePosition(anchor, focus);
   const isCollapsed = posDiff === 0;
@@ -150,7 +150,7 @@ type DOMPosition = [node: Text | Element, offsetAtNode: number];
 const findPosition = (
   root: Element,
   [line, offset]: Position,
-  config: ParserConfig
+  config: ParserConfig,
 ): DOMPosition | undefined => {
   return parse(
     (next): DOMPosition | undefined => {
@@ -175,7 +175,7 @@ const findPosition = (
       return;
     },
     root,
-    config
+    config,
   );
 };
 
@@ -203,7 +203,7 @@ const serializePosition = (
   root: Element,
   node: Node,
   offsetAtNode: number,
-  config: ParserConfig
+  config: ParserConfig,
 ): Position => {
   let row: Element;
   let lineIndex: number;
@@ -252,7 +252,7 @@ const serializePosition = (
     },
     row,
     config,
-    { _endNode: node, _excludeEnd: excludeEnd }
+    { _endNode: node, _excludeEnd: excludeEnd },
   );
 };
 
@@ -262,7 +262,7 @@ const serializePosition = (
 export const serializeRange = (
   root: Element,
   config: ParserConfig,
-  { startOffset, startContainer, endOffset, endContainer }: AbstractRange
+  { startOffset, startContainer, endOffset, endContainer }: AbstractRange,
 ): PositionRange => {
   const start = serializePosition(root, startContainer, startOffset, config);
   return [
@@ -290,7 +290,7 @@ const compareDomPosition = (a: Node, b: Node) => a.compareDocumentPosition(b);
  */
 export const takeSelectionSnapshot = (
   root: Element,
-  config: ParserConfig
+  config: ParserConfig,
 ): SelectionSnapshot => {
   const selection = getDOMSelection(root);
   const domRange = getSelectionRangeInEditor(selection, root);
@@ -321,10 +321,6 @@ export const readDom = (
   root: Node,
   config: ParserConfig,
   serializeVoid: (node: Element) => Record<string, unknown> | void,
-  option?: {
-    _start: [Node, number] | undefined;
-    _end: [Node, number];
-  }
 ): DocFragment => {
   return parse(
     (next) => {
@@ -364,29 +360,10 @@ export const readDom = (
 
           if (type === TOKEN_TEXT) {
             const node = getDomNode<typeof type>();
-            let nodeText = node.data;
-            if (option) {
-              if (option._end[0] === node) {
-                nodeText = nodeText.slice(0, option._end[1]);
-              }
-              if (option._start && option._start[0] === node) {
-                nodeText = nodeText.slice(option._start[1]);
-              }
-            }
-            text += nodeText;
+            text += node.data;
           } else if (type === TOKEN_VOID) {
             completeText();
             const node = getDomNode<typeof type>();
-            if (option) {
-              if (
-                (option._end[0] === node && option._end[1] === 0) ||
-                (option._start &&
-                  option._start[0] === node &&
-                  option._start[1] !== 0)
-              ) {
-                continue;
-              }
-            }
             const data = serializeVoid(node);
             if (data) {
               row!.push({ data });
@@ -406,10 +383,6 @@ export const readDom = (
     },
     root,
     config,
-    option && {
-      _startNode: option._start && option._start[0],
-      _endNode: option._end[0],
-    }
   );
 };
 
@@ -420,7 +393,7 @@ export const getPointedCaretPosition = (
   document: Document,
   root: Element,
   { clientX, clientY }: MouseEvent,
-  config: ParserConfig
+  config: ParserConfig,
 ): Position | void => {
   // https://developer.mozilla.org/en-US/docs/Web/API/Document/caretPositionFromPoint
   // https://developer.mozilla.org/en-US/docs/Web/API/Document/caretRangeFromPoint
@@ -435,7 +408,7 @@ export const getPointedCaretPosition = (
         root,
         position.offsetNode,
         position.offset,
-        config
+        config,
       );
     }
   } else if (document.caretRangeFromPoint) {
@@ -445,7 +418,7 @@ export const getPointedCaretPosition = (
         root,
         range.startContainer,
         range.startOffset,
-        config
+        config,
       );
     }
   }
