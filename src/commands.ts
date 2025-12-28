@@ -16,7 +16,7 @@ export const Delete: EditorCommand<[]> = (_doc, selection) => {
 export const InsertText: EditorCommand<[text: string]> = (
   _doc,
   selection,
-  text
+  text,
 ) => {
   const [start, end] = range(selection);
   return new Transaction().delete(start, end).insert(start, stringToDoc(text));
@@ -25,7 +25,7 @@ export const InsertText: EditorCommand<[text: string]> = (
 export const ReplaceAll: EditorCommand<[text: string]> = (
   doc,
   _selection,
-  text
+  text,
 ) => {
   return new Transaction()
     .delete([0, 0], [doc.length - 1, getLineSize(doc[doc.length - 1]!)])

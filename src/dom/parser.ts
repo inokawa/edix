@@ -102,12 +102,12 @@ export const isVoidNode = (node: Element): boolean => {
  * @internal
  */
 export const getDomNode = <
-  T extends TokenType | void
+  T extends TokenType | void,
 >(): T extends typeof TOKEN_TEXT
   ? Text
   : T extends TokenType
-  ? Element
-  : Text | Element => {
+    ? Element
+    : Text | Element => {
   return node as any;
 };
 
@@ -118,8 +118,8 @@ export const getNodeSize = (): number => {
   return tokenType === TOKEN_TEXT
     ? (node as Text).data.length
     : tokenType === TOKEN_VOID
-    ? 1
-    : 0;
+      ? 1
+      : 0;
 };
 
 /**
@@ -228,7 +228,7 @@ export const parse = <T>(
   scopeFn: (read: typeof readNext) => T,
   root: Node,
   { _document: document, _isBlock: isBlock }: ParserConfig,
-  option?: ParserOption
+  option?: ParserOption,
 ): T => {
   try {
     isBlockNode = isBlock;

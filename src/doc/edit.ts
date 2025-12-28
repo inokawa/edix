@@ -69,7 +69,7 @@ export class Transaction extends Array<Operation> {
   transform(position: Position): Position {
     return this.reduce(
       (acc, op) => (isEditOperation(op) ? rebasePosition(acc, op) : acc),
-      position
+      position,
     );
   }
 }
@@ -146,7 +146,7 @@ const replaceRange = (
   doc: Writeable<DocFragment>,
   fragment: DocFragment,
   start: Position,
-  end?: Position
+  end?: Position,
 ) => {
   const [startLine] = start;
   const [endLine] = end || start;
@@ -172,7 +172,7 @@ const replaceRange = (
 export const sliceDoc = (
   doc: DocFragment,
   start: Position,
-  end: Position
+  end: Position,
 ): DocFragment => {
   if (compareLine(start, end) === 0) {
     return [split(split(doc[start[0]]!, end[1])[0], start[1])[1]];
@@ -264,7 +264,8 @@ const rebasePosition = (position: Position, op: EditOperation): Position => {
 export const applyTransaction = (
   doc: Writeable<DocFragment>,
   selection: Writeable<SelectionSnapshot>,
-  tr: Transaction
+  tr: Transaction,
+  onError?: (message: string) => void,
 ): void => {
   const docSnapshot: DocFragment = [...doc];
   const selectionSnapshot: SelectionSnapshot = [...selection];
@@ -288,7 +289,9 @@ export const applyTransaction = (
     }
   } catch (e) {
     // rollback
-    console.error("rollback transaction:", e);
+    if (onError) {
+      onError("rollback transaction: " + e);
+    }
 
     doc.length = 0;
     doc.push(...docSnapshot);

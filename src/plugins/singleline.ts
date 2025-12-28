@@ -16,6 +16,6 @@ export const singleline = (tr: Transaction): Transaction => {
         };
       }
       return op;
-    })
+    }),
   );
 };

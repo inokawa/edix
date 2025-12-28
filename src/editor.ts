@@ -113,6 +113,12 @@ export interface EditorOptions<T> {
    * Return `true` if you want to cancel the editor's default behavior.
    */
   onKeyDown?: (keyboard: KeyboardPayload) => boolean | void;
+  /**
+   * Callback invoked when errors happen.
+   *
+   * @default console.error
+   */
+  onError?: (message: string) => void;
 }
 
 /**
@@ -146,6 +152,7 @@ export const createEditor = <T>({
   isBlock = defaultIsBlockNode,
   onChange,
   onKeyDown: onKeyDownCallback,
+  onError = console.error,
 }: EditorOptions<T>): Editor => {
   let selection: SelectionSnapshot = getEmptySelectionSnapshot();
   let readonly = false;
@@ -188,7 +195,7 @@ export const createEditor = <T>({
         if (isSingleline) {
           tr = singleline(tr);
         }
-        applyTransaction(nextDoc, nextSelection, tr);
+        applyTransaction(nextDoc, nextSelection, tr, onError);
       }
 
       const currentDoc = doc();
@@ -211,7 +218,7 @@ export const createEditor = <T>({
           typeof InputEvent.prototype.getTargetRanges === "function"
         )
       ) {
-        console.error("beforeinput event is not supported.");
+        onError("beforeinput event is not supported.");
         return noop;
       }
 
@@ -295,7 +302,7 @@ export const createEditor = <T>({
             document,
             element,
             selection,
-            parserConfig
+            parserConfig,
           );
         }
 
@@ -445,7 +452,7 @@ export const createEditor = <T>({
         apply(
           new Transaction()
             .delete(start, end)
-            .insert(start, paste(e.clipboardData!, parserConfig))
+            .insert(start, paste(e.clipboardData!, parserConfig)),
         );
       };
 
@@ -457,7 +464,7 @@ export const createEditor = <T>({
           document,
           element,
           e,
-          parserConfig
+          parserConfig,
         );
         if (dataTransfer && droppedPosition) {
           const tr = new Transaction();
