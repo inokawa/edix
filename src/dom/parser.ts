@@ -2,6 +2,7 @@ let walker: TreeWalker | null;
 let node: Node | null;
 let tokenType: TokenType | null;
 let endNode: Node | null;
+let skipChildren = false;
 let isEndNodeVisited = false;
 let shouldExcludeEnd = false;
 let isBlockNode: (node: Element) => boolean;
@@ -126,7 +127,27 @@ export const getNodeSize = (): number => {
  * @internal
  */
 export const moveToBlock = (index: number) => {
-  walker!.currentNode = walker!.currentNode.parentNode!.children[index]!;
+  let block: Element = node!.parentNode!.children[0]!;
+  while (index > 0) {
+    if (block.tagName !== "TEMPLATE") {
+      index--;
+    }
+    block = block.nextElementSibling!;
+  }
+  walker!.currentNode = block;
+};
+
+/**
+ * @internal
+ */
+export const indexOf = (node: Element): number => {
+  let i = 0;
+  while ((node = node.previousElementSibling!)) {
+    if (node.tagName !== "TEMPLATE") {
+      i++;
+    }
+  }
+  return i;
 };
 
 const isValidSoftBreak = (node: Node): boolean => {
@@ -160,7 +181,8 @@ const isValidSoftBreak = (node: Node): boolean => {
 
 const readNext = (): TokenType | void => {
   while (true) {
-    if (tokenType === TOKEN_VOID) {
+    if (skipChildren) {
+      skipChildren = false;
       const current = node!;
       // don't use TreeWalker.nextSibling() to support case like <body><p><a><img /></a></p><p>hello</p></body>
       while ((node = walker!.nextNode())) {
@@ -212,7 +234,11 @@ const readNext = (): TokenType | void => {
             TOKEN_SOFT_BREAK
           : // Returning <div><br/></div> is necessary to anchor selection
             TOKEN_EMPTY_BLOCK_ANCHOR);
+      } else if (tagName === "TEMPLATE") {
+        // for alpine
+        skipChildren = true;
       } else if (isVoidNode(node)) {
+        skipChildren = true;
         return (tokenType = TOKEN_VOID);
       } else if (isBlockNode(node)) {
         return (tokenType = TOKEN_BLOCK);
@@ -249,6 +275,6 @@ export const parse = <T>(
     return scopeFn(readNext);
   } finally {
     walker = node = tokenType = endNode = null;
-    isEndNodeVisited = shouldExcludeEnd = false;
+    skipChildren = isEndNodeVisited = shouldExcludeEnd = false;
   }
 };
