@@ -22,7 +22,6 @@ import { singleline } from "./plugins/singleline.js";
 import type { DocSchema } from "./schema/index.js";
 import type { ParserConfig } from "./dom/parser.js";
 import { comparePosition, range } from "./doc/position.js";
-import { stringToDoc } from "./doc/utils.js";
 
 const noop = () => {};
 
@@ -391,7 +390,7 @@ export const createEditor = <T>({
           }
           if (data) {
             // replace or insert
-            inputTransaction.insert(range[0], stringToDoc(data));
+            inputTransaction.insert(range[0], data);
           }
         }
 
@@ -452,7 +451,7 @@ export const createEditor = <T>({
         apply(
           new Transaction()
             .delete(start, end)
-            .insert(start, paste(e.clipboardData!, parserConfig)),
+            .insertFragment(start, paste(e.clipboardData!, parserConfig)),
         );
       };
 
@@ -473,7 +472,7 @@ export const createEditor = <T>({
           }
           const pos = tr.transform(droppedPosition);
           tr.select(pos, pos)
-            .insert(pos, paste(dataTransfer, parserConfig))
+            .insertFragment(pos, paste(dataTransfer, parserConfig))
             .select(pos);
           apply(tr);
           element.focus({ preventScroll: true });

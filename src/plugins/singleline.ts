@@ -10,6 +10,11 @@ export const singleline = (tr: Transaction): Transaction => {
       if (op._type === 2) {
         return {
           ...op,
+          _text: op._text.replaceAll("\n", ""),
+        };
+      } else if (op._type === 3) {
+        return {
+          ...op,
           _fragment: [
             op._fragment.reduce((acc, l) => merge(acc, l), [] as DocLine),
           ],

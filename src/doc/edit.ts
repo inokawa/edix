@@ -7,7 +7,7 @@ import type {
   SelectionSnapshot,
   Writeable,
 } from "./types.js";
-import { docToString } from "./utils.js";
+import { docToString, stringToDoc } from "./utils.js";
 
 const TYPE_DELETE = 1;
 type DeleteOperation = Readonly<{
@@ -16,20 +16,27 @@ type DeleteOperation = Readonly<{
   _end: Position;
 }>;
 
-const TYPE_INSERT = 2;
+const TYPE_INSERT_TEXT = 2;
 type InsertOperation = Readonly<{
-  _type: typeof TYPE_INSERT;
+  _type: typeof TYPE_INSERT_TEXT;
+  _pos: Position;
+  _text: string;
+}>;
+
+const TYPE_INSERT_NODE = 3;
+type InsertNodeOperation = Readonly<{
+  _type: typeof TYPE_INSERT_NODE;
   _pos: Position;
   _fragment: DocFragment;
 }>;
 
-const TYPE_SELECT = 3;
+const TYPE_SELECT = 4;
 type SelectOperataion = Readonly<{
   _type: typeof TYPE_SELECT;
   _anchor: Position | undefined;
   _focus: Position | undefined;
 }>;
-type EditOperation = DeleteOperation | InsertOperation;
+type EditOperation = DeleteOperation | InsertOperation | InsertNodeOperation;
 export type Operation = EditOperation | SelectOperataion;
 
 const isEditOperation = (op: Operation) => op._type !== TYPE_SELECT;
@@ -39,9 +46,18 @@ export class Transaction extends Array<Operation> {
     return new Transaction(...tr);
   }
 
-  insert(start: Position, fragment: DocFragment): this {
+  insert(start: Position, text: string): this {
     this.push({
-      _type: TYPE_INSERT,
+      _type: TYPE_INSERT_TEXT,
+      _pos: start,
+      _text: text,
+    });
+    return this;
+  }
+
+  insertFragment(start: Position, fragment: DocFragment): this {
+    this.push({
+      _type: TYPE_INSERT_NODE,
       _pos: start,
       _fragment: fragment,
     });
@@ -189,7 +205,11 @@ const isValidOperation = (op: Operation): boolean => {
     case TYPE_DELETE: {
       return comparePosition(op._start, op._end) === 1;
     }
-    case TYPE_INSERT: {
+    case TYPE_INSERT_TEXT: {
+      // TODO optimize later
+      return !!op._text;
+    }
+    case TYPE_INSERT_NODE: {
       // TODO optimize later
       return !!docToString(op._fragment);
     }
@@ -203,7 +223,11 @@ const updateDoc = (doc: Writeable<DocFragment>, op: EditOperation): void => {
       replaceRange(doc, [], op._start, op._end);
       break;
     }
-    case TYPE_INSERT: {
+    case TYPE_INSERT_TEXT: {
+      replaceRange(doc, stringToDoc(op._text), op._pos);
+      break;
+    }
+    case TYPE_INSERT_NODE: {
       replaceRange(doc, op._fragment, op._pos);
       break;
     }
@@ -232,8 +256,11 @@ const rebasePosition = (position: Position, op: EditOperation): Position => {
       }
       break;
     }
-    case TYPE_INSERT: {
-      const { _pos: pos, _fragment: lines } = op;
+    case TYPE_INSERT_TEXT:
+    case TYPE_INSERT_NODE: {
+      const pos = op._pos;
+      const lines =
+        op._type === TYPE_INSERT_TEXT ? stringToDoc(op._text) : op._fragment;
 
       const lineLength = lines.length;
       const lineDiff = lineLength - 1;
