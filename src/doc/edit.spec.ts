@@ -21,10 +21,11 @@ const deleteAt = (targetStr: string, index: number, length: number): string => {
 
 const moveOffset = (
   selection: SelectionSnapshot,
-  offset: number | { anchor?: number; focus?: number }
+  offset: number | { anchor?: number; focus?: number },
 ): SelectionSnapshot => {
-  const anchorOffset = typeof offset === "number" ? offset : offset.anchor ?? 0;
-  const focusOffset = typeof offset === "number" ? offset : offset.focus ?? 0;
+  const anchorOffset =
+    typeof offset === "number" ? offset : (offset.anchor ?? 0);
+  const focusOffset = typeof offset === "number" ? offset : (offset.focus ?? 0);
   return [
     [selection[0][0], selection[0][1] + anchorOffset],
     [selection[1][0], selection[1][1] + focusOffset],
@@ -33,10 +34,10 @@ const moveOffset = (
 
 const moveLine = (
   selection: SelectionSnapshot,
-  line: number | { anchor?: number; focus?: number }
+  line: number | { anchor?: number; focus?: number },
 ): SelectionSnapshot => {
-  const anchorLine = typeof line === "number" ? line : line.anchor ?? 0;
-  const focusLine = typeof line === "number" ? line : line.focus ?? 0;
+  const anchorLine = typeof line === "number" ? line : (line.anchor ?? 0);
+  const focusLine = typeof line === "number" ? line : (line.focus ?? 0);
   return [
     [selection[0][0] + anchorLine, selection[0][1]],
     [selection[1][0] + focusLine, selection[1][1]],
@@ -62,7 +63,7 @@ it("rollback if error", () => {
   const docSnapshot = [...doc];
   const selSnapshot = [...sel];
 
-  const consoleSpy = vi.spyOn(console, "error");
+  const mockConsole = vi.fn();
 
   applyTransaction(
     doc,
@@ -70,10 +71,11 @@ it("rollback if error", () => {
     Transaction.from([
       { _type: 1, _start: [0, 0], _end: [0, 1] },
       { _type: 2, _pos: [0, 0], _fragment: {} as any },
-    ])
+    ]),
+    mockConsole,
   );
 
-  expect(consoleSpy).toHaveBeenCalledOnce();
+  expect(mockConsole).toHaveBeenCalledOnce();
   expect(isDocEqual(doc, docSnapshot)).toBe(true);
   expect(sel).toEqual(selSnapshot);
   expect(sel.every((n, i) => n === selSnapshot[i])).toBe(true);
@@ -96,7 +98,7 @@ describe("insert", () => {
     applyTransaction(
       doc,
       sel,
-      new Transaction().insert([0, 1], [[{ text: "" }]])
+      new Transaction().insert([0, 1], [[{ text: "" }]]),
     );
 
     expect(isDocEqual(doc, docSnapshot)).toBe(true);
@@ -119,7 +121,7 @@ describe("insert", () => {
     applyTransaction(
       doc,
       sel,
-      new Transaction().insert([0, 1], [[{ text: text }]])
+      new Transaction().insert([0, 1], [[{ text: text }]]),
     );
 
     expect(doc).toEqual([
@@ -146,7 +148,7 @@ describe("insert", () => {
     applyTransaction(
       doc,
       sel,
-      new Transaction().insert([0, 1], [[{ text: text }], [{ text: text2 }]])
+      new Transaction().insert([0, 1], [[{ text: text }], [{ text: text2 }]]),
     );
 
     const [before, after] = splitAt(docText, 1);
@@ -170,7 +172,7 @@ describe("insert", () => {
     applyTransaction(
       doc,
       sel,
-      new Transaction().insert([0, 1], [[{ text: text }]])
+      new Transaction().insert([0, 1], [[{ text: text }]]),
     );
 
     expect(doc).toEqual([[{ text: insertAt(docText, 1, text) }]]);
@@ -195,7 +197,7 @@ describe("insert", () => {
     applyTransaction(
       doc,
       sel,
-      new Transaction().insert([1, 1], [[{ text: text }]])
+      new Transaction().insert([1, 1], [[{ text: text }]]),
     );
 
     expect(doc).toEqual([
@@ -219,13 +221,13 @@ describe("insert", () => {
     applyTransaction(
       doc,
       sel,
-      new Transaction().insert([0, 1], [[{ text: text }], [{ text: text2 }]])
+      new Transaction().insert([0, 1], [[{ text: text }], [{ text: text2 }]]),
     );
 
     const [before, after] = splitAt(docText, 1);
     expect(doc).toEqual([[{ text: before + text }], [{ text: text2 + after }]]);
     expect(sel).toEqual(
-      moveLine(moveOffset(initialSel, -before.length + text2.length), 1)
+      moveLine(moveOffset(initialSel, -before.length + text2.length), 1),
     );
   });
 
@@ -241,7 +243,7 @@ describe("insert", () => {
     applyTransaction(
       doc,
       sel,
-      new Transaction().insert([0, 2], [[{ text: text }]])
+      new Transaction().insert([0, 2], [[{ text: text }]]),
     );
 
     expect(doc).toEqual([[{ text: insertAt(docText, 2, text) }]]);
@@ -261,13 +263,13 @@ describe("insert", () => {
     applyTransaction(
       doc,
       sel,
-      new Transaction().insert([0, 2], [[{ text: text }], [{ text: text2 }]])
+      new Transaction().insert([0, 2], [[{ text: text }], [{ text: text2 }]]),
     );
 
     const [before, after] = splitAt(docText, 2);
     expect(doc).toEqual([[{ text: before + text }], [{ text: text2 + after }]]);
     expect(sel).toEqual(
-      moveLine(moveOffset(initialSel, -before.length + text2.length), 1)
+      moveLine(moveOffset(initialSel, -before.length + text2.length), 1),
     );
   });
 
@@ -283,7 +285,7 @@ describe("insert", () => {
     applyTransaction(
       doc,
       sel,
-      new Transaction().insert([0, 2], [[{ text: text }]])
+      new Transaction().insert([0, 2], [[{ text: text }]]),
     );
 
     expect(doc).toEqual([[{ text: insertAt(docText, 2, text) }]]);
@@ -303,7 +305,7 @@ describe("insert", () => {
     applyTransaction(
       doc,
       sel,
-      new Transaction().insert([0, 2], [[{ text: text }], [{ text: text2 }]])
+      new Transaction().insert([0, 2], [[{ text: text }], [{ text: text2 }]]),
     );
 
     const [before, after] = splitAt(docText, 2);
@@ -311,8 +313,8 @@ describe("insert", () => {
     expect(sel).toEqual(
       moveLine(
         moveOffset(initialSel, { focus: -before.length + text2.length }),
-        { focus: 1 }
-      )
+        { focus: 1 },
+      ),
     );
   });
 
@@ -328,7 +330,7 @@ describe("insert", () => {
     applyTransaction(
       doc,
       sel,
-      new Transaction().insert([0, 3], [[{ text: text }]])
+      new Transaction().insert([0, 3], [[{ text: text }]]),
     );
 
     expect(doc).toEqual([[{ text: insertAt(docText, 3, text) }]]);
@@ -353,7 +355,7 @@ describe("insert", () => {
     applyTransaction(
       doc,
       sel,
-      new Transaction().insert([1, 3], [[{ text: text }]])
+      new Transaction().insert([1, 3], [[{ text: text }]]),
     );
 
     expect(doc).toEqual([
@@ -377,7 +379,7 @@ describe("insert", () => {
     applyTransaction(
       doc,
       sel,
-      new Transaction().insert([0, 3], [[{ text: text }], [{ text: text2 }]])
+      new Transaction().insert([0, 3], [[{ text: text }], [{ text: text2 }]]),
     );
 
     const [before, after] = splitAt(docText, 3);
@@ -401,7 +403,7 @@ describe("insert", () => {
     applyTransaction(
       doc,
       sel,
-      new Transaction().insert([1, 1], [[{ text: text }]])
+      new Transaction().insert([1, 1], [[{ text: text }]]),
     );
 
     expect(doc).toEqual([
@@ -428,7 +430,7 @@ describe("insert", () => {
     applyTransaction(
       doc,
       sel,
-      new Transaction().insert([1, 1], [[{ text: text }], [{ text: text2 }]])
+      new Transaction().insert([1, 1], [[{ text: text }], [{ text: text2 }]]),
     );
 
     const [before, after] = splitAt(docText2, 1);

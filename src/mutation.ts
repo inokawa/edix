@@ -3,7 +3,7 @@
  */
 export const createMutationObserver = (
   element: Element,
-  onMutationIgnored: () => void
+  onMutationIgnored: () => void,
 ) => {
   let isInputing = false;
 

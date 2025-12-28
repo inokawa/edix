@@ -8,7 +8,7 @@ import type { Position, PositionRange } from "./types.js";
  */
 export const compareLine = (
   [lineA]: Position,
-  [lineB]: Position
+  [lineB]: Position,
 ): 0 | 1 | -1 => {
   if (lineA === lineB) {
     return 0;
