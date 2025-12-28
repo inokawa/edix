@@ -1,7 +1,6 @@
 import { type DocFragment, type SelectionSnapshot } from "./doc/types.js";
 import { range } from "./doc/position.js";
 import { getLineSize, Transaction } from "./doc/edit.js";
-import { stringToDoc } from "./doc/utils.js";
 
 export type EditorCommand<A extends unknown[]> = (
   doc: DocFragment,
@@ -19,7 +18,7 @@ export const InsertText: EditorCommand<[text: string]> = (
   text,
 ) => {
   const [start, end] = range(selection);
-  return new Transaction().delete(start, end).insert(start, stringToDoc(text));
+  return new Transaction().delete(start, end).insert(start, text);
 };
 
 export const ReplaceAll: EditorCommand<[text: string]> = (
@@ -29,5 +28,5 @@ export const ReplaceAll: EditorCommand<[text: string]> = (
 ) => {
   return new Transaction()
     .delete([0, 0], [doc.length - 1, getLineSize(doc[doc.length - 1]!)])
-    .insert([0, 0], stringToDoc(text));
+    .insert([0, 0], text);
 };
