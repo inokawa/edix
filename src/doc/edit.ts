@@ -41,13 +41,19 @@ export type Operation = EditOperation | SelectOperataion;
 
 const isEditOperation = (op: Operation) => op._type !== TYPE_SELECT;
 
-export class Transaction extends Array<Operation> {
-  static from(tr: ReadonlyArray<Operation>): Transaction {
-    return new Transaction(...tr);
+export class Transaction {
+  private _ops: Array<Operation>;
+
+  constructor(ops?: ReadonlyArray<Operation>) {
+    this._ops = ops ? ops.slice() : [];
+  }
+
+  get ops(): ReadonlyArray<Operation> {
+    return this._ops;
   }
 
   insert(start: Position, text: string): this {
-    this.push({
+    this._ops.push({
       _type: TYPE_INSERT_TEXT,
       _pos: start,
       _text: text,
@@ -56,7 +62,7 @@ export class Transaction extends Array<Operation> {
   }
 
   insertFragment(start: Position, fragment: DocFragment): this {
-    this.push({
+    this._ops.push({
       _type: TYPE_INSERT_NODE,
       _pos: start,
       _fragment: fragment,
@@ -65,7 +71,7 @@ export class Transaction extends Array<Operation> {
   }
 
   delete(start: Position, end: Position): this {
-    this.push({
+    this._ops.push({
       _type: TYPE_DELETE,
       _start: start,
       _end: end,
@@ -74,7 +80,7 @@ export class Transaction extends Array<Operation> {
   }
 
   select(anchor?: Position, focus?: Position): this {
-    this.push({
+    this._ops.push({
       _type: TYPE_SELECT,
       _anchor: anchor,
       _focus: focus,
@@ -83,7 +89,7 @@ export class Transaction extends Array<Operation> {
   }
 
   transform(position: Position): Position {
-    return this.reduce(
+    return this._ops.reduce(
       (acc, op) => (isEditOperation(op) ? rebasePosition(acc, op) : acc),
       position,
     );
@@ -298,7 +304,7 @@ export const applyTransaction = (
   const selectionSnapshot: SelectionSnapshot = [...selection];
 
   try {
-    for (const op of tr) {
+    for (const op of tr.ops) {
       if (isValidOperation(op)) {
         if (isEditOperation(op)) {
           updateDoc(doc, op);
