@@ -5,8 +5,8 @@ import { type DocLine } from "../doc/types.js";
  * @internal
  */
 export const singleline = (tr: Transaction): Transaction => {
-  return Transaction.from(
-    tr.map((op): Operation => {
+  return new Transaction(
+    tr.ops.map((op): Operation => {
       if (op._type === 2) {
         return {
           ...op,

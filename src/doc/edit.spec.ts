@@ -68,7 +68,7 @@ it("rollback if error", () => {
   applyTransaction(
     doc,
     sel,
-    Transaction.from([
+    new Transaction([
       { _type: 1, _start: [0, 0], _end: [0, 1] },
       { _type: 3, _pos: [0, 0], _fragment: {} as any },
     ]),
