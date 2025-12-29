@@ -42,13 +42,13 @@ export type Operation = EditOperation | SelectOperataion;
 const isEditOperation = (op: Operation) => op._type !== TYPE_SELECT;
 
 export class Transaction {
-  private _ops: Array<Operation>;
+  private readonly _ops: Operation[];
 
-  constructor(ops?: ReadonlyArray<Operation>) {
+  constructor(ops?: readonly Operation[]) {
     this._ops = ops ? ops.slice() : [];
   }
 
-  get ops(): ReadonlyArray<Operation> {
+  get ops(): readonly Operation[] {
     return this._ops;
   }
 
