@@ -1,0 +1,1 @@
+import{r as a,T as r,g as o}from"./editor-UcDCahZd.js";const i=(e,t)=>new r().delete(...a(t)),g=(e,t,n)=>{const[s,l]=a(t);return new r().delete(s,l).insert(s,n)},d=(e,t,n)=>new r().delete([0,0],[e.length-1,o(e[e.length-1])]).insert([0,0],n);export{i as D,g as I,d as R};
