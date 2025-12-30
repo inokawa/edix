@@ -134,7 +134,7 @@ export interface Editor {
    * @param fn command function
    * @param args arguments of command
    */
-  command: <A extends unknown[]>(fn: EditorCommand<A>, ...args: A) => void;
+  command: <A extends unknown[]>(fn: EditorCommand<A>, ...args: A) => this;
   /**
    * Changes editor's read-only state.
    * @param value `true` to read-only. `false` to editable.
@@ -209,7 +209,7 @@ export const createEditor = <T>({
     }
   };
 
-  return {
+  const editor: Editor = {
     input: (element) => {
       if (
         !(
@@ -537,10 +537,13 @@ export const createEditor = <T>({
       if (tr) {
         apply(tr);
       }
+      return editor;
     },
     readonly: (value) => {
       readonly = value;
       setContentEditable();
     },
   };
+
+  return editor;
 };
