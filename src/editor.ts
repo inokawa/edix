@@ -21,7 +21,7 @@ import {
 import { singleline } from "./plugins/singleline.js";
 import type { DocSchema } from "./schema/index.js";
 import type { ParserConfig } from "./dom/parser.js";
-import { comparePosition, range } from "./doc/position.js";
+import { comparePosition, toRange } from "./doc/position.js";
 
 const noop = () => {};
 
@@ -430,7 +430,7 @@ export const createEditor = <T>({
       const copySelected = (dataTransfer: DataTransfer) => {
         syncSelection();
         if (comparePosition(...selection) !== 0) {
-          copy(dataTransfer, sliceDoc(doc(), ...range(selection)), element);
+          copy(dataTransfer, sliceDoc(doc(), ...toRange(selection)), element);
         }
       };
 
@@ -442,12 +442,12 @@ export const createEditor = <T>({
         e.preventDefault();
         if (!readonly) {
           copySelected(e.clipboardData!);
-          apply(new Transaction().delete(...range(selection)));
+          apply(new Transaction().delete(...toRange(selection)));
         }
       };
       const onPaste = (e: ClipboardEvent) => {
         e.preventDefault();
-        const [start, end] = range(selection);
+        const [start, end] = toRange(selection);
         apply(
           new Transaction()
             .delete(start, end)
@@ -468,7 +468,7 @@ export const createEditor = <T>({
         if (dataTransfer && droppedPosition) {
           const tr = new Transaction();
           if (isDragging) {
-            tr.delete(...range(selection));
+            tr.delete(...toRange(selection));
           }
           const pos = tr.transform(droppedPosition);
           tr.select(pos, pos)

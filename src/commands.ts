@@ -1,5 +1,5 @@
 import { type DocFragment, type SelectionSnapshot } from "./doc/types.js";
-import { range } from "./doc/position.js";
+import { toRange } from "./doc/position.js";
 import { getLineSize, Transaction } from "./doc/edit.js";
 
 export type EditorCommand<A extends unknown[]> = (
@@ -9,7 +9,7 @@ export type EditorCommand<A extends unknown[]> = (
 ) => Transaction | void;
 
 export const Delete: EditorCommand<[]> = (_doc, selection) => {
-  return new Transaction().delete(...range(selection));
+  return new Transaction().delete(...toRange(selection));
 };
 
 export const InsertText: EditorCommand<[text: string]> = (
@@ -17,7 +17,7 @@ export const InsertText: EditorCommand<[text: string]> = (
   selection,
   text,
 ) => {
-  const [start, end] = range(selection);
+  const [start, end] = toRange(selection);
   return new Transaction().delete(start, end).insert(start, text);
 };
 
