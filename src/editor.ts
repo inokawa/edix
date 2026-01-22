@@ -17,6 +17,8 @@ import {
   Transaction,
   sliceDoc,
   isDocEqual,
+  cloneDoc,
+  cloneSelection,
 } from "./doc/edit.js";
 import { singleline } from "./plugins/singleline.js";
 import type { DocSchema } from "./schema/index.js";
@@ -186,8 +188,9 @@ export const createEditor = <T>({
 
   const commit = () => {
     if (transactions.length) {
-      let nextDoc: Writeable<DocFragment> = [...doc()];
-      let nextSelection: Writeable<SelectionSnapshot> = [...selection];
+      let nextDoc: Writeable<DocFragment> = cloneDoc(doc());
+      let nextSelection: Writeable<SelectionSnapshot> =
+        cloneSelection(selection);
 
       let tr: Transaction | undefined;
       while ((tr = transactions.pop())) {

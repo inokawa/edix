@@ -99,6 +99,17 @@ export class Transaction {
 /**
  * @internal
  */
+export const cloneDoc = (doc: DocFragment): Writeable<DocFragment> => [...doc];
+
+/**
+ * @internal
+ */
+export const cloneSelection = (
+  selection: SelectionSnapshot
+): Writeable<SelectionSnapshot> => [...selection];
+/**
+ * @internal
+ */
 export const isDocEqual = (docA: DocFragment, docB: DocFragment): boolean =>
   // TODO improve
   docA.length === docB.length && docA.every((l, i) => l === docB[i]);
@@ -177,7 +188,7 @@ const replaceRange = (
   const before = splitByStart[0];
   const after = end ? split(doc[end[0]]!, end[1])[1] : splitByStart[1];
 
-  const lines: Writeable<DocFragment> = [...fragment];
+  const lines = cloneDoc(fragment);
   if (lines.length) {
     lines[0] = merge(before, lines[0]!);
     lines[lines.length - 1] = merge(lines[lines.length - 1]!, after);
@@ -300,8 +311,8 @@ export const applyTransaction = (
   tr: Transaction,
   onError?: (message: string) => void,
 ): void => {
-  const docSnapshot: DocFragment = [...doc];
-  const selectionSnapshot: SelectionSnapshot = [...selection];
+  const docSnapshot: DocFragment = cloneDoc(doc);
+  const selectionSnapshot: SelectionSnapshot = cloneSelection(selection);
 
   try {
     for (const op of tr.ops) {
