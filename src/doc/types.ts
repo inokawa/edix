@@ -5,8 +5,7 @@ export type VoidNode = Readonly<{
   data: Record<string, unknown>;
 }>;
 export type DocNode = TextNode | VoidNode;
-export type DocLine = readonly DocNode[];
-export type DocFragment = readonly DocLine[];
+export type DocFragment = readonly (readonly DocNode[])[];
 
 export type Position = readonly [line: number, offset: number];
 export type PositionRange = readonly [start: Position, end: Position];

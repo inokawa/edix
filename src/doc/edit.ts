@@ -1,7 +1,6 @@
 import { compareLine, comparePosition } from "./position.js";
 import type {
   DocFragment,
-  DocLine,
   DocNode,
   Position,
   SelectionSnapshot,
@@ -123,13 +122,16 @@ const getNodeSize = (node: DocNode): number =>
 /**
  * @internal
  */
-export const getLineSize = (line: DocLine): number =>
+export const getLineSize = (line: readonly DocNode[]): number =>
   line.reduce((acc, n) => acc + getNodeSize(n), 0);
 
 /**
  * @internal
  */
-export const merge = (a: DocLine, b: DocLine): DocLine => {
+export const merge = (
+  a: readonly DocNode[],
+  b: readonly DocNode[],
+): readonly DocNode[] => {
   const result: DocNode[] = [...a];
   if (!result.length) {
     result.push(...b);
@@ -147,13 +149,16 @@ export const merge = (a: DocLine, b: DocLine): DocLine => {
   return result;
 };
 
-const split = (line: DocLine, offset: number): [DocLine, DocLine] => {
-  for (let i = 0; i < line.length; i++) {
-    const node = line[i]!;
+const split = (
+  nodes: readonly DocNode[],
+  offset: number,
+): [readonly DocNode[], readonly DocNode[]] => {
+  for (let i = 0; i < nodes.length; i++) {
+    const node = nodes[i]!;
     const size = getNodeSize(node);
     if (size > offset) {
-      const before = line.slice(0, i);
-      const after = line.slice(i + 1);
+      const before = nodes.slice(0, i);
+      const after = nodes.slice(i + 1);
       if (isTextNode(node)) {
         const beforeText = node.text.slice(0, offset);
         const afterText = node.text.slice(offset);
@@ -171,7 +176,7 @@ const split = (line: DocLine, offset: number): [DocLine, DocLine] => {
     }
     offset -= size;
   }
-  return [line, []];
+  return [nodes, []];
 };
 
 const replaceRange = (
@@ -183,9 +188,8 @@ const replaceRange = (
   const [startLine] = start;
   const [endLine] = end || start;
 
-  const splitByStart = split(doc[start[0]]!, start[1]);
-  const before = splitByStart[0];
-  const after = end ? split(doc[end[0]]!, end[1])[1] : splitByStart[1];
+  const [before, docEnd] = split(doc[start[0]]!, start[1]);
+  const after = end ? split(doc[end[0]]!, end[1])[1] : docEnd;
 
   const lines = [...fragment];
   if (lines.length) {
