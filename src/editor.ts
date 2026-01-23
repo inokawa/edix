@@ -9,7 +9,7 @@ import {
   serializeRange,
 } from "./dom/index.js";
 import { createMutationObserver } from "./mutation.js";
-import type { DocFragment, SelectionSnapshot, Writeable } from "./doc/types.js";
+import type { DocFragment, SelectionSnapshot } from "./doc/types.js";
 import { microtask } from "./utils.js";
 import type { EditorCommand } from "./commands.js";
 import {
@@ -17,8 +17,6 @@ import {
   Transaction,
   sliceDoc,
   isDocEqual,
-  cloneDoc,
-  cloneSelection,
 } from "./doc/edit.js";
 import { singleline } from "./plugins/singleline.js";
 import type { DocSchema } from "./schema/index.js";
@@ -188,16 +186,19 @@ export const createEditor = <T>({
 
   const commit = () => {
     if (transactions.length) {
-      let nextDoc: Writeable<DocFragment> = cloneDoc(doc());
-      let nextSelection: Writeable<SelectionSnapshot> =
-        cloneSelection(selection);
+      let nextDoc: DocFragment = doc();
+      let nextSelection: SelectionSnapshot = selection;
 
       let tr: Transaction | undefined;
       while ((tr = transactions.pop())) {
         if (isSingleline) {
           tr = singleline(tr);
         }
-        applyTransaction(nextDoc, nextSelection, tr, onError);
+        const res = applyTransaction(nextDoc, nextSelection, tr, onError);
+        if (res) {
+          nextDoc = res[0];
+          nextSelection = res[1];
+        }
       }
 
       const currentDoc = doc();
