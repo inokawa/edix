@@ -5,7 +5,6 @@ import type {
   DocNode,
   Position,
   SelectionSnapshot,
-  Writeable,
 } from "./types.js";
 import { docToString, stringToDoc } from "./utils.js";
 
@@ -96,17 +95,17 @@ export class Transaction {
   }
 }
 
-/**
- * @internal
- */
-export const cloneDoc = (doc: DocFragment): Writeable<DocFragment> => [...doc];
+const splice = <T>(
+  doc: readonly T[],
+  start: number,
+  deleteCount: number,
+  lines: T[],
+): readonly T[] => {
+  const newDoc = doc.slice();
+  newDoc.splice(start, deleteCount, ...lines);
+  return newDoc;
+};
 
-/**
- * @internal
- */
-export const cloneSelection = (
-  selection: SelectionSnapshot
-): Writeable<SelectionSnapshot> => [...selection];
 /**
  * @internal
  */
@@ -131,7 +130,7 @@ export const getLineSize = (line: DocLine): number =>
  * @internal
  */
 export const merge = (a: DocLine, b: DocLine): DocLine => {
-  const result: Writeable<DocLine> = [...a];
+  const result: DocNode[] = [...a];
   if (!result.length) {
     result.push(...b);
   } else {
@@ -176,11 +175,11 @@ const split = (line: DocLine, offset: number): [DocLine, DocLine] => {
 };
 
 const replaceRange = (
-  doc: Writeable<DocFragment>,
+  doc: DocFragment,
   fragment: DocFragment,
   start: Position,
   end?: Position,
-) => {
+): DocFragment => {
   const [startLine] = start;
   const [endLine] = end || start;
 
@@ -188,7 +187,7 @@ const replaceRange = (
   const before = splitByStart[0];
   const after = end ? split(doc[end[0]]!, end[1])[1] : splitByStart[1];
 
-  const lines = cloneDoc(fragment);
+  const lines = [...fragment];
   if (lines.length) {
     lines[0] = merge(before, lines[0]!);
     lines[lines.length - 1] = merge(lines[lines.length - 1]!, after);
@@ -196,7 +195,7 @@ const replaceRange = (
     lines.push(merge(before, after));
   }
 
-  doc.splice(startLine, endLine - startLine + 1, ...lines);
+  return splice(doc, startLine, endLine - startLine + 1, lines);
 };
 
 /**
@@ -234,22 +233,19 @@ const isValidOperation = (op: Operation): boolean => {
   return true;
 };
 
-const updateDoc = (doc: Writeable<DocFragment>, op: EditOperation): void => {
+const updateDoc = (doc: DocFragment, op: EditOperation): DocFragment => {
   switch (op._type) {
     case TYPE_DELETE: {
-      replaceRange(doc, [], op._start, op._end);
-      break;
+      return replaceRange(doc, [], op._start, op._end);
     }
     case TYPE_INSERT_TEXT: {
-      replaceRange(doc, stringToDoc(op._text), op._pos);
-      break;
+      return replaceRange(doc, stringToDoc(op._text), op._pos);
     }
     case TYPE_INSERT_NODE: {
-      replaceRange(doc, op._fragment, op._pos);
-      break;
+      return replaceRange(doc, op._fragment, op._pos);
     }
     default: {
-      op satisfies never;
+      return op satisfies never;
     }
   }
 };
@@ -306,40 +302,34 @@ const rebasePosition = (position: Position, op: EditOperation): Position => {
  * @internal
  */
 export const applyTransaction = (
-  doc: Writeable<DocFragment>,
-  selection: Writeable<SelectionSnapshot>,
+  doc: DocFragment,
+  selection: SelectionSnapshot,
   tr: Transaction,
   onError?: (message: string) => void,
-): void => {
-  const docSnapshot: DocFragment = cloneDoc(doc);
-  const selectionSnapshot: SelectionSnapshot = cloneSelection(selection);
-
+): [DocFragment, SelectionSnapshot] | undefined => {
   try {
     for (const op of tr.ops) {
       if (isValidOperation(op)) {
         if (isEditOperation(op)) {
-          updateDoc(doc, op);
-          selection[0] = rebasePosition(selection[0], op);
-          selection[1] = rebasePosition(selection[1], op);
+          doc = updateDoc(doc, op);
+          selection = [
+            rebasePosition(selection[0], op),
+            rebasePosition(selection[1], op),
+          ];
         } else {
-          if (op._anchor) {
-            selection[0] = op._anchor;
-          }
-          if (op._focus) {
-            selection[1] = op._focus;
+          if (op._anchor || op._focus) {
+            selection = [op._anchor || selection[0], op._focus || selection[1]];
           }
         }
       }
     }
+    return [doc, selection];
   } catch (e) {
     // rollback
     if (onError) {
       onError("rollback transaction: " + e);
     }
 
-    doc.length = 0;
-    doc.push(...docSnapshot);
-    selection[0] = selectionSnapshot[0];
-    selection[1] = selectionSnapshot[1];
+    return;
   }
 };

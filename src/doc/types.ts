@@ -12,7 +12,3 @@ export type Position = readonly [line: number, offset: number];
 export type PositionRange = readonly [start: Position, end: Position];
 
 export type SelectionSnapshot = readonly [anchor: Position, focus: Position];
-
-export type Writeable<T> = {
-  -readonly [key in keyof T]: T[key];
-};
