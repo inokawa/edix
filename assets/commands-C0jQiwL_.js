@@ -1,1 +1,0 @@
-import{t as a,T as s,g as o}from"./editor-BQ64S6kX.js";const i=(e,t)=>new s().delete(...a(t)),g=(e,t,n)=>{const[r,l]=a(t);return new s().delete(r,l).insert(r,n)},d=(e,t,n)=>new s().delete([0,0],[e.length-1,o(e[e.length-1])]).insert([0,0],n);export{i as D,g as I,d as R};
