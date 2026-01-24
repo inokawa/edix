@@ -169,7 +169,7 @@ export const createEditor = <T>({
     plugins.push(singlelinePlugin());
   }
 
-  const applyTransaction = plugins.map(({ apply }) => apply).reduceRight((acc, fn) => {
+  const applyTransaction = plugins.reduceRight((acc, { apply: fn }) => {
     return fn ? (doc, sel, tr) => fn((tr) => acc(doc, sel, tr), tr) : acc;
   }, (doc: DocFragment, sel: SelectionSnapshot, tr: Transaction) => {
     return _applyTransaction(
