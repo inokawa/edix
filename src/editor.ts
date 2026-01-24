@@ -13,17 +13,18 @@ import type { DocFragment, SelectionSnapshot } from "./doc/types.js";
 import { microtask } from "./utils.js";
 import type { EditorCommand } from "./commands.js";
 import {
-  applyTransaction,
+  applyTransaction as _applyTransaction,
   Transaction,
   sliceDoc,
   isDocEqual,
 } from "./doc/edit.js";
-import { singleline } from "./plugins/singleline.js";
+import { singlelinePlugin } from "./plugins/singleline.js";
 import type { DocSchema } from "./schema/index.js";
 import type { ParserConfig } from "./dom/parser.js";
 import { comparePosition, toRange } from "./doc/position.js";
+import type { PluginObject } from "./plugins/types.js";
 
-const noop = () => {};
+const noop = () => { };
 
 /**
  * https://www.w3.org/TR/input-events-1/#interface-InputEvent-Attributes
@@ -163,6 +164,22 @@ export const createEditor = <T>({
     readonly [doc: DocFragment, selection: SelectionSnapshot]
   >([jsToDoc(initialDoc), selection]);
 
+  const plugins: PluginObject[] = [];
+  if (isSingleline) {
+    plugins.push(singlelinePlugin());
+  }
+
+  const applyTransaction = plugins.map(({ apply }) => apply).reduceRight((acc, fn) => {
+    return fn ? (doc, sel, tr) => fn((tr) => acc(doc, sel, tr), tr) : acc;
+  }, (doc: DocFragment, sel: SelectionSnapshot, tr: Transaction) => {
+    return _applyTransaction(
+      doc,
+      sel,
+      tr,
+      onError
+    );
+  });
+
   const transactions: Transaction[] = [];
   const apply = (arg: Transaction) => {
     if (!readonly) {
@@ -191,10 +208,7 @@ export const createEditor = <T>({
 
       let tr: Transaction | undefined;
       while ((tr = transactions.pop())) {
-        if (isSingleline) {
-          tr = singleline(tr);
-        }
-        const res = applyTransaction(nextDoc, nextSelection, tr, onError);
+        const res = applyTransaction(nextDoc, nextSelection, tr)
         if (res) {
           nextDoc = res[0];
           nextSelection = res[1];
@@ -239,9 +253,9 @@ export const createEditor = <T>({
       element.role = "textbox";
       // https://html.spec.whatwg.org/multipage/interaction.html#best-practices-for-in-page-editors
       element.style.whiteSpace = "pre-wrap";
-      if (!isSingleline) {
-        element.ariaMultiLine = "true";
-      }
+      element.ariaMultiLine = "true";
+
+      plugins.forEach(({ mount }) => { mount && mount(element) })
 
       let disposed = false;
       let selectionReverted = false;
