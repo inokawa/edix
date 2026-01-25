@@ -40,9 +40,7 @@ export const Empty: StoryObj = {
 export const Multiline: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
-    const [value, setValue] = useState(
-      "Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒"
-    );
+    const [value, setValue] = useState("Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
     useEffect(() => {
       if (!ref.current) return;
       return createEditor({
@@ -108,7 +106,7 @@ export const Readonly: StoryObj = {
           schema: plainSchema(),
           onChange: setValue,
         }),
-      []
+      [],
     );
     const [readonly, setReadonly] = useState(false);
     useEffect(() => {
@@ -183,7 +181,7 @@ export const Highlight: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
     const [value, setValue] = useState(
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
     );
     const [searchText, setSearchText] = useState("dolor");
 
@@ -217,7 +215,7 @@ export const Highlight: StoryObj = {
                     <mark key={j}>{t}</mark>
                   ) : (
                     <span key={j}>{t}</span>
-                  )
+                  ),
                 )
               ) : (
                 <br />
@@ -233,9 +231,7 @@ export const Highlight: StoryObj = {
 export const Command: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
-    const [value, setValue] = useState(
-      "Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒"
-    );
+    const [value, setValue] = useState("Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
     const editor = useMemo(
       () =>
         createEditor({
@@ -243,7 +239,7 @@ export const Command: StoryObj = {
           schema: plainSchema({ multiline: true }),
           onChange: setValue,
         }),
-      []
+      [],
     );
     useEffect(() => {
       if (!ref.current) return;
@@ -340,9 +336,7 @@ export const Command: StoryObj = {
 export const SpanAsBlock: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
-    const [value, setValue] = useState(
-      "Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒"
-    );
+    const [value, setValue] = useState("Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
     useEffect(() => {
       if (!ref.current) return;
       return createEditor({

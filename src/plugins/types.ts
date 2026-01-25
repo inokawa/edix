@@ -8,8 +8,8 @@ export interface PluginObject {
   apply?: (
     next: (tr: Transaction) => [DocFragment, SelectionSnapshot] | undefined,
     tr: Transaction,
-  ) => [DocFragment, SelectionSnapshot] | undefined
-  mount?: (element: HTMLElement) => void
+  ) => [DocFragment, SelectionSnapshot] | undefined;
+  mount?: (element: HTMLElement) => void;
 }
 
 /**

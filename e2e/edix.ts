@@ -30,7 +30,7 @@ export const NON_EDITABLE_PLACEHOLDER = "$";
 
 export const getText = async (
   editable: Locator,
-  config: { blockTag?: string } = {}
+  config: { blockTag?: string } = {},
 ): Promise<string[]> => {
   return editable.evaluate(
     (element, [NON_EDITABLE_PLACEHOLDER, { blockTag }]) => {
@@ -44,7 +44,7 @@ export const getText = async (
               ? (n) => n.tagName === blockTag.toUpperCase()
               : window.edix.defaultIsBlockNode,
           },
-          () => ({})
+          () => ({}),
         )
         .map((r) => {
           return r.reduce<string>((acc, n) => {
@@ -52,13 +52,13 @@ export const getText = async (
           }, "");
         });
     },
-    [NON_EDITABLE_PLACEHOLDER, config] as const
+    [NON_EDITABLE_PLACEHOLDER, config] as const,
   );
 };
 
 export const getSeletedText = (
   editable: Locator,
-  config: { blockTag?: string } = {}
+  config: { blockTag?: string } = {},
 ): Promise<string[]> => {
   return editable.evaluate(
     (element, [NON_EDITABLE_PLACEHOLDER, { blockTag }]) => {
@@ -74,7 +74,7 @@ export const getSeletedText = (
               ? (n) => n.tagName === blockTag.toUpperCase()
               : window.edix.defaultIsBlockNode,
           },
-          () => ({})
+          () => ({}),
         )
         .map((r) => {
           return r.reduce<string>((acc, n) => {
@@ -82,13 +82,13 @@ export const getSeletedText = (
           }, "");
         });
     },
-    [NON_EDITABLE_PLACEHOLDER, config] as const
+    [NON_EDITABLE_PLACEHOLDER, config] as const,
   );
 };
 
 export const getSelection = (
   editable: Locator,
-  config: { blockTag?: string } = {}
+  config: { blockTag?: string } = {},
 ): Promise<SelectionSnapshot> => {
   return editable.evaluate((element, { blockTag }) => {
     return window.edix.takeSelectionSnapshot(element, {
@@ -117,20 +117,20 @@ export const moveSelectionToOrigin = (editable: Locator) => {
 export const deleteAt = (
   value: readonly string[],
   length: number,
-  [line, offset]: readonly [line: number, offset: number]
+  [line, offset]: readonly [line: number, offset: number],
 ): string[] => {
   return value.map((r, i) =>
-    i === line ? r.slice(0, offset) + r.slice(offset + length) : r
+    i === line ? r.slice(0, offset) + r.slice(offset + length) : r,
   );
 };
 
 export const insertAt = (
   value: readonly string[],
   text: string,
-  [line, offset]: readonly [line: number, offset: number]
+  [line, offset]: readonly [line: number, offset: number],
 ): string[] => {
   return value.map((r, i) =>
-    i === line ? r.slice(0, offset) + text + r.slice(offset) : r
+    i === line ? r.slice(0, offset) + text + r.slice(offset) : r,
   );
 };
 
@@ -138,14 +138,14 @@ export const replaceAt = (
   value: readonly string[],
   insertedText: string,
   deleteLength: number,
-  pos: readonly [line: number, offset: number]
+  pos: readonly [line: number, offset: number],
 ): string[] => {
   return insertAt(deleteAt(value, deleteLength, pos), insertedText, pos);
 };
 
 export const insertLineBreakAt = (
   value: readonly string[],
-  [line, offset]: readonly [line: number, offset: number]
+  [line, offset]: readonly [line: number, offset: number],
 ): string[] => {
   return value.flatMap((r, i) => {
     if (i === line) {
@@ -162,7 +162,7 @@ export const createSelection = (
         offset?: number;
         extent?: number;
       }
-    | { anchor: [number, number]; focus: [number, number] } = {}
+    | { anchor: [number, number]; focus: [number, number] } = {},
 ): SelectionSnapshot => {
   if ("anchor" in opts) {
     return [opts.anchor, opts.focus];

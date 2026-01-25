@@ -11,27 +11,29 @@ export const singlelinePlugin: EditorPlugin = () => {
       element.ariaMultiLine = null;
     },
     apply: (next, tr) => {
-      return next(new Transaction(
-        tr.ops.map((op): Operation => {
-          if (op._type === 2) {
-            return {
-              ...op,
-              _text: op._text.replaceAll("\n", ""),
-            };
-          } else if (op._type === 3) {
-            return {
-              ...op,
-              _fragment: [
-                op._fragment.reduce(
-                  (acc, l) => merge(acc, l),
-                  [] as readonly DocNode[],
-                ),
-              ],
-            };
-          }
-          return op;
-        }),
-      ));
+      return next(
+        new Transaction(
+          tr.ops.map((op): Operation => {
+            if (op._type === 2) {
+              return {
+                ...op,
+                _text: op._text.replaceAll("\n", ""),
+              };
+            } else if (op._type === 3) {
+              return {
+                ...op,
+                _fragment: [
+                  op._fragment.reduce(
+                    (acc, l) => merge(acc, l),
+                    [] as readonly DocNode[],
+                  ),
+                ],
+              };
+            }
+            return op;
+          }),
+        ),
+      );
     },
   };
 };

@@ -27,7 +27,7 @@ const Link = ({ href, children }: { href: string; children: string }) => {
 export const WithLinkifyjs: StoryObj = {
   render: () => {
     const [text, setText] = useState(
-      `Click this url https://github.com/inokawa/edix !`
+      `Click this url https://github.com/inokawa/edix !`,
     );
 
     const ref = useRef<HTMLDivElement>(null);
@@ -53,7 +53,7 @@ export const WithLinkifyjs: StoryObj = {
             spans.push(
               <Link key={j + "_link"} href={t.href}>
                 {line.slice(t.start, t.end)}
-              </Link>
+              </Link>,
             );
             endIndex = t.end;
           }

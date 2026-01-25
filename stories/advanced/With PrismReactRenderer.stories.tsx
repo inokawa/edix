@@ -23,7 +23,7 @@ function Example() {
       </button>
     </div>
   );
-}`
+}`,
     );
 
     const ref = useRef<HTMLPreElement>(null);

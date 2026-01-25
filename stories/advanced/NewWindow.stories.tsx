@@ -50,7 +50,7 @@ const NewWindow = ({
     const externalWindow = window.open(
       "",
       "",
-      "width=600,height=400,left=200,top=200"
+      "width=600,height=400,left=200,top=200",
     );
 
     if (!externalWindow) return;

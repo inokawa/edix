@@ -35,6 +35,9 @@ export const comparePosition = (posA: Position, posB: Position): 0 | 1 | -1 => {
 /**
  * @internal
  */
-export const toRange = ([a, b]: readonly [Position, Position]): PositionRange => {
+export const toRange = ([a, b]: readonly [
+  Position,
+  Position,
+]): PositionRange => {
   return comparePosition(a, b) === -1 ? [b, a] : [a, b];
 };

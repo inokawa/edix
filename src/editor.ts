@@ -24,7 +24,7 @@ import type { ParserConfig } from "./dom/parser.js";
 import { comparePosition, toRange } from "./doc/position.js";
 import type { PluginObject } from "./plugins/types.js";
 
-const noop = () => { };
+const noop = () => {};
 
 /**
  * https://www.w3.org/TR/input-events-1/#interface-InputEvent-Attributes
@@ -169,16 +169,14 @@ export const createEditor = <T>({
     plugins.push(singlelinePlugin());
   }
 
-  const applyTransaction = plugins.reduceRight((acc, { apply: fn }) => {
-    return fn ? (doc, sel, tr) => fn((tr) => acc(doc, sel, tr), tr) : acc;
-  }, (doc: DocFragment, sel: SelectionSnapshot, tr: Transaction) => {
-    return _applyTransaction(
-      doc,
-      sel,
-      tr,
-      onError
-    );
-  });
+  const applyTransaction = plugins.reduceRight(
+    (acc, { apply: fn }) => {
+      return fn ? (doc, sel, tr) => fn((tr) => acc(doc, sel, tr), tr) : acc;
+    },
+    (doc: DocFragment, sel: SelectionSnapshot, tr: Transaction) => {
+      return _applyTransaction(doc, sel, tr, onError);
+    },
+  );
 
   const transactions: Transaction[] = [];
   const apply = (arg: Transaction) => {
@@ -208,7 +206,7 @@ export const createEditor = <T>({
 
       let tr: Transaction | undefined;
       while ((tr = transactions.pop())) {
-        const res = applyTransaction(nextDoc, nextSelection, tr)
+        const res = applyTransaction(nextDoc, nextSelection, tr);
         if (res) {
           nextDoc = res[0];
           nextSelection = res[1];
@@ -255,7 +253,9 @@ export const createEditor = <T>({
       element.style.whiteSpace = "pre-wrap";
       element.ariaMultiLine = "true";
 
-      plugins.forEach(({ mount }) => { mount && mount(element) })
+      plugins.forEach(({ mount }) => {
+        mount && mount(element);
+      });
 
       let disposed = false;
       let selectionReverted = false;

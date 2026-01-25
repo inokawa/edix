@@ -104,7 +104,7 @@ const Mark = ({
               </div>
             ))}
           </div>,
-          document.body
+          document.body,
         )}
     </span>
   );
@@ -113,7 +113,7 @@ const Mark = ({
 export const WithTextlint: StoryObj = {
   render: () => {
     const [text, setText] = useState(
-      "⾼齢者の活躍と地域における⽀えあいの\u0019推進\u0010。\nホ゜ケット エンシ゛ン\nテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテスト"
+      "⾼齢者の活躍と地域における⽀えあいの\u0019推進\u0010。\nホ゜ケット エンシ゛ン\nテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテスト",
     );
     const ref = useRef<HTMLDivElement>(null);
     useEffect(() => {
@@ -138,13 +138,16 @@ export const WithTextlint: StoryObj = {
       };
     }, [text]);
 
-    const tokensByLine = tokens.reduce((acc, t) => {
-      const { line, column } = t.loc.start;
-      if (!acc[line]) acc[line] = {};
-      if (!acc[line][column]) acc[line][column] = [];
-      acc[line][column].push(t);
-      return acc;
-    }, {} as { [key: number]: { [column: number]: TextlintMessage[] } });
+    const tokensByLine = tokens.reduce(
+      (acc, t) => {
+        const { line, column } = t.loc.start;
+        if (!acc[line]) acc[line] = {};
+        if (!acc[line][column]) acc[line][column] = [];
+        acc[line][column].push(t);
+        return acc;
+      },
+      {} as { [key: number]: { [column: number]: TextlintMessage[] } },
+    );
 
     return (
       <div style={{ marginTop: 32 }}>
@@ -160,7 +163,7 @@ export const WithTextlint: StoryObj = {
               texts.push(
                 <Mark key={start} token={token}>
                   {l.slice(start, end)}
-                </Mark>
+                </Mark>,
               );
               prevEnd = end;
             }

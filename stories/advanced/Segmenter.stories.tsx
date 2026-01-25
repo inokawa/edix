@@ -25,7 +25,7 @@ const Row = ({ text, segmenter }: { text: string; segmenter: any }) => {
         }}
       >
         {segment}
-      </span>
+      </span>,
     );
   }
   return <div>{text ? nodes : <br />}</div>;
@@ -35,7 +35,7 @@ export const Segmenter: StoryObj = {
   render: () => {
     type Granularity = "grapheme" | "word" | "sentence";
     const [text, setText] = useState(
-      "すもももももももものうち。\n\n吾輩 （ わがはい ） は猫である。名前はまだ無い。"
+      "すもももももももものうち。\n\n吾輩 （ わがはい ） は猫である。名前はまだ無い。",
     );
 
     const ref = useRef<HTMLDivElement>(null);

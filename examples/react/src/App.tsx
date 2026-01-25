@@ -3,9 +3,7 @@ import { createEditor, plainSchema } from "edix";
 
 function App() {
   const ref = useRef<HTMLDivElement>(null);
-  const [value, setValue] = useState(
-    "Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒"
-  );
+  const [value, setValue] = useState("Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
   useEffect(() => {
     return createEditor({
       doc: value,

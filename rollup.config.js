@@ -1,6 +1,6 @@
 import typescript from "@rollup/plugin-typescript";
 import terser from "@rollup/plugin-terser";
-import { dirname } from 'node:path'
+import { dirname } from "node:path";
 import pkg from "./package.json" with { type: "json" };
 
 export default {

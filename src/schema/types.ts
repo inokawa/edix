@@ -8,7 +8,7 @@ export interface DocSchema<T> {
   copy: (
     dataTransfer: DataTransfer,
     doc: DocFragment,
-    element: Element
+    element: Element,
   ) => void;
   paste: (dataTransfer: DataTransfer, config: ParserConfig) => DocFragment;
 }
@@ -16,6 +16,5 @@ export interface DocSchema<T> {
 type ExtractItem<T> = T extends (infer I)[] ? ExtractItem<I> : T;
 
 export type InferDoc<T> = T extends DocSchema<infer N> ? N : never;
-export type InferNode<T> = T extends DocSchema<infer N>
-  ? ExtractItem<N>
-  : never;
+export type InferNode<T> =
+  T extends DocSchema<infer N> ? ExtractItem<N> : never;
