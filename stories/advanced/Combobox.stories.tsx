@@ -1,7 +1,7 @@
 import type { StoryObj } from "@storybook/react-vite";
 import React, {
   useEffect,
-  useLayoutEffect,
+  useEffectEvent,
   useMemo,
   useRef,
   useState,
@@ -505,7 +505,7 @@ export const Combobox: StoryObj = {
       setIndex(-1);
     }
 
-    const onKeyDown = (e: KeyboardPayload): boolean | void => {
+    const onKeyDown = useEffectEvent((e: KeyboardPayload): boolean | void => {
       if (!length) return;
       switch (e.key) {
         case "ArrowUp":
@@ -525,11 +525,7 @@ export const Combobox: StoryObj = {
           setIndex(-1);
           return true;
       }
-    };
-    const onKeyDownRef = useRef(onKeyDown);
-    useLayoutEffect(() => {
-      onKeyDownRef.current = onKeyDown;
-    }, [onKeyDown]);
+    });
 
     const editor = useMemo(
       () =>
@@ -537,7 +533,7 @@ export const Combobox: StoryObj = {
           doc: value,
           schema: plainSchema(),
           onChange: setValue,
-          onKeyDown: (e) => onKeyDownRef.current(e),
+          onKeyDown: onKeyDown,
         }),
       [],
     );
