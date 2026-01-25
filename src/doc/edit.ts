@@ -94,17 +94,6 @@ export class Transaction {
   }
 }
 
-const splice = <T>(
-  doc: readonly T[],
-  start: number,
-  deleteCount: number,
-  lines: T[],
-): readonly T[] => {
-  const newDoc = doc.slice();
-  newDoc.splice(start, deleteCount, ...lines);
-  return newDoc;
-};
-
 /**
  * @internal
  */
@@ -116,6 +105,22 @@ export const isDocEqual = (docA: DocFragment, docB: DocFragment): boolean =>
  * @internal
  */
 export const isTextNode = (node: DocNode) => "text" in node;
+
+const { keys, is } = Object;
+
+const isSameNode = (a: DocNode, b: DocNode): boolean => {
+  const aKeys = keys(a);
+  if (aKeys.length !== keys(b).length) {
+    return false;
+  }
+  return aKeys.every((k) => {
+    if (!(k in b)) {
+      return false;
+    }
+    return k === "text" || is((a as any)[k], (b as any)[k]);
+  });
+};
+
 const getNodeSize = (node: DocNode): number =>
   isTextNode(node) ? node.text.length : 1;
 
@@ -125,34 +130,48 @@ const getNodeSize = (node: DocNode): number =>
 export const getLineSize = (line: readonly DocNode[]): number =>
   line.reduce((acc, n) => acc + getNodeSize(n), 0);
 
+const normalize = <T extends DocNode>(
+  array: T[],
+  start: number = 0,
+  end: number = array.length - 1,
+): void => {
+  let i = start + 1;
+  while (i <= end) {
+    const prev = array[i - 1]!;
+    const curr = array[i]!;
+    if (isTextNode(prev) && isTextNode(curr) && isSameNode(prev, curr)) {
+      array[i - 1] = { ...prev, text: prev.text + curr.text };
+      array.splice(i, 1);
+      end--;
+    } else {
+      i++;
+    }
+  }
+};
+
 /**
  * @internal
  */
-export const merge = (
-  a: readonly DocNode[],
-  b: readonly DocNode[],
-): readonly DocNode[] => {
-  const result: DocNode[] = [...a];
-  if (!result.length) {
-    result.push(...b);
-  } else {
-    for (const node of b) {
-      const index = result.length - 1;
-      const target = result[index]!;
-      if (isTextNode(node) && isTextNode(target)) {
-        result[index] = { text: target.text + node.text };
-      } else {
-        result.push(node);
+export const copyArray = <T extends DocNode>(
+  ...arrays: (readonly T[])[]
+): readonly T[] => {
+  const result: T[] = [];
+  arrays.forEach((a) => {
+    if (a.length) {
+      const prevLength = result.length;
+      result.push(...a);
+      if (prevLength) {
+        normalize(result, prevLength - 1, prevLength);
       }
     }
-  }
+  });
   return result;
 };
 
-const split = (
-  nodes: readonly DocNode[],
+const split = <T extends DocNode>(
+  nodes: readonly T[],
   offset: number,
-): [readonly DocNode[], readonly DocNode[]] => {
+): [readonly T[], readonly T[]] => {
   for (let i = 0; i < nodes.length; i++) {
     const node = nodes[i]!;
     const size = getNodeSize(node);
@@ -163,10 +182,10 @@ const split = (
         const beforeText = node.text.slice(0, offset);
         const afterText = node.text.slice(offset);
         if (beforeText) {
-          before.push({ text: beforeText });
+          before.push({ ...node, text: beforeText });
         }
         if (afterText) {
-          after.unshift({ text: afterText });
+          after.unshift({ ...node, text: afterText });
         }
       } else {
         // node size must be 1
@@ -181,7 +200,7 @@ const split = (
 
 const replaceRange = (
   doc: DocFragment,
-  fragment: DocFragment,
+  inserted: DocFragment | string,
   start: Position,
   end?: Position,
 ): DocFragment => {
@@ -191,15 +210,27 @@ const replaceRange = (
   const [before, docEnd] = split(doc[start[0]]!, start[1]);
   const after = end ? split(doc[end[0]]!, end[1])[1] : docEnd;
 
-  const lines = [...fragment];
-  if (lines.length) {
-    lines[0] = merge(before, lines[0]!);
-    lines[lines.length - 1] = merge(lines[lines.length - 1]!, after);
-  } else {
-    lines.push(merge(before, after));
+  if (typeof inserted === "string") {
+    // inherit style from previous text node
+    const beforeLength = before.length;
+    inserted = stringToDoc(
+      inserted,
+      beforeLength ? before[beforeLength - 1]! : undefined,
+    );
   }
 
-  return splice(doc, startLine, endLine - startLine + 1, lines);
+  let lines: (readonly DocNode[])[];
+  if (inserted.length) {
+    lines = [...inserted];
+    lines[0] = copyArray(before, lines[0]!);
+    lines[lines.length - 1] = copyArray(lines[lines.length - 1]!, after);
+  } else {
+    lines = [copyArray(before, after)];
+  }
+
+  const newDoc = doc.slice();
+  newDoc.splice(startLine, endLine - startLine + 1, ...lines);
+  return newDoc;
 };
 
 /**
@@ -243,7 +274,7 @@ const updateDoc = (doc: DocFragment, op: EditOperation): DocFragment => {
       return replaceRange(doc, [], op._start, op._end);
     }
     case TYPE_INSERT_TEXT: {
-      return replaceRange(doc, stringToDoc(op._text), op._pos);
+      return replaceRange(doc, op._text, op._pos);
     }
     case TYPE_INSERT_NODE: {
       return replaceRange(doc, op._fragment, op._pos);
