@@ -19,6 +19,9 @@ export const docToString = (
 /**
  * @internal
  */
-export const stringToDoc = (text: string): DocFragment => {
-  return text.split("\n").map((l) => (l ? [{ text: l }] : []));
+export const stringToDoc = (
+  text: string,
+  attrs?: Record<string, any>,
+): DocFragment => {
+  return text.split("\n").map((l) => (l ? [{ ...attrs, text: l }] : []));
 };

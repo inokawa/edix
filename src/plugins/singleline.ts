@@ -1,5 +1,4 @@
-import { merge, Transaction, type Operation } from "../doc/edit.js";
-import { type DocNode } from "../doc/types.js";
+import { copyArray, Transaction, type Operation } from "../doc/edit.js";
 import type { EditorPlugin } from "./types.js";
 
 /**
@@ -22,12 +21,7 @@ export const singlelinePlugin: EditorPlugin = () => {
             } else if (op._type === 3) {
               return {
                 ...op,
-                _fragment: [
-                  op._fragment.reduce(
-                    (acc, l) => merge(acc, l),
-                    [] as readonly DocNode[],
-                  ),
-                ],
+                _fragment: [copyArray(...op._fragment)],
               };
             }
             return op;
