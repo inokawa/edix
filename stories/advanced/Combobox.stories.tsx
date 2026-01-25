@@ -539,7 +539,7 @@ export const Combobox: StoryObj = {
     );
 
     const complete = (i: number) => {
-      editor.command(ReplaceAll, filtered[i]);
+      editor.apply(ReplaceAll, filtered[i]);
       setIndex(-1);
     };
 
