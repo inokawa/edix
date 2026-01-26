@@ -152,18 +152,22 @@ const normalize = <T extends DocNode>(
 /**
  * @internal
  */
-export const copyArray = <T extends DocNode>(
+export const concat = <T extends DocNode>(a: T[], b: readonly T[]): void => {
+  if (b.length) {
+    const prevLength = a.length;
+    a.push(...b);
+    if (prevLength) {
+      normalize(a, prevLength - 1, prevLength);
+    }
+  }
+};
+
+const copyArray = <T extends DocNode>(
   ...arrays: (readonly T[])[]
 ): readonly T[] => {
   const result: T[] = [];
   arrays.forEach((a) => {
-    if (a.length) {
-      const prevLength = result.length;
-      result.push(...a);
-      if (prevLength) {
-        normalize(result, prevLength - 1, prevLength);
-      }
-    }
+    concat(result, a);
   });
   return result;
 };
