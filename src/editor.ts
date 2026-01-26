@@ -23,6 +23,9 @@ import type { DocSchema } from "./schema/index.js";
 import type { ParserConfig } from "./dom/parser.js";
 import { comparePosition, toRange } from "./doc/position.js";
 import type { PluginObject } from "./plugins/types.js";
+import type { CopyExtension, PasteExtension } from "./extensions/index.js";
+import { plainCopy } from "./extensions/copy/plain.js";
+import { plainPaste } from "./extensions/paste/plain.js";
 
 const noop = () => {};
 
@@ -100,6 +103,16 @@ export interface EditorOptions<T> {
    */
   doc: T;
   /**
+   * Functions to handle copy events
+   * @default [plainCopy()]
+   */
+  copy?: [CopyExtension, ...rest: CopyExtension[]];
+  /**
+   * Functions to handle paste / drop events
+   * @default [plainPaste()]
+   */
+  paste?: [PasteExtension, ...rest: PasteExtension[]];
+  /**
    * TODO
    */
   isBlock?: (node: HTMLElement) => boolean;
@@ -149,8 +162,10 @@ export interface Editor {
  * A function to initialize editor.
  */
 export const createEditor = <T>({
-  schema: { single: isSingleline, js: docToJS, doc: jsToDoc, copy, paste },
+  schema: { single: isSingleline, js: docToJS, doc: jsToDoc },
   doc: initialDoc,
+  copy: copyExtensions = [plainCopy()],
+  paste: pasteExtensions = [plainPaste()],
   isBlock = defaultIsBlockNode,
   onChange,
   onKeyDown: onKeyDownCallback,
@@ -285,6 +300,22 @@ export const createEditor = <T>({
       };
 
       setContentEditable();
+
+      const copy = (dataTransfer: DataTransfer, doc: DocFragment) => {
+        for (const ex of copyExtensions) {
+          ex(dataTransfer, doc, element);
+        }
+      };
+      const paste = (dataTransfer: DataTransfer): DocFragment | void => {
+        for (const ex of pasteExtensions) {
+          const pasted = ex(dataTransfer, parserConfig);
+          // TODO validate external data
+          if (pasted) {
+            return pasted;
+          }
+        }
+        onError("failed to serialize pasted data");
+      };
 
       const observer = createMutationObserver(element, () => {
         if (hasFocus) {
@@ -456,7 +487,7 @@ export const createEditor = <T>({
       const copySelected = (dataTransfer: DataTransfer) => {
         syncSelection();
         if (comparePosition(...selection) !== 0) {
-          copy(dataTransfer, sliceDoc(doc(), ...toRange(selection)), element);
+          copy(dataTransfer, sliceDoc(doc(), ...toRange(selection)));
         }
       };
 
@@ -473,12 +504,13 @@ export const createEditor = <T>({
       };
       const onPaste = (e: ClipboardEvent) => {
         e.preventDefault();
-        const [start, end] = toRange(selection);
-        apply(
-          new Transaction()
-            .delete(start, end)
-            .insertFragment(start, paste(e.clipboardData!, parserConfig)),
-        );
+        const pasted = paste(e.clipboardData!);
+        if (pasted) {
+          const [start, end] = toRange(selection);
+          apply(
+            new Transaction().delete(start, end).insertFragment(start, pasted),
+          );
+        }
       };
 
       const onDrop = (e: DragEvent) => {
@@ -496,10 +528,11 @@ export const createEditor = <T>({
           if (isDragging) {
             tr.delete(...toRange(selection));
           }
-          const pos = tr.transform(droppedPosition);
-          tr.select(pos, pos)
-            .insertFragment(pos, paste(dataTransfer, parserConfig))
-            .select(pos);
+          const pasted = paste(dataTransfer);
+          if (pasted) {
+            const pos = tr.transform(droppedPosition);
+            tr.select(pos, pos).insertFragment(pos, pasted).select(pos);
+          }
           apply(tr);
           element.focus({ preventScroll: true });
         }

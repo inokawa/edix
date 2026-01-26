@@ -320,7 +320,7 @@ export const takeSelectionSnapshot = (
 export const readDom = (
   root: Node,
   config: ParserConfig,
-  serializeVoid: (node: Element) => Record<string, unknown> | void,
+  serializeVoid: (node: Element) => DocNode | void,
 ): DocFragment => {
   return parse(
     (next) => {
@@ -359,14 +359,12 @@ export const readDom = (
           hasContent = true;
 
           if (type === TOKEN_TEXT) {
-            const node = getDomNode<typeof type>();
-            text += node.data;
+            text += getDomNode<typeof type>().data;
           } else if (type === TOKEN_VOID) {
             completeText();
-            const node = getDomNode<typeof type>();
-            const data = serializeVoid(node);
-            if (data) {
-              row!.push({ data });
+            const docNode = serializeVoid(getDomNode<typeof type>());
+            if (docNode) {
+              row!.push(docNode);
             }
           } else if (type === TOKEN_SOFT_BREAK) {
             completeRow();

@@ -1,16 +1,9 @@
 import type { DocFragment } from "../doc/types.js";
-import type { ParserConfig } from "../dom/parser.js";
 
 export interface DocSchema<T> {
   single: boolean;
   js: (doc: DocFragment) => T;
   doc: (state: T) => DocFragment;
-  copy: (
-    dataTransfer: DataTransfer,
-    doc: DocFragment,
-    element: Element,
-  ) => void;
-  paste: (dataTransfer: DataTransfer, config: ParserConfig) => DocFragment;
 }
 
 type ExtractItem<T> = T extends (infer I)[] ? ExtractItem<I> : T;

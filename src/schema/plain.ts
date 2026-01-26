@@ -13,11 +13,5 @@ export const plainSchema = ({
     single: !multiline,
     js: docToString,
     doc: stringToDoc,
-    copy: (dataTransfer, data) => {
-      dataTransfer.setData("text/plain", docToString(data));
-    },
-    paste: (dataTransfer) => {
-      return stringToDoc(dataTransfer.getData("text/plain"));
-    },
   };
 };

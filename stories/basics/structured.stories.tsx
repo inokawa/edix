@@ -1,6 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 import type { StoryObj } from "@storybook/react-vite";
-import { createEditor, schema, voidNode, type InferDoc } from "../../src";
+import {
+  createEditor,
+  htmlPaste,
+  type InferNode,
+  schema,
+  type InferDoc,
+  htmlCopy,
+  plainCopy,
+  plainPaste,
+} from "../../src";
 
 export default {
   component: createEditor,
@@ -23,6 +32,8 @@ export const Multiline: StoryObj = {
       return createEditor({
         doc: value,
         schema: basicSchema,
+        copy: [htmlCopy(), plainCopy()],
+        paste: [htmlPaste(), plainPaste()],
         onChange: setValue,
       }).input(ref.current);
     }, []);
@@ -46,15 +57,7 @@ export const Multiline: StoryObj = {
   },
 };
 
-const tagSchema = schema({
-  void: {
-    tag: voidNode({
-      is: (e) => e.contentEditable === "false",
-      data: (e) => ({ label: e.textContent!, value: e.dataset.tagValue! }),
-      plain: (d) => d.label,
-    }),
-  },
-});
+const tagSchema = schema<{ tag: { label: string; value: string } }>({});
 
 export const Tag: StoryObj = {
   render: () => {
@@ -68,11 +71,35 @@ export const Tag: StoryObj = {
       { type: "tag", data: { label: "Orange", value: "2" } },
     ]);
 
+    type DocNode = InferNode<typeof tagSchema>;
+
     useEffect(() => {
       if (!ref.current) return;
       return createEditor({
         doc: value,
         schema: tagSchema,
+        copy: [
+          htmlCopy(),
+          plainCopy<DocNode>((node) =>
+            "text" in node ? node.text : node.data.label,
+          ),
+        ],
+        paste: [
+          htmlPaste<DocNode>([
+            (e) => {
+              if (e.contentEditable === "false") {
+                return {
+                  type: "tag",
+                  data: {
+                    label: e.textContent!,
+                    value: e.dataset.tagValue!,
+                  },
+                };
+              }
+            },
+          ]),
+          plainPaste(),
+        ],
         onChange: setValue,
       }).input(ref.current);
     }, []);
@@ -114,14 +141,8 @@ export const Tag: StoryObj = {
   },
 };
 
-const imageSchema = schema({
+const imageSchema = schema<{ image: { src: string } }, true>({
   multiline: true,
-  void: {
-    image: voidNode({
-      is: (e) => e.tagName === "IMG",
-      data: (e) => ({ src: (e as HTMLImageElement).src }),
-    }),
-  },
 });
 
 export const Image: StoryObj = {
@@ -149,11 +170,30 @@ export const Image: StoryObj = {
         },
       ],
     ]);
+
+    type DocNode = InferNode<typeof imageSchema>;
+
     useEffect(() => {
       if (!ref.current) return;
       return createEditor({
         doc: value,
         schema: imageSchema,
+        copy: [htmlCopy(), plainCopy()],
+        paste: [
+          htmlPaste<DocNode>([
+            (e) => {
+              if (e.tagName === "IMG") {
+                return {
+                  type: "image",
+                  data: {
+                    src: (e as HTMLImageElement).src,
+                  },
+                };
+              }
+            },
+          ]),
+          plainPaste(),
+        ],
         onChange: setValue,
       }).input(ref.current);
     }, []);
@@ -186,14 +226,8 @@ export const Image: StoryObj = {
   },
 };
 
-const videoSchema = schema({
+const videoSchema = schema<{ video: { src: string } }, true>({
   multiline: true,
-  void: {
-    video: voidNode({
-      is: (e) => e.tagName === "VIDEO",
-      data: (e) => ({ src: (e.childNodes[0] as HTMLSourceElement).src }),
-    }),
-  },
 });
 
 export const Video: StoryObj = {
@@ -217,11 +251,29 @@ export const Video: StoryObj = {
         },
       ],
     ]);
+    type DocNode = InferNode<typeof videoSchema>;
+
     useEffect(() => {
       if (!ref.current) return;
       return createEditor({
         doc: value,
         schema: videoSchema,
+        copy: [htmlCopy(), plainCopy()],
+        paste: [
+          htmlPaste<DocNode>([
+            (e) => {
+              if (e.tagName === "VIDEO") {
+                return {
+                  type: "video",
+                  data: {
+                    src: (e.childNodes[0] as HTMLSourceElement).src,
+                  },
+                };
+              }
+            },
+          ]),
+          plainPaste(),
+        ],
         onChange: setValue,
       }).input(ref.current);
     }, []);
@@ -263,14 +315,8 @@ export const Video: StoryObj = {
   },
 };
 
-const youtubeSchema = schema({
+const youtubeSchema = schema<{ youtube: { id: string } }, true>({
   multiline: true,
-  void: {
-    youtube: voidNode({
-      is: (e) => !!e.dataset.youtubeNode,
-      data: (e) => ({ id: e.dataset.youtubeId! }),
-    }),
-  },
 });
 
 const Youtube = ({ id }: { id: string }) => {
@@ -308,11 +354,30 @@ export const Iframe: StoryObj = {
         },
       ],
     ]);
+
+    type DocNode = InferNode<typeof youtubeSchema>;
+
     useEffect(() => {
       if (!ref.current) return;
       return createEditor({
         doc: value,
         schema: youtubeSchema,
+        copy: [htmlCopy(), plainCopy()],
+        paste: [
+          htmlPaste<DocNode>([
+            (e) => {
+              if (!!e.dataset.youtubeNode) {
+                return {
+                  type: "youtube",
+                  data: {
+                    id: e.dataset.youtubeId!,
+                  },
+                };
+              }
+            },
+          ]),
+          plainPaste(),
+        ],
         onChange: setValue,
       }).input(ref.current);
     }, []);
