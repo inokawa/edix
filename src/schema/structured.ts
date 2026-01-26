@@ -1,48 +1,16 @@
-import { isCommentNode } from "../dom/parser.js";
 import { type TextNode, type DocNode } from "../doc/types.js";
 import type { DocSchema } from "./types.js";
-import { docToString, stringToDoc } from "../doc/utils.js";
 import { isTextNode } from "../doc/edit.js";
-import {
-  getDOMSelection,
-  getSelectionRangeInEditor,
-  readDom,
-} from "../dom/index.js";
-
-export interface EditableVoidSerializer<T> {
-  is: (node: HTMLElement) => boolean;
-  data: (node: HTMLElement) => T;
-  plain: (data: T) => string;
-}
-
-const emptyString = (): string => "";
-
-export const voidNode = <const D>({
-  is,
-  data,
-  plain = emptyString,
-}: {
-  is: (node: HTMLElement) => boolean;
-  data: (node: HTMLElement) => D;
-  plain?: (data: D) => string;
-}): EditableVoidSerializer<D> => {
-  return {
-    is,
-    data,
-    plain,
-  };
-};
 
 type Prettify<T> = {
   [K in keyof T]: T[K];
 } & {};
 
-type ExtractVoidData<T> = T extends EditableVoidSerializer<infer D> ? D : never;
 type ExtractVoidNode<T> = Prettify<
   {
     [K in keyof T]: {
       type: K;
-      data: ExtractVoidData<T[K]>;
+      data: T[K];
     };
   }[keyof T]
 >;
@@ -51,11 +19,10 @@ type ExtractVoidNode<T> = Prettify<
  * Defines structured text schema.
  */
 export const schema = <
-  V extends Record<string, EditableVoidSerializer<any>> = {},
+  V extends Record<string, any> = {},
   M extends boolean = false,
 >({
   multiline,
-  void: voids = {} as V,
 }: {
   multiline?: M;
   void?: V;
@@ -64,12 +31,10 @@ export const schema = <
     ? (ExtractVoidNode<V> | { type: "text"; text: string })[][]
     : (ExtractVoidNode<V> | { type: "text"; text: string })[]
 > => {
-  type VoidNodeData = ExtractVoidData<V[keyof V]>;
+  type VoidNodeData = V[keyof V];
   type TextNodeType = { type: "text"; text: string };
   type VoidNodeType = ExtractVoidNode<V>;
   type RowType = (TextNodeType | VoidNodeType)[];
-
-  const voidSerializers = Object.entries(voids);
 
   const textCache = new WeakMap<TextNode, TextNodeType>();
   // TODO replace VoidNodeData with VoidNode
@@ -84,25 +49,15 @@ export const schema = <
         }
         acc.push(text);
       } else {
-        acc.push(voidCache.get(t.data as VoidNodeData)!);
+        // TODO improve later
+        let prev = voidCache.get(t.data as VoidNodeData);
+        if (!prev) {
+          prev = t as any;
+        }
+        acc.push(prev as any);
       }
       return acc;
     }, [] as RowType);
-  };
-
-  const serializeVoid = (element: Element) => {
-    for (const [type, s] of voidSerializers) {
-      if (s.is(element as HTMLElement)) {
-        const data = s.data(element as HTMLElement) as VoidNodeData;
-        // TODO improve
-        voidCache.set(data, {
-          type,
-          data: { ...data },
-        } as VoidNodeType);
-        return data;
-      }
-    }
-    return;
   };
 
   const nodeToDocNode = (
@@ -113,7 +68,7 @@ export const schema = <
     }
     const { type, data } = node as {
       type: keyof V;
-      data: ExtractVoidData<V[keyof V]>;
+      data: V[keyof V];
     };
     voidCache.set(
       data as VoidNodeData,
@@ -145,51 +100,6 @@ export const schema = <
               state as (ExtractVoidNode<V> | { type: "text"; text: string })[]
             ).map(nodeToDocNode),
           ];
-    },
-    copy: (dataTransfer, doc, element) => {
-      dataTransfer.setData(
-        "text/plain",
-        docToString(doc, (node) => {
-          if (isTextNode(node)) {
-            return node.text;
-          }
-          const voidNode = voidCache.get(node.data as VoidNodeData)!;
-          return voids[voidNode.type]!.plain(node.data);
-        }),
-      );
-
-      const wrapper = document.createElement("div");
-      wrapper.appendChild(
-        // DOM range must exist here
-        getSelectionRangeInEditor(
-          getDOMSelection(element),
-          element,
-        )!.cloneContents(),
-      );
-      dataTransfer.setData("text/html", wrapper.innerHTML);
-    },
-    paste: (dataTransfer, config) => {
-      const html = dataTransfer.getData("text/html");
-      if (html) {
-        let dom: Node = new DOMParser().parseFromString(html, "text/html").body;
-        let isWindowsCopy = false;
-        // https://github.com/w3c/clipboard-apis/issues/193
-        for (const n of [...dom.childNodes]) {
-          if (isCommentNode(n)) {
-            if (n.data === "StartFragment") {
-              isWindowsCopy = true;
-              dom = new DocumentFragment();
-            } else if (n.data === "EndFragment") {
-              isWindowsCopy = false;
-            }
-          } else if (isWindowsCopy) {
-            dom.appendChild(n);
-          }
-        }
-
-        return readDom(dom, config, serializeVoid);
-      }
-      return stringToDoc(dataTransfer.getData("text/plain"));
     },
   };
 };
