@@ -268,7 +268,7 @@ const isValidOperation = (op: Operation): boolean => {
   return true;
 };
 
-const updateDoc = (doc: DocFragment, op: EditOperation): DocFragment => {
+const applyOperation = (doc: DocFragment, op: EditOperation): DocFragment => {
   switch (op._type) {
     case TYPE_DELETE: {
       return replaceRange(doc, [], op._start, op._end);
@@ -280,9 +280,10 @@ const updateDoc = (doc: DocFragment, op: EditOperation): DocFragment => {
       return replaceRange(doc, op._fragment, op._pos);
     }
     default: {
-      return op satisfies never;
+      op satisfies never;
     }
   }
+  return doc;
 };
 
 const rebasePosition = (position: Position, op: EditOperation): Position => {
@@ -346,7 +347,7 @@ export const applyTransaction = (
     for (const op of tr.ops) {
       if (isValidOperation(op)) {
         if (isEditOperation(op)) {
-          doc = updateDoc(doc, op);
+          doc = applyOperation(doc, op);
           selection = [
             rebasePosition(selection[0], op),
             rebasePosition(selection[1], op),
