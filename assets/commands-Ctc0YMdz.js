@@ -1,0 +1,1 @@
+import{t as s,T as n,g as c}from"./editor-BWZAr4lX.js";const r=function(){return new n().delete(...s(this.selection))},a=function(t){const[e,o]=s(this.selection);return new n().delete(e,o).insert(e,t)},l=function(t){const e=this.doc;return new n().delete([0,0],[e.length-1,c(e[e.length-1])]).insert([0,0],t)};export{r as D,a as I,l as R};
