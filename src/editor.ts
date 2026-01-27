@@ -143,6 +143,11 @@ export interface Editor {
   readonly doc: DocFragment;
   readonly selection: SelectionSnapshot;
   /**
+   * The getter/setter for the editor's read-only state.
+   * `true` to read-only. `false` to editable.
+   */
+  readonly: boolean;
+  /**
    * A function to make DOM editable.
    * @returns A function to stop subscribing DOM changes and restores previous DOM state.
    */
@@ -153,11 +158,6 @@ export interface Editor {
    * @param args arguments of command
    */
   command: <A extends unknown[]>(fn: EditorCommand<A>, ...args: A) => this;
-  /**
-   * Changes editor's read-only state.
-   * @param value `true` to read-only. `false` to editable.
-   */
-  readonly: (value: boolean) => void;
 }
 
 /**
@@ -270,6 +270,13 @@ export const createEditor = <T>({
     },
     get selection() {
       return selection;
+    },
+    get readonly() {
+      return readonly;
+    },
+    set readonly(value) {
+      readonly = value;
+      setContentEditable();
     },
     input: (element) => {
       if (
@@ -608,10 +615,6 @@ export const createEditor = <T>({
         apply(tr);
       }
       return editor;
-    },
-    readonly: (value) => {
-      readonly = value;
-      setContentEditable();
     },
   };
 

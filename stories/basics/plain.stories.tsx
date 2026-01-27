@@ -119,7 +119,7 @@ export const Readonly: StoryObj = {
           <button
             onClick={() => {
               const value = !readonly;
-              editor.readonly(value);
+              editor.readonly = value;
               setReadonly(value);
             }}
           >
