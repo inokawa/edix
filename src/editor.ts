@@ -90,6 +90,8 @@ export type KeyboardPayload = Pick<
   "key" | "code" | "ctrlKey" | "shiftKey" | "altKey" | "metaKey"
 >;
 
+type KeydownCallback = (keyboard: KeyboardPayload) => boolean | void;
+
 /**
  * Options of {@link createEditor}.
  */
@@ -125,7 +127,7 @@ export interface EditorOptions<T> {
    *
    * Return `true` if you want to cancel the editor's default behavior.
    */
-  onKeyDown?: (keyboard: KeyboardPayload) => boolean | void;
+  onKeyDown?: KeydownCallback;
   /**
    * Callback invoked when errors happen.
    *
@@ -168,7 +170,7 @@ export const createEditor = <T>({
   paste: pasteExtensions = [plainPaste()],
   isBlock = defaultIsBlockNode,
   onChange,
-  onKeyDown: onKeyDownCallback,
+  onKeyDown: onKeyDownHandler,
   onError = console.error,
 }: EditorOptions<T>): Editor => {
   let selection: SelectionSnapshot = getEmptySelectionSnapshot();
@@ -184,6 +186,26 @@ export const createEditor = <T>({
   const plugins: PluginObject[] = [];
   if (isSingleline) {
     plugins.push(singlelinePlugin());
+  }
+
+  const keydownHandlers: KeydownCallback[] = [
+    (e) => {
+      if ((e.metaKey || e.ctrlKey) && !e.altKey && e.code === "KeyZ") {
+        if (!readonly) {
+          const nextHistory = e.shiftKey ? history.redo() : history.undo();
+
+          if (nextHistory) {
+            onChange(docToJS(nextHistory[0]));
+            selection = nextHistory[1];
+          }
+          return true;
+        }
+      }
+      return;
+    },
+  ];
+  if (onKeyDownHandler) {
+    keydownHandlers.push(onKeyDownHandler);
   }
 
   const applyTransaction = plugins.reduceRight(
@@ -375,22 +397,11 @@ export const createEditor = <T>({
       const onKeyDown = (e: KeyboardEvent) => {
         if (isComposing) return;
 
-        if (onKeyDownCallback && onKeyDownCallback(e)) {
-          e.preventDefault();
-          return;
-        }
-        if ((e.metaKey || e.ctrlKey) && !e.altKey && e.code === "KeyZ") {
-          e.preventDefault();
-
-          observer._record(false);
-          if (!readonly) {
-            const nextHistory = e.shiftKey ? history.redo() : history.undo();
-
-            if (nextHistory) {
-              onChange(docToJS(nextHistory[0]));
-
-              selection = nextHistory[1];
-            }
+        for (const handler of keydownHandlers) {
+          if (handler(e)) {
+            e.preventDefault();
+            observer._record(false);
+            return;
           }
         }
       };
