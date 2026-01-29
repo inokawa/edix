@@ -260,9 +260,7 @@ const isValidPosition = (
   [line, offset]: Position,
 ): boolean => {
   if (line >= 0 && line < doc.length) {
-    const nodes = doc[line]!;
-    const lineSize = getLineSize(nodes);
-    if (offset >= 0 && offset <= lineSize) {
+    if (offset >= 0 && offset <= getLineSize(doc[line]!)) {
       return true;
     }
   }
