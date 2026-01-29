@@ -1,4 +1,4 @@
-import{j as e}from"./jsx-runtime-u17CrQMm.js";import{r}from"./iframe-COQe5tfU.js";import{I as j,D as C}from"./commands-Ctc0YMdz.js";import{c as u}from"./editor-BWZAr4lX.js";import{p as l}from"./plain-BIcOyBrj.js";import"./preload-helper-PPVm8Dsz.js";const D={component:u},d={render:()=>{const n=r.useRef(null),[t,o]=r.useState("");return r.useEffect(()=>{if(n.current)return u({doc:t,schema:l({multiline:!0}),onChange:o}).input(n.current)},[]),e.jsx("div",{ref:n,style:{backgroundColor:"white",border:"solid 1px darkgray",padding:8},children:t.split(`
+import{j as e}from"./jsx-runtime-u17CrQMm.js";import{r}from"./iframe-D4iIVbVm.js";import{I as j,D as C}from"./commands-bzgyNHS2.js";import{c as u}from"./editor-DvRMzhSL.js";import{p as l}from"./plain-BH7RSS7V.js";import"./preload-helper-PPVm8Dsz.js";const D={component:u},d={render:()=>{const n=r.useRef(null),[t,o]=r.useState("");return r.useEffect(()=>{if(n.current)return u({doc:t,schema:l({multiline:!0}),onChange:o}).input(n.current)},[]),e.jsx("div",{ref:n,style:{backgroundColor:"white",border:"solid 1px darkgray",padding:8},children:t.split(`
 `).map((a,s)=>e.jsx("div",{children:a||e.jsx("br",{})},s))})}},m={render:()=>{const n=r.useRef(null),[t,o]=r.useState(`Hello world.
 こんにちは。
 👍❤️🧑‍🧑‍🧒`);return r.useEffect(()=>{if(n.current)return u({doc:t,schema:l({multiline:!0}),onChange:o}).input(n.current)},[]),e.jsx("div",{ref:n,style:{backgroundColor:"white",border:"solid 1px darkgray",padding:8},children:t.split(`
@@ -11,7 +11,7 @@ import{j as e}from"./jsx-runtime-u17CrQMm.js";import{r}from"./iframe-COQe5tfU.js
 `})]})}},h={render:()=>{const n=r.useRef(null),[t,o]=r.useState("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."),[a,s]=r.useState("dolor");r.useEffect(()=>{if(n.current)return u({doc:t,schema:l({multiline:!0}),onChange:o}).input(n.current)},[]);const c=a?new RegExp(`(${a})`):null;return e.jsxs("div",{children:[e.jsxs("div",{children:[e.jsx("label",{htmlFor:"search",children:"search word"}),e.jsx("input",{name:"search",value:a,onChange:i=>s(i.target.value)})]}),e.jsx("div",{ref:n,style:{background:"white"},children:t.split(`
 `).map((i,k)=>e.jsx("div",{children:i?(c?i.split(c):[i]).map((S,w)=>S===a?e.jsx("mark",{children:S},w):e.jsx("span",{children:S},w)):e.jsx("br",{})},k))})]})}},g={render:()=>{const n=r.useRef(null),[t,o]=r.useState(`Hello world.
 こんにちは。
-👍❤️🧑‍🧑‍🧒`),a=r.useMemo(()=>u({doc:t,schema:l({multiline:!0}),onChange:o}),[]);r.useEffect(()=>{if(n.current)return a.input(n.current)},[]);const[s,c]=r.useState("text");return e.jsxs("div",{children:[e.jsxs("div",{style:{padding:4},children:[e.jsxs("div",{children:[e.jsx("input",{value:s,onChange:i=>{c(i.target.value)}}),e.jsx("button",{onClick:()=>{a.command(j,s)},children:"insert"})]}),e.jsx("div",{children:e.jsx("button",{onClick:()=>{a.command(C)},children:"delete selection"})}),e.jsxs("div",{children:[e.jsx("button",{onClick:()=>{document.getSelection()?.modify("move","forward","character"),n.current?.focus()},children:"move forward"}),e.jsx("button",{onClick:()=>{document.getSelection()?.modify("move","backward","character"),n.current?.focus()},children:"move backward"}),e.jsx("button",{onClick:()=>{document.getSelection()?.modify("extend","forward","character"),n.current?.focus()},children:"move focus forward"}),e.jsx("button",{onClick:()=>{document.getSelection()?.modify("extend","backward","character"),n.current?.focus()},children:"move focus backward"})]})]}),e.jsx("div",{ref:n,style:{backgroundColor:"white",border:"solid 1px darkgray",padding:8},children:t.split(`
+👍❤️🧑‍🧑‍🧒`),a=r.useMemo(()=>u({doc:t,schema:l({multiline:!0}),onChange:o}),[]);r.useEffect(()=>{if(n.current)return a.input(n.current)},[]);const[s,c]=r.useState("text");return e.jsxs("div",{children:[e.jsxs("div",{style:{padding:4},children:[e.jsxs("div",{children:[e.jsx("input",{value:s,onChange:i=>{c(i.target.value)}}),e.jsx("button",{onClick:()=>{a.apply(j,s)},children:"insert"})]}),e.jsx("div",{children:e.jsx("button",{onClick:()=>{a.apply(C)},children:"delete selection"})}),e.jsxs("div",{children:[e.jsx("button",{onClick:()=>{document.getSelection()?.modify("move","forward","character"),n.current?.focus()},children:"move forward"}),e.jsx("button",{onClick:()=>{document.getSelection()?.modify("move","backward","character"),n.current?.focus()},children:"move backward"}),e.jsx("button",{onClick:()=>{document.getSelection()?.modify("extend","forward","character"),n.current?.focus()},children:"move focus forward"}),e.jsx("button",{onClick:()=>{document.getSelection()?.modify("extend","backward","character"),n.current?.focus()},children:"move focus backward"})]})]}),e.jsx("div",{ref:n,style:{backgroundColor:"white",border:"solid 1px darkgray",padding:8},children:t.split(`
 `).map((i,k)=>e.jsx("div",{children:i||e.jsx("br",{})},k))})]})}},x={render:()=>{const n=r.useRef(null),[t,o]=r.useState(`Hello world.
 こんにちは。
 👍❤️🧑‍🧑‍🧒`);return r.useEffect(()=>{if(n.current)return u({doc:t,schema:l({multiline:!0}),isBlock:a=>!!a.dataset.line,onChange:o}).input(n.current)},[]),e.jsx("div",{ref:n,style:{backgroundColor:"white",border:"solid 1px darkgray",padding:8},children:t.split(`
@@ -202,14 +202,14 @@ two !
             setText(e.target.value);
           }} />
             <button onClick={() => {
-            editor.command(InsertText, text);
+            editor.apply(InsertText, text);
           }}>
               insert
             </button>
           </div>
           <div>
             <button onClick={() => {
-            editor.command(Delete);
+            editor.apply(Delete);
           }}>
               delete selection
             </button>
