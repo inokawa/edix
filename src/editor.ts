@@ -153,11 +153,12 @@ export interface Editor {
    */
   input: (element: HTMLElement) => () => void;
   /**
-   * Dispatches editing command.
-   * @param fn command function
-   * @param args arguments of command
+   * Dispatches editing operations.
+   * @param tr {@link Transaction} or {@link EditorCommand}
+   * @param args arguments of {@link EditorCommand}
    */
-  command: <A extends unknown[]>(fn: EditorCommand<A>, ...args: A) => this;
+  apply(tr: Transaction): this;
+  apply<A extends unknown[]>(fn: EditorCommand<A>, ...args: A): this;
 }
 
 /**
@@ -277,6 +278,14 @@ export const createEditor = <T>({
     set readonly(value) {
       readonly = value;
       setContentEditable();
+    },
+    apply: (fn: Transaction | EditorCommand<any>, ...args: unknown[]) => {
+      if (typeof fn === "function") {
+        fn.call(editor, ...args);
+      } else {
+        apply(fn);
+      }
+      return editor;
     },
     input: (element) => {
       if (
@@ -608,13 +617,6 @@ export const createEditor = <T>({
         element.removeEventListener("dragstart", onDragStart);
         element.removeEventListener("dragend", onDragEnd);
       };
-    },
-    command: (fn, ...args) => {
-      const tr = fn.call(editor, ...args);
-      if (tr) {
-        apply(tr);
-      }
-      return editor;
     },
   };
 
