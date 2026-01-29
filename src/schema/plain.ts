@@ -2,7 +2,7 @@ import { docToString, stringToDoc } from "../doc/utils.js";
 import type { DocSchema } from "./types.js";
 
 /**
- * Defines plain text schema.
+ * @deprecated
  */
 export const plainSchema = ({
   multiline,

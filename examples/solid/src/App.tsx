@@ -1,13 +1,12 @@
 import { createMemo, createSignal, For, onCleanup, onMount } from "solid-js";
-import { createEditor, plainSchema } from "edix";
+import { createPlainEditor } from "edix";
 
 function App() {
   let ref: HTMLDivElement | undefined;
   const [value, setValue] = createSignal("Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
   onMount(() => {
-    const editor = createEditor({
-      doc: value(),
-      schema: plainSchema({ multiline: true }),
+    const editor = createPlainEditor({
+      text: value(),
       onChange: setValue,
     });
     const dispose = editor.input(ref!);

@@ -1,4 +1,4 @@
-import { createEditor, plainSchema } from "edix";
+import { createPlainEditor } from "edix";
 import morphdom from "morphdom";
 
 const root = document.getElementById("root")!;
@@ -22,9 +22,8 @@ const updateRows = (text: string) => {
 const value = "Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒";
 updateRows(value);
 
-createEditor({
-  doc: value,
-  schema: plainSchema({ multiline: true }),
+createPlainEditor({
+  text: value,
   onChange: (v) => {
     updateRows(v);
   },

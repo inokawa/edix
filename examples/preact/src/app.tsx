@@ -1,14 +1,13 @@
 import { useEffect, useRef, useState } from "preact/hooks";
-import { createEditor, plainSchema } from "edix";
+import { createPlainEditor } from "edix";
 
 export function App() {
   const ref = useRef<HTMLDivElement>(null);
   const [value, setValue] = useState("Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
   useEffect(() => {
     if (!ref.current) return;
-    return createEditor({
-      doc: value,
-      schema: plainSchema({ multiline: true }),
+    return createPlainEditor({
+      text: value,
       onChange: setValue,
     }).input(ref.current);
   }, []);

@@ -6,15 +6,10 @@ import React, {
   useRef,
   useState,
 } from "react";
-import {
-  createEditor,
-  type KeyboardPayload,
-  plainSchema,
-  ReplaceAll,
-} from "../../src";
+import { createPlainEditor, type KeyboardPayload, ReplaceAll } from "../../src";
 
 export default {
-  component: createEditor,
+  component: createPlainEditor,
 };
 
 const COMBOBOX_INPUT_HEIGHT = 20;
@@ -529,9 +524,9 @@ export const Combobox: StoryObj = {
 
     const editor = useMemo(
       () =>
-        createEditor({
-          doc: value,
-          schema: plainSchema(),
+        createPlainEditor({
+          text: value,
+          singleline: true,
           onChange: setValue,
           onKeyDown: onKeyDown,
         }),
