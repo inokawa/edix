@@ -75,25 +75,111 @@ it("discard if error", () => {
 });
 
 describe("insert", () => {
-  it("should ignore empty text", () => {
-    const docText = "abcde";
-    const docText2 = "fghij";
-    const doc: DocFragment = [
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: docText2 }],
-    ];
-    const sel: SelectionSnapshot = [
-      [1, 2],
-      [1, 2],
-    ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insert([0, 1], ""),
-    )!;
+  describe("validation", () => {
+    it("path less than min", () => {
+      const docText = "abcde";
+      const docText2 = "fghij";
+      const doc: DocFragment = [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: docText2 }],
+      ];
+      const sel: SelectionSnapshot = [
+        [1, 2],
+        [1, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().insert([-1, 0], "test"),
+      )!;
 
-    expect(isDocEqual(res[0], doc)).toBe(true);
-    expect(res[1]).toEqual(sel);
+      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
+
+    it("path more than max", () => {
+      const docText = "abcde";
+      const docText2 = "fghij";
+      const doc: DocFragment = [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: docText2 }],
+      ];
+      const sel: SelectionSnapshot = [
+        [1, 2],
+        [1, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().insert([100, 0], "test"),
+      )!;
+
+      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
+
+    it("offset less than min", () => {
+      const docText = "abcde";
+      const docText2 = "fghij";
+      const doc: DocFragment = [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: docText2 }],
+      ];
+      const sel: SelectionSnapshot = [
+        [1, 2],
+        [1, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().insert([0, -1], "test"),
+      )!;
+
+      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
+
+    it("offset more than max", () => {
+      const docText = "abcde";
+      const docText2 = "fghij";
+      const doc: DocFragment = [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: docText2 }],
+      ];
+      const sel: SelectionSnapshot = [
+        [1, 2],
+        [1, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().insert([0, 100], "test"),
+      )!;
+
+      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
+
+    it("empty text", () => {
+      const docText = "abcde";
+      const docText2 = "fghij";
+      const doc: DocFragment = [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: docText2 }],
+      ];
+      const sel: SelectionSnapshot = [
+        [1, 2],
+        [1, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().insert([0, 1], ""),
+      )!;
+
+      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
   });
 
   it("should insert text at line before caret", () => {
@@ -447,21 +533,91 @@ describe("insert", () => {
 });
 
 describe("delete", () => {
-  it("should ignore if start and end is the same", () => {
-    const docText = "abcde";
-    const doc: DocFragment = [[{ id: 1, text: docText }]];
-    const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
-    ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([0, 1], [0, 1]),
-    )!;
+  describe("validation", () => {
+    it("path less than min", () => {
+      const docText = "abcde";
+      const doc: DocFragment = [[{ id: 1, text: docText }]];
+      const sel: SelectionSnapshot = [
+        [0, 2],
+        [0, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().delete([-1, 0], [0, 1]),
+      )!;
 
-    expect(isDocEqual(res[0], doc)).toBe(true);
-    expect(res[1]).toEqual(sel);
+      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
+
+    it("path more than max", () => {
+      const docText = "abcde";
+      const doc: DocFragment = [[{ id: 1, text: docText }]];
+      const sel: SelectionSnapshot = [
+        [0, 2],
+        [0, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().delete([0, 0], [100, 1]),
+      )!;
+
+      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
+
+    it("offset less than min", () => {
+      const docText = "abcde";
+      const doc: DocFragment = [[{ id: 1, text: docText }]];
+      const sel: SelectionSnapshot = [
+        [0, 2],
+        [0, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().delete([0, -1], [0, 1]),
+      )!;
+
+      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
+
+    it("offset more than max", () => {
+      const docText = "abcde";
+      const doc: DocFragment = [[{ id: 1, text: docText }]];
+      const sel: SelectionSnapshot = [
+        [0, 2],
+        [0, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().delete([0, 0], [0, 100]),
+      )!;
+
+      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
+
+    it("start and end is the same", () => {
+      const docText = "abcde";
+      const doc: DocFragment = [[{ id: 1, text: docText }]];
+      const sel: SelectionSnapshot = [
+        [0, 2],
+        [0, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().delete([0, 1], [0, 1]),
+      )!;
+
+      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
   });
 
   it("should delete text at line before caret", () => {
