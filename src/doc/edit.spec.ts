@@ -75,25 +75,111 @@ it("discard if error", () => {
 });
 
 describe("insert", () => {
-  it("should ignore empty text", () => {
-    const docText = "abcde";
-    const docText2 = "fghij";
-    const doc: DocFragment = [
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: docText2 }],
-    ];
-    const sel: SelectionSnapshot = [
-      [1, 2],
-      [1, 2],
-    ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insert([0, 1], ""),
-    )!;
+  describe("validation", () => {
+    it("path less than min", () => {
+      const docText = "abcde";
+      const docText2 = "fghij";
+      const doc: DocFragment = [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: docText2 }],
+      ];
+      const sel: SelectionSnapshot = [
+        [1, 2],
+        [1, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().insert([-1, 0], "test"),
+      )!;
 
-    expect(isDocEqual(res[0], doc)).toBe(true);
-    expect(res[1]).toEqual(sel);
+      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
+
+    it("path more than max", () => {
+      const docText = "abcde";
+      const docText2 = "fghij";
+      const doc: DocFragment = [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: docText2 }],
+      ];
+      const sel: SelectionSnapshot = [
+        [1, 2],
+        [1, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().insert([100, 0], "test"),
+      )!;
+
+      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
+
+    it("offset less than min", () => {
+      const docText = "abcde";
+      const docText2 = "fghij";
+      const doc: DocFragment = [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: docText2 }],
+      ];
+      const sel: SelectionSnapshot = [
+        [1, 2],
+        [1, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().insert([0, -1], "test"),
+      )!;
+
+      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
+
+    it("offset more than max", () => {
+      const docText = "abcde";
+      const docText2 = "fghij";
+      const doc: DocFragment = [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: docText2 }],
+      ];
+      const sel: SelectionSnapshot = [
+        [1, 2],
+        [1, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().insert([0, 100], "test"),
+      )!;
+
+      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
+
+    it("empty text", () => {
+      const docText = "abcde";
+      const docText2 = "fghij";
+      const doc: DocFragment = [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: docText2 }],
+      ];
+      const sel: SelectionSnapshot = [
+        [1, 2],
+        [1, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().insert([0, 1], ""),
+      )!;
+
+      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
   });
 
   it("should insert text at line before caret", () => {
@@ -107,7 +193,6 @@ describe("insert", () => {
       [1, 2],
       [1, 2],
     ];
-    const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
     const res = applyTransaction(
       doc,
@@ -119,7 +204,7 @@ describe("insert", () => {
       [{ id: 1, text: insertAt(docText, 1, text) }],
       [{ id: 1, text: docText2 }],
     ]);
-    expect(res[1]).toEqual(initialSel);
+    expect(res[1]).toEqual(sel);
   });
 
   it("should insert lines at line before caret", () => {
@@ -133,7 +218,6 @@ describe("insert", () => {
       [1, 2],
       [1, 2],
     ];
-    const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
     const text2 = "DEFG";
     const res = applyTransaction(
@@ -148,7 +232,7 @@ describe("insert", () => {
       [{ id: 1, text: text2 + after }],
       [{ id: 1, text: docText2 }],
     ]);
-    expect(res[1]).toEqual(moveLine(initialSel, 1));
+    expect(res[1]).toEqual(moveLine(sel, 1));
   });
 
   it("should insert text before caret", () => {
@@ -158,7 +242,6 @@ describe("insert", () => {
       [0, 2],
       [0, 2],
     ];
-    const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
     const res = applyTransaction(
       doc,
@@ -167,7 +250,7 @@ describe("insert", () => {
     )!;
 
     expect(res[0]).toEqual([[{ id: 1, text: insertAt(docText, 1, text) }]]);
-    expect(res[1]).toEqual(moveOffset(initialSel, text.length));
+    expect(res[1]).toEqual(moveOffset(sel, text.length));
   });
 
   it("should insert text before caret on middle line", () => {
@@ -183,7 +266,6 @@ describe("insert", () => {
       [1, 2],
       [1, 2],
     ];
-    const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
     const res = applyTransaction(
       doc,
@@ -196,7 +278,7 @@ describe("insert", () => {
       [{ id: 1, text: insertAt(docText2, 1, text) }],
       [{ id: 1, text: docText3 }],
     ]);
-    expect(res[1]).toEqual(moveOffset(initialSel, text.length));
+    expect(res[1]).toEqual(moveOffset(sel, text.length));
   });
 
   it("should insert lines before caret", () => {
@@ -206,7 +288,6 @@ describe("insert", () => {
       [0, 2],
       [0, 2],
     ];
-    const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
     const text2 = "DEFG";
     const res = applyTransaction(
@@ -221,7 +302,7 @@ describe("insert", () => {
       [{ id: 1, text: text2 + after }],
     ]);
     expect(res[1]).toEqual(
-      moveLine(moveOffset(initialSel, -before.length + text2.length), 1),
+      moveLine(moveOffset(sel, -before.length + text2.length), 1),
     );
   });
 
@@ -232,7 +313,6 @@ describe("insert", () => {
       [0, 2],
       [0, 2],
     ];
-    const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
     const res = applyTransaction(
       doc,
@@ -241,7 +321,7 @@ describe("insert", () => {
     )!;
 
     expect(res[0]).toEqual([[{ id: 1, text: insertAt(docText, 2, text) }]]);
-    expect(res[1]).toEqual(moveOffset(initialSel, text.length));
+    expect(res[1]).toEqual(moveOffset(sel, text.length));
   });
 
   it("should insert lines on caret", () => {
@@ -251,7 +331,6 @@ describe("insert", () => {
       [0, 2],
       [0, 2],
     ];
-    const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
     const text2 = "DEFG";
     const res = applyTransaction(
@@ -266,7 +345,7 @@ describe("insert", () => {
       [{ id: 1, text: text2 + after }],
     ]);
     expect(res[1]).toEqual(
-      moveLine(moveOffset(initialSel, -before.length + text2.length), 1),
+      moveLine(moveOffset(sel, -before.length + text2.length), 1),
     );
   });
 
@@ -277,7 +356,6 @@ describe("insert", () => {
       [0, 1],
       [0, 3],
     ];
-    const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
     const res = applyTransaction(
       doc,
@@ -286,7 +364,7 @@ describe("insert", () => {
     )!;
 
     expect(res[0]).toEqual([[{ id: 1, text: insertAt(docText, 2, text) }]]);
-    expect(res[1]).toEqual(moveOffset(initialSel, { focus: text.length }));
+    expect(res[1]).toEqual(moveOffset(sel, { focus: text.length }));
   });
 
   it("should insert lines inside selection", () => {
@@ -296,7 +374,6 @@ describe("insert", () => {
       [0, 1],
       [0, 3],
     ];
-    const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
     const text2 = "DEFG";
     const res = applyTransaction(
@@ -311,10 +388,9 @@ describe("insert", () => {
       [{ id: 1, text: text2 + after }],
     ]);
     expect(res[1]).toEqual(
-      moveLine(
-        moveOffset(initialSel, { focus: -before.length + text2.length }),
-        { focus: 1 },
-      ),
+      moveLine(moveOffset(sel, { focus: -before.length + text2.length }), {
+        focus: 1,
+      }),
     );
   });
 
@@ -325,7 +401,6 @@ describe("insert", () => {
       [0, 2],
       [0, 2],
     ];
-    const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
     const res = applyTransaction(
       doc,
@@ -334,7 +409,7 @@ describe("insert", () => {
     )!;
 
     expect(res[0]).toEqual([[{ id: 1, text: insertAt(docText, 3, text) }]]);
-    expect(res[1]).toEqual(initialSel);
+    expect(res[1]).toEqual(sel);
   });
 
   it("should insert text after caret on middle line", () => {
@@ -350,7 +425,6 @@ describe("insert", () => {
       [1, 2],
       [1, 2],
     ];
-    const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
     const res = applyTransaction(
       doc,
@@ -363,7 +437,7 @@ describe("insert", () => {
       [{ id: 1, text: insertAt(docText2, 3, text) }],
       [{ id: 1, text: docText3 }],
     ]);
-    expect(res[1]).toEqual(initialSel);
+    expect(res[1]).toEqual(sel);
   });
 
   it("should insert lines after caret", () => {
@@ -373,7 +447,6 @@ describe("insert", () => {
       [0, 2],
       [0, 2],
     ];
-    const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
     const text2 = "DEFG";
     const res = applyTransaction(
@@ -387,7 +460,7 @@ describe("insert", () => {
       [{ id: 1, text: before + text }],
       [{ id: 1, text: text2 + after }],
     ]);
-    expect(res[1]).toEqual(initialSel);
+    expect(res[1]).toEqual(sel);
   });
 
   it("should insert text at line after caret", () => {
@@ -401,7 +474,6 @@ describe("insert", () => {
       [0, 2],
       [0, 2],
     ];
-    const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
     const res = applyTransaction(
       doc,
@@ -413,7 +485,7 @@ describe("insert", () => {
       [{ id: 1, text: docText }],
       [{ id: 1, text: insertAt(docText2, 1, text) }],
     ]);
-    expect(res[1]).toEqual(initialSel);
+    expect(res[1]).toEqual(sel);
   });
 
   it("should insert lines at line after caret", () => {
@@ -427,7 +499,6 @@ describe("insert", () => {
       [0, 2],
       [0, 2],
     ];
-    const initialSel: SelectionSnapshot = structuredClone(sel);
     const text = "ABC";
     const text2 = "DEFG";
     const res = applyTransaction(
@@ -442,26 +513,573 @@ describe("insert", () => {
       [{ id: 1, text: before + text }],
       [{ id: 1, text: text2 + after }],
     ]);
-    expect(res[1]).toEqual(initialSel);
+    expect(res[1]).toEqual(sel);
   });
 });
 
-describe("delete", () => {
-  it("should ignore if start and end is the same", () => {
+describe("insert node", () => {
+  describe("validation", () => {
+    it("path less than min", () => {
+      const docText = "abcde";
+      const docText2 = "fghij";
+      const doc: DocFragment = [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: docText2 }],
+      ];
+      const sel: SelectionSnapshot = [
+        [1, 2],
+        [1, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().insertFragment([-1, 0], [[{ text: "test" }]]),
+      )!;
+
+      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
+
+    it("path more than max", () => {
+      const docText = "abcde";
+      const docText2 = "fghij";
+      const doc: DocFragment = [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: docText2 }],
+      ];
+      const sel: SelectionSnapshot = [
+        [1, 2],
+        [1, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().insertFragment([100, 0], [[{ text: "test" }]]),
+      )!;
+
+      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
+
+    it("offset less than min", () => {
+      const docText = "abcde";
+      const docText2 = "fghij";
+      const doc: DocFragment = [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: docText2 }],
+      ];
+      const sel: SelectionSnapshot = [
+        [1, 2],
+        [1, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().insertFragment([0, -1], [[{ text: "test" }]]),
+      )!;
+
+      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
+
+    it("offset more than max", () => {
+      const docText = "abcde";
+      const docText2 = "fghij";
+      const doc: DocFragment = [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: docText2 }],
+      ];
+      const sel: SelectionSnapshot = [
+        [1, 2],
+        [1, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().insertFragment([0, 100], [[{ text: "test" }]]),
+      )!;
+
+      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
+
+    it("empty text", () => {
+      const docText = "abcde";
+      const docText2 = "fghij";
+      const doc: DocFragment = [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: docText2 }],
+      ];
+      const sel: SelectionSnapshot = [
+        [1, 2],
+        [1, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().insertFragment([0, 1], [[{ text: "" }]]),
+      )!;
+
+      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
+  });
+
+  it("should insert text at line before caret", () => {
+    const docText = "abcde";
+    const docText2 = "fghij";
+    const doc: DocFragment = [
+      [{ id: 1, text: docText }],
+      [{ id: 1, text: docText2 }],
+    ];
+    const sel: SelectionSnapshot = [
+      [1, 2],
+      [1, 2],
+    ];
+    const text = "ABC";
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().insertFragment([0, 1], [[{ text }]]),
+    )!;
+
+    const [before, after] = splitAt(docText, 1);
+    expect(res[0]).toEqual([
+      [{ id: 1, text: before }, { text }, { id: 1, text: after }],
+      [{ id: 1, text: docText2 }],
+    ]);
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("should insert lines at line before caret", () => {
+    const docText = "abcde";
+    const docText2 = "fghij";
+    const doc: DocFragment = [
+      [{ id: 1, text: docText }],
+      [{ id: 1, text: docText2 }],
+    ];
+    const sel: SelectionSnapshot = [
+      [1, 2],
+      [1, 2],
+    ];
+    const text = "ABC";
+    const text2 = "DEFG";
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().insertFragment(
+        [0, 1],
+        [[{ text: text }], [{ text: text2 }]],
+      ),
+    )!;
+
+    const [before, after] = splitAt(docText, 1);
+    expect(res[0]).toEqual([
+      [{ id: 1, text: before }, { text }],
+      [{ text: text2 }, { id: 1, text: after }],
+      [{ id: 1, text: docText2 }],
+    ]);
+    expect(res[1]).toEqual(moveLine(sel, 1));
+  });
+
+  it("should insert text before caret", () => {
     const docText = "abcde";
     const doc: DocFragment = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
       [0, 2],
       [0, 2],
     ];
+    const text = "ABC";
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().delete([0, 1], [0, 1]),
+      new Transaction().insertFragment([0, 1], [[{ text }]]),
     )!;
 
-    expect(isDocEqual(res[0], doc)).toBe(true);
+    const [before, after] = splitAt(docText, 1);
+    expect(res[0]).toEqual([
+      [{ id: 1, text: before }, { text }, { id: 1, text: after }],
+    ]);
+    expect(res[1]).toEqual(moveOffset(sel, text.length));
+  });
+
+  it("should insert text before caret on middle line", () => {
+    const docText = "abcde";
+    const docText2 = "fghi";
+    const docText3 = "jkl";
+    const doc: DocFragment = [
+      [{ id: 1, text: docText }],
+      [{ id: 1, text: docText2 }],
+      [{ id: 1, text: docText3 }],
+    ];
+    const sel: SelectionSnapshot = [
+      [1, 2],
+      [1, 2],
+    ];
+    const text = "ABC";
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().insertFragment([1, 1], [[{ text }]]),
+    )!;
+
+    const [before, after] = splitAt(docText2, 1);
+    expect(res[0]).toEqual([
+      [{ id: 1, text: docText }],
+      [{ id: 1, text: before }, { text }, { id: 1, text: after }],
+      [{ id: 1, text: docText3 }],
+    ]);
+    expect(res[1]).toEqual(moveOffset(sel, text.length));
+  });
+
+  it("should insert lines before caret", () => {
+    const docText = "abcde";
+    const doc: DocFragment = [[{ id: 1, text: docText }]];
+    const sel: SelectionSnapshot = [
+      [0, 2],
+      [0, 2],
+    ];
+    const text = "ABC";
+    const text2 = "DEFG";
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().insertFragment(
+        [0, 1],
+        [[{ text: text }], [{ text: text2 }]],
+      ),
+    )!;
+
+    const [before, after] = splitAt(docText, 1);
+    expect(res[0]).toEqual([
+      [{ id: 1, text: before }, { text }],
+      [{ text: text2 }, { id: 1, text: after }],
+    ]);
+    expect(res[1]).toEqual(
+      moveLine(moveOffset(sel, -before.length + text2.length), 1),
+    );
+  });
+
+  it("should insert text on caret", () => {
+    const docText = "abcde";
+    const doc: DocFragment = [[{ id: 1, text: docText }]];
+    const sel: SelectionSnapshot = [
+      [0, 2],
+      [0, 2],
+    ];
+    const text = "ABC";
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().insertFragment([0, 2], [[{ text }]]),
+    )!;
+
+    const [before, after] = splitAt(docText, 2);
+    expect(res[0]).toEqual([
+      [{ id: 1, text: before }, { text }, { id: 1, text: after }],
+    ]);
+    expect(res[1]).toEqual(moveOffset(sel, text.length));
+  });
+
+  it("should insert lines on caret", () => {
+    const docText = "abcde";
+    const doc: DocFragment = [[{ id: 1, text: docText }]];
+    const sel: SelectionSnapshot = [
+      [0, 2],
+      [0, 2],
+    ];
+    const text = "ABC";
+    const text2 = "DEFG";
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().insertFragment(
+        [0, 2],
+        [[{ text: text }], [{ text: text2 }]],
+      ),
+    )!;
+
+    const [before, after] = splitAt(docText, 2);
+    expect(res[0]).toEqual([
+      [{ id: 1, text: before }, { text }],
+      [{ text: text2 }, { id: 1, text: after }],
+    ]);
+    expect(res[1]).toEqual(
+      moveLine(moveOffset(sel, -before.length + text2.length), 1),
+    );
+  });
+
+  it("should insert text inside selection", () => {
+    const docText = "abcde";
+    const doc: DocFragment = [[{ id: 1, text: docText }]];
+    const sel: SelectionSnapshot = [
+      [0, 1],
+      [0, 3],
+    ];
+    const text = "ABC";
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().insertFragment([0, 2], [[{ text }]]),
+    )!;
+
+    const [before, after] = splitAt(docText, 2);
+    expect(res[0]).toEqual([
+      [{ id: 1, text: before }, { text }, { id: 1, text: after }],
+    ]);
+    expect(res[1]).toEqual(moveOffset(sel, { focus: text.length }));
+  });
+
+  it("should insert lines inside selection", () => {
+    const docText = "abcde";
+    const doc: DocFragment = [[{ id: 1, text: docText }]];
+    const sel: SelectionSnapshot = [
+      [0, 1],
+      [0, 3],
+    ];
+    const text = "ABC";
+    const text2 = "DEFG";
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().insertFragment(
+        [0, 2],
+        [[{ text: text }], [{ text: text2 }]],
+      ),
+    )!;
+
+    const [before, after] = splitAt(docText, 2);
+    expect(res[0]).toEqual([
+      [{ id: 1, text: before }, { text }],
+      [{ text: text2 }, { id: 1, text: after }],
+    ]);
+    expect(res[1]).toEqual(
+      moveLine(moveOffset(sel, { focus: -before.length + text2.length }), {
+        focus: 1,
+      }),
+    );
+  });
+
+  it("should insert text after caret", () => {
+    const docText = "abcde";
+    const doc: DocFragment = [[{ id: 1, text: docText }]];
+    const sel: SelectionSnapshot = [
+      [0, 2],
+      [0, 2],
+    ];
+    const text = "ABC";
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().insertFragment([0, 3], [[{ text }]]),
+    )!;
+
+    const [before, after] = splitAt(docText, 3);
+    expect(res[0]).toEqual([
+      [{ id: 1, text: before }, { text }, { id: 1, text: after }],
+    ]);
     expect(res[1]).toEqual(sel);
+  });
+
+  it("should insert text after caret on middle line", () => {
+    const docText = "abcde";
+    const docText2 = "fghi";
+    const docText3 = "jkl";
+    const doc: DocFragment = [
+      [{ id: 1, text: docText }],
+      [{ id: 1, text: docText2 }],
+      [{ id: 1, text: docText3 }],
+    ];
+    const sel: SelectionSnapshot = [
+      [1, 2],
+      [1, 2],
+    ];
+    const text = "ABC";
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().insertFragment([1, 3], [[{ text }]]),
+    )!;
+
+    const [before, after] = splitAt(docText2, 3);
+    expect(res[0]).toEqual([
+      [{ id: 1, text: docText }],
+      [{ id: 1, text: before }, { text }, { id: 1, text: after }],
+      [{ id: 1, text: docText3 }],
+    ]);
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("should insert lines after caret", () => {
+    const docText = "abcde";
+    const doc: DocFragment = [[{ id: 1, text: docText }]];
+    const sel: SelectionSnapshot = [
+      [0, 2],
+      [0, 2],
+    ];
+    const text = "ABC";
+    const text2 = "DEFG";
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().insertFragment(
+        [0, 3],
+        [[{ text: text }], [{ text: text2 }]],
+      ),
+    )!;
+
+    const [before, after] = splitAt(docText, 3);
+    expect(res[0]).toEqual([
+      [{ id: 1, text: before }, { text }],
+      [{ text: text2 }, { id: 1, text: after }],
+    ]);
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("should insert text at line after caret", () => {
+    const docText = "abcde";
+    const docText2 = "fghij";
+    const doc: DocFragment = [
+      [{ id: 1, text: docText }],
+      [{ id: 1, text: docText2 }],
+    ];
+    const sel: SelectionSnapshot = [
+      [0, 2],
+      [0, 2],
+    ];
+    const text = "ABC";
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().insertFragment([1, 1], [[{ text }]]),
+    )!;
+
+    const [before, after] = splitAt(docText2, 1);
+    expect(res[0]).toEqual([
+      [{ id: 1, text: docText }],
+      [{ id: 1, text: before }, { text }, { id: 1, text: after }],
+    ]);
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("should insert lines at line after caret", () => {
+    const docText = "abcde";
+    const docText2 = "fghij";
+    const doc: DocFragment = [
+      [{ id: 1, text: docText }],
+      [{ id: 1, text: docText2 }],
+    ];
+    const sel: SelectionSnapshot = [
+      [0, 2],
+      [0, 2],
+    ];
+    const text = "ABC";
+    const text2 = "DEFG";
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().insertFragment(
+        [1, 1],
+        [[{ text: text }], [{ text: text2 }]],
+      ),
+    )!;
+
+    const [before, after] = splitAt(docText2, 1);
+    expect(res[0]).toEqual([
+      [{ id: 1, text: docText }],
+      [{ id: 1, text: before }, { text: text }],
+      [{ text: text2 }, { id: 1, text: after }],
+    ]);
+    expect(res[1]).toEqual(sel);
+  });
+});
+
+describe("delete", () => {
+  describe("validation", () => {
+    it("path less than min", () => {
+      const docText = "abcde";
+      const doc: DocFragment = [[{ id: 1, text: docText }]];
+      const sel: SelectionSnapshot = [
+        [0, 2],
+        [0, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().delete([-1, 0], [0, 1]),
+      )!;
+
+      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
+
+    it("path more than max", () => {
+      const docText = "abcde";
+      const doc: DocFragment = [[{ id: 1, text: docText }]];
+      const sel: SelectionSnapshot = [
+        [0, 2],
+        [0, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().delete([0, 0], [100, 1]),
+      )!;
+
+      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
+
+    it("offset less than min", () => {
+      const docText = "abcde";
+      const doc: DocFragment = [[{ id: 1, text: docText }]];
+      const sel: SelectionSnapshot = [
+        [0, 2],
+        [0, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().delete([0, -1], [0, 1]),
+      )!;
+
+      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
+
+    it("offset more than max", () => {
+      const docText = "abcde";
+      const doc: DocFragment = [[{ id: 1, text: docText }]];
+      const sel: SelectionSnapshot = [
+        [0, 2],
+        [0, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().delete([0, 0], [0, 100]),
+      )!;
+
+      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
+
+    it("start and end is the same", () => {
+      const docText = "abcde";
+      const doc: DocFragment = [[{ id: 1, text: docText }]];
+      const sel: SelectionSnapshot = [
+        [0, 2],
+        [0, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().delete([0, 1], [0, 1]),
+      )!;
+
+      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
   });
 
   it("should delete text at line before caret", () => {
@@ -475,7 +1093,6 @@ describe("delete", () => {
       [1, 2],
       [1, 2],
     ];
-    const initialSel: SelectionSnapshot = structuredClone(sel);
     const res = applyTransaction(
       doc,
       sel,
@@ -486,7 +1103,7 @@ describe("delete", () => {
       [{ id: 1, text: deleteAt(docText, 1, 1) }],
       [{ id: 1, text: docText2 }],
     ]);
-    expect(res[1]).toEqual(initialSel);
+    expect(res[1]).toEqual(sel);
   });
 
   it("should delete linebreak at line before caret", () => {
@@ -529,7 +1146,6 @@ describe("delete", () => {
       [0, 3],
       [0, 3],
     ];
-    const initialSel: SelectionSnapshot = structuredClone(sel);
     const res = applyTransaction(
       doc,
       sel,
@@ -537,7 +1153,7 @@ describe("delete", () => {
     )!;
 
     expect(res[0]).toEqual([[{ id: 1, text: deleteAt(docText, 1, 1) }]]);
-    expect(res[1]).toEqual(moveOffset(initialSel, -1));
+    expect(res[1]).toEqual(moveOffset(sel, -1));
   });
 
   it("should delete text before caret on middle line", () => {
@@ -553,7 +1169,6 @@ describe("delete", () => {
       [1, 3],
       [1, 3],
     ];
-    const initialSel: SelectionSnapshot = structuredClone(sel);
     const res = applyTransaction(
       doc,
       sel,
@@ -565,7 +1180,7 @@ describe("delete", () => {
       [{ id: 1, text: deleteAt(docText2, 1, 1) }],
       [{ id: 1, text: docText3 }],
     ]);
-    expect(res[1]).toEqual(moveOffset(initialSel, -1));
+    expect(res[1]).toEqual(moveOffset(sel, -1));
   });
 
   it("should delete text just before caret", () => {
@@ -575,7 +1190,6 @@ describe("delete", () => {
       [0, 3],
       [0, 3],
     ];
-    const initialSel: SelectionSnapshot = structuredClone(sel);
     const res = applyTransaction(
       doc,
       sel,
@@ -583,7 +1197,7 @@ describe("delete", () => {
     )!;
 
     expect(res[0]).toEqual([[{ id: 1, text: deleteAt(docText, 2, 1) }]]);
-    expect(res[1]).toEqual(moveOffset(initialSel, -1));
+    expect(res[1]).toEqual(moveOffset(sel, -1));
   });
 
   it("should delete text around caret", () => {
@@ -593,7 +1207,6 @@ describe("delete", () => {
       [0, 3],
       [0, 3],
     ];
-    const initialSel: SelectionSnapshot = structuredClone(sel);
     const res = applyTransaction(
       doc,
       sel,
@@ -601,7 +1214,7 @@ describe("delete", () => {
     )!;
 
     expect(res[0]).toEqual([[{ id: 1, text: deleteAt(docText, 2, 2) }]]);
-    expect(res[1]).toEqual(moveOffset(initialSel, -1));
+    expect(res[1]).toEqual(moveOffset(sel, -1));
   });
 
   it("should delete text around selection", () => {
@@ -631,7 +1244,6 @@ describe("delete", () => {
       [0, 2],
       [0, 4],
     ];
-    const initialSel: SelectionSnapshot = structuredClone(sel);
     const res = applyTransaction(
       doc,
       sel,
@@ -639,9 +1251,7 @@ describe("delete", () => {
     )!;
 
     expect(res[0]).toEqual([[{ id: 1, text: deleteAt(docText, 1, 2) }]]);
-    expect(res[1]).toEqual(
-      moveOffset(initialSel, { anchor: 1 - 2, focus: -2 }),
-    );
+    expect(res[1]).toEqual(moveOffset(sel, { anchor: 1 - 2, focus: -2 }));
   });
 
   it("should delete text around selection focus", () => {
@@ -651,7 +1261,6 @@ describe("delete", () => {
       [0, 2],
       [0, 4],
     ];
-    const initialSel: SelectionSnapshot = structuredClone(sel);
     const res = applyTransaction(
       doc,
       sel,
@@ -659,7 +1268,7 @@ describe("delete", () => {
     )!;
 
     expect(res[0]).toEqual([[{ id: 1, text: deleteAt(docText, 3, 2) }]]);
-    expect(res[1]).toEqual(moveOffset(initialSel, { focus: 1 - 2 }));
+    expect(res[1]).toEqual(moveOffset(sel, { focus: 1 - 2 }));
   });
 
   it("should delete linebreak inside selection", () => {
@@ -695,7 +1304,6 @@ describe("delete", () => {
       [0, 3],
       [0, 3],
     ];
-    const initialSel: SelectionSnapshot = structuredClone(sel);
     const res = applyTransaction(
       doc,
       sel,
@@ -703,7 +1311,7 @@ describe("delete", () => {
     )!;
 
     expect(res[0]).toEqual([[{ id: 1, text: deleteAt(docText, 3, 1) }]]);
-    expect(res[1]).toEqual(initialSel);
+    expect(res[1]).toEqual(sel);
   });
 
   it("should delete text after caret", () => {
@@ -713,7 +1321,6 @@ describe("delete", () => {
       [0, 3],
       [0, 3],
     ];
-    const initialSel: SelectionSnapshot = structuredClone(sel);
     const res = applyTransaction(
       doc,
       sel,
@@ -721,7 +1328,7 @@ describe("delete", () => {
     )!;
 
     expect(res[0]).toEqual([[{ id: 1, text: deleteAt(docText, 4, 1) }]]);
-    expect(res[1]).toEqual(initialSel);
+    expect(res[1]).toEqual(sel);
   });
 
   it("should delete text after caret on middle line", () => {
@@ -737,7 +1344,6 @@ describe("delete", () => {
       [1, 3],
       [1, 3],
     ];
-    const initialSel: SelectionSnapshot = structuredClone(sel);
     const res = applyTransaction(
       doc,
       sel,
@@ -749,7 +1355,7 @@ describe("delete", () => {
       [{ id: 1, text: deleteAt(docText2, 4, 1) }],
       [{ id: 1, text: docText3 }],
     ]);
-    expect(res[1]).toEqual(initialSel);
+    expect(res[1]).toEqual(sel);
   });
 
   it("should delete text at line after caret", () => {
@@ -763,7 +1369,6 @@ describe("delete", () => {
       [0, 2],
       [0, 2],
     ];
-    const initialSel: SelectionSnapshot = structuredClone(sel);
     const res = applyTransaction(
       doc,
       sel,
@@ -774,7 +1379,7 @@ describe("delete", () => {
       [{ id: 1, text: docText }],
       [{ id: 1, text: deleteAt(docText2, 1, 1) }],
     ]);
-    expect(res[1]).toEqual(initialSel);
+    expect(res[1]).toEqual(sel);
   });
 
   it("should delete linebreak at line after caret", () => {
@@ -790,7 +1395,6 @@ describe("delete", () => {
       [0, 2],
       [0, 2],
     ];
-    const initialSel: SelectionSnapshot = structuredClone(sel);
     const res = applyTransaction(
       doc,
       sel,
@@ -808,6 +1412,176 @@ describe("delete", () => {
         },
       ],
     ]);
-    expect(res[1]).toEqual(initialSel);
+    expect(res[1]).toEqual(sel);
+  });
+});
+
+describe("selection", () => {
+  describe("validation", () => {
+    it("path less than min", () => {
+      const docText = "abcde";
+      const doc: DocFragment = [[{ id: 1, text: docText }]];
+      const sel: SelectionSnapshot = [
+        [0, 2],
+        [0, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().select([-1, 0], [0, 1]),
+      )!;
+
+      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
+
+    it("path more than max", () => {
+      const docText = "abcde";
+      const doc: DocFragment = [[{ id: 1, text: docText }]];
+      const sel: SelectionSnapshot = [
+        [0, 2],
+        [0, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().select([0, 0], [100, 1]),
+      )!;
+
+      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
+
+    it("offset less than min", () => {
+      const docText = "abcde";
+      const doc: DocFragment = [[{ id: 1, text: docText }]];
+      const sel: SelectionSnapshot = [
+        [0, 2],
+        [0, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().select([0, -1], [0, 1]),
+      )!;
+
+      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
+
+    it("offset more than max", () => {
+      const docText = "abcde";
+      const doc: DocFragment = [[{ id: 1, text: docText }]];
+      const sel: SelectionSnapshot = [
+        [0, 2],
+        [0, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().select([0, 0], [0, 100]),
+      )!;
+
+      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
+  });
+
+  it("should select cursor", () => {
+    const docText = "abcde";
+    const doc: DocFragment = [[{ id: 1, text: docText }]];
+    const sel: SelectionSnapshot = [
+      [0, 2],
+      [0, 2],
+    ];
+    const nextSel: SelectionSnapshot = [
+      [0, 1],
+      [0, 1],
+    ];
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().select(...nextSel),
+    )!;
+
+    expect(isDocEqual(res[0], doc)).toBe(true);
+    expect(res[1]).toEqual(nextSel);
+  });
+
+  it("should select text at line", () => {
+    const docText = "abcde";
+    const docText2 = "fghij";
+    const docText3 = "klmno";
+    const doc: DocFragment = [
+      [{ id: 1, text: docText }],
+      [{ id: 1, text: docText2 }],
+      [{ id: 1, text: docText3 }],
+    ];
+    const sel: SelectionSnapshot = [
+      [0, 2],
+      [0, 2],
+    ];
+    const nextSel: SelectionSnapshot = [
+      [1, 1],
+      [2, 1],
+    ];
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().select(...nextSel),
+    )!;
+
+    expect(res[0]).toEqual(doc);
+    expect(res[1]).toEqual(nextSel);
+  });
+
+  it("should select linebreak", () => {
+    const docText = "abcde";
+    const docText2 = "fghij";
+    const doc: DocFragment = [
+      [{ id: 1, text: docText }],
+      [{ id: 1, text: docText2 }],
+    ];
+    const sel: SelectionSnapshot = [
+      [0, 1],
+      [0, 1],
+    ];
+    const nextSel: SelectionSnapshot = [
+      [0, 2],
+      [1, 1],
+    ];
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().select(...nextSel),
+    )!;
+
+    expect(res[0]).toEqual(doc);
+    expect(res[1]).toEqual(nextSel);
+  });
+
+  it("should select all", () => {
+    const docText = "abcde";
+    const docText2 = "fghij";
+    const doc: DocFragment = [
+      [{ id: 1, text: docText }],
+      [{ id: 1, text: docText2 }],
+    ];
+    const sel: SelectionSnapshot = [
+      [0, 1],
+      [0, 1],
+    ];
+    const nextSel: SelectionSnapshot = [
+      [0, 0],
+      [doc.length - 1, doc[doc.length - 1]![0]!.text.length - 1],
+    ];
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().select(...nextSel),
+    )!;
+
+    expect(res[0]).toEqual(doc);
+    expect(res[1]).toEqual(nextSel);
   });
 });

@@ -255,39 +255,51 @@ export const sliceDoc = (
   ];
 };
 
-const isValidOperation = (op: Operation): boolean => {
-  switch (op._type) {
-    case TYPE_DELETE: {
-      return comparePosition(op._start, op._end) === 1;
-    }
-    case TYPE_INSERT_TEXT: {
-      // TODO optimize later
-      return !!op._text;
-    }
-    case TYPE_INSERT_NODE: {
-      // TODO optimize later
-      return !!docToString(op._fragment);
+const isValidPosition = (
+  doc: DocFragment,
+  [line, offset]: Position,
+): boolean => {
+  if (line >= 0 && line < doc.length) {
+    const nodes = doc[line]!;
+    const lineSize = getLineSize(nodes);
+    if (offset >= 0 && offset <= lineSize) {
+      return true;
     }
   }
-  return true;
+  return false;
 };
 
-const applyOperation = (doc: DocFragment, op: EditOperation): DocFragment => {
+const isValidOperation = (doc: DocFragment, op: Operation): boolean => {
   switch (op._type) {
     case TYPE_DELETE: {
-      return replaceRange(doc, [], op._start, op._end);
+      const { _start: start, _end: end } = op;
+      return (
+        isValidPosition(doc, start) &&
+        isValidPosition(doc, end) &&
+        comparePosition(start, end) === 1
+      );
     }
     case TYPE_INSERT_TEXT: {
-      return replaceRange(doc, op._text, op._pos);
+      return (
+        isValidPosition(doc, op._pos) &&
+        // TODO optimize later
+        !!op._text
+      );
     }
     case TYPE_INSERT_NODE: {
-      return replaceRange(doc, op._fragment, op._pos);
+      return (
+        isValidPosition(doc, op._pos) &&
+        // TODO optimize later
+        !!docToString(op._fragment)
+      );
     }
-    default: {
-      op satisfies never;
+    case TYPE_SELECT: {
+      return (
+        (!op._anchor || isValidPosition(doc, op._anchor)) &&
+        (!op._focus || isValidPosition(doc, op._focus))
+      );
     }
   }
-  return doc;
 };
 
 const rebasePosition = (position: Position, op: EditOperation): Position => {
@@ -349,17 +361,38 @@ export const applyTransaction = (
 ): [DocFragment, SelectionSnapshot] | undefined => {
   try {
     for (const op of tr.ops) {
-      if (isValidOperation(op)) {
+      if (isValidOperation(doc, op)) {
+        switch (op._type) {
+          case TYPE_DELETE: {
+            doc = replaceRange(doc, [], op._start, op._end);
+            break;
+          }
+          case TYPE_INSERT_TEXT: {
+            doc = replaceRange(doc, op._text, op._pos);
+            break;
+          }
+          case TYPE_INSERT_NODE: {
+            doc = replaceRange(doc, op._fragment, op._pos);
+            break;
+          }
+          case TYPE_SELECT: {
+            if (op._anchor || op._focus) {
+              selection = [
+                op._anchor || selection[0],
+                op._focus || selection[1],
+              ];
+            }
+            break;
+          }
+          default: {
+            op satisfies never;
+          }
+        }
         if (isEditOperation(op)) {
-          doc = applyOperation(doc, op);
           selection = [
             rebasePosition(selection[0], op),
             rebasePosition(selection[1], op),
           ];
-        } else {
-          if (op._anchor || op._focus) {
-            selection = [op._anchor || selection[0], op._focus || selection[1]];
-          }
         }
       }
     }
