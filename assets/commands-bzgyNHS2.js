@@ -1,1 +1,0 @@
-import{t as s,T as n,g as o}from"./editor-DvRMzhSL.js";const c=function(){this.apply(new n().delete(...s(this.selection)))},l=function(e){const[t,i]=s(this.selection);this.apply(new n().delete(t,i).insert(t,e))},p=function(e){const t=this.doc;this.apply(new n().delete([0,0],[t.length-1,o(t[t.length-1])]).insert([0,0],e))};export{c as D,l as I,p as R};
