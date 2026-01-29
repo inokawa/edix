@@ -1,9 +1,9 @@
 import type { StoryObj } from "@storybook/react-vite";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { createEditor, plainSchema } from "../../src";
+import { createPlainEditor } from "../../src";
 
 export default {
-  component: createEditor,
+  component: createPlainEditor,
 };
 
 const style: React.CSSProperties = {
@@ -41,9 +41,8 @@ export const Segmenter: StoryObj = {
     const ref = useRef<HTMLDivElement>(null);
     useEffect(() => {
       if (!ref.current) return;
-      return createEditor({
-        doc: text,
-        schema: plainSchema({ multiline: true }),
+      return createPlainEditor({
+        text,
         onChange: setText,
       }).input(ref.current);
     }, []);

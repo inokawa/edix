@@ -1,14 +1,13 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
-  import { createEditor, plainSchema, type Editor } from "edix";
+  import { createPlainEditor } from "edix";
 
   let value = $state("Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
   let ref: HTMLElement | undefined = $state();
   let cleanup: (() => void) | null = null;
   onMount(() => {
-    cleanup = createEditor({
-      doc: value,
-      schema: plainSchema({ multiline: true }),
+    cleanup = createPlainEditor({
+      text: value,
       onChange: (v) => {
         value = v;
       },

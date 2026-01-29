@@ -1,11 +1,11 @@
 import type { StoryObj } from "@storybook/react-vite";
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { createEditor, plainSchema } from "../../src";
+import { createPlainEditor } from "../../src";
 import { getTokenizer, Tokenizer, KuromojiToken } from "kuromojin";
 
 export default {
-  component: createEditor,
+  component: createPlainEditor,
 };
 
 const style: React.CSSProperties = {
@@ -92,9 +92,8 @@ const Editor = ({ tokenizer }: { tokenizer: Tokenizer }) => {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!ref.current) return;
-    return createEditor({
-      doc: text,
-      schema: plainSchema({ multiline: true }),
+    return createPlainEditor({
+      text,
       onChange: setText,
     }).input(ref.current);
   }, []);

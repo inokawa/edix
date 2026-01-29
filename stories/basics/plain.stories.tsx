@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { StoryObj } from "@storybook/react-vite";
-import { Delete, createEditor, InsertText, plainSchema } from "../../src";
+import { Delete, createPlainEditor, InsertText } from "../../src";
 
 export default {
-  component: createEditor,
+  component: createPlainEditor,
 };
 
 export const Empty: StoryObj = {
@@ -13,9 +13,8 @@ export const Empty: StoryObj = {
 
     useEffect(() => {
       if (!ref.current) return;
-      return createEditor({
-        doc: value,
-        schema: plainSchema({ multiline: true }),
+      return createPlainEditor({
+        text: value,
         onChange: setValue,
       }).input(ref.current);
     }, []);
@@ -43,9 +42,8 @@ export const Multiline: StoryObj = {
     const [value, setValue] = useState("Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
     useEffect(() => {
       if (!ref.current) return;
-      return createEditor({
-        doc: value,
-        schema: plainSchema({ multiline: true }),
+      return createPlainEditor({
+        text: value,
         onChange: setValue,
       }).input(ref.current);
     }, []);
@@ -73,9 +71,9 @@ export const Singleline: StoryObj = {
     const [value, setValue] = useState("Hello world.");
     useEffect(() => {
       if (!ref.current) return;
-      return createEditor({
-        doc: value,
-        schema: plainSchema(),
+      return createPlainEditor({
+        text: value,
+        singleline: true,
         onChange: setValue,
       }).input(ref.current);
     }, []);
@@ -101,9 +99,9 @@ export const Readonly: StoryObj = {
     const [value, setValue] = useState(`Hello world.`);
     const editor = useMemo(
       () =>
-        createEditor({
-          doc: value,
-          schema: plainSchema(),
+        createPlainEditor({
+          text: value,
+          singleline: true,
           onChange: setValue,
         }),
       [],
@@ -146,9 +144,9 @@ export const Placeholder: StoryObj = {
     const [value, setValue] = useState("");
     useEffect(() => {
       if (!ref.current) return;
-      return createEditor({
-        doc: value,
-        schema: plainSchema(),
+      return createPlainEditor({
+        text: value,
+        singleline: true,
         onChange: setValue,
       }).input(ref.current);
     }, []);
@@ -187,9 +185,8 @@ export const Highlight: StoryObj = {
 
     useEffect(() => {
       if (!ref.current) return;
-      return createEditor({
-        doc: value,
-        schema: plainSchema({ multiline: true }),
+      return createPlainEditor({
+        text: value,
         onChange: setValue,
       }).input(ref.current);
     }, []);
@@ -234,9 +231,8 @@ export const Command: StoryObj = {
     const [value, setValue] = useState("Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
     const editor = useMemo(
       () =>
-        createEditor({
-          doc: value,
-          schema: plainSchema({ multiline: true }),
+        createPlainEditor({
+          text: value,
           onChange: setValue,
         }),
       [],
@@ -339,9 +335,8 @@ export const SpanAsBlock: StoryObj = {
     const [value, setValue] = useState("Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
     useEffect(() => {
       if (!ref.current) return;
-      return createEditor({
-        doc: value,
-        schema: plainSchema({ multiline: true }),
+      return createPlainEditor({
+        text: value,
         isBlock: (node) => !!node.dataset.line,
         onChange: setValue,
       }).input(ref.current);
@@ -374,9 +369,8 @@ two !
 שְׁלוֹשָׁה !`);
     useEffect(() => {
       if (!ref.current) return;
-      return createEditor({
-        doc: value,
-        schema: plainSchema({ multiline: true }),
+      return createPlainEditor({
+        text: value,
         onChange: setValue,
       }).input(ref.current);
     }, []);
@@ -406,9 +400,8 @@ export const Vertical: StoryObj = {
 冬は、つとめて。雪の降りたるは、言ふべきにもあらず。霜のいと白きも。またさらでも、いと寒きに、火など急ぎおこして、炭持てわたるも、いとつきづきし。昼になりて、ぬるくゆるびもていけば、火桶の火も、白き灰がちになりて、わろし。`);
     useEffect(() => {
       if (!ref.current) return;
-      return createEditor({
-        doc: value,
-        schema: plainSchema({ multiline: true }),
+      return createPlainEditor({
+        text: value,
         onChange: setValue,
       }).input(ref.current);
     }, []);

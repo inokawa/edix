@@ -1,5 +1,5 @@
 import { Component, ElementRef, signal, viewChild } from '@angular/core';
-import { createEditor, plainSchema } from 'edix';
+import { createPlainEditor } from 'edix';
 
 @Component({
   selector: 'app-root',
@@ -12,9 +12,8 @@ export class AppComponent {
   cleanup: (() => void) | null = null;
 
   ngAfterViewInit() {
-    const editor = createEditor({
-      doc: this.value(),
-      schema: plainSchema({ multiline: true }),
+    const editor = createPlainEditor({
+      text: this.value(),
       onChange: (v) => {
         this.value.set(v);
       },

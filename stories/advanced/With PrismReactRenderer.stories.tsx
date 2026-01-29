@@ -1,10 +1,10 @@
 import type { StoryObj } from "@storybook/react-vite";
 import React, { useEffect, useRef, useState } from "react";
-import { createEditor, plainSchema } from "../../src";
+import { createPlainEditor } from "../../src";
 import { Highlight, themes } from "prism-react-renderer";
 
 export default {
-  component: createEditor,
+  component: createPlainEditor,
 };
 
 export const WithPrismReactRenderer: StoryObj = {
@@ -29,9 +29,8 @@ function Example() {
     const ref = useRef<HTMLPreElement>(null);
     useEffect(() => {
       if (!ref.current) return;
-      return createEditor({
-        doc: text,
-        schema: plainSchema({ multiline: true }),
+      return createPlainEditor({
+        text,
         onChange: setText,
       }).input(ref.current);
     }, []);

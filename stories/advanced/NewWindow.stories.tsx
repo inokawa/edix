@@ -6,11 +6,11 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { createEditor, plainSchema } from "../../src";
+import { createPlainEditor } from "../../src";
 import { createPortal } from "react-dom";
 
 export default {
-  component: createEditor,
+  component: createPlainEditor,
 };
 
 const Content = () => {
@@ -18,9 +18,8 @@ const Content = () => {
   const [value, setValue] = useState("This is new window!");
   useEffect(() => {
     if (!ref.current) return;
-    return createEditor({
-      doc: value,
-      schema: plainSchema({ multiline: true }),
+    return createPlainEditor({
+      text: value,
       onChange: setValue,
     }).input(ref.current);
   }, []);

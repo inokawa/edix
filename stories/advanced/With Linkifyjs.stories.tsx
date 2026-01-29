@@ -1,10 +1,10 @@
 import type { StoryObj } from "@storybook/react-vite";
 import React, { ReactElement, useEffect, useRef, useState } from "react";
-import { createEditor, plainSchema } from "../../src";
+import { createPlainEditor } from "../../src";
 import * as linkify from "linkifyjs";
 
 export default {
-  component: createEditor,
+  component: createPlainEditor,
 };
 
 const Link = ({ href, children }: { href: string; children: string }) => {
@@ -33,9 +33,8 @@ export const WithLinkifyjs: StoryObj = {
     const ref = useRef<HTMLDivElement>(null);
     useEffect(() => {
       if (!ref.current) return;
-      return createEditor({
-        doc: text,
-        schema: plainSchema({ multiline: true }),
+      return createPlainEditor({
+        text,
         onChange: setText,
       }).input(ref.current);
     }, []);

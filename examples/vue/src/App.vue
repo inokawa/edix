@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue';
-import { createEditor, plainSchema } from "edix";
+import { createPlainEditor } from "edix";
 
 const value = ref("Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒")
 const element = ref<HTMLDivElement>()
 let cleanup: (() => void) | null = null
 onMounted(() => {
-  cleanup = createEditor({
-    doc: value.value,
-    schema: plainSchema({ multiline: true }),
+  cleanup = createPlainEditor({
+    text: value.value,
     onChange: (v) => {
       value.value = v
     },
