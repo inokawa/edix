@@ -36,7 +36,7 @@
     "@playwright/test": "1.57.0",
     "@rollup/plugin-terser": "0.4.4",
     "@rollup/plugin-typescript": "12.3.0",
-    "@size-limit/preset-small-lib": "^11.0.2",
+    "@size-limit/preset-small-lib": "^12.0.0",
     "@storybook/addon-docs": "^10.1.10",
     "@storybook/react-vite": "^10.1.10",
     "@textlint/kernel": "^15.0.0",
