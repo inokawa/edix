@@ -211,7 +211,7 @@ export const Image: StoryObj = {
             {r.length ? (
               r.map((t, j) =>
                 t.type === "image" ? (
-                  <img key={j} src={t.data.src} />
+                  <img key={j} src={t.data.src} style={{ maxWidth: 200 }} />
                 ) : (
                   <span key={j}>{t.text}</span>
                 ),
