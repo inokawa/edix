@@ -1,9 +1,9 @@
-import type { DocFragment } from "../doc/types.js";
+import type { Doc } from "../doc/types.js";
 
 export interface DocSchema<T> {
   single: boolean;
-  js: (doc: DocFragment) => T;
-  doc: (state: T) => DocFragment;
+  js: (doc: Doc) => T;
+  doc: (state: T) => Doc;
 }
 
 type ExtractItem<T> = T extends (infer I)[] ? ExtractItem<I> : T;

@@ -1,4 +1,4 @@
-import { docToString, stringToDoc } from "../doc/utils.js";
+import { docToString, stringToFragment } from "../doc/utils.js";
 import type { DocSchema } from "./types.js";
 
 /**
@@ -12,6 +12,6 @@ export const plainSchema = ({
   return {
     single: !multiline,
     js: docToString,
-    doc: stringToDoc,
+    doc: stringToFragment,
   };
 };

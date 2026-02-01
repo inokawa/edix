@@ -9,7 +9,7 @@ import {
   serializeRange,
 } from "./dom/index.js";
 import { createMutationObserver } from "./mutation.js";
-import type { DocFragment, SelectionSnapshot } from "./doc/types.js";
+import type { Doc, Fragment, SelectionSnapshot } from "./doc/types.js";
 import { microtask } from "./utils.js";
 import type { EditorCommand } from "./commands.js";
 import {
@@ -140,7 +140,7 @@ export interface EditorOptions<T> {
  * Methods of editor instance.
  */
 export interface Editor {
-  readonly doc: DocFragment;
+  readonly doc: Doc;
   readonly selection: SelectionSnapshot;
   /**
    * The getter/setter for the editor's read-only state.
@@ -178,10 +178,10 @@ export const createEditor = <T>({
   let readonly = false;
   let setContentEditable: () => void = noop;
 
-  const doc = (): DocFragment => history.get()[0];
+  const doc = (): Doc => history.get()[0];
 
   const history = createHistory<
-    readonly [doc: DocFragment, selection: SelectionSnapshot]
+    readonly [doc: Doc, selection: SelectionSnapshot]
   >([jsToDoc(initialDoc), selection]);
 
   const plugins: PluginObject[] = [];
@@ -213,7 +213,7 @@ export const createEditor = <T>({
     (acc, { apply: fn }) => {
       return fn ? (doc, sel, tr) => fn((tr) => acc(doc, sel, tr), tr) : acc;
     },
-    (doc: DocFragment, sel: SelectionSnapshot, tr: Transaction) => {
+    (doc: Doc, sel: SelectionSnapshot, tr: Transaction) => {
       return _applyTransaction(doc, sel, tr, onError);
     },
   );
@@ -241,7 +241,7 @@ export const createEditor = <T>({
 
   const commit = () => {
     if (transactions.length) {
-      let nextDoc: DocFragment = doc();
+      let nextDoc: Doc = doc();
       let nextSelection: SelectionSnapshot = selection;
 
       let tr: Transaction | undefined;
@@ -339,12 +339,12 @@ export const createEditor = <T>({
 
       setContentEditable();
 
-      const copy = (dataTransfer: DataTransfer, doc: DocFragment) => {
+      const copy = (dataTransfer: DataTransfer, fragment: Fragment) => {
         for (const ex of copyExtensions) {
-          ex(dataTransfer, doc, element);
+          ex(dataTransfer, fragment, element);
         }
       };
-      const paste = (dataTransfer: DataTransfer): DocFragment | void => {
+      const paste = (dataTransfer: DataTransfer): Fragment | void => {
         for (const ex of pasteExtensions) {
           const pasted = ex(dataTransfer, parserConfig);
           // TODO validate external data

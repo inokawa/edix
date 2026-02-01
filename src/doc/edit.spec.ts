@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { Transaction, applyTransaction, isDocEqual } from "./edit.js";
 import { type SelectionSnapshot } from "./types.js";
 
-type DocFragment = { id: number; text: string }[][];
+type Doc = { id: number; text: string }[][];
 
 const splitAt = (targetStr: string, index: number): [string, string] => {
   return [targetStr.slice(0, index), targetStr.slice(index)];
@@ -49,10 +49,7 @@ afterEach(() => {
 it("discard if error", () => {
   const docText = "abcde";
   const docText2 = "fghij";
-  const doc: DocFragment = [
-    [{ id: 1, text: docText }],
-    [{ id: 1, text: docText2 }],
-  ];
+  const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
   const sel: SelectionSnapshot = [
     [1, 2],
     [1, 2],
@@ -79,7 +76,7 @@ describe("insert", () => {
     it("path less than min", () => {
       const docText = "abcde";
       const docText2 = "fghij";
-      const doc: DocFragment = [
+      const doc: Doc = [
         [{ id: 1, text: docText }],
         [{ id: 1, text: docText2 }],
       ];
@@ -100,7 +97,7 @@ describe("insert", () => {
     it("path more than max", () => {
       const docText = "abcde";
       const docText2 = "fghij";
-      const doc: DocFragment = [
+      const doc: Doc = [
         [{ id: 1, text: docText }],
         [{ id: 1, text: docText2 }],
       ];
@@ -121,7 +118,7 @@ describe("insert", () => {
     it("offset less than min", () => {
       const docText = "abcde";
       const docText2 = "fghij";
-      const doc: DocFragment = [
+      const doc: Doc = [
         [{ id: 1, text: docText }],
         [{ id: 1, text: docText2 }],
       ];
@@ -142,7 +139,7 @@ describe("insert", () => {
     it("offset more than max", () => {
       const docText = "abcde";
       const docText2 = "fghij";
-      const doc: DocFragment = [
+      const doc: Doc = [
         [{ id: 1, text: docText }],
         [{ id: 1, text: docText2 }],
       ];
@@ -163,7 +160,7 @@ describe("insert", () => {
     it("empty text", () => {
       const docText = "abcde";
       const docText2 = "fghij";
-      const doc: DocFragment = [
+      const doc: Doc = [
         [{ id: 1, text: docText }],
         [{ id: 1, text: docText2 }],
       ];
@@ -185,10 +182,7 @@ describe("insert", () => {
   it("should insert text at line before caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: DocFragment = [
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: docText2 }],
-    ];
+    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
     const sel: SelectionSnapshot = [
       [1, 2],
       [1, 2],
@@ -210,10 +204,7 @@ describe("insert", () => {
   it("should insert lines at line before caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: DocFragment = [
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: docText2 }],
-    ];
+    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
     const sel: SelectionSnapshot = [
       [1, 2],
       [1, 2],
@@ -237,7 +228,7 @@ describe("insert", () => {
 
   it("should insert text before caret", () => {
     const docText = "abcde";
-    const doc: DocFragment = [[{ id: 1, text: docText }]];
+    const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
       [0, 2],
       [0, 2],
@@ -257,7 +248,7 @@ describe("insert", () => {
     const docText = "abcde";
     const docText2 = "fghi";
     const docText3 = "jkl";
-    const doc: DocFragment = [
+    const doc: Doc = [
       [{ id: 1, text: docText }],
       [{ id: 1, text: docText2 }],
       [{ id: 1, text: docText3 }],
@@ -283,7 +274,7 @@ describe("insert", () => {
 
   it("should insert lines before caret", () => {
     const docText = "abcde";
-    const doc: DocFragment = [[{ id: 1, text: docText }]];
+    const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
       [0, 2],
       [0, 2],
@@ -308,7 +299,7 @@ describe("insert", () => {
 
   it("should insert text on caret", () => {
     const docText = "abcde";
-    const doc: DocFragment = [[{ id: 1, text: docText }]];
+    const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
       [0, 2],
       [0, 2],
@@ -326,7 +317,7 @@ describe("insert", () => {
 
   it("should insert lines on caret", () => {
     const docText = "abcde";
-    const doc: DocFragment = [[{ id: 1, text: docText }]];
+    const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
       [0, 2],
       [0, 2],
@@ -351,7 +342,7 @@ describe("insert", () => {
 
   it("should insert text inside selection", () => {
     const docText = "abcde";
-    const doc: DocFragment = [[{ id: 1, text: docText }]];
+    const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
       [0, 1],
       [0, 3],
@@ -369,7 +360,7 @@ describe("insert", () => {
 
   it("should insert lines inside selection", () => {
     const docText = "abcde";
-    const doc: DocFragment = [[{ id: 1, text: docText }]];
+    const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
       [0, 1],
       [0, 3],
@@ -396,7 +387,7 @@ describe("insert", () => {
 
   it("should insert text after caret", () => {
     const docText = "abcde";
-    const doc: DocFragment = [[{ id: 1, text: docText }]];
+    const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
       [0, 2],
       [0, 2],
@@ -416,7 +407,7 @@ describe("insert", () => {
     const docText = "abcde";
     const docText2 = "fghi";
     const docText3 = "jkl";
-    const doc: DocFragment = [
+    const doc: Doc = [
       [{ id: 1, text: docText }],
       [{ id: 1, text: docText2 }],
       [{ id: 1, text: docText3 }],
@@ -442,7 +433,7 @@ describe("insert", () => {
 
   it("should insert lines after caret", () => {
     const docText = "abcde";
-    const doc: DocFragment = [[{ id: 1, text: docText }]];
+    const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
       [0, 2],
       [0, 2],
@@ -466,10 +457,7 @@ describe("insert", () => {
   it("should insert text at line after caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: DocFragment = [
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: docText2 }],
-    ];
+    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
     const sel: SelectionSnapshot = [
       [0, 2],
       [0, 2],
@@ -491,10 +479,7 @@ describe("insert", () => {
   it("should insert lines at line after caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: DocFragment = [
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: docText2 }],
-    ];
+    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
     const sel: SelectionSnapshot = [
       [0, 2],
       [0, 2],
@@ -522,7 +507,7 @@ describe("insert node", () => {
     it("path less than min", () => {
       const docText = "abcde";
       const docText2 = "fghij";
-      const doc: DocFragment = [
+      const doc: Doc = [
         [{ id: 1, text: docText }],
         [{ id: 1, text: docText2 }],
       ];
@@ -543,7 +528,7 @@ describe("insert node", () => {
     it("path more than max", () => {
       const docText = "abcde";
       const docText2 = "fghij";
-      const doc: DocFragment = [
+      const doc: Doc = [
         [{ id: 1, text: docText }],
         [{ id: 1, text: docText2 }],
       ];
@@ -564,7 +549,7 @@ describe("insert node", () => {
     it("offset less than min", () => {
       const docText = "abcde";
       const docText2 = "fghij";
-      const doc: DocFragment = [
+      const doc: Doc = [
         [{ id: 1, text: docText }],
         [{ id: 1, text: docText2 }],
       ];
@@ -585,7 +570,7 @@ describe("insert node", () => {
     it("offset more than max", () => {
       const docText = "abcde";
       const docText2 = "fghij";
-      const doc: DocFragment = [
+      const doc: Doc = [
         [{ id: 1, text: docText }],
         [{ id: 1, text: docText2 }],
       ];
@@ -606,7 +591,7 @@ describe("insert node", () => {
     it("empty text", () => {
       const docText = "abcde";
       const docText2 = "fghij";
-      const doc: DocFragment = [
+      const doc: Doc = [
         [{ id: 1, text: docText }],
         [{ id: 1, text: docText2 }],
       ];
@@ -628,10 +613,7 @@ describe("insert node", () => {
   it("should insert text at line before caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: DocFragment = [
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: docText2 }],
-    ];
+    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
     const sel: SelectionSnapshot = [
       [1, 2],
       [1, 2],
@@ -654,10 +636,7 @@ describe("insert node", () => {
   it("should insert lines at line before caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: DocFragment = [
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: docText2 }],
-    ];
+    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
     const sel: SelectionSnapshot = [
       [1, 2],
       [1, 2],
@@ -684,7 +663,7 @@ describe("insert node", () => {
 
   it("should insert text before caret", () => {
     const docText = "abcde";
-    const doc: DocFragment = [[{ id: 1, text: docText }]];
+    const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
       [0, 2],
       [0, 2],
@@ -707,7 +686,7 @@ describe("insert node", () => {
     const docText = "abcde";
     const docText2 = "fghi";
     const docText3 = "jkl";
-    const doc: DocFragment = [
+    const doc: Doc = [
       [{ id: 1, text: docText }],
       [{ id: 1, text: docText2 }],
       [{ id: 1, text: docText3 }],
@@ -734,7 +713,7 @@ describe("insert node", () => {
 
   it("should insert lines before caret", () => {
     const docText = "abcde";
-    const doc: DocFragment = [[{ id: 1, text: docText }]];
+    const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
       [0, 2],
       [0, 2],
@@ -762,7 +741,7 @@ describe("insert node", () => {
 
   it("should insert text on caret", () => {
     const docText = "abcde";
-    const doc: DocFragment = [[{ id: 1, text: docText }]];
+    const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
       [0, 2],
       [0, 2],
@@ -783,7 +762,7 @@ describe("insert node", () => {
 
   it("should insert lines on caret", () => {
     const docText = "abcde";
-    const doc: DocFragment = [[{ id: 1, text: docText }]];
+    const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
       [0, 2],
       [0, 2],
@@ -811,7 +790,7 @@ describe("insert node", () => {
 
   it("should insert text inside selection", () => {
     const docText = "abcde";
-    const doc: DocFragment = [[{ id: 1, text: docText }]];
+    const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
       [0, 1],
       [0, 3],
@@ -832,7 +811,7 @@ describe("insert node", () => {
 
   it("should insert lines inside selection", () => {
     const docText = "abcde";
-    const doc: DocFragment = [[{ id: 1, text: docText }]];
+    const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
       [0, 1],
       [0, 3],
@@ -862,7 +841,7 @@ describe("insert node", () => {
 
   it("should insert text after caret", () => {
     const docText = "abcde";
-    const doc: DocFragment = [[{ id: 1, text: docText }]];
+    const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
       [0, 2],
       [0, 2],
@@ -885,7 +864,7 @@ describe("insert node", () => {
     const docText = "abcde";
     const docText2 = "fghi";
     const docText3 = "jkl";
-    const doc: DocFragment = [
+    const doc: Doc = [
       [{ id: 1, text: docText }],
       [{ id: 1, text: docText2 }],
       [{ id: 1, text: docText3 }],
@@ -912,7 +891,7 @@ describe("insert node", () => {
 
   it("should insert lines after caret", () => {
     const docText = "abcde";
-    const doc: DocFragment = [[{ id: 1, text: docText }]];
+    const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
       [0, 2],
       [0, 2],
@@ -939,10 +918,7 @@ describe("insert node", () => {
   it("should insert text at line after caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: DocFragment = [
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: docText2 }],
-    ];
+    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
     const sel: SelectionSnapshot = [
       [0, 2],
       [0, 2],
@@ -965,10 +941,7 @@ describe("insert node", () => {
   it("should insert lines at line after caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: DocFragment = [
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: docText2 }],
-    ];
+    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
     const sel: SelectionSnapshot = [
       [0, 2],
       [0, 2],
@@ -998,7 +971,7 @@ describe("delete", () => {
   describe("validation", () => {
     it("path less than min", () => {
       const docText = "abcde";
-      const doc: DocFragment = [[{ id: 1, text: docText }]];
+      const doc: Doc = [[{ id: 1, text: docText }]];
       const sel: SelectionSnapshot = [
         [0, 2],
         [0, 2],
@@ -1015,7 +988,7 @@ describe("delete", () => {
 
     it("path more than max", () => {
       const docText = "abcde";
-      const doc: DocFragment = [[{ id: 1, text: docText }]];
+      const doc: Doc = [[{ id: 1, text: docText }]];
       const sel: SelectionSnapshot = [
         [0, 2],
         [0, 2],
@@ -1032,7 +1005,7 @@ describe("delete", () => {
 
     it("offset less than min", () => {
       const docText = "abcde";
-      const doc: DocFragment = [[{ id: 1, text: docText }]];
+      const doc: Doc = [[{ id: 1, text: docText }]];
       const sel: SelectionSnapshot = [
         [0, 2],
         [0, 2],
@@ -1049,7 +1022,7 @@ describe("delete", () => {
 
     it("offset more than max", () => {
       const docText = "abcde";
-      const doc: DocFragment = [[{ id: 1, text: docText }]];
+      const doc: Doc = [[{ id: 1, text: docText }]];
       const sel: SelectionSnapshot = [
         [0, 2],
         [0, 2],
@@ -1066,7 +1039,7 @@ describe("delete", () => {
 
     it("start and end is the same", () => {
       const docText = "abcde";
-      const doc: DocFragment = [[{ id: 1, text: docText }]];
+      const doc: Doc = [[{ id: 1, text: docText }]];
       const sel: SelectionSnapshot = [
         [0, 2],
         [0, 2],
@@ -1085,10 +1058,7 @@ describe("delete", () => {
   it("should delete text at line before caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: DocFragment = [
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: docText2 }],
-    ];
+    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
     const sel: SelectionSnapshot = [
       [1, 2],
       [1, 2],
@@ -1109,10 +1079,7 @@ describe("delete", () => {
   it("should delete linebreak at line before caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: DocFragment = [
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: docText2 }],
-    ];
+    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
     const sel: SelectionSnapshot = [
       [1, 3],
       [1, 3],
@@ -1141,7 +1108,7 @@ describe("delete", () => {
 
   it("should delete text before caret", () => {
     const docText = "abcde";
-    const doc: DocFragment = [[{ id: 1, text: docText }]];
+    const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
       [0, 3],
       [0, 3],
@@ -1160,7 +1127,7 @@ describe("delete", () => {
     const docText = "abcde";
     const docText2 = "fghi";
     const docText3 = "jkl";
-    const doc: DocFragment = [
+    const doc: Doc = [
       [{ id: 1, text: docText }],
       [{ id: 1, text: docText2 }],
       [{ id: 1, text: docText3 }],
@@ -1185,7 +1152,7 @@ describe("delete", () => {
 
   it("should delete text just before caret", () => {
     const docText = "abcde";
-    const doc: DocFragment = [[{ id: 1, text: docText }]];
+    const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
       [0, 3],
       [0, 3],
@@ -1202,7 +1169,7 @@ describe("delete", () => {
 
   it("should delete text around caret", () => {
     const docText = "abcde";
-    const doc: DocFragment = [[{ id: 1, text: docText }]];
+    const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
       [0, 3],
       [0, 3],
@@ -1219,7 +1186,7 @@ describe("delete", () => {
 
   it("should delete text around selection", () => {
     const docText = "abcde";
-    const doc: DocFragment = [[{ id: 1, text: docText }]];
+    const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
       [0, 2],
       [0, 4],
@@ -1239,7 +1206,7 @@ describe("delete", () => {
 
   it("should delete text around selection anchor", () => {
     const docText = "abcde";
-    const doc: DocFragment = [[{ id: 1, text: docText }]];
+    const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
       [0, 2],
       [0, 4],
@@ -1256,7 +1223,7 @@ describe("delete", () => {
 
   it("should delete text around selection focus", () => {
     const docText = "abcde";
-    const doc: DocFragment = [[{ id: 1, text: docText }]];
+    const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
       [0, 2],
       [0, 4],
@@ -1274,10 +1241,7 @@ describe("delete", () => {
   it("should delete linebreak inside selection", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: DocFragment = [
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: docText2 }],
-    ];
+    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
     const sel: SelectionSnapshot = [
       [0, 2],
       [1, 2],
@@ -1299,7 +1263,7 @@ describe("delete", () => {
 
   it("should delete text just after caret", () => {
     const docText = "abcde";
-    const doc: DocFragment = [[{ id: 1, text: docText }]];
+    const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
       [0, 3],
       [0, 3],
@@ -1316,7 +1280,7 @@ describe("delete", () => {
 
   it("should delete text after caret", () => {
     const docText = "abcde";
-    const doc: DocFragment = [[{ id: 1, text: docText }]];
+    const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
       [0, 3],
       [0, 3],
@@ -1335,7 +1299,7 @@ describe("delete", () => {
     const docText = "abcde";
     const docText2 = "fghi";
     const docText3 = "jkl";
-    const doc: DocFragment = [
+    const doc: Doc = [
       [{ id: 1, text: docText }],
       [{ id: 1, text: docText2 }],
       [{ id: 1, text: docText3 }],
@@ -1361,10 +1325,7 @@ describe("delete", () => {
   it("should delete text at line after caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: DocFragment = [
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: docText2 }],
-    ];
+    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
     const sel: SelectionSnapshot = [
       [0, 2],
       [0, 2],
@@ -1386,7 +1347,7 @@ describe("delete", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const docText3 = "klmno";
-    const doc: DocFragment = [
+    const doc: Doc = [
       [{ id: 1, text: docText }],
       [{ id: 1, text: docText2 }],
       [{ id: 1, text: docText3 }],
@@ -1420,7 +1381,7 @@ describe("selection", () => {
   describe("validation", () => {
     it("path less than min", () => {
       const docText = "abcde";
-      const doc: DocFragment = [[{ id: 1, text: docText }]];
+      const doc: Doc = [[{ id: 1, text: docText }]];
       const sel: SelectionSnapshot = [
         [0, 2],
         [0, 2],
@@ -1437,7 +1398,7 @@ describe("selection", () => {
 
     it("path more than max", () => {
       const docText = "abcde";
-      const doc: DocFragment = [[{ id: 1, text: docText }]];
+      const doc: Doc = [[{ id: 1, text: docText }]];
       const sel: SelectionSnapshot = [
         [0, 2],
         [0, 2],
@@ -1454,7 +1415,7 @@ describe("selection", () => {
 
     it("offset less than min", () => {
       const docText = "abcde";
-      const doc: DocFragment = [[{ id: 1, text: docText }]];
+      const doc: Doc = [[{ id: 1, text: docText }]];
       const sel: SelectionSnapshot = [
         [0, 2],
         [0, 2],
@@ -1471,7 +1432,7 @@ describe("selection", () => {
 
     it("offset more than max", () => {
       const docText = "abcde";
-      const doc: DocFragment = [[{ id: 1, text: docText }]];
+      const doc: Doc = [[{ id: 1, text: docText }]];
       const sel: SelectionSnapshot = [
         [0, 2],
         [0, 2],
@@ -1489,7 +1450,7 @@ describe("selection", () => {
 
   it("should select cursor", () => {
     const docText = "abcde";
-    const doc: DocFragment = [[{ id: 1, text: docText }]];
+    const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
       [0, 2],
       [0, 2],
@@ -1512,7 +1473,7 @@ describe("selection", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const docText3 = "klmno";
-    const doc: DocFragment = [
+    const doc: Doc = [
       [{ id: 1, text: docText }],
       [{ id: 1, text: docText2 }],
       [{ id: 1, text: docText3 }],
@@ -1538,10 +1499,7 @@ describe("selection", () => {
   it("should select linebreak", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: DocFragment = [
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: docText2 }],
-    ];
+    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
     const sel: SelectionSnapshot = [
       [0, 1],
       [0, 1],
@@ -1563,10 +1521,7 @@ describe("selection", () => {
   it("should select all", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: DocFragment = [
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: docText2 }],
-    ];
+    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
     const sel: SelectionSnapshot = [
       [0, 1],
       [0, 1],

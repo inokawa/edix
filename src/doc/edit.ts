@@ -1,11 +1,12 @@
 import { compareLine, comparePosition } from "./position.js";
 import type {
-  DocFragment,
+  Doc,
+  Fragment,
   DocNode,
   Position,
   SelectionSnapshot,
 } from "./types.js";
-import { docToString, stringToDoc } from "./utils.js";
+import { docToString, stringToFragment } from "./utils.js";
 
 const TYPE_DELETE = 1;
 type DeleteOperation = Readonly<{
@@ -25,7 +26,7 @@ const TYPE_INSERT_NODE = 3;
 type InsertNodeOperation = Readonly<{
   _type: typeof TYPE_INSERT_NODE;
   _pos: Position;
-  _fragment: DocFragment;
+  _fragment: Fragment;
 }>;
 
 const TYPE_SELECT = 4;
@@ -59,7 +60,7 @@ export class Transaction {
     return this;
   }
 
-  insertFragment(start: Position, fragment: DocFragment): this {
+  insertFragment(start: Position, fragment: Fragment): this {
     this._ops.push({
       _type: TYPE_INSERT_NODE,
       _pos: start,
@@ -97,7 +98,7 @@ export class Transaction {
 /**
  * @internal
  */
-export const isDocEqual = (docA: DocFragment, docB: DocFragment): boolean =>
+export const isDocEqual = (docA: Doc, docB: Doc): boolean =>
   // TODO improve
   docA.length === docB.length && docA.every((l, i) => l === docB[i]);
 
@@ -203,11 +204,11 @@ const split = <T extends DocNode>(
 };
 
 const replaceRange = (
-  doc: DocFragment,
-  inserted: DocFragment | string,
+  doc: Doc,
+  inserted: Fragment | string,
   start: Position,
   end?: Position,
-): DocFragment => {
+): Doc => {
   const [startLine] = start;
   const [endLine] = end || start;
 
@@ -217,7 +218,7 @@ const replaceRange = (
   if (typeof inserted === "string") {
     // inherit style from previous text node
     const beforeLength = before.length;
-    inserted = stringToDoc(
+    inserted = stringToFragment(
       inserted,
       beforeLength ? before[beforeLength - 1]! : undefined,
     );
@@ -241,10 +242,10 @@ const replaceRange = (
  * @internal
  */
 export const sliceDoc = (
-  doc: DocFragment,
+  doc: Doc,
   start: Position,
   end: Position,
-): DocFragment => {
+): Fragment => {
   if (compareLine(start, end) === 0) {
     return [split(split(doc[start[0]]!, end[1])[0], start[1])[1]];
   }
@@ -255,10 +256,7 @@ export const sliceDoc = (
   ];
 };
 
-const isValidPosition = (
-  doc: DocFragment,
-  [line, offset]: Position,
-): boolean => {
+const isValidPosition = (doc: Doc, [line, offset]: Position): boolean => {
   if (line >= 0 && line < doc.length) {
     if (offset >= 0 && offset <= getLineSize(doc[line]!)) {
       return true;
@@ -267,7 +265,7 @@ const isValidPosition = (
   return false;
 };
 
-const isValidOperation = (doc: DocFragment, op: Operation): boolean => {
+const isValidOperation = (doc: Doc, op: Operation): boolean => {
   switch (op._type) {
     case TYPE_DELETE: {
       const { _start: start, _end: end } = op;
@@ -323,7 +321,9 @@ const rebasePosition = (position: Position, op: EditOperation): Position => {
     case TYPE_INSERT_NODE: {
       const pos = op._pos;
       const lines =
-        op._type === TYPE_INSERT_TEXT ? stringToDoc(op._text) : op._fragment;
+        op._type === TYPE_INSERT_TEXT
+          ? stringToFragment(op._text)
+          : op._fragment;
 
       const lineLength = lines.length;
       const lineDiff = lineLength - 1;
@@ -352,11 +352,11 @@ const rebasePosition = (position: Position, op: EditOperation): Position => {
  * @internal
  */
 export const applyTransaction = (
-  doc: DocFragment,
+  doc: Doc,
   selection: SelectionSnapshot,
   tr: Transaction,
   onError?: (message: string) => void,
-): [DocFragment, SelectionSnapshot] | undefined => {
+): [Doc, SelectionSnapshot] | undefined => {
   try {
     for (const op of tr.ops) {
       if (isValidOperation(doc, op)) {

@@ -14,11 +14,11 @@ import {
 } from "./parser.js";
 import { comparePosition } from "../doc/position.js";
 import type {
-  DocFragment,
   Position,
   DocNode,
   SelectionSnapshot,
   PositionRange,
+  Fragment,
 } from "../doc/types.js";
 import { min } from "../utils.js";
 
@@ -321,7 +321,7 @@ export const readDom = (
   root: Node,
   config: ParserConfig,
   serializeVoid: (node: Element) => DocNode | void,
-): DocFragment => {
+): Fragment => {
   return parse(
     (next) => {
       let type: TokenType | void;

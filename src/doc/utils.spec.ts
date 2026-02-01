@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { stringToDoc } from "./utils.js";
-import { type DocFragment } from "./types.js";
+import { stringToFragment } from "./utils.js";
+import { type Fragment } from "./types.js";
 
-describe(stringToDoc.name, () => {
-  const tests: [string, DocFragment][] = [
+describe(stringToFragment.name, () => {
+  const tests: [string, Fragment][] = [
     ["Hello world", [[{ text: "Hello world" }]]],
     ["Hello\n world", [[{ text: "Hello" }], [{ text: " world" }]]],
     ["", [[]]],
@@ -16,7 +16,7 @@ describe(stringToDoc.name, () => {
 
   tests.forEach(([str, doc]) => {
     it(str, () => {
-      expect(stringToDoc(str)).toEqual(doc);
+      expect(stringToFragment(str)).toEqual(doc);
     });
   });
 });

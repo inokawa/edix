@@ -1,9 +1,9 @@
-import type { DocFragment } from "../doc/types.js";
+import type { Doc } from "../doc/types.js";
 import { createEditor, type Editor, type EditorOptions } from "../editor.js";
 import { plainSchema } from "../schema/plain.js";
 
 export interface PlainEditorOptions extends Omit<
-  EditorOptions<DocFragment>,
+  EditorOptions<Doc>,
   "doc" | "schema" | "onChange"
 > {
   /**

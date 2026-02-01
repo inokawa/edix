@@ -1,11 +1,11 @@
 import { isTextNode } from "./edit.js";
-import { type DocFragment, type DocNode } from "./types.js";
+import { type Doc, type DocNode, type Fragment } from "./types.js";
 
 /**
  * @internal
  */
 export const docToString = (
-  doc: DocFragment,
+  doc: Doc,
   serializer: (node: DocNode) => string = (n) => (isTextNode(n) ? n.text : ""),
 ): string => {
   return doc.reduce((acc, r, i) => {
@@ -19,9 +19,9 @@ export const docToString = (
 /**
  * @internal
  */
-export const stringToDoc = (
+export const stringToFragment = (
   text: string,
   attrs?: Record<string, any>,
-): DocFragment => {
+): Fragment => {
   return text.split("\n").map((l) => (l ? [{ ...attrs, text: l }] : []));
 };
