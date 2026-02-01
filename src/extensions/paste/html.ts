@@ -5,7 +5,7 @@ import type { PasteExtension } from "./types.js";
 
 export const htmlPaste = <T extends DocNode>(
   serializeText: (t: string) => Extract<T, TextNode>,
-  serializers: ((node: HTMLElement) => T | void)[] = [],
+  serializers: ((node: HTMLElement) => Exclude<T, TextNode> | void)[] = [],
 ): PasteExtension => {
   return (dataTransfer, config) => {
     const html = dataTransfer.getData("text/html");

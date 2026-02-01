@@ -28,7 +28,7 @@ export const Multiline: StoryObj = {
       [{ type: "text", text: "👍❤️🧑‍🧑‍🧒" }],
     ]);
 
-    type DocNode = InferNode<typeof tagSchema>;
+    type DocNode = InferNode<typeof basicSchema>;
 
     useEffect(() => {
       if (!ref.current) return;
