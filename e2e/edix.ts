@@ -44,6 +44,7 @@ export const getText = async (
               ? (n) => n.tagName === blockTag.toUpperCase()
               : window.edix.defaultIsBlockNode,
           },
+          (text) => ({ text }),
           () => ({}),
         )
         .map((r) => {
@@ -74,6 +75,7 @@ export const getSeletedText = (
               ? (n) => n.tagName === blockTag.toUpperCase()
               : window.edix.defaultIsBlockNode,
           },
+          (text) => ({ text }),
           () => ({}),
         )
         .map((r) => {

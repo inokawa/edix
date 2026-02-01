@@ -27,13 +27,19 @@ export const Multiline: StoryObj = {
       [{ type: "text", text: "こんにちは。" }],
       [{ type: "text", text: "👍❤️🧑‍🧑‍🧒" }],
     ]);
+
+    type DocNode = InferNode<typeof tagSchema>;
+
     useEffect(() => {
       if (!ref.current) return;
       return createEditor({
         doc: value,
         schema: basicSchema,
         copy: [htmlCopy(), plainCopy()],
-        paste: [htmlPaste(), plainPaste()],
+        paste: [
+          htmlPaste<DocNode>((text) => ({ type: "text", text })),
+          plainPaste(),
+        ],
         onChange: setValue,
       }).input(ref.current);
     }, []);
@@ -85,19 +91,22 @@ export const Tag: StoryObj = {
           ),
         ],
         paste: [
-          htmlPaste<DocNode>([
-            (e) => {
-              if (e.contentEditable === "false") {
-                return {
-                  type: "tag",
-                  data: {
-                    label: e.textContent!,
-                    value: e.dataset.tagValue!,
-                  },
-                };
-              }
-            },
-          ]),
+          htmlPaste<DocNode>(
+            (text) => ({ type: "text", text }),
+            [
+              (e) => {
+                if (e.contentEditable === "false") {
+                  return {
+                    type: "tag",
+                    data: {
+                      label: e.textContent!,
+                      value: e.dataset.tagValue!,
+                    },
+                  };
+                }
+              },
+            ],
+          ),
           plainPaste(),
         ],
         onChange: setValue,
@@ -180,18 +189,21 @@ export const Image: StoryObj = {
         schema: imageSchema,
         copy: [htmlCopy(), plainCopy()],
         paste: [
-          htmlPaste<DocNode>([
-            (e) => {
-              if (e.tagName === "IMG") {
-                return {
-                  type: "image",
-                  data: {
-                    src: (e as HTMLImageElement).src,
-                  },
-                };
-              }
-            },
-          ]),
+          htmlPaste<DocNode>(
+            (text) => ({ type: "text", text }),
+            [
+              (e) => {
+                if (e.tagName === "IMG") {
+                  return {
+                    type: "image",
+                    data: {
+                      src: (e as HTMLImageElement).src,
+                    },
+                  };
+                }
+              },
+            ],
+          ),
           plainPaste(),
         ],
         onChange: setValue,
@@ -260,18 +272,21 @@ export const Video: StoryObj = {
         schema: videoSchema,
         copy: [htmlCopy(), plainCopy()],
         paste: [
-          htmlPaste<DocNode>([
-            (e) => {
-              if (e.tagName === "VIDEO") {
-                return {
-                  type: "video",
-                  data: {
-                    src: (e.childNodes[0] as HTMLSourceElement).src,
-                  },
-                };
-              }
-            },
-          ]),
+          htmlPaste<DocNode>(
+            (text) => ({ type: "text", text }),
+            [
+              (e) => {
+                if (e.tagName === "VIDEO") {
+                  return {
+                    type: "video",
+                    data: {
+                      src: (e.childNodes[0] as HTMLSourceElement).src,
+                    },
+                  };
+                }
+              },
+            ],
+          ),
           plainPaste(),
         ],
         onChange: setValue,
@@ -364,18 +379,21 @@ export const Iframe: StoryObj = {
         schema: youtubeSchema,
         copy: [htmlCopy(), plainCopy()],
         paste: [
-          htmlPaste<DocNode>([
-            (e) => {
-              if (!!e.dataset.youtubeNode) {
-                return {
-                  type: "youtube",
-                  data: {
-                    id: e.dataset.youtubeId!,
-                  },
-                };
-              }
-            },
-          ]),
+          htmlPaste<DocNode>(
+            (text) => ({ type: "text", text }),
+            [
+              (e) => {
+                if (!!e.dataset.youtubeNode) {
+                  return {
+                    type: "youtube",
+                    data: {
+                      id: e.dataset.youtubeId!,
+                    },
+                  };
+                }
+              },
+            ],
+          ),
           plainPaste(),
         ],
         onChange: setValue,
