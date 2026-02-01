@@ -10,7 +10,7 @@ import {
 } from "./dom/index.js";
 import { createMutationObserver } from "./mutation.js";
 import type { Doc, Fragment, SelectionSnapshot } from "./doc/types.js";
-import { microtask } from "./utils.js";
+import { isString, microtask } from "./utils.js";
 import type { EditorCommand } from "./commands.js";
 import {
   applyTransaction as _applyTransaction,
@@ -344,7 +344,7 @@ export const createEditor = <T>({
           ex(dataTransfer, fragment, element);
         }
       };
-      const paste = (dataTransfer: DataTransfer): Fragment | void => {
+      const paste = (dataTransfer: DataTransfer): string | Fragment | void => {
         for (const ex of pasteExtensions) {
           const pasted = ex(dataTransfer, parserConfig);
           // TODO validate external data
@@ -534,9 +534,13 @@ export const createEditor = <T>({
         const pasted = paste(e.clipboardData!);
         if (pasted) {
           const [start, end] = toRange(selection);
-          apply(
-            new Transaction().delete(start, end).insertFragment(start, pasted),
-          );
+          const tr = new Transaction().delete(start, end);
+          if (isString(pasted)) {
+            tr.insert(start, pasted);
+          } else {
+            tr.insertFragment(start, pasted);
+          }
+          apply(tr);
         }
       };
 
@@ -558,7 +562,13 @@ export const createEditor = <T>({
           const pasted = paste(dataTransfer);
           if (pasted) {
             const pos = tr.transform(droppedPosition);
-            tr.select(pos, pos).insertFragment(pos, pasted).select(pos);
+            tr.select(pos, pos);
+            if (isString(pasted)) {
+              tr.insert(pos, pasted);
+            } else {
+              tr.insertFragment(pos, pasted);
+            }
+            tr.select(pos);
           }
           apply(tr);
           element.focus({ preventScroll: true });

@@ -1,9 +1,10 @@
-import type { DocNode } from "../../doc/types.js";
+import type { DocNode, TextNode } from "../../doc/types.js";
 import { readDom } from "../../dom/index.js";
 import { isCommentNode } from "../../dom/parser.js";
 import type { PasteExtension } from "./types.js";
 
 export const htmlPaste = <T extends DocNode>(
+  serializeText: (t: string) => Extract<T, TextNode>,
   serializers: ((node: HTMLElement) => T | void)[] = [],
 ): PasteExtension => {
   return (dataTransfer, config) => {
@@ -26,7 +27,7 @@ export const htmlPaste = <T extends DocNode>(
       }
 
       // TODO customizable dom to standard schema and validate
-      return readDom(dom, config, (n) => {
+      return readDom(dom, config, serializeText, (n) => {
         for (const s of serializers) {
           const node = s(n as HTMLElement);
           if (node) {

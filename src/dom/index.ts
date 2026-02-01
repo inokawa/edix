@@ -19,6 +19,7 @@ import type {
   SelectionSnapshot,
   PositionRange,
   Fragment,
+  TextNode,
 } from "../doc/types.js";
 import { min } from "../utils.js";
 
@@ -320,6 +321,7 @@ export const takeSelectionSnapshot = (
 export const readDom = (
   root: Node,
   config: ParserConfig,
+  serializeText: (text: string) => TextNode,
   serializeVoid: (node: Element) => DocNode | void,
 ): Fragment => {
   return parse(
@@ -336,7 +338,7 @@ export const readDom = (
           if (!row) {
             row = [];
           }
-          row.push({ text });
+          row.push(serializeText(text));
           text = "";
         }
       };

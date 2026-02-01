@@ -1,3 +1,4 @@
+import { is, isString, keys } from "../utils.js";
 import { compareLine, comparePosition } from "./position.js";
 import type {
   Doc,
@@ -107,8 +108,6 @@ export const isDocEqual = (docA: Doc, docB: Doc): boolean =>
  */
 export const isTextNode = (node: DocNode) => "text" in node;
 
-const { keys, is } = Object;
-
 const isSameNode = (a: DocNode, b: DocNode): boolean => {
   const aKeys = keys(a);
   if (aKeys.length !== keys(b).length) {
@@ -215,7 +214,7 @@ const replaceRange = (
   const [before, docEnd] = split(doc[start[0]]!, start[1]);
   const after = end ? split(doc[end[0]]!, end[1])[1] : docEnd;
 
-  if (typeof inserted === "string") {
+  if (isString(inserted)) {
     // inherit style from previous text node
     const beforeLength = before.length;
     inserted = stringToFragment(

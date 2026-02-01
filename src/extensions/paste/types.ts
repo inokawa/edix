@@ -4,4 +4,4 @@ import type { ParserConfig } from "../../dom/parser.js";
 export type PasteExtension = (
   dataTransfer: DataTransfer,
   config: ParserConfig,
-) => Fragment | null;
+) => string | Fragment | null;
