@@ -1,11 +1,12 @@
 import { is, isString, keys } from "../utils.js";
 import { compareLine, comparePosition } from "./position.js";
 import type {
-  Doc,
+  DocBase,
   Fragment,
   DocNode,
   Position,
   SelectionSnapshot,
+  TextNode,
 } from "./types.js";
 import { docToString, stringToFragment } from "./utils.js";
 
@@ -99,14 +100,14 @@ export class Transaction {
 /**
  * @internal
  */
-export const isDocEqual = (docA: Doc, docB: Doc): boolean =>
+export const isDocEqual = (docA: DocBase, docB: DocBase): boolean =>
   // TODO improve
   docA.length === docB.length && docA.every((l, i) => l === docB[i]);
 
 /**
  * @internal
  */
-export const isTextNode = (node: DocNode) => "text" in node;
+export const isTextNode = (node: DocNode): node is TextNode => "text" in node;
 
 const isSameNode = (a: DocNode, b: DocNode): boolean => {
   const aKeys = keys(a);
@@ -128,7 +129,7 @@ const getNodeSize = (node: DocNode): number =>
  * @internal
  */
 export const getLineSize = (line: readonly DocNode[]): number =>
-  line.reduce((acc, n) => acc + getNodeSize(n), 0);
+  line.reduce((acc: number, n) => acc + getNodeSize(n), 0);
 
 const normalize = <T extends DocNode>(
   array: T[],
@@ -202,12 +203,12 @@ const split = <T extends DocNode>(
   return [nodes, []];
 };
 
-const replaceRange = (
-  doc: Doc,
+const replaceRange = <T extends DocBase>(
+  doc: T,
   inserted: Fragment | string,
   start: Position,
   end?: Position,
-): Doc => {
+): T => {
   const [startLine] = start;
   const [endLine] = end || start;
 
@@ -217,10 +218,14 @@ const replaceRange = (
   if (isString(inserted)) {
     // inherit style from previous text node
     const beforeLength = before.length;
-    inserted = stringToFragment(
-      inserted,
-      beforeLength ? before[beforeLength - 1]! : undefined,
-    );
+    let anchorNode: TextNode | undefined;
+    if (beforeLength) {
+      const maybeAnchor = before[beforeLength - 1]!;
+      if (isTextNode(maybeAnchor)) {
+        anchorNode = maybeAnchor;
+      }
+    }
+    inserted = stringToFragment(inserted, anchorNode);
   }
 
   let lines: (readonly DocNode[])[];
@@ -234,14 +239,14 @@ const replaceRange = (
 
   const newDoc = doc.slice();
   newDoc.splice(startLine, endLine - startLine + 1, ...lines);
-  return newDoc;
+  return newDoc as DocBase as T; // TODO improve
 };
 
 /**
  * @internal
  */
 export const sliceDoc = (
-  doc: Doc,
+  doc: DocBase,
   start: Position,
   end: Position,
 ): Fragment => {
@@ -255,7 +260,7 @@ export const sliceDoc = (
   ];
 };
 
-const isValidPosition = (doc: Doc, [line, offset]: Position): boolean => {
+const isValidPosition = (doc: DocBase, [line, offset]: Position): boolean => {
   if (line >= 0 && line < doc.length) {
     if (offset >= 0 && offset <= getLineSize(doc[line]!)) {
       return true;
@@ -264,7 +269,7 @@ const isValidPosition = (doc: Doc, [line, offset]: Position): boolean => {
   return false;
 };
 
-const isValidOperation = (doc: Doc, op: Operation): boolean => {
+const isValidOperation = (doc: DocBase, op: Operation): boolean => {
   switch (op._type) {
     case TYPE_DELETE: {
       const { _start: start, _end: end } = op;
@@ -350,12 +355,12 @@ const rebasePosition = (position: Position, op: EditOperation): Position => {
 /**
  * @internal
  */
-export const applyTransaction = (
-  doc: Doc,
+export const applyTransaction = <T extends DocBase>(
+  doc: T,
   selection: SelectionSnapshot,
   tr: Transaction,
   onError?: (message: string) => void,
-): [Doc, SelectionSnapshot] | undefined => {
+): [T, SelectionSnapshot] | undefined => {
   try {
     for (const op of tr.ops) {
       if (isValidOperation(doc, op)) {

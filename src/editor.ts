@@ -9,7 +9,7 @@ import {
   serializeRange,
 } from "./dom/index.js";
 import { createMutationObserver } from "./mutation.js";
-import type { Doc, Fragment, SelectionSnapshot } from "./doc/types.js";
+import type { DocBase, Fragment, SelectionSnapshot } from "./doc/types.js";
 import { isString, microtask } from "./utils.js";
 import type { EditorCommand } from "./commands.js";
 import {
@@ -19,7 +19,6 @@ import {
   isDocEqual,
 } from "./doc/edit.js";
 import { singlelinePlugin } from "./plugins/singleline.js";
-import type { DocSchema } from "./schema/index.js";
 import type { ParserConfig } from "./dom/parser.js";
 import { comparePosition, toRange } from "./doc/position.js";
 import type { PluginObject } from "./plugins/types.js";
@@ -95,15 +94,15 @@ type KeydownCallback = (keyboard: KeyboardPayload) => boolean | void;
 /**
  * Options of {@link createEditor}.
  */
-export interface EditorOptions<T> {
-  /**
-   * TODO
-   */
-  schema: DocSchema<T>;
+export interface EditorOptions<T extends DocBase> {
   /**
    * Initial document state.
    */
   doc: T;
+  /**
+   * TODO
+   */
+  singleline?: boolean;
   /**
    * Functions to handle copy events
    * @default [plainCopy()]
@@ -140,7 +139,7 @@ export interface EditorOptions<T> {
  * Methods of editor instance.
  */
 export interface Editor {
-  readonly doc: Doc;
+  readonly doc: DocBase;
   readonly selection: SelectionSnapshot;
   /**
    * The getter/setter for the editor's read-only state.
@@ -164,9 +163,9 @@ export interface Editor {
 /**
  * A function to initialize editor.
  */
-export const createEditor = <T>({
-  schema: { single: isSingleline, js: docToJS, doc: jsToDoc },
+export const createEditor = <T extends DocBase>({
   doc: initialDoc,
+  singleline: isSingleline,
   copy: copyExtensions = [plainCopy()],
   paste: pasteExtensions = [plainPaste()],
   isBlock = defaultIsBlockNode,
@@ -178,11 +177,11 @@ export const createEditor = <T>({
   let readonly = false;
   let setContentEditable: () => void = noop;
 
-  const doc = (): Doc => history.get()[0];
+  const doc = (): T => history.get()[0];
 
   const history = createHistory<
-    readonly [doc: Doc, selection: SelectionSnapshot]
-  >([jsToDoc(initialDoc), selection]);
+    readonly [doc: T, selection: SelectionSnapshot]
+  >([initialDoc, selection]);
 
   const plugins: PluginObject[] = [];
   if (isSingleline) {
@@ -196,7 +195,7 @@ export const createEditor = <T>({
           const nextHistory = e.shiftKey ? history.redo() : history.undo();
 
           if (nextHistory) {
-            onChange(docToJS(nextHistory[0]));
+            onChange(nextHistory[0]);
             selection = nextHistory[1];
           }
           return true;
@@ -209,13 +208,17 @@ export const createEditor = <T>({
     keydownHandlers.push(onKeyDownHandler);
   }
 
-  const applyTransaction = plugins.reduceRight(
+  const applyTransaction = plugins.reduceRight<
+    (
+      doc: T,
+      sel: SelectionSnapshot,
+      tr: Transaction,
+    ) => ReturnType<typeof _applyTransaction>
+  >(
     (acc, { apply: fn }) => {
       return fn ? (doc, sel, tr) => fn((tr) => acc(doc, sel, tr), tr) : acc;
     },
-    (doc: Doc, sel: SelectionSnapshot, tr: Transaction) => {
-      return _applyTransaction(doc, sel, tr, onError);
-    },
+    (doc, sel, tr) => _applyTransaction(doc, sel, tr, onError),
   );
 
   const transactions: Transaction[] = [];
@@ -241,14 +244,14 @@ export const createEditor = <T>({
 
   const commit = () => {
     if (transactions.length) {
-      let nextDoc: Doc = doc();
+      let nextDoc: T = doc();
       let nextSelection: SelectionSnapshot = selection;
 
       let tr: Transaction | undefined;
       while ((tr = transactions.pop())) {
         const res = applyTransaction(nextDoc, nextSelection, tr);
         if (res) {
-          nextDoc = res[0];
+          nextDoc = res[0] as T; // TODO improve
           nextSelection = res[1];
         }
       }
@@ -258,7 +261,7 @@ export const createEditor = <T>({
       if (!isDocEqual(nextDoc, currentDoc)) {
         history.set([currentDoc, selection]);
         history.push([nextDoc, nextSelection]);
-        onChange(docToJS(nextDoc));
+        onChange(nextDoc);
       }
 
       selection = nextSelection;
