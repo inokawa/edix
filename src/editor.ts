@@ -1,3 +1,4 @@
+import type { StandardSchemaV1 } from "@standard-schema/spec";
 import { createHistory } from "./history.js";
 import {
   getCurrentDocument,
@@ -22,9 +23,12 @@ import { singlelinePlugin } from "./plugins/singleline.js";
 import type { ParserConfig } from "./dom/parser.js";
 import { comparePosition, toRange } from "./doc/position.js";
 import type { PluginObject } from "./plugins/types.js";
-import type { CopyExtension, PasteExtension } from "./extensions/index.js";
-import { plainCopy } from "./extensions/copy/plain.js";
-import { plainPaste } from "./extensions/paste/plain.js";
+import {
+  type CopyExtension,
+  type PasteExtension,
+  plainCopy,
+  plainPaste,
+} from "./extensions/index.js";
 
 const noop = () => {};
 
@@ -94,9 +98,16 @@ type KeydownCallback = (keyboard: KeyboardPayload) => boolean | void;
 /**
  * Options of {@link createEditor}.
  */
-export interface EditorOptions<T extends DocBase> {
+export interface EditorOptions<
+  T extends DocBase,
+  S extends StandardSchemaV1<T, T> | void = void,
+> {
   /**
-   * Initial document state.
+   * Optional [Standard Schema](https://github.com/standard-schema/standard-schema) to validate unsafe edits.
+   */
+  schema?: S;
+  /**
+   * Initial document.
    */
   doc: T;
   /**
@@ -118,7 +129,7 @@ export interface EditorOptions<T extends DocBase> {
    */
   isBlock?: (node: HTMLElement) => boolean;
   /**
-   * Callback invoked when document state changes.
+   * Callback invoked when document changes.
    */
   onChange: (doc: T) => void;
   /**
@@ -138,8 +149,8 @@ export interface EditorOptions<T extends DocBase> {
 /**
  * Methods of editor instance.
  */
-export interface Editor {
-  readonly doc: DocBase;
+export interface Editor<T extends DocBase = DocBase> {
+  readonly doc: T;
   readonly selection: SelectionSnapshot;
   /**
    * The getter/setter for the editor's read-only state.
@@ -157,14 +168,18 @@ export interface Editor {
    * @param args arguments of {@link EditorCommand}
    */
   apply(tr: Transaction): this;
-  apply<A extends unknown[]>(fn: EditorCommand<A>, ...args: A): this;
+  apply<A extends unknown[]>(fn: EditorCommand<A, T>, ...args: A): this;
 }
 
 /**
  * A function to initialize editor.
  */
-export const createEditor = <T extends DocBase>({
+export const createEditor = <
+  T extends DocBase,
+  S extends StandardSchemaV1<T, T> | void = void,
+>({
   doc: initialDoc,
+  schema,
   singleline: isSingleline,
   copy: copyExtensions = [plainCopy()],
   paste: pasteExtensions = [plainPaste()],
@@ -172,10 +187,38 @@ export const createEditor = <T extends DocBase>({
   onChange,
   onKeyDown: onKeyDownHandler,
   onError = console.error,
-}: EditorOptions<T>): Editor => {
+}: EditorOptions<T, S>): Editor<T> => {
   let selection: SelectionSnapshot = getEmptySelectionSnapshot();
   let readonly = false;
   let setContentEditable: () => void = noop;
+
+  const validate = (value: T, onError: (m: string) => void): boolean => {
+    if (!schema) {
+      onError(
+        "An unsafe operation was detected. We recommened using schema option.",
+      );
+      return true;
+    }
+    const result = schema["~standard"].validate(value);
+    if (result instanceof Promise) {
+      onError("async validate is not supported.");
+    } else if (result.issues) {
+      onError(result.issues.map((i) => i.message).join("\n"));
+    } else {
+      return true;
+    }
+    return false;
+  };
+
+  let initialError: string | undefined;
+  if (
+    !validate(initialDoc, (m) => {
+      initialError = m;
+    }) &&
+    initialError
+  ) {
+    throw new Error(initialError);
+  }
 
   const doc = (): T => history.get()[0];
 
@@ -250,7 +293,7 @@ export const createEditor = <T extends DocBase>({
       let tr: Transaction | undefined;
       while ((tr = transactions.pop())) {
         const res = applyTransaction(nextDoc, nextSelection, tr);
-        if (res) {
+        if (res && (!tr.unsafe || validate(res[0] as T, onError))) {
           nextDoc = res[0] as T; // TODO improve
           nextSelection = res[1];
         }
@@ -268,7 +311,7 @@ export const createEditor = <T extends DocBase>({
     }
   };
 
-  const editor: Editor = {
+  const editor: Editor<T> = {
     get doc() {
       return doc();
     },
@@ -282,7 +325,7 @@ export const createEditor = <T extends DocBase>({
       readonly = value;
       setContentEditable();
     },
-    apply: (fn: Transaction | EditorCommand<any>, ...args: unknown[]) => {
+    apply: (fn: Transaction | EditorCommand<any, T>, ...args: unknown[]) => {
       if (typeof fn === "function") {
         fn.call(editor, ...args);
       } else {
@@ -350,7 +393,6 @@ export const createEditor = <T extends DocBase>({
       const paste = (dataTransfer: DataTransfer): string | Fragment | void => {
         for (const ex of pasteExtensions) {
           const pasted = ex(dataTransfer, parserConfig);
-          // TODO validate external data
           if (pasted) {
             return pasted;
           }

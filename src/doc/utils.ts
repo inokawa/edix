@@ -1,10 +1,5 @@
 import { isTextNode } from "./edit.js";
-import {
-  type DocBase,
-  type DocNode,
-  type Fragment,
-  type TextNode,
-} from "./types.js";
+import { type DocBase, type DocNode, type TextNode } from "./types.js";
 
 /**
  * @internal
@@ -24,6 +19,9 @@ export const docToString = (
 /**
  * @internal
  */
-export const stringToFragment = (text: string, node?: TextNode): Fragment => {
-  return text.split("\n").map((l) => (l ? [{ ...node, text: l }] : []));
+export const stringToFragment = <T extends TextNode>(
+  text: string,
+  node?: T,
+): T[][] => {
+  return text.split("\n").map((l) => (l ? [{ ...node, text: l } as T] : []));
 };
