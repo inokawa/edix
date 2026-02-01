@@ -1,14 +1,14 @@
 import { Transaction } from "../doc/edit.js";
-import type { Doc, SelectionSnapshot } from "../doc/types.js";
+import type { DocBase, SelectionSnapshot } from "../doc/types.js";
 
 /**
  * @internal
  */
 export interface PluginObject {
   apply?: (
-    next: (tr: Transaction) => [Doc, SelectionSnapshot] | undefined,
+    next: (tr: Transaction) => [DocBase, SelectionSnapshot] | undefined,
     tr: Transaction,
-  ) => [Doc, SelectionSnapshot] | undefined;
+  ) => [DocBase, SelectionSnapshot] | undefined;
   mount?: (element: HTMLElement) => void;
 }
 

@@ -3,9 +3,6 @@ import type { StoryObj } from "@storybook/react-vite";
 import {
   createEditor,
   htmlPaste,
-  type InferNode,
-  schema,
-  type InferDoc,
   htmlCopy,
   plainCopy,
   plainPaste,
@@ -15,29 +12,24 @@ export default {
   component: createEditor,
 };
 
-const basicSchema = schema({ multiline: true });
-
 export const Multiline: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
 
-    type Doc = InferDoc<typeof basicSchema>;
+    type Doc = { text: string }[][];
     const [value, setValue] = useState<Doc>([
-      [{ type: "text", text: "Hello world." }],
-      [{ type: "text", text: "こんにちは。" }],
-      [{ type: "text", text: "👍❤️🧑‍🧑‍🧒" }],
+      [{ text: "Hello world." }],
+      [{ text: "こんにちは。" }],
+      [{ text: "👍❤️🧑‍🧑‍🧒" }],
     ]);
-
-    type DocNode = InferNode<typeof basicSchema>;
 
     useEffect(() => {
       if (!ref.current) return;
       return createEditor({
         doc: value,
-        schema: basicSchema,
         copy: [htmlCopy(), plainCopy()],
         paste: [
-          htmlPaste<DocNode>((text) => ({ type: "text", text })),
+          htmlPaste<Doc>((text) => ({ type: "text", text })),
           plainPaste(),
         ],
         onChange: setValue,
@@ -63,45 +55,44 @@ export const Multiline: StoryObj = {
   },
 };
 
-const tagSchema = schema<{ tag: { label: string; value: string } }>({});
-
 export const Tag: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
 
-    type Doc = InferDoc<typeof tagSchema>;
+    type Doc = [
+      (
+        | { type: "text"; text: string }
+        | { type: "tag"; label: string; value: string }
+      )[],
+    ];
     const [value, setValue] = useState<Doc>([
-      { type: "text", text: "Hello " },
-      { type: "tag", data: { label: "Apple", value: "1" } },
-      { type: "text", text: " world " },
-      { type: "tag", data: { label: "Orange", value: "2" } },
+      [
+        { type: "text", text: "Hello " },
+        { type: "tag", label: "Apple", value: "1" },
+        { type: "text", text: " world " },
+        { type: "tag", label: "Orange", value: "2" },
+      ],
     ]);
-
-    type DocNode = InferNode<typeof tagSchema>;
 
     useEffect(() => {
       if (!ref.current) return;
       return createEditor({
         doc: value,
-        schema: tagSchema,
+        singleline: true,
         copy: [
           htmlCopy(),
-          plainCopy<DocNode>((node) =>
-            "text" in node ? node.text : node.data.label,
-          ),
+          plainCopy<Doc>((node) => ("text" in node ? node.text : node.label)),
         ],
         paste: [
-          htmlPaste<DocNode>(
+          htmlPaste<Doc>(
             (text) => ({ type: "text", text }),
             [
               (e) => {
                 if (e.contentEditable === "false") {
                   return {
                     type: "tag",
-                    data: {
-                      label: e.textContent!,
-                      value: e.dataset.tagValue!,
-                    },
+                    label: e.textContent!,
+                    value: e.dataset.tagValue!,
                   };
                 }
               },
@@ -121,13 +112,13 @@ export const Tag: StoryObj = {
           padding: 8,
         }}
       >
-        {value.length ? (
-          value.map((t, j) =>
+        {value[0].length ? (
+          value[0].map((t, j) =>
             t.type === "tag" ? (
               <span
                 key={j}
                 contentEditable={false}
-                data-tag-value={t.data.value}
+                data-tag-value={t.value}
                 style={{
                   background: "slategray",
                   color: "white",
@@ -136,7 +127,7 @@ export const Tag: StoryObj = {
                   borderRadius: 8,
                 }}
               >
-                {t.data.label}
+                {t.label}
               </span>
             ) : (
               <span key={j}>{t.text}</span>
@@ -150,15 +141,14 @@ export const Tag: StoryObj = {
   },
 };
 
-const imageSchema = schema<{ image: { src: string } }, true>({
-  multiline: true,
-});
-
 export const Image: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
 
-    type Doc = InferDoc<typeof imageSchema>;
+    type Doc = (
+      | { type: "text"; text: string }
+      | { type: "image"; src: string }
+    )[][];
     const [value, setValue] = useState<Doc>([
       [
         {
@@ -167,7 +157,7 @@ export const Image: StoryObj = {
         },
         {
           type: "image",
-          data: { src: "https://loremflickr.com/320/240/cats?lock=1" },
+          src: "https://loremflickr.com/320/240/cats?lock=1",
         },
         {
           type: "text",
@@ -175,30 +165,25 @@ export const Image: StoryObj = {
         },
         {
           type: "image",
-          data: { src: "https://loremflickr.com/320/240/cats?lock=2" },
+          src: "https://loremflickr.com/320/240/cats?lock=2",
         },
       ],
     ]);
-
-    type DocNode = InferNode<typeof imageSchema>;
 
     useEffect(() => {
       if (!ref.current) return;
       return createEditor({
         doc: value,
-        schema: imageSchema,
         copy: [htmlCopy(), plainCopy()],
         paste: [
-          htmlPaste<DocNode>(
+          htmlPaste<Doc>(
             (text) => ({ type: "text", text }),
             [
               (e) => {
                 if (e.tagName === "IMG") {
                   return {
                     type: "image",
-                    data: {
-                      src: (e as HTMLImageElement).src,
-                    },
+                    src: (e as HTMLImageElement).src,
                   };
                 }
               },
@@ -223,7 +208,7 @@ export const Image: StoryObj = {
             {r.length ? (
               r.map((t, j) =>
                 t.type === "image" ? (
-                  <img key={j} src={t.data.src} style={{ maxWidth: 200 }} />
+                  <img key={j} src={t.src} style={{ maxWidth: 200 }} />
                 ) : (
                   <span key={j}>{t.text}</span>
                 ),
@@ -238,15 +223,14 @@ export const Image: StoryObj = {
   },
 };
 
-const videoSchema = schema<{ video: { src: string } }, true>({
-  multiline: true,
-});
-
 export const Video: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
 
-    type Doc = InferDoc<typeof videoSchema>;
+    type Doc = (
+      | { type: "text"; text: string }
+      | { type: "video"; src: string }
+    )[][];
     const [value, setValue] = useState<Doc>([
       [
         {
@@ -255,7 +239,7 @@ export const Video: StoryObj = {
         },
         {
           type: "video",
-          data: { src: "https://download.samplelib.com/mp4/sample-5s.mp4" },
+          src: "https://download.samplelib.com/mp4/sample-5s.mp4",
         },
         {
           type: "text",
@@ -263,25 +247,21 @@ export const Video: StoryObj = {
         },
       ],
     ]);
-    type DocNode = InferNode<typeof videoSchema>;
 
     useEffect(() => {
       if (!ref.current) return;
       return createEditor({
         doc: value,
-        schema: videoSchema,
         copy: [htmlCopy(), plainCopy()],
         paste: [
-          htmlPaste<DocNode>(
+          htmlPaste<Doc>(
             (text) => ({ type: "text", text }),
             [
               (e) => {
                 if (e.tagName === "VIDEO") {
                   return {
                     type: "video",
-                    data: {
-                      src: (e.childNodes[0] as HTMLSourceElement).src,
-                    },
+                    src: (e.childNodes[0] as HTMLSourceElement).src,
                   };
                 }
               },
@@ -314,7 +294,7 @@ export const Video: StoryObj = {
                     contentEditable="false"
                     suppressContentEditableWarning
                   >
-                    <source src={t.data.src} />
+                    <source src={t.src} />
                   </video>
                 ) : (
                   <span key={j}>{t.text}</span>
@@ -329,10 +309,6 @@ export const Video: StoryObj = {
     );
   },
 };
-
-const youtubeSchema = schema<{ youtube: { id: string } }, true>({
-  multiline: true,
-});
 
 const Youtube = ({ id }: { id: string }) => {
   return (
@@ -352,7 +328,10 @@ export const Iframe: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
 
-    type Doc = InferDoc<typeof youtubeSchema>;
+    type Doc = (
+      | { type: "text"; text: string }
+      | { type: "youtube"; id: string }
+    )[][];
     const [value, setValue] = useState<Doc>([
       [
         {
@@ -361,7 +340,7 @@ export const Iframe: StoryObj = {
         },
         {
           type: "youtube",
-          data: { id: "IqKz0SfHaqI" },
+          id: "IqKz0SfHaqI",
         },
         {
           type: "text",
@@ -370,25 +349,20 @@ export const Iframe: StoryObj = {
       ],
     ]);
 
-    type DocNode = InferNode<typeof youtubeSchema>;
-
     useEffect(() => {
       if (!ref.current) return;
       return createEditor({
         doc: value,
-        schema: youtubeSchema,
         copy: [htmlCopy(), plainCopy()],
         paste: [
-          htmlPaste<DocNode>(
+          htmlPaste<Doc>(
             (text) => ({ type: "text", text }),
             [
               (e) => {
                 if (!!e.dataset.youtubeNode) {
                   return {
                     type: "youtube",
-                    data: {
-                      id: e.dataset.youtubeId!,
-                    },
+                    id: e.dataset.youtubeId!,
                   };
                 }
               },
@@ -424,7 +398,7 @@ export const Iframe: StoryObj = {
               {r.length ? (
                 r.map((t, j) =>
                   t.type === "youtube" ? (
-                    <Youtube key={j} id={t.data.id} />
+                    <Youtube key={j} id={t.id} />
                   ) : (
                     <span key={j}>{t.text}</span>
                   ),

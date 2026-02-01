@@ -1,11 +1,13 @@
-import type { DocNode, TextNode } from "../../doc/types.js";
+import type { DocBase, InferNode, TextNode } from "../../doc/types.js";
 import { readDom } from "../../dom/index.js";
 import { isCommentNode } from "../../dom/parser.js";
 import type { PasteExtension } from "./types.js";
 
-export const htmlPaste = <T extends DocNode>(
-  serializeText: (t: string) => Extract<T, TextNode>,
-  serializers: ((node: HTMLElement) => Exclude<T, TextNode> | void)[] = [],
+export const htmlPaste = <T extends DocBase>(
+  serializeText: (t: string) => Extract<InferNode<T>, TextNode>,
+  serializers: ((
+    node: HTMLElement,
+  ) => Exclude<InferNode<T>, TextNode> | void)[] = [],
 ): PasteExtension => {
   return (dataTransfer, config) => {
     const html = dataTransfer.getData("text/html");
