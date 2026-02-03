@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  CSSProperties,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { StoryObj } from "@storybook/react-vite";
 import {
   createEditor,
@@ -6,6 +12,7 @@ import {
   htmlCopy,
   plainCopy,
   plainPaste,
+  ToggleFormat,
 } from "../../src";
 import * as v from "valibot";
 
@@ -57,6 +64,136 @@ export const Multiline: StoryObj = {
             {r.length ? r.map((n, j) => <span key={j}>{n.text}</span>) : <br />}
           </div>
         ))}
+      </div>
+    );
+  },
+};
+
+const Text = (props: {
+  text: string;
+  bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+  strike?: boolean;
+}) => {
+  const Element = props.bold ? "strong" : "span";
+  const style: CSSProperties = {};
+  if (props.italic) {
+    style.fontStyle = "italic";
+  }
+  if (props.underline) {
+    style.textDecoration = "underline";
+  }
+  if (props.strike) {
+    style.textDecoration = style.textDecoration
+      ? `${style.textDecoration} line-through`
+      : "line-through";
+  }
+  return <Element style={style}>{props.text}</Element>;
+};
+
+const richSchema = v.array(
+  v.array(
+    v.strictObject({
+      text: v.string(),
+      bold: v.optional(v.boolean()),
+      italic: v.optional(v.boolean()),
+      underline: v.optional(v.boolean()),
+      strike: v.optional(v.boolean()),
+    }),
+  ),
+);
+
+export const RichText: StoryObj = {
+  render: () => {
+    const ref = useRef<HTMLDivElement>(null);
+
+    type Doc = v.InferOutput<typeof richSchema>;
+    const [value, setValue] = useState<Doc>([
+      [
+        { text: "Hello", bold: true },
+        { text: " " },
+        { text: "World", italic: true },
+        { text: "." },
+      ],
+      [{ text: "こんにちは。" }],
+      [{ text: "👍❤️🧑‍🧑‍🧒" }],
+    ]);
+
+    const editor = useMemo(
+      () =>
+        createEditor({
+          doc: value,
+          schema: richSchema,
+          onChange: setValue,
+        }),
+      [],
+    );
+
+    useEffect(() => {
+      if (!ref.current) return;
+      return editor.input(ref.current);
+    }, []);
+
+    return (
+      <div>
+        <div>
+          <button
+            onClick={() => {
+              editor.apply(ToggleFormat, "bold");
+            }}
+          >
+            bold
+          </button>
+          <button
+            onClick={() => {
+              editor.apply(ToggleFormat, "italic");
+            }}
+          >
+            italic
+          </button>
+          <button
+            onClick={() => {
+              editor.apply(ToggleFormat, "underline");
+            }}
+          >
+            underline
+          </button>
+          <button
+            onClick={() => {
+              editor.apply(ToggleFormat, "strike");
+            }}
+          >
+            strike
+          </button>
+        </div>
+        <div
+          ref={ref}
+          style={{
+            backgroundColor: "white",
+            border: "solid 1px darkgray",
+            padding: 8,
+          }}
+        >
+          {value.map((r, i) => (
+            <div key={i}>
+              {r.length ? (
+                r.map((n, j) => (
+                  <Text
+                    key={j}
+                    text={n.text}
+                    bold={n.bold}
+                    italic={n.italic}
+                    underline={n.underline}
+                    strike={n.strike}
+                  />
+                ))
+              ) : (
+                <br />
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     );
   },

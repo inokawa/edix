@@ -195,7 +195,7 @@ export const createEditor = <
   const validate = (value: T, onError: (m: string) => void): boolean => {
     if (!schema) {
       onError(
-        "An unsafe operation was detected. We recommened using schema option.",
+        "An unsafe operation was detected. We recommend using schema option.",
       );
       return true;
     }
@@ -401,10 +401,9 @@ export const createEditor = <
       };
 
       const observer = createMutationObserver(element, () => {
-        if (hasFocus) {
-          // Mutation to selected DOM may change selection, so restore it.
-          setSelectionToDOM(document, element, selection, parserConfig);
-        }
+        // TODO optimize
+        // Mutation to selected DOM may change selection, so restore it.
+        setSelectionToDOM(document, element, selection, parserConfig);
       });
 
       const syncSelection = () => {
