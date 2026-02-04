@@ -400,7 +400,7 @@ export const getPointedCaretPosition = (
   //          caretPositionFromPoint caretRangeFromPoint
   // Chrome:  128                    4
   // Firefox: 20                     -
-  // Safari:  -                      5
+  // Safari:  26.2                   5
   if (document.caretPositionFromPoint) {
     const position = document.caretPositionFromPoint(clientX, clientY);
     if (position) {
