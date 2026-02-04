@@ -24,13 +24,14 @@ jobs:
 
       - run: STORYBOOK_DEPLOY=true npm run storybook:build -- -o dist
 
-      - run: (cd examples/react && npm ci && npm run build -- --base ./ --outDir ../../dist/react)
-      - run: (cd examples/vue && npm ci && npm run build -- --base ./ --outDir ../../dist/vue)
-      - run: (cd examples/svelte && npm ci && npm run build -- --base ./ --outDir ../../dist/svelte)
-      - run: (cd examples/solid && npm ci && npm run build -- --base ./ --outDir ../../dist/solid)
-      - run: (cd examples/angular && npm ci && npm run build -- --base-href ./ --deploy-url ./ && mv ./dist ../../dist/angular)
-      - run: (cd examples/preact && npm ci && npm run build -- --base ./ --outDir ../../dist/preact)
-      - run: (cd examples/vanilla && npm ci && npm run build -- --base ./ --outDir ../../dist/vanilla)
+      - run: npm run build && npm link
+      - run: (cd examples/react && npm ci && npm link edix && npm run build -- --base ./ --outDir ../../dist/react)
+      - run: (cd examples/vue && npm ci && npm link edix && npm run build -- --base ./ --outDir ../../dist/vue)
+      - run: (cd examples/svelte && npm ci && npm link edix && npm run build -- --base ./ --outDir ../../dist/svelte)
+      - run: (cd examples/solid && npm ci && npm link edix && npm run build -- --base ./ --outDir ../../dist/solid)
+      - run: (cd examples/angular && npm ci && npm link edix && npm run build -- --base-href ./ --deploy-url ./ && mv ./dist ../../dist/angular)
+      - run: (cd examples/preact && npm ci && npm link edix && npm run build -- --base ./ --outDir ../../dist/preact)
+      - run: (cd examples/vanilla && npm ci && npm link edix && npm run build -- --base ./ --outDir ../../dist/vanilla)
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4
