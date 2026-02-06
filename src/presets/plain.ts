@@ -1,17 +1,18 @@
-import type { DocBase } from "../doc/types.js";
 import { docToString, stringToFragment } from "../doc/utils.js";
 import { createEditor, type Editor, type EditorOptions } from "../editor.js";
 
+type PlainDoc = { text: string }[][];
+
 export interface PlainEditorOptions extends Omit<
-  EditorOptions<DocBase>,
-  "doc" | "onChange"
+  EditorOptions<PlainDoc>,
+  "doc" | "schema" | "onChange"
 > {
   /**
-   * Initial document state.
+   * Initial document text.
    */
   text: string;
   /**
-   * Callback invoked when document state changes.
+   * Callback invoked when document changes.
    */
   onChange: (text: string) => void;
 }
@@ -23,7 +24,7 @@ export const createPlainEditor = ({
   text,
   onChange,
   ...opts
-}: PlainEditorOptions): Editor => {
+}: PlainEditorOptions): Editor<PlainDoc> => {
   return createEditor({
     ...opts,
     doc: stringToFragment(text),

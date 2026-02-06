@@ -7,16 +7,25 @@ import {
   plainCopy,
   plainPaste,
 } from "../../src";
+import * as v from "valibot";
 
 export default {
   component: createEditor,
 };
 
+const basicSchema = v.array(
+  v.array(
+    v.strictObject({
+      text: v.string(),
+    }),
+  ),
+);
+
 export const Multiline: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
 
-    type Doc = { text: string }[][];
+    type Doc = v.InferOutput<typeof basicSchema>;
     const [value, setValue] = useState<Doc>([
       [{ text: "Hello world." }],
       [{ text: "こんにちは。" }],
@@ -27,11 +36,9 @@ export const Multiline: StoryObj = {
       if (!ref.current) return;
       return createEditor({
         doc: value,
+        schema: basicSchema,
         copy: [htmlCopy(), plainCopy()],
-        paste: [
-          htmlPaste<Doc>((text) => ({ type: "text", text })),
-          plainPaste(),
-        ],
+        paste: [htmlPaste<Doc>((text) => ({ text })), plainPaste()],
         onChange: setValue,
       }).input(ref.current);
     }, []);
@@ -55,16 +62,27 @@ export const Multiline: StoryObj = {
   },
 };
 
+const tagSchema = v.array(
+  v.array(
+    v.union([
+      v.strictObject({
+        type: v.literal("text"),
+        text: v.string(),
+      }),
+      v.strictObject({
+        type: v.literal("tag"),
+        label: v.string(),
+        value: v.string(),
+      }),
+    ]),
+  ),
+);
+
 export const Tag: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
 
-    type Doc = [
-      (
-        | { type: "text"; text: string }
-        | { type: "tag"; label: string; value: string }
-      )[],
-    ];
+    type Doc = v.InferOutput<typeof tagSchema>;
     const [value, setValue] = useState<Doc>([
       [
         { type: "text", text: "Hello " },
@@ -78,6 +96,7 @@ export const Tag: StoryObj = {
       if (!ref.current) return;
       return createEditor({
         doc: value,
+        schema: tagSchema,
         singleline: true,
         copy: [
           htmlCopy(),
@@ -141,14 +160,26 @@ export const Tag: StoryObj = {
   },
 };
 
+const imageSchema = v.array(
+  v.array(
+    v.union([
+      v.strictObject({
+        type: v.literal("text"),
+        text: v.string(),
+      }),
+      v.strictObject({
+        type: v.literal("image"),
+        src: v.string(),
+      }),
+    ]),
+  ),
+);
+
 export const Image: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
 
-    type Doc = (
-      | { type: "text"; text: string }
-      | { type: "image"; src: string }
-    )[][];
+    type Doc = v.InferOutput<typeof imageSchema>;
     const [value, setValue] = useState<Doc>([
       [
         {
@@ -174,6 +205,7 @@ export const Image: StoryObj = {
       if (!ref.current) return;
       return createEditor({
         doc: value,
+        schema: imageSchema,
         copy: [htmlCopy(), plainCopy()],
         paste: [
           htmlPaste<Doc>(
@@ -223,14 +255,26 @@ export const Image: StoryObj = {
   },
 };
 
+const videoSchema = v.array(
+  v.array(
+    v.union([
+      v.strictObject({
+        type: v.literal("text"),
+        text: v.string(),
+      }),
+      v.strictObject({
+        type: v.literal("video"),
+        src: v.string(),
+      }),
+    ]),
+  ),
+);
+
 export const Video: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
 
-    type Doc = (
-      | { type: "text"; text: string }
-      | { type: "video"; src: string }
-    )[][];
+    type Doc = v.InferOutput<typeof videoSchema>;
     const [value, setValue] = useState<Doc>([
       [
         {
@@ -252,6 +296,7 @@ export const Video: StoryObj = {
       if (!ref.current) return;
       return createEditor({
         doc: value,
+        schema: videoSchema,
         copy: [htmlCopy(), plainCopy()],
         paste: [
           htmlPaste<Doc>(
@@ -310,6 +355,21 @@ export const Video: StoryObj = {
   },
 };
 
+const youtubeSchema = v.array(
+  v.array(
+    v.union([
+      v.strictObject({
+        type: v.literal("text"),
+        text: v.string(),
+      }),
+      v.strictObject({
+        type: v.literal("youtube"),
+        id: v.string(),
+      }),
+    ]),
+  ),
+);
+
 const Youtube = ({ id }: { id: string }) => {
   return (
     <iframe
@@ -328,10 +388,7 @@ export const Iframe: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
 
-    type Doc = (
-      | { type: "text"; text: string }
-      | { type: "youtube"; id: string }
-    )[][];
+    type Doc = v.InferOutput<typeof youtubeSchema>;
     const [value, setValue] = useState<Doc>([
       [
         {
@@ -353,6 +410,7 @@ export const Iframe: StoryObj = {
       if (!ref.current) return;
       return createEditor({
         doc: value,
+        schema: youtubeSchema,
         copy: [htmlCopy(), plainCopy()],
         paste: [
           htmlPaste<Doc>(

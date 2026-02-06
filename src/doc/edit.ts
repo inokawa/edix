@@ -44,6 +44,7 @@ const isEditOperation = (op: Operation) => op._type !== TYPE_SELECT;
 
 export class Transaction {
   private readonly _ops: Operation[];
+  unsafe: boolean = false;
 
   constructor(ops?: readonly Operation[]) {
     this._ops = ops ? ops.slice() : [];
@@ -63,6 +64,7 @@ export class Transaction {
   }
 
   insertFragment(start: Position, fragment: Fragment): this {
+    this.unsafe = true;
     this._ops.push({
       _type: TYPE_INSERT_NODE,
       _pos: start,
