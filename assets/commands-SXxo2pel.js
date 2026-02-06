@@ -1,0 +1,1 @@
+import{t as s,T as n,g as a}from"./editor-C1c4Ixvl.js";function o(){this.apply(new n().delete(...s(this.selection)))}function c(t){const[e,i]=s(this.selection);this.apply(new n().delete(e,i).insert(e,t))}function p(t){const e=this.doc;this.apply(new n().delete([0,0],[e.length-1,a(e[e.length-1])]).insert([0,0],t))}export{o as D,c as I,p as R};
