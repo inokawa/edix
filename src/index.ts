@@ -1,4 +1,4 @@
-export type { EditorCommand } from "./commands.js";
+export { Transaction } from "./doc/edit.js";
 export {
   Delete,
   InsertText,
