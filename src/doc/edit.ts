@@ -31,13 +31,25 @@ type InsertNodeOperation = Readonly<{
   _fragment: Fragment;
 }>;
 
-const TYPE_SELECT = 4;
+const TYPE_SET_ATTR = 4;
+type SetAttrOperation = Readonly<{
+  _type: typeof TYPE_SET_ATTR;
+  _start: Position;
+  _end: Position;
+  _attr: Record<string, unknown>;
+}>;
+
+const TYPE_SELECT = 5;
 type SelectOperataion = Readonly<{
   _type: typeof TYPE_SELECT;
   _anchor: Position | undefined;
   _focus: Position | undefined;
 }>;
-type EditOperation = DeleteOperation | InsertOperation | InsertNodeOperation;
+type EditOperation =
+  | DeleteOperation
+  | InsertOperation
+  | InsertNodeOperation
+  | SetAttrOperation;
 export type Operation = EditOperation | SelectOperataion;
 
 const isEditOperation = (op: Operation) => op._type !== TYPE_SELECT;
@@ -78,6 +90,16 @@ export class Transaction {
       _type: TYPE_DELETE,
       _start: start,
       _end: end,
+    });
+    return this;
+  }
+
+  attr(start: Position, end: Position, attr: Record<string, unknown>): this {
+    this._ops.push({
+      _type: TYPE_SET_ATTR,
+      _start: start,
+      _end: end,
+      _attr: attr,
     });
     return this;
   }
@@ -295,6 +317,14 @@ const isValidOperation = (doc: DocBase, op: Operation): boolean => {
         !!docToString(op._fragment)
       );
     }
+    case TYPE_SET_ATTR: {
+      const { _start: start, _end: end } = op;
+      return (
+        isValidPosition(doc, start) &&
+        isValidPosition(doc, end) &&
+        comparePosition(start, end) === 1
+      );
+    }
     case TYPE_SELECT: {
       return (
         (!op._anchor || isValidPosition(doc, op._anchor)) &&
@@ -347,6 +377,9 @@ const rebasePosition = (position: Position, op: EditOperation): Position => {
       }
       break;
     }
+    case TYPE_SET_ATTR: {
+      break;
+    }
     default: {
       op satisfies never;
     }
@@ -377,6 +410,20 @@ export const applyTransaction = <T extends DocBase>(
           }
           case TYPE_INSERT_NODE: {
             doc = replaceRange(doc, op._fragment, op._pos);
+            break;
+          }
+          case TYPE_SET_ATTR: {
+            const { _start: start, _end: end, _attr: attr } = op;
+            doc = replaceRange(
+              doc,
+              sliceDoc(doc, start, end).map((line) =>
+                line.map((node) =>
+                  isTextNode(node) ? { ...node, ...attr } : node,
+                ),
+              ),
+              start,
+              end,
+            );
             break;
           }
           case TYPE_SELECT: {

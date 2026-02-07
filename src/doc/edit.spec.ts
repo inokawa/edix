@@ -1377,6 +1377,475 @@ describe("delete", () => {
   });
 });
 
+describe("update attr", () => {
+  describe("validation", () => {
+    it("path less than min", () => {
+      const docText = "abcde";
+      const doc: Doc = [[{ id: 1, text: docText }]];
+      const sel: SelectionSnapshot = [
+        [0, 2],
+        [0, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().attr([-1, 0], [0, 1], { foo: "bar" }),
+      )!;
+
+      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
+
+    it("path more than max", () => {
+      const docText = "abcde";
+      const doc: Doc = [[{ id: 1, text: docText }]];
+      const sel: SelectionSnapshot = [
+        [0, 2],
+        [0, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().attr([0, 0], [100, 1], { foo: "bar" }),
+      )!;
+
+      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
+
+    it("offset less than min", () => {
+      const docText = "abcde";
+      const doc: Doc = [[{ id: 1, text: docText }]];
+      const sel: SelectionSnapshot = [
+        [0, 2],
+        [0, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().attr([0, -1], [0, 1], { foo: "bar" }),
+      )!;
+
+      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
+
+    it("offset more than max", () => {
+      const docText = "abcde";
+      const doc: Doc = [[{ id: 1, text: docText }]];
+      const sel: SelectionSnapshot = [
+        [0, 2],
+        [0, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().attr([0, 0], [0, 100], { foo: "bar" }),
+      )!;
+
+      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
+
+    it("start and end is the same", () => {
+      const docText = "abcde";
+      const doc: Doc = [[{ id: 1, text: docText }]];
+      const sel: SelectionSnapshot = [
+        [0, 2],
+        [0, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().attr([0, 1], [0, 1], { foo: "bar" }),
+      )!;
+
+      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
+  });
+
+  it("should update attr text at line before caret", () => {
+    const docText = "abcde";
+    const docText2 = "fghij";
+    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
+    const sel: SelectionSnapshot = [
+      [1, 2],
+      [1, 2],
+    ];
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().attr([0, 1], [0, 2], { foo: "bar" }),
+    )!;
+
+    expect(res[0]).toEqual([
+      [
+        { id: 1, text: docText.slice(0, 1) },
+        { id: 1, text: docText.slice(1, 2), foo: "bar" },
+        { id: 1, text: docText.slice(2) },
+      ],
+      [{ id: 1, text: docText2 }],
+    ]);
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("should update attr linebreak at line before caret", () => {
+    const docText = "abcde";
+    const docText2 = "fghij";
+    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
+    const sel: SelectionSnapshot = [
+      [1, 3],
+      [1, 3],
+    ];
+
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().attr([0, 2], [1, 1], { foo: "bar" }),
+    )!;
+
+    expect(res[0]).toEqual([
+      [
+        { id: 1, text: docText.slice(0, 2) },
+        { id: 1, text: docText.slice(2), foo: "bar" },
+      ],
+      [
+        { id: 1, text: docText2.slice(0, 1), foo: "bar" },
+        { id: 1, text: docText2.slice(1) },
+      ],
+    ]);
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("should update attr text before caret", () => {
+    const docText = "abcde";
+    const doc: Doc = [[{ id: 1, text: docText }]];
+    const sel: SelectionSnapshot = [
+      [0, 3],
+      [0, 3],
+    ];
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().attr([0, 1], [0, 2], { foo: "bar" }),
+    )!;
+
+    expect(res[0]).toEqual([
+      [
+        { id: 1, text: docText.slice(0, 1) },
+        { id: 1, text: docText.slice(1, 2), foo: "bar" },
+        { id: 1, text: docText.slice(2) },
+      ],
+    ]);
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("should update attr text before caret on middle line", () => {
+    const docText = "abcde";
+    const docText2 = "fghi";
+    const docText3 = "jkl";
+    const doc: Doc = [
+      [{ id: 1, text: docText }],
+      [{ id: 1, text: docText2 }],
+      [{ id: 1, text: docText3 }],
+    ];
+    const sel: SelectionSnapshot = [
+      [1, 3],
+      [1, 3],
+    ];
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().attr([1, 1], [1, 2], { foo: "bar" }),
+    )!;
+
+    expect(res[0]).toEqual([
+      [{ id: 1, text: docText }],
+      [
+        { id: 1, text: docText2.slice(0, 1) },
+        { id: 1, text: docText2.slice(1, 2), foo: "bar" },
+        { id: 1, text: docText2.slice(2) },
+      ],
+      [{ id: 1, text: docText3 }],
+    ]);
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("should update attr text just before caret", () => {
+    const docText = "abcde";
+    const doc: Doc = [[{ id: 1, text: docText }]];
+    const sel: SelectionSnapshot = [
+      [0, 3],
+      [0, 3],
+    ];
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().attr([0, 2], [0, 3], { foo: "bar" }),
+    )!;
+
+    expect(res[0]).toEqual([
+      [
+        { id: 1, text: docText.slice(0, 2) },
+        { id: 1, text: docText.slice(2, 3), foo: "bar" },
+        { id: 1, text: docText.slice(3) },
+      ],
+    ]);
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("should update attr text around caret", () => {
+    const docText = "abcde";
+    const doc: Doc = [[{ id: 1, text: docText }]];
+    const sel: SelectionSnapshot = [
+      [0, 3],
+      [0, 3],
+    ];
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().attr([0, 2], [0, 4], { foo: "bar" }),
+    )!;
+
+    expect(res[0]).toEqual([
+      [
+        { id: 1, text: docText.slice(0, 2) },
+        { id: 1, text: docText.slice(2, 4), foo: "bar" },
+        { id: 1, text: docText.slice(4) },
+      ],
+    ]);
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("should update attr text around selection", () => {
+    const docText = "abcde";
+    const doc: Doc = [[{ id: 1, text: docText }]];
+    const sel: SelectionSnapshot = [
+      [0, 2],
+      [0, 4],
+    ];
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().attr([0, 1], [0, 5], { foo: "bar" }),
+    )!;
+
+    expect(res[0]).toEqual([
+      [
+        { id: 1, text: docText.slice(0, 1) },
+        { id: 1, text: docText.slice(1, 5), foo: "bar" },
+      ],
+    ]);
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("should update attr text around selection anchor", () => {
+    const docText = "abcde";
+    const doc: Doc = [[{ id: 1, text: docText }]];
+    const sel: SelectionSnapshot = [
+      [0, 2],
+      [0, 4],
+    ];
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().attr([0, 1], [0, 3], { foo: "bar" }),
+    )!;
+
+    expect(res[0]).toEqual([
+      [
+        { id: 1, text: docText.slice(0, 1) },
+        { id: 1, text: docText.slice(1, 3), foo: "bar" },
+        { id: 1, text: docText.slice(3) },
+      ],
+    ]);
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("should update attr text around selection focus", () => {
+    const docText = "abcde";
+    const doc: Doc = [[{ id: 1, text: docText }]];
+    const sel: SelectionSnapshot = [
+      [0, 2],
+      [0, 4],
+    ];
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().attr([0, 3], [0, 5], { foo: "bar" }),
+    )!;
+
+    expect(res[0]).toEqual([
+      [
+        { id: 1, text: docText.slice(0, 3) },
+        { id: 1, text: docText.slice(3, 5), foo: "bar" },
+      ],
+    ]);
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("should update attr linebreak inside selection", () => {
+    const docText = "abcde";
+    const docText2 = "fghij";
+    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
+    const sel: SelectionSnapshot = [
+      [0, 2],
+      [1, 2],
+    ];
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().attr([0, 3], [1, 1], { foo: "bar" }),
+    )!;
+
+    expect(res[0]).toEqual([
+      [
+        { id: 1, text: docText.slice(0, 3) },
+        { id: 1, text: docText.slice(3), foo: "bar" },
+      ],
+      [
+        { id: 1, text: docText2.slice(0, 1), foo: "bar" },
+        { id: 1, text: docText2.slice(1) },
+      ],
+    ]);
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("should update attr text just after caret", () => {
+    const docText = "abcde";
+    const doc: Doc = [[{ id: 1, text: docText }]];
+    const sel: SelectionSnapshot = [
+      [0, 3],
+      [0, 3],
+    ];
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().attr([0, 3], [0, 4], { foo: "bar" }),
+    )!;
+
+    expect(res[0]).toEqual([
+      [
+        { id: 1, text: docText.slice(0, 3) },
+        { id: 1, text: docText.slice(3, 4), foo: "bar" },
+        { id: 1, text: docText.slice(4) },
+      ],
+    ]);
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("should update attr text after caret", () => {
+    const docText = "abcde";
+    const doc: Doc = [[{ id: 1, text: docText }]];
+    const sel: SelectionSnapshot = [
+      [0, 3],
+      [0, 3],
+    ];
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().attr([0, 4], [0, 5], { foo: "bar" }),
+    )!;
+
+    expect(res[0]).toEqual([
+      [
+        { id: 1, text: docText.slice(0, 4) },
+        { id: 1, text: docText.slice(4, 5), foo: "bar" },
+      ],
+    ]);
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("should update attr text after caret on middle line", () => {
+    const docText = "abcde";
+    const docText2 = "fghi";
+    const docText3 = "jkl";
+    const doc: Doc = [
+      [{ id: 1, text: docText }],
+      [{ id: 1, text: docText2 }],
+      [{ id: 1, text: docText3 }],
+    ];
+    const sel: SelectionSnapshot = [
+      [1, 2],
+      [1, 2],
+    ];
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().attr([1, 3], [1, 4], { foo: "bar" }),
+    )!;
+
+    expect(res[0]).toEqual([
+      [{ id: 1, text: docText }],
+      [
+        { id: 1, text: docText2.slice(0, 3) },
+        { id: 1, text: docText2.slice(3, 4), foo: "bar" },
+      ],
+      [{ id: 1, text: docText3 }],
+    ]);
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("should update attr text at line after caret", () => {
+    const docText = "abcde";
+    const docText2 = "fghij";
+    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
+    const sel: SelectionSnapshot = [
+      [0, 2],
+      [0, 2],
+    ];
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().attr([1, 1], [1, 2], { foo: "bar" }),
+    )!;
+
+    expect(res[0]).toEqual([
+      [{ id: 1, text: docText }],
+      [
+        { id: 1, text: docText2.slice(0, 1) },
+        { id: 1, text: docText2.slice(1, 2), foo: "bar" },
+        { id: 1, text: docText2.slice(2) },
+      ],
+    ]);
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("should update attr linebreak at line after caret", () => {
+    const docText = "abcde";
+    const docText2 = "fghij";
+    const docText3 = "klmno";
+    const doc: Doc = [
+      [{ id: 1, text: docText }],
+      [{ id: 1, text: docText2 }],
+      [{ id: 1, text: docText3 }],
+    ];
+    const sel: SelectionSnapshot = [
+      [0, 2],
+      [0, 2],
+    ];
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().attr([1, 1], [2, 1], { foo: "bar" }),
+    )!;
+
+    expect(res[0]).toEqual([
+      [{ id: 1, text: docText }],
+      [
+        { id: 1, text: docText2.slice(0, 1) },
+        { id: 1, text: docText2.slice(1), foo: "bar" },
+      ],
+      [
+        { id: 1, text: docText3.slice(0, 1), foo: "bar" },
+        { id: 1, text: docText3.slice(1) },
+      ],
+    ]);
+    expect(res[1]).toEqual(sel);
+  });
+});
+
 describe("selection", () => {
   describe("validation", () => {
     it("path less than min", () => {
