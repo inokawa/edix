@@ -1305,18 +1305,18 @@ describe("delete", () => {
       [{ id: 1, text: docText3 }],
     ];
     const sel: SelectionSnapshot = [
-      [1, 3],
-      [1, 3],
+      [1, 2],
+      [1, 2],
     ];
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().delete([1, 4], [1, 5]),
+      new Transaction().delete([1, 3], [1, 4]),
     )!;
 
     expect(res[0]).toEqual([
       [{ id: 1, text: docText }],
-      [{ id: 1, text: deleteAt(docText2, 4, 1) }],
+      [{ id: 1, text: deleteAt(docText2, 3, 1) }],
       [{ id: 1, text: docText3 }],
     ]);
     expect(res[1]).toEqual(sel);
