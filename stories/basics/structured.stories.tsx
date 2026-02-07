@@ -28,7 +28,7 @@ const basicSchema = v.array(
   ),
 );
 
-export const Multiline: StoryObj = {
+export const Basic: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
 
