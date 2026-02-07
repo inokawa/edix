@@ -32,7 +32,6 @@ Mobile browsers are also supported, but with some issues (https://github.com/ino
 ## Getting started
 
 1. Define your contents declaratively. There are rules you have to follow:
-
    - You must render `<br/>` in empty row (limitation of contenteditable).
    - If `multiline` option is
      - `false` or undefined, direct children of the root are treated as inline nodes.
@@ -46,68 +45,23 @@ Mobile browsers are also supported, but with some issues (https://github.com/ino
 
 Here is an example for React.
 
-### Single line
+### Plain text
 
 ```tsx
 import { useState, useEffect, useRef } from "react";
-import { createEditor, plainSchema } from "edix";
+import { createPlainEditor } from "edix";
 
 export const App = () => {
   const ref = useRef<HTMLDivElement>(null);
-  const [value, setValue] = useState("Hello world.");
+  const [text, setText] = useState("Hello world.");
 
   useEffect(() => {
     // 2. init
     const editor = createEditor({
-      doc: value,
-      schema: plainSchema(),
+      text: text,
       onChange: (v) => {
         // 4. update state
-        setValue(v);
-      },
-    });
-    // 3. bind to DOM
-    const cleanup = editor.input(ref.current);
-    return () => {
-      // 5. cleanup DOM
-      cleanup();
-    };
-  }, []);
-
-  // 1. render contents from state
-  return (
-    <div
-      ref={ref}
-      style={{
-        backgroundColor: "white",
-        border: "solid 1px darkgray",
-        padding: 8,
-      }}
-    >
-      {value ? value : <br />}
-    </div>
-  );
-};
-```
-
-### Multi line
-
-```tsx
-import { useState, useEffect, useRef } from "react";
-import { createEditor, plainSchema } from "edix";
-
-export const App = () => {
-  const ref = useRef<HTMLDivElement>(null);
-  const [value, setValue] = useState("Hello world.");
-
-  useEffect(() => {
-    // 2. init
-    const editor = createEditor({
-      doc: value,
-      schema: plainSchema({ multiline: true }),
-      onChange: (v) => {
-        // 4. update state
-        setValue(v);
+        setText(v);
       },
     });
     // 3. bind to DOM
@@ -131,6 +85,103 @@ export const App = () => {
       {value.split("\n").map((t, i) => (
         <div key={i}>{t ? t : <br />}</div>
       ))}
+    </div>
+  );
+};
+```
+
+### Rich text
+
+[Standard Schema](https://github.com/standard-schema/standard-schema) is supported.
+
+```tsx
+import { useState, useEffect, useRef, useMemo } from "react";
+import { createEditor, ToggleFormat } from "edix";
+import * as v from "valibot";
+
+const schema = v.array(
+  v.array(
+    v.strictObject({
+      text: v.string(),
+      bold: v.optional(v.boolean()),
+      italic: v.optional(v.boolean()),
+    }),
+  ),
+);
+
+export const App = () => {
+  const ref = useRef<HTMLDivElement>(null);
+
+  type Doc = v.InferOutput<typeof schema>;
+  const [value, setValue] = useState<Doc>([
+    [
+      { text: "Hello", bold: true },
+      { text: " " },
+      { text: "World", italic: true },
+      { text: "." },
+    ],
+  ]);
+
+  const editor = useMemo(
+    () =>
+      createEditor({
+        doc: value,
+        schema,
+        onChange: setValue,
+      }),
+    [],
+  );
+
+  useEffect(() => {
+    return editor.input(ref.current);
+  }, []);
+
+  return (
+    <div>
+      <div>
+        <button
+          onClick={() => {
+            editor.apply(ToggleFormat, "bold");
+          }}
+        >
+          bold
+        </button>
+        <button
+          onClick={() => {
+            editor.apply(ToggleFormat, "italic");
+          }}
+        >
+          italic
+        </button>
+      </div>
+      <div
+        ref={ref}
+        style={{
+          backgroundColor: "white",
+          border: "solid 1px darkgray",
+          padding: 8,
+        }}
+      >
+        {value.map((r, i) => (
+          <div key={i}>
+            {r.length ? (
+              r.map((n, j) => (
+                <span
+                  key={j}
+                  style={{
+                    fontWeight: n.bold ? "bold" : undefined,
+                    fontStyle: n.italic ? "italic" : undefined,
+                  }}
+                >
+                  {n.text}
+                </span>
+              ))
+            ) : (
+              <br />
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
