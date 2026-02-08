@@ -83,7 +83,7 @@ test.describe("smoke node", () => {
     );
 
     // undo
-    await page.keyboard.press(`ControlOrMeta+Z`);
+    await page.keyboard.press(`ControlOrMeta+z`);
     await moveSelectionToOrigin(editable);
     expect(await getText(editable)).toEqual(initialValue);
     expect(await getSelection(editable)).toEqual(
@@ -104,7 +104,7 @@ test.describe("smoke node", () => {
     );
 
     // undo
-    await page.keyboard.press(`ControlOrMeta+Z`);
+    await page.keyboard.press(`ControlOrMeta+z`);
     await moveSelectionToOrigin(editable);
     expect(await getText(editable)).toEqual(initialValue);
     expect(await getSelection(editable)).toEqual(
@@ -194,7 +194,7 @@ test.describe("smoke node", () => {
     );
 
     // undo
-    await page.keyboard.press(`ControlOrMeta+Z`);
+    await page.keyboard.press(`ControlOrMeta+z`);
     await moveSelectionToOrigin(editable);
     expect(await getText(editable)).toEqual(initialValue);
     expect(await getSelection(editable)).toEqual(
@@ -215,7 +215,7 @@ test.describe("smoke node", () => {
     );
 
     // undo
-    await page.keyboard.press(`ControlOrMeta+Z`);
+    await page.keyboard.press(`ControlOrMeta+z`);
     await moveSelectionToOrigin(editable);
     expect(await getText(editable)).toEqual(initialValue);
     expect(await getSelection(editable)).toEqual(
