@@ -1717,7 +1717,7 @@ test.describe("Drag and Drop", () => {
     }
 
     // reset
-    await page.keyboard.press(`ControlOrMeta+Z`);
+    await page.keyboard.press(`ControlOrMeta+z`);
     await moveSelectionToOrigin(editable);
     expect(await getText(editable)).toEqual(initialValue);
     expect(await getSelection(editable)).toEqual(createSelection());
@@ -1749,7 +1749,7 @@ test.describe("Drag and Drop", () => {
     }
 
     // reset
-    await page.keyboard.press(`ControlOrMeta+Z`);
+    await page.keyboard.press(`ControlOrMeta+z`);
     await moveSelectionToOrigin(editable);
     expect(await getText(editable)).toEqual(initialValue);
     expect(await getSelection(editable)).toEqual(createSelection());
@@ -1804,11 +1804,11 @@ test.describe("undo and redo", () => {
     expect(await getText(editable)).toEqual(editedValue);
 
     // undo
-    await page.keyboard.press(`ControlOrMeta+Z`);
+    await page.keyboard.press(`ControlOrMeta+z`);
     expect(await getText(editable)).toEqual(initialValue);
 
     // redo
-    await page.keyboard.press(`ControlOrMeta+Shift+Z`);
+    await page.keyboard.press(`ControlOrMeta+Shift+z`);
     expect(await getText(editable)).toEqual(editedValue);
   });
 });
@@ -1839,7 +1839,7 @@ test.describe("undo and redo", () => {
 
 //   // undo
 //   // TODO undo with button
-//   await page.keyboard.press(`ControlOrMeta+Z`);
+//   await page.keyboard.press(`ControlOrMeta+z`);
 //   expect(await getText(editable)).toEqual(initialValue);
 //   expect(await getSelection(editable)).toEqual(createSelection({ offset: 1 }));
 

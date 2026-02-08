@@ -29,6 +29,7 @@ import {
   plainCopy,
   plainPaste,
 } from "./extensions/index.js";
+import { hotkey, type KeyboardHandler } from "./hotkey.js";
 
 const noop = () => {};
 
@@ -88,13 +89,6 @@ type InputType =
   | "deleteByComposition"
   | "insertFromComposition";
 
-export type KeyboardPayload = Pick<
-  KeyboardEvent,
-  "key" | "code" | "ctrlKey" | "shiftKey" | "altKey" | "metaKey"
->;
-
-type KeydownCallback = (keyboard: KeyboardPayload) => boolean | void;
-
 /**
  * Options of {@link createEditor}.
  */
@@ -137,7 +131,7 @@ export interface EditorOptions<
    *
    * Return `true` if you want to cancel the editor's default behavior.
    */
-  onKeyDown?: KeydownCallback;
+  onKeyDown?: KeyboardHandler;
   /**
    * Callback invoked when errors happen.
    *
@@ -231,21 +225,27 @@ export const createEditor = <
     plugins.push(singlelinePlugin());
   }
 
-  const keydownHandlers: KeydownCallback[] = [
-    (e) => {
-      if ((e.metaKey || e.ctrlKey) && !e.altKey && e.code === "KeyZ") {
-        if (!readonly) {
-          const nextHistory = e.shiftKey ? history.redo() : history.undo();
-
-          if (nextHistory) {
-            onChange(nextHistory[0]);
-            selection = nextHistory[1];
-          }
-          return true;
+  const keydownHandlers: KeyboardHandler[] = [
+    hotkey("z", { mod: true }, (): boolean | void => {
+      if (!readonly) {
+        const nextHistory = history.undo();
+        if (nextHistory) {
+          onChange(nextHistory[0]);
+          selection = nextHistory[1];
         }
+        return true;
       }
-      return;
-    },
+    }),
+    hotkey("z", { mod: true, shift: true }, (): boolean | void => {
+      if (!readonly) {
+        const nextHistory = history.redo();
+        if (nextHistory) {
+          onChange(nextHistory[0]);
+          selection = nextHistory[1];
+        }
+        return true;
+      }
+    }),
   ];
   if (onKeyDownHandler) {
     keydownHandlers.push(onKeyDownHandler);
