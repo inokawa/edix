@@ -444,8 +444,9 @@ export const createEditor = <
           );
         }
 
-        apply(inputTransaction!);
-
+        if (inputTransaction) {
+          apply(inputTransaction);
+        }
         isComposing = false;
         inputTransaction = null;
       };
