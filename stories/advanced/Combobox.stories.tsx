@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { createPlainEditor, type KeyboardPayload, ReplaceAll } from "../../src";
+import { createPlainEditor, ReplaceAll } from "../../src";
 
 export default {
   component: createPlainEditor,
@@ -500,7 +500,7 @@ export const Combobox: StoryObj = {
       setIndex(-1);
     }
 
-    const onKeyDown = useEffectEvent((e: KeyboardPayload): boolean | void => {
+    const onKeyDown = useEffectEvent((e: KeyboardEvent): boolean | void => {
       if (!length) return;
       switch (e.key) {
         case "ArrowUp":
