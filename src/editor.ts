@@ -13,6 +13,7 @@ import { createMutationObserver } from "./mutation.js";
 import type { DocBase, Fragment, SelectionSnapshot } from "./doc/types.js";
 import { isString, microtask } from "./utils.js";
 import type { EditorCommand } from "./commands.js";
+import type { EditorQuery } from "./queries.js";
 import {
   applyTransaction as _applyTransaction,
   Transaction,
@@ -133,6 +134,10 @@ export interface EditorOptions<
    */
   onKeyDown?: KeyboardHandler;
   /**
+   * TODO
+   */
+  onSelectionChange?: () => void;
+  /**
    * Callback invoked when errors happen.
    *
    * @default console.error
@@ -163,6 +168,12 @@ export interface Editor<T extends DocBase = DocBase> {
    */
   apply(tr: Transaction): this;
   apply<A extends unknown[]>(fn: EditorCommand<A, T>, ...args: A): this;
+  /**
+   * Execute query to get editor state.
+   * @param fn query function
+   * @param args arguments of query
+   */
+  query: <V, A extends unknown[]>(fn: EditorQuery<V, A, T>, ...args: A) => V;
 }
 
 /**
@@ -180,6 +191,7 @@ export const createEditor = <
   isBlock = defaultIsBlockNode,
   onChange,
   onKeyDown: onKeyDownHandler,
+  onSelectionChange,
   onError = console.error,
 }: EditorOptions<T, S>): Editor<T> => {
   let selection: SelectionSnapshot = getEmptySelectionSnapshot();
@@ -216,6 +228,18 @@ export const createEditor = <
 
   const doc = (): T => history.get()[0];
 
+  const updateSelection = (newSelection: SelectionSnapshot) => {
+    if (
+      comparePosition(selection[0], newSelection[0]) !== 0 ||
+      comparePosition(selection[1], newSelection[1]) !== 0
+    ) {
+      selection = newSelection;
+      if (onSelectionChange) {
+        onSelectionChange();
+      }
+    }
+  };
+
   const history = createHistory<
     readonly [doc: T, selection: SelectionSnapshot]
   >([initialDoc, selection]);
@@ -231,7 +255,7 @@ export const createEditor = <
         const nextHistory = history.undo();
         if (nextHistory) {
           onChange(nextHistory[0]);
-          selection = nextHistory[1];
+          updateSelection(nextHistory[1]);
         }
         return true;
       }
@@ -241,7 +265,7 @@ export const createEditor = <
         const nextHistory = history.redo();
         if (nextHistory) {
           onChange(nextHistory[0]);
-          selection = nextHistory[1];
+          updateSelection(nextHistory[1]);
         }
         return true;
       }
@@ -307,7 +331,7 @@ export const createEditor = <
         onChange(nextDoc);
       }
 
-      selection = nextSelection;
+      updateSelection(nextSelection);
     }
   };
 
@@ -332,6 +356,9 @@ export const createEditor = <
         apply(fn);
       }
       return editor;
+    },
+    query: (fn, ...args) => {
+      return fn.call(editor, ...args);
     },
     input: (element) => {
       if (
@@ -407,7 +434,7 @@ export const createEditor = <
       });
 
       const syncSelection = () => {
-        selection = takeSelectionSnapshot(element, parserConfig);
+        updateSelection(takeSelectionSnapshot(element, parserConfig));
       };
 
       const flushInput = () => {
