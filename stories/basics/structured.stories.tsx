@@ -13,6 +13,7 @@ import {
   plainCopy,
   plainPaste,
   ToggleFormat,
+  SelectedNodes,
 } from "../../src";
 import * as v from "valibot";
 
@@ -120,15 +121,32 @@ export const RichText: StoryObj = {
       [{ text: "👍❤️🧑‍🧑‍🧒" }],
     ]);
 
-    const editor = useMemo(
-      () =>
-        createEditor({
-          doc: value,
-          schema: richSchema,
-          onChange: setValue,
-        }),
-      [],
-    );
+    const [bold, setBold] = useState(false);
+    const [italic, setItalic] = useState(false);
+    const [underline, setUnderline] = useState(false);
+    const [strike, setStrike] = useState(false);
+
+    const editor = useMemo(() => {
+      const updateMenu = () => {
+        const nodes = editor.query(SelectedNodes);
+        setBold(nodes.some((n) => n.bold));
+        setItalic(nodes.some((n) => n.italic));
+        setUnderline(nodes.some((n) => n.underline));
+        setStrike(nodes.some((n) => n.strike));
+      };
+
+      return createEditor({
+        doc: value,
+        schema: richSchema,
+        onChange: (doc) => {
+          setValue(doc);
+          updateMenu();
+        },
+        onSelectionChange: () => {
+          updateMenu();
+        },
+      });
+    }, []);
 
     useEffect(() => {
       if (!ref.current) return;
@@ -139,6 +157,7 @@ export const RichText: StoryObj = {
       <div>
         <div>
           <button
+            style={{ fontWeight: bold ? "bold" : undefined }}
             onClick={() => {
               editor.apply(ToggleFormat, "bold");
             }}
@@ -146,6 +165,7 @@ export const RichText: StoryObj = {
             bold
           </button>
           <button
+            style={{ fontWeight: italic ? "bold" : undefined }}
             onClick={() => {
               editor.apply(ToggleFormat, "italic");
             }}
@@ -153,6 +173,7 @@ export const RichText: StoryObj = {
             italic
           </button>
           <button
+            style={{ fontWeight: underline ? "bold" : undefined }}
             onClick={() => {
               editor.apply(ToggleFormat, "underline");
             }}
@@ -160,6 +181,7 @@ export const RichText: StoryObj = {
             underline
           </button>
           <button
+            style={{ fontWeight: strike ? "bold" : undefined }}
             onClick={() => {
               editor.apply(ToggleFormat, "strike");
             }}
