@@ -1813,42 +1813,72 @@ test.describe("undo and redo", () => {
   });
 });
 
-// TODO improve selection/focus behavior later
-// test("command", async ({ page }) => {
-//   await page.goto(storyUrl("basics-plain--command"));
+test.describe("keep selection on render", () => {
+  test("command", async ({ page }) => {
+    await page.goto(storyUrl("basics-plain--command"));
 
-//   const editable = await getEditable(page);
-//   const initialValue = await getText(editable);
+    const editable = await getEditable(page);
+    const initialValue = await getText(editable);
 
-//   await editable.focus();
+    await editable.focus();
 
-//   expect(await getSelection(editable)).toEqual(createSelection());
+    expect(await getSelection(editable)).toEqual(createSelection());
 
-//   // Move caret
+    // Move caret
+    await page.getByRole("button", { name: "move forward" }).click();
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: 1 }),
+    );
 
-//   await page.getByRole("button", { name: "move forward" }).click();
-//   expect(await getSelection(editable)).toEqual(createSelection({ offset: 1 }));
+    // insert
+    await page.getByRole("button", { name: "insert" }).click();
+    const text = "text";
+    expect(await getText(editable)).toEqual(
+      insertAt(initialValue, text, [0, 1]),
+    );
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: 1 + text.length }),
+    );
 
-//   // insert
-//   await page.getByRole("button", { name: "insert" }).click();
-//   const text = "text";
-//   expect(await getText(editable)).toEqual(insertAt(initialValue, text, [0, 1]));
-//   expect(await getSelection(editable)).toEqual(
-//     createSelection({ offset: 1 + text.length })
-//   );
+    // undo
+    // TODO undo with button
+    await page.keyboard.press(`ControlOrMeta+z`);
+    expect(await getText(editable)).toEqual(initialValue);
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: 1 }),
+    );
 
-//   // undo
-//   // TODO undo with button
-//   await page.keyboard.press(`ControlOrMeta+z`);
-//   expect(await getText(editable)).toEqual(initialValue);
-//   expect(await getSelection(editable)).toEqual(createSelection({ offset: 1 }));
+    // delete
+    await page.getByRole("button", { name: "move focus forward" }).click();
+    await page.getByRole("button", { name: "delete selection" }).click();
+    expect(await getText(editable)).toEqual(deleteAt(initialValue, 1, [0, 1]));
+    expect(await getSelection(editable)).toEqual(
+      createSelection({ offset: 1 }),
+    );
+  });
 
-//   // delete
-//   await page.getByRole("button", { name: "move focus forward" }).click();
-//   await page.getByRole("button", { name: "delete selection" }).click();
-//   expect(await getText(editable)).toEqual(deleteAt(initialValue, 1, [0, 1]));
-//   expect(await getSelection(editable)).toEqual(createSelection({ offset: 1 }));
-// });
+  test("type in input", async ({ page }) => {
+    await page.goto(storyUrl("basics-plain--highlight"));
+
+    const editable = await getEditable(page);
+
+    await editable.focus();
+
+    expect(await getSelection(editable)).toEqual(createSelection());
+
+    const searchInput = page.getByRole("textbox").first();
+    const searchValue = await searchInput.inputValue();
+    await searchInput.focus();
+
+    // type on input
+    const word = "hello";
+    await type(searchInput, word, { delay: 50 });
+    expect(await searchInput.inputValue()).toEqual(searchValue + word);
+
+    // should keep selection on input
+    expect(await getSelection(editable)).toEqual(createSelection());
+  });
+});
 
 test("rtl", async ({ page }) => {
   await page.goto(storyUrl("basics-plain--rtl"));
