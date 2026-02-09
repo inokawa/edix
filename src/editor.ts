@@ -441,6 +441,7 @@ export const createEditor = <
             element,
             selection,
             parserConfig,
+            true,
           );
         }
 

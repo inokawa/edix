@@ -64,15 +64,20 @@ export const getSelectionRangeInEditor = (
 const setRangeToSelection = (
   root: Element,
   range: Range,
+  force: boolean | undefined,
   backward?: boolean,
-) => {
+): boolean => {
   const selection = getDOMSelection(root);
+  if (!force && !getSelectionRangeInEditor(selection, root)) {
+    return false;
+  }
   selection.removeAllRanges();
   selection.addRange(range);
   if (backward) {
     selection.collapseToEnd();
     selection.extend(range.startContainer, range.startOffset);
   }
+  return true;
 };
 
 /**
@@ -83,6 +88,7 @@ export const setSelectionToDOM = (
   root: Element,
   [anchor, focus]: SelectionSnapshot,
   config: ParserConfig,
+  force?: boolean,
 ): boolean => {
   const posDiff = comparePosition(anchor, focus);
   const isCollapsed = posDiff === 0;
@@ -100,8 +106,7 @@ export const setSelectionToDOM = (
     range.setStart(root, 0);
     range.setEnd(root, 0);
 
-    setRangeToSelection(root, range);
-    return true;
+    return setRangeToSelection(root, range, force);
   }
 
   const domStart = findPosition(root, start, config);
@@ -142,8 +147,7 @@ export const setSelectionToDOM = (
     range.setEnd(endNode, endOffset);
   }
 
-  setRangeToSelection(root, range, backward);
-  return true;
+  return setRangeToSelection(root, range, force, backward);
 };
 
 type DOMPosition = [node: Text | Element, offsetAtNode: number];
