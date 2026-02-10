@@ -1,7 +1,12 @@
 import { toRange } from "./doc/position.js";
 import { getLineSize, isTextNode, sliceDoc, Transaction } from "./doc/edit.js";
 import type { Editor } from "./editor.js";
-import type { DocBase, InferNode } from "./doc/types.js";
+import type {
+  DocBase,
+  InferNode,
+  Position,
+  PositionRange,
+} from "./doc/types.js";
 
 export type EditorCommand<A extends unknown[], T extends DocBase> = (
   this: Editor<T>,
@@ -9,22 +14,36 @@ export type EditorCommand<A extends unknown[], T extends DocBase> = (
 ) => void;
 
 /**
- * TODO
+ * Delete content in the selection or specified range.
  */
-export function Delete(this: Editor) {
-  this.apply(new Transaction().delete(...toRange(this.selection)));
+export function Delete(
+  this: Editor,
+  range: PositionRange = toRange(this.selection),
+) {
+  this.apply(new Transaction().delete(...range));
 }
 
 /**
- * TODO
+ * Insert text at the caret or specified position.
  */
-export function InsertText(this: Editor, text: string) {
+export function InsertText(
+  this: Editor,
+  text: string,
+  position: Position = this.selection[0],
+) {
+  this.apply(new Transaction().insert(position, text));
+}
+
+/**
+ * Replace text in the selection or specified range.
+ */
+export function ReplaceText(this: Editor, text: string) {
   const [start, end] = toRange(this.selection);
   this.apply(new Transaction().delete(start, end).insert(start, text));
 }
 
 /**
- * TODO
+ * Replace all content in the editor.
  */
 export function ReplaceAll(this: Editor, text: string) {
   const doc = this.doc;
@@ -35,28 +54,34 @@ export function ReplaceAll(this: Editor, text: string) {
   );
 }
 
-/**
- * TODO
- */
-export function SetFormat<T extends DocBase>(
-  this: Editor<T>,
-  attrs: Partial<Omit<InferNode<T>, "text">>,
-) {
-  this.apply(new Transaction().attr(...toRange(this.selection), attrs));
-}
-
 type ToggleableKey<T> = {
   [K in keyof T]-?: T[K] extends boolean | undefined ? K : never;
 }[keyof T];
 
 /**
- * TODO
+ * Format content in the selection or specified range.
+ */
+export function Format<T extends DocBase>(
+  this: Editor<T>,
+  key: ToggleableKey<Omit<InferNode<T>, "text">>,
+  value: boolean,
+  range: PositionRange = toRange(this.selection),
+) {
+  this.apply(
+    new Transaction().attr(...range, {
+      [key]: value,
+    }),
+  );
+}
+
+/**
+ * Toggle formatting in the selection or specified range.
  */
 export function ToggleFormat<T extends DocBase>(
   this: Editor<T>,
   key: ToggleableKey<Omit<InferNode<T>, "text">>,
+  range: PositionRange = toRange(this.selection),
 ) {
-  const range = toRange(this.selection);
   const texts = sliceDoc(this.doc, ...range).flatMap((n) =>
     n.filter(isTextNode),
   );

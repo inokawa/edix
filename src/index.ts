@@ -2,8 +2,9 @@ export { Transaction } from "./doc/edit.js";
 export {
   Delete,
   InsertText,
+  ReplaceText,
   ReplaceAll,
-  SetFormat,
+  Format,
   ToggleFormat,
 } from "./commands.js";
 export * from "./editor.js";
