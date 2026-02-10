@@ -6,6 +6,7 @@ import type {
   InferNode,
   Position,
   PositionRange,
+  TextNode,
 } from "./doc/types.js";
 
 export type EditorCommand<A extends unknown[], T extends DocBase> = (
@@ -35,6 +36,17 @@ export function InsertText(
 }
 
 /**
+ * Insert node at the caret or specified position.
+ */
+export function InsertNode<T extends DocBase>(
+  this: Editor<T>,
+  node: Exclude<InferNode<T>, TextNode>,
+  position: Position = this.selection[0],
+) {
+  this.apply(new Transaction().insertFragment(position, [[node]]));
+}
+
+/**
  * Replace text in the selection or specified range.
  */
 export function ReplaceText(this: Editor, text: string) {
@@ -61,10 +73,14 @@ type ToggleableKey<T> = {
 /**
  * Format content in the selection or specified range.
  */
-export function Format<T extends DocBase>(
+export function Format<
+  T extends DocBase,
+  N extends Omit<InferNode<T>, "text">,
+  K extends keyof N,
+>(
   this: Editor<T>,
-  key: ToggleableKey<Omit<InferNode<T>, "text">>,
-  value: boolean,
+  key: K,
+  value: N[K],
   range: PositionRange = toRange(this.selection),
 ) {
   this.apply(
