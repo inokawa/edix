@@ -2,6 +2,7 @@ export { Transaction } from "./doc/edit.js";
 export {
   Delete,
   InsertText,
+  InsertNode,
   ReplaceText,
   ReplaceAll,
   Format,
