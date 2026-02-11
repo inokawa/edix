@@ -19,7 +19,6 @@ import {
   sliceDoc,
   isDocEqual,
 } from "./doc/edit.js";
-import { singlelinePlugin } from "./plugins/singleline.js";
 import type { ParserConfig } from "./dom/parser.js";
 import { comparePosition, toRange } from "./doc/position.js";
 import type { PluginObject } from "./plugins/types.js";
@@ -107,7 +106,7 @@ export interface EditorOptions<
   /**
    * TODO
    */
-  singleline?: boolean;
+  plugins?: PluginObject[];
   /**
    * Functions to handle copy events
    * @default [plainCopy()]
@@ -174,7 +173,7 @@ export const createEditor = <
 >({
   doc: initialDoc,
   schema,
-  singleline: isSingleline,
+  plugins = [],
   copy: copyExtensions = [plainCopy()],
   paste: pasteExtensions = [plainPaste()],
   isBlock = defaultIsBlockNode,
@@ -219,11 +218,6 @@ export const createEditor = <
   const history = createHistory<
     readonly [doc: T, selection: SelectionSnapshot]
   >([initialDoc, selection]);
-
-  const plugins: PluginObject[] = [];
-  if (isSingleline) {
-    plugins.push(singlelinePlugin());
-  }
 
   const keydownHandlers: KeyboardHandler[] = [
     hotkey("z", { mod: true }, (): boolean | void => {

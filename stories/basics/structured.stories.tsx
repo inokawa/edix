@@ -13,6 +13,7 @@ import {
   plainCopy,
   plainPaste,
   ToggleFormat,
+  singlelinePlugin,
 } from "../../src";
 import * as v from "valibot";
 
@@ -234,7 +235,7 @@ export const Tag: StoryObj = {
       return createEditor({
         doc: value,
         schema: tagSchema,
-        singleline: true,
+        plugins: [singlelinePlugin()],
         copy: [
           htmlCopy(),
           plainCopy<Doc>((node) => ("text" in node ? node.text : node.label)),

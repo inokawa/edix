@@ -11,3 +11,4 @@ export {
 export * from "./editor.js";
 export * from "./extensions/index.js";
 export * from "./presets/index.js";
+export * from "./plugins/index.js";
