@@ -2,9 +2,6 @@ import { concat, Transaction, type Operation } from "../doc/edit.js";
 import type { DocNode } from "../doc/types.js";
 import type { EditorPlugin } from "./types.js";
 
-/**
- * @internal
- */
 export const singlelinePlugin: EditorPlugin = () => {
   return {
     mount: (element) => {
