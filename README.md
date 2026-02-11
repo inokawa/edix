@@ -33,12 +33,12 @@ Mobile browsers are also supported, but with some issues (https://github.com/ino
 
 1. Define your contents declaratively. There are rules you have to follow:
    - You must render `<br/>` in empty row (limitation of contenteditable).
-   - If `multiline` option is
-     - `false` or undefined, direct children of the root are treated as inline nodes.
+   - If `singleline` option is
      - `true`, direct children of the root are treated as rows. They must be elements, not text.
+     - `false` or undefined, direct children of the root are treated as inline nodes.
    - (TODO)
 
-2. Initialize `Editor` with `createEditor`.
+2. Initialize `Editor` with `createPlainEditor`/`createEditor`.
 3. Call `Editor.input` on mount, with `HTMLElement` which is the root of editable contents.
 4. Update your state with `onChange`, which will be called on edit.
 5. Call returned function from `Editor.input` on unmount for cleanup.
@@ -57,7 +57,7 @@ export const App = () => {
 
   useEffect(() => {
     // 2. init
-    const editor = createEditor({
+    const editor = createPlainEditor({
       text: text,
       onChange: (v) => {
         // 4. update state
@@ -218,11 +218,18 @@ If you find a problem, feel free to create an [issue](https://github.com/inokawa
 
 ## Inspirations
 
-- Many great text editor libraries ([ProseMirror](https://prosemirror.net/), [Lexical](https://github.com/facebook/lexical), [Slate](https://github.com/ianstormtaylor/slate), [Quill](https://github.com/slab/quill), [Draft.js](https://github.com/facebookarchive/draft-js), etc.)
-- [rich-textarea](https://github.com/inokawa/rich-textarea) (my early work)
+- [ProseMirror](https://prosemirror.net/)
+- [Slate](https://github.com/ianstormtaylor/slate)
+- [Lexical](https://github.com/facebook/lexical)
+- [Quill](https://github.com/slab/quill)
+- [Draft.js](https://github.com/facebookarchive/draft-js)
+- [rich-textarea](https://github.com/inokawa/rich-textarea) (my early project)
 - [use-editable](https://github.com/FormidableLabs/use-editable)
 - [@react-libraries/markdown-editor](https://github.com/ReactLibraries/markdown-editor)
 - [Textbus](https://github.com/textbus/textbus)
 - [vistree](https://github.com/mizchi/vistree)
+- [VS Code](https://github.com/microsoft/vscode)
+- [urql](https://github.com/urql-graphql/urql)
+- [TanStack DB](https://github.com/tanstack/db)
 - Proposed [EditContext API](https://github.com/w3c/edit-context)
 - Proposed [Richer Text Fields](https://open-ui.org/components/richer-text-fields.explainer/) in [Open UI](https://open-ui.org/)
