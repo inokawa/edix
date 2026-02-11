@@ -1,6 +1,7 @@
 import { docToString, stringToFragment } from "../doc/utils.js";
 import { createEditor, type Editor, type EditorOptions } from "../editor.js";
 import { singlelinePlugin } from "../plugins/index.js";
+import type { PluginObject } from "../plugins/types.js";
 
 type PlainDoc = { text: string }[][];
 
@@ -28,13 +29,18 @@ export interface PlainEditorOptions extends Omit<
 export const createPlainEditor = ({
   text,
   singleline,
+  plugins: optsPlugins = [],
   onChange,
   ...opts
 }: PlainEditorOptions): Editor<PlainDoc> => {
+  const plugins: PluginObject[] = [...optsPlugins];
+  if (singleline) {
+    plugins.unshift(singlelinePlugin());
+  }
   return createEditor({
     ...opts,
     doc: stringToFragment(text),
-    plugins: singleline ? [singlelinePlugin()] : undefined,
+    plugins,
     onChange: (doc) => {
       onChange(docToString(doc));
     },
