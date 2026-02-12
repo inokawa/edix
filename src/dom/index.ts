@@ -68,7 +68,17 @@ const setRangeToSelection = (
   backward?: boolean,
 ): boolean => {
   const selection = getDOMSelection(root);
-  if (!force && !getSelectionRangeInEditor(selection, root)) {
+  const prevRange = getSelectionRangeInEditor(selection, root);
+  if (!force && !prevRange) {
+    return false;
+  }
+  if (
+    prevRange &&
+    prevRange.startContainer === range.startContainer &&
+    prevRange.endContainer === range.endContainer &&
+    prevRange.startOffset === range.startOffset &&
+    prevRange.endOffset === range.endOffset
+  ) {
     return false;
   }
   selection.removeAllRanges();
