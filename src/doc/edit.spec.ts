@@ -500,6 +500,71 @@ describe("insert", () => {
     ]);
     expect(res[1]).toEqual(sel);
   });
+
+  it("should insert line break at start of line", () => {
+    const docText = "abcde";
+    const docText2 = "fghij";
+    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
+    const sel: SelectionSnapshot = [
+      [0, 2],
+      [0, 2],
+    ];
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().insert([1, 0], "\n"),
+    )!;
+    expect(res[0]).toEqual([
+      [{ id: 1, text: docText }],
+      [],
+      [{ id: 1, text: docText2 }],
+    ]);
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("should insert line break at middle of line", () => {
+    const docText = "abcde";
+    const docText2 = "fghij";
+    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
+    const sel: SelectionSnapshot = [
+      [0, 2],
+      [0, 2],
+    ];
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().insert([1, 1], "\n"),
+    )!;
+
+    const [before, after] = splitAt(docText2, 1);
+    expect(res[0]).toEqual([
+      [{ id: 1, text: docText }],
+      [{ id: 1, text: before }],
+      [{ id: 1, text: after }],
+    ]);
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("should insert line break at end of line", () => {
+    const docText = "abcde";
+    const docText2 = "fghij";
+    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
+    const sel: SelectionSnapshot = [
+      [0, 2],
+      [0, 2],
+    ];
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().insert([0, docText.length], "\n"),
+    )!;
+    expect(res[0]).toEqual([
+      [{ id: 1, text: docText }],
+      [],
+      [{ id: 1, text: docText2 }],
+    ]);
+    expect(res[1]).toEqual(sel);
+  });
 });
 
 describe("insert node", () => {
@@ -1372,6 +1437,84 @@ describe("delete", () => {
             deleteAt(docText3, 0, 1),
         },
       ],
+    ]);
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("should delete linebreak at start of line", () => {
+    const docText = "abcde";
+    const docText2 = "fghij";
+    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
+    const sel: SelectionSnapshot = [
+      [0, 2],
+      [0, 2],
+    ];
+
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().delete([0, docText.length], [1, 0]),
+    )!;
+
+    expect(res[0]).toEqual([
+      [
+        {
+          id: 1,
+          text: docText + docText2,
+        },
+      ],
+    ]);
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("should delete empty line from the start", () => {
+    const docText = "abcde";
+    const docText2 = "fghij";
+    const doc: Doc = [
+      [{ id: 1, text: docText }],
+      [],
+      [{ id: 1, text: docText2 }],
+    ];
+    const sel: SelectionSnapshot = [
+      [0, 2],
+      [0, 2],
+    ];
+
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().delete([0, docText.length], [1, 0]),
+    )!;
+
+    expect(res[0]).toEqual([
+      [{ id: 1, text: docText }],
+      [{ id: 1, text: docText2 }],
+    ]);
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("should delete empty line from the end", () => {
+    const docText = "abcde";
+    const docText2 = "fghij";
+    const doc: Doc = [
+      [{ id: 1, text: docText }],
+      [],
+      [{ id: 1, text: docText2 }],
+    ];
+    const sel: SelectionSnapshot = [
+      [0, 2],
+      [0, 2],
+    ];
+
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().delete([1, 0], [2, 0]),
+    )!;
+
+    expect(res[0]).toEqual([
+      [{ id: 1, text: docText }],
+      [{ id: 1, text: docText2 }],
     ]);
     expect(res[1]).toEqual(sel);
   });
