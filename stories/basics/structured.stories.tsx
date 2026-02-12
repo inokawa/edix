@@ -14,6 +14,8 @@ import {
   plainPaste,
   ToggleFormat,
   singlelinePlugin,
+  internalCopy,
+  internalPaste,
 } from "../../src";
 import * as v from "valibot";
 
@@ -45,8 +47,12 @@ export const Basic: StoryObj = {
       return createEditor({
         doc: doc,
         schema: basicSchema,
-        copy: [htmlCopy(), plainCopy()],
-        paste: [htmlPaste<Doc>((text) => ({ text })), plainPaste()],
+        copy: [internalCopy(), htmlCopy(), plainCopy()],
+        paste: [
+          internalPaste(),
+          htmlPaste<Doc>((text) => ({ text })),
+          plainPaste(),
+        ],
         onChange: setDoc,
       }).input(ref.current);
     }, []);
@@ -128,6 +134,8 @@ export const RichText: StoryObj = {
         createEditor({
           doc: doc,
           schema: richSchema,
+          copy: [internalCopy(), plainCopy()],
+          paste: [internalPaste(), plainPaste()],
           onChange: setDoc,
         }),
       [],
@@ -235,26 +243,10 @@ export const Tag: StoryObj = {
         schema: tagSchema,
         plugins: [singlelinePlugin()],
         copy: [
-          htmlCopy(),
+          internalCopy(),
           plainCopy<Doc>((node) => ("text" in node ? node.text : node.label)),
         ],
-        paste: [
-          htmlPaste<Doc>(
-            (text) => ({ type: "text", text }),
-            [
-              (e) => {
-                if (e.contentEditable === "false") {
-                  return {
-                    type: "tag",
-                    label: e.textContent!,
-                    value: e.dataset.tagValue!,
-                  };
-                }
-              },
-            ],
-          ),
-          plainPaste(),
-        ],
+        paste: [internalPaste(), plainPaste()],
         onChange: setDoc,
       }).input(ref.current);
     }, []);
@@ -338,8 +330,9 @@ export const Image: StoryObj = {
       return createEditor({
         doc: doc,
         schema: imageSchema,
-        copy: [htmlCopy(), plainCopy()],
+        copy: [internalCopy(), htmlCopy(), plainCopy()],
         paste: [
+          internalPaste(),
           htmlPaste<Doc>(
             (text) => ({ type: "text", text }),
             [
@@ -425,8 +418,9 @@ export const Video: StoryObj = {
       return createEditor({
         doc: doc,
         schema: videoSchema,
-        copy: [htmlCopy(), plainCopy()],
+        copy: [internalCopy(), htmlCopy(), plainCopy()],
         paste: [
+          internalPaste(),
           htmlPaste<Doc>(
             (text) => ({ type: "text", text }),
             [
@@ -535,8 +529,9 @@ export const Iframe: StoryObj = {
       return createEditor({
         doc: doc,
         schema: youtubeSchema,
-        copy: [htmlCopy(), plainCopy()],
+        copy: [internalCopy(), htmlCopy(), plainCopy()],
         paste: [
+          internalPaste(),
           htmlPaste<Doc>(
             (text) => ({ type: "text", text }),
             [

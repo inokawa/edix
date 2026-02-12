@@ -1,6 +1,9 @@
 import { getDOMSelection, getSelectionRangeInEditor } from "../../dom/index.js";
 import type { CopyExtension } from "./types.js";
 
+/**
+ * An extension to handle copying to HTML.
+ */
 export const htmlCopy = (): CopyExtension => {
   return (dataTransfer, _, element) => {
     // TODO customizable dom to standard schema
