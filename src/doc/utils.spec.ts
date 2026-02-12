@@ -6,11 +6,18 @@ describe(stringToFragment.name, () => {
   const tests: [string, Fragment][] = [
     ["Hello world", [[{ text: "Hello world" }]]],
     ["Hello\n world", [[{ text: "Hello" }], [{ text: " world" }]]],
-    ["", [[]]],
-    ["\n", [[], []]],
+    ["", [[{ text: "" }]]],
+    ["\n", [[{ text: "" }], [{ text: "" }]]],
     [
       "\nHello\n\n\n world\n",
-      [[], [{ text: "Hello" }], [], [], [{ text: " world" }], []],
+      [
+        [{ text: "" }],
+        [{ text: "Hello" }],
+        [{ text: "" }],
+        [{ text: "" }],
+        [{ text: " world" }],
+        [{ text: "" }],
+      ],
     ],
   ];
 

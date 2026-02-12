@@ -164,8 +164,21 @@ const normalize = <T extends DocNode>(
   while (i <= end) {
     const prev = array[i - 1]!;
     const curr = array[i]!;
+    // merge text nodes with same attrs
     if (isTextNode(prev) && isTextNode(curr) && isSameNode(prev, curr)) {
       array[i - 1] = { ...prev, text: prev.text + curr.text };
+      array.splice(i, 1);
+      end--;
+    } else {
+      i++;
+    }
+  }
+
+  // remove empty text nodes, leaving at least one node per block
+  i = start;
+  while (i <= end) {
+    const node = array[i]!;
+    if (isTextNode(node) && !node.text && array.length > 1) {
       array.splice(i, 1);
       end--;
     } else {
@@ -210,10 +223,10 @@ const split = <T extends DocNode>(
       if (isTextNode(node)) {
         const beforeText = node.text.slice(0, offset);
         const afterText = node.text.slice(offset);
-        if (beforeText) {
+        if (beforeText || !before.length) {
           before.push({ ...node, text: beforeText });
         }
-        if (afterText) {
+        if (afterText || !after.length) {
           after.unshift({ ...node, text: afterText });
         }
       } else {

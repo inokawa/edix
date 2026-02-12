@@ -23,5 +23,5 @@ export const stringToFragment = <T extends TextNode>(
   text: string,
   node?: T,
 ): T[][] => {
-  return text.split("\n").map((l) => (l ? [{ ...node, text: l } as T] : []));
+  return text.split("\n").map((l) => [{ ...node, text: l } as T]);
 };

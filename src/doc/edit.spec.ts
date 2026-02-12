@@ -504,7 +504,7 @@ describe("insert", () => {
   it("should insert line break at start of line", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
+    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 2, text: docText2 }]];
     const sel: SelectionSnapshot = [
       [0, 2],
       [0, 2],
@@ -516,8 +516,8 @@ describe("insert", () => {
     )!;
     expect(res[0]).toEqual([
       [{ id: 1, text: docText }],
-      [],
-      [{ id: 1, text: docText2 }],
+      [{ id: 2, text: "" }],
+      [{ id: 2, text: docText2 }],
     ]);
     expect(res[1]).toEqual(sel);
   });
@@ -525,7 +525,7 @@ describe("insert", () => {
   it("should insert line break at middle of line", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
+    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 2, text: docText2 }]];
     const sel: SelectionSnapshot = [
       [0, 2],
       [0, 2],
@@ -539,8 +539,8 @@ describe("insert", () => {
     const [before, after] = splitAt(docText2, 1);
     expect(res[0]).toEqual([
       [{ id: 1, text: docText }],
-      [{ id: 1, text: before }],
-      [{ id: 1, text: after }],
+      [{ id: 2, text: before }],
+      [{ id: 2, text: after }],
     ]);
     expect(res[1]).toEqual(sel);
   });
@@ -548,7 +548,7 @@ describe("insert", () => {
   it("should insert line break at end of line", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
+    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 2, text: docText2 }]];
     const sel: SelectionSnapshot = [
       [0, 2],
       [0, 2],
@@ -560,8 +560,8 @@ describe("insert", () => {
     )!;
     expect(res[0]).toEqual([
       [{ id: 1, text: docText }],
-      [],
-      [{ id: 1, text: docText2 }],
+      [{ id: 1, text: "" }],
+      [{ id: 2, text: docText2 }],
     ]);
     expect(res[1]).toEqual(sel);
   });
@@ -1558,7 +1558,7 @@ describe("delete", () => {
     const docText2 = "fghij";
     const doc: Doc = [
       [{ id: 1, text: docText }],
-      [],
+      [{ id: 1, text: "" }],
       [{ id: 1, text: docText2 }],
     ];
     const sel: SelectionSnapshot = [
@@ -1584,7 +1584,7 @@ describe("delete", () => {
     const docText2 = "fghij";
     const doc: Doc = [
       [{ id: 1, text: docText }],
-      [],
+      [{ id: 1, text: "" }],
       [{ id: 1, text: docText2 }],
     ];
     const sel: SelectionSnapshot = [
