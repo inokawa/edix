@@ -395,6 +395,7 @@ export const createEditor = <
       };
 
       const observer = createMutationObserver(element, () => {
+        // TODO optimize
         // Mutation to selected DOM may change selection, so restore it.
         setSelectionToDOM(document, element, selection, parserConfig);
       });
