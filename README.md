@@ -164,21 +164,17 @@ export const App = () => {
       >
         {value.map((r, i) => (
           <div key={i}>
-            {r.length ? (
-              r.map((n, j) => (
-                <span
-                  key={j}
-                  style={{
-                    fontWeight: n.bold ? "bold" : undefined,
-                    fontStyle: n.italic ? "italic" : undefined,
-                  }}
-                >
-                  {n.text}
-                </span>
-              ))
-            ) : (
-              <br />
-            )}
+            {r.map((n, j) => (
+              <span
+                key={j}
+                style={{
+                  fontWeight: n.bold ? "bold" : undefined,
+                  fontStyle: n.italic ? "italic" : undefined,
+                }}
+              >
+                {n.text || <br />}
+              </span>
+            ))}
           </div>
         ))}
       </div>

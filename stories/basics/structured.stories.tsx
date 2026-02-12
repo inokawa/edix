@@ -62,7 +62,9 @@ export const Basic: StoryObj = {
       >
         {value.map((r, i) => (
           <div key={i}>
-            {r.length ? r.map((n, j) => <span key={j}>{n.text}</span>) : <br />}
+            {r.map((n, j) => (
+              <span key={j}>{n.text || <br />}</span>
+            ))}
           </div>
         ))}
       </div>
@@ -90,7 +92,7 @@ const Text = (props: {
       ? `${style.textDecoration} line-through`
       : "line-through";
   }
-  return <Element style={style}>{props.text}</Element>;
+  return <Element style={style}>{props.text || <br />}</Element>;
 };
 
 const richSchema = v.array(
@@ -178,20 +180,16 @@ export const RichText: StoryObj = {
         >
           {value.map((r, i) => (
             <div key={i}>
-              {r.length ? (
-                r.map((n, j) => (
-                  <Text
-                    key={j}
-                    text={n.text}
-                    bold={n.bold}
-                    italic={n.italic}
-                    underline={n.underline}
-                    strike={n.strike}
-                  />
-                ))
-              ) : (
-                <br />
-              )}
+              {r.map((n, j) => (
+                <Text
+                  key={j}
+                  text={n.text}
+                  bold={n.bold}
+                  italic={n.italic}
+                  underline={n.underline}
+                  strike={n.strike}
+                />
+              ))}
             </div>
           ))}
         </div>
@@ -269,29 +267,25 @@ export const Tag: StoryObj = {
           padding: 8,
         }}
       >
-        {value[0].length ? (
-          value[0].map((t, j) =>
-            t.type === "tag" ? (
-              <span
-                key={j}
-                contentEditable={false}
-                data-tag-value={t.value}
-                style={{
-                  background: "slategray",
-                  color: "white",
-                  fontSize: 12,
-                  padding: 4,
-                  borderRadius: 8,
-                }}
-              >
-                {t.label}
-              </span>
-            ) : (
-              <span key={j}>{t.text}</span>
-            ),
-          )
-        ) : (
-          <br />
+        {value[0].map((t, j) =>
+          t.type === "tag" ? (
+            <span
+              key={j}
+              contentEditable={false}
+              data-tag-value={t.value}
+              style={{
+                background: "slategray",
+                color: "white",
+                fontSize: 12,
+                padding: 4,
+                borderRadius: 8,
+              }}
+            >
+              {t.label}
+            </span>
+          ) : (
+            <span key={j}>{t.text || <br />}</span>
+          ),
         )}
       </div>
     );
@@ -375,16 +369,12 @@ export const Image: StoryObj = {
       >
         {value.map((r, i) => (
           <div key={i}>
-            {r.length ? (
-              r.map((t, j) =>
-                t.type === "image" ? (
-                  <img key={j} src={t.src} style={{ maxWidth: 200 }} />
-                ) : (
-                  <span key={j}>{t.text}</span>
-                ),
-              )
-            ) : (
-              <br />
+            {r.map((t, j) =>
+              t.type === "image" ? (
+                <img key={j} src={t.src} style={{ maxWidth: 200 }} />
+              ) : (
+                <span key={j}>{t.text || <br />}</span>
+              ),
             )}
           </div>
         ))}
@@ -466,25 +456,21 @@ export const Video: StoryObj = {
       >
         {value.map((r, i) => (
           <div key={i}>
-            {r.length ? (
-              r.map((t, j) =>
-                t.type === "video" ? (
-                  // safari needs contentEditable="false"
-                  <video
-                    key={j}
-                    width={400}
-                    controls
-                    contentEditable="false"
-                    suppressContentEditableWarning
-                  >
-                    <source src={t.src} />
-                  </video>
-                ) : (
-                  <span key={j}>{t.text}</span>
-                ),
-              )
-            ) : (
-              <br />
+            {r.map((t, j) =>
+              t.type === "video" ? (
+                // safari needs contentEditable="false"
+                <video
+                  key={j}
+                  width={400}
+                  controls
+                  contentEditable="false"
+                  suppressContentEditableWarning
+                >
+                  <source src={t.src} />
+                </video>
+              ) : (
+                <span key={j}>{t.text || <br />}</span>
+              ),
             )}
           </div>
         ))}
@@ -591,16 +577,12 @@ export const Iframe: StoryObj = {
         >
           {value.map((r, i) => (
             <div key={i}>
-              {r.length ? (
-                r.map((t, j) =>
-                  t.type === "youtube" ? (
-                    <Youtube key={j} id={t.id} />
-                  ) : (
-                    <span key={j}>{t.text}</span>
-                  ),
-                )
-              ) : (
-                <br />
+              {r.map((t, j) =>
+                t.type === "youtube" ? (
+                  <Youtube key={j} id={t.id} />
+                ) : (
+                  <span key={j}>{t.text || <br />}</span>
+                ),
               )}
             </div>
           ))}
