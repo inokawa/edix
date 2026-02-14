@@ -78,40 +78,32 @@ export const Basic: StoryObj = {
   },
 };
 
-const Text = (props: {
-  text: string;
-  bold?: boolean;
-  italic?: boolean;
-  underline?: boolean;
-  strike?: boolean;
-}) => {
-  const Element = props.bold ? "strong" : "span";
+const richTextSchema = v.strictObject({
+  text: v.string(),
+  bold: v.optional(v.boolean()),
+  italic: v.optional(v.boolean()),
+  underline: v.optional(v.boolean()),
+  strike: v.optional(v.boolean()),
+});
+
+const richSchema = v.array(v.array(richTextSchema));
+
+const Text = ({ node }: { node: v.InferOutput<typeof richTextSchema> }) => {
+  const Element = node.bold ? "strong" : "span";
   const style: CSSProperties = {};
-  if (props.italic) {
+  if (node.italic) {
     style.fontStyle = "italic";
   }
-  if (props.underline) {
+  if (node.underline) {
     style.textDecoration = "underline";
   }
-  if (props.strike) {
+  if (node.strike) {
     style.textDecoration = style.textDecoration
       ? `${style.textDecoration} line-through`
       : "line-through";
   }
-  return <Element style={style}>{props.text || <br />}</Element>;
+  return <Element style={style}>{node.text || <br />}</Element>;
 };
-
-const richSchema = v.array(
-  v.array(
-    v.strictObject({
-      text: v.string(),
-      bold: v.optional(v.boolean()),
-      italic: v.optional(v.boolean()),
-      underline: v.optional(v.boolean()),
-      strike: v.optional(v.boolean()),
-    }),
-  ),
-);
 
 export const RichText: StoryObj = {
   render: () => {
@@ -189,14 +181,7 @@ export const RichText: StoryObj = {
           {doc.map((r, i) => (
             <div key={i}>
               {r.map((n, j) => (
-                <Text
-                  key={j}
-                  text={n.text}
-                  bold={n.bold}
-                  italic={n.italic}
-                  underline={n.underline}
-                  strike={n.strike}
-                />
+                <Text key={j} node={n} />
               ))}
             </div>
           ))}
