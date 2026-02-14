@@ -481,7 +481,7 @@ const CHARACTERS = [
 export const Combobox: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
-    const [value, setValue] = useState("");
+    const [text, setText] = useState("");
 
     const [index, setIndex] = useState<number>(-1);
     const [focused, setFocused] = useState(false);
@@ -489,9 +489,9 @@ export const Combobox: StoryObj = {
     const filtered = useMemo(
       () =>
         CHARACTERS.filter((c) =>
-          c.toLowerCase().startsWith(value.toLowerCase()),
+          c.toLowerCase().startsWith(text.toLowerCase()),
         ),
-      [value],
+      [text],
     );
 
     const length = filtered.length;
@@ -525,9 +525,9 @@ export const Combobox: StoryObj = {
     const editor = useMemo(
       () =>
         createPlainEditor({
-          text: value,
+          text: text,
           singleline: true,
-          onChange: setValue,
+          onChange: setText,
           onKeyDown: onKeyDown,
         }),
       [],
@@ -543,7 +543,7 @@ export const Combobox: StoryObj = {
       return editor.input(ref.current);
     }, []);
 
-    const selected = length === 1 && filtered[0] === value;
+    const selected = length === 1 && filtered[0] === text;
 
     return (
       <div style={{ position: "relative", fontSize: "12px" }}>
@@ -558,7 +558,7 @@ export const Combobox: StoryObj = {
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
         >
-          {value ? value : <br />}
+          {text ? text : <br />}
         </div>
         {focused && !!length && !selected && (
           <Menu index={index} items={filtered} onSelect={complete} />

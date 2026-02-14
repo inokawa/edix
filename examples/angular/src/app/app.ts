@@ -8,14 +8,14 @@ import { createPlainEditor } from 'edix';
 })
 export class AppComponent {
   ref = viewChild<ElementRef<HTMLDivElement>>('ref');
-  value = signal('Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒');
+  text = signal('Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒');
   cleanup: (() => void) | null = null;
 
   ngAfterViewInit() {
     const editor = createPlainEditor({
-      text: this.value(),
+      text: this.text(),
       onChange: (v) => {
-        this.value.set(v);
+        this.text.set(v);
       },
     });
     this.cleanup = editor.input(this.ref()!.nativeElement);

@@ -9,13 +9,13 @@ export default {
 export const Empty: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
-    const [value, setValue] = useState("");
+    const [text, setText] = useState("");
 
     useEffect(() => {
       if (!ref.current) return;
       return createPlainEditor({
-        text: value,
-        onChange: setValue,
+        text: text,
+        onChange: setText,
       }).input(ref.current);
     }, []);
 
@@ -28,7 +28,7 @@ export const Empty: StoryObj = {
           padding: 8,
         }}
       >
-        {value.split("\n").map((r, i) => (
+        {text.split("\n").map((r, i) => (
           <div key={i}>{r ? r : <br />}</div>
         ))}
       </div>
@@ -39,12 +39,12 @@ export const Empty: StoryObj = {
 export const Multiline: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
-    const [value, setValue] = useState("Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
+    const [text, setText] = useState("Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
     useEffect(() => {
       if (!ref.current) return;
       return createPlainEditor({
-        text: value,
-        onChange: setValue,
+        text: text,
+        onChange: setText,
       }).input(ref.current);
     }, []);
 
@@ -57,7 +57,7 @@ export const Multiline: StoryObj = {
           padding: 8,
         }}
       >
-        {value.split("\n").map((r, i) => (
+        {text.split("\n").map((r, i) => (
           <div key={i}>{r ? r : <br />}</div>
         ))}
       </div>
@@ -68,13 +68,13 @@ export const Multiline: StoryObj = {
 export const Singleline: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
-    const [value, setValue] = useState("Hello world.");
+    const [text, setText] = useState("Hello world.");
     useEffect(() => {
       if (!ref.current) return;
       return createPlainEditor({
-        text: value,
+        text: text,
         singleline: true,
-        onChange: setValue,
+        onChange: setText,
       }).input(ref.current);
     }, []);
 
@@ -87,7 +87,7 @@ export const Singleline: StoryObj = {
           padding: 8,
         }}
       >
-        {value ? value : <br />}
+        {text ? text : <br />}
       </div>
     );
   },
@@ -96,13 +96,13 @@ export const Singleline: StoryObj = {
 export const Readonly: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
-    const [value, setValue] = useState(`Hello world.`);
+    const [text, setText] = useState(`Hello world.`);
     const editor = useMemo(
       () =>
         createPlainEditor({
-          text: value,
+          text: text,
           singleline: true,
-          onChange: setValue,
+          onChange: setText,
         }),
       [],
     );
@@ -116,9 +116,9 @@ export const Readonly: StoryObj = {
         <div>
           <button
             onClick={() => {
-              const value = !readonly;
-              editor.readonly = value;
-              setReadonly(value);
+              const text = !readonly;
+              editor.readonly = text;
+              setReadonly(text);
             }}
           >
             {readonly ? "editable" : "readonly"}
@@ -131,7 +131,7 @@ export const Readonly: StoryObj = {
             color: readonly ? "gray" : undefined,
           }}
         >
-          {value ? value : <br />}
+          {text ? text : <br />}
         </div>
       </div>
     );
@@ -141,13 +141,13 @@ export const Readonly: StoryObj = {
 export const Placeholder: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
-    const [value, setValue] = useState("");
+    const [text, setText] = useState("");
     useEffect(() => {
       if (!ref.current) return;
       return createPlainEditor({
-        text: value,
+        text: text,
         singleline: true,
-        onChange: setValue,
+        onChange: setText,
       }).input(ref.current);
     }, []);
     return (
@@ -161,7 +161,7 @@ export const Placeholder: StoryObj = {
           }}
           aria-placeholder="Enter some text..."
         >
-          {value}
+          {text}
         </div>
         <style>{`
 [contenteditable]:empty:before {
@@ -178,7 +178,7 @@ export const Placeholder: StoryObj = {
 export const Highlight: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
-    const [value, setValue] = useState(
+    const [text, setText] = useState(
       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
     );
     const [searchText, setSearchText] = useState("dolor");
@@ -186,8 +186,8 @@ export const Highlight: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return createPlainEditor({
-        text: value,
-        onChange: setValue,
+        text: text,
+        onChange: setText,
       }).input(ref.current);
     }, []);
 
@@ -204,7 +204,7 @@ export const Highlight: StoryObj = {
           />
         </div>
         <div ref={ref} style={{ background: "white" }}>
-          {value.split("\n").map((r, i) => (
+          {text.split("\n").map((r, i) => (
             <div key={i}>
               {r ? (
                 (reg ? r.split(reg) : [r]).map((t, j) =>
@@ -228,12 +228,12 @@ export const Highlight: StoryObj = {
 export const Command: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
-    const [value, setValue] = useState("Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
+    const [text, setText] = useState("Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
     const editor = useMemo(
       () =>
         createPlainEditor({
-          text: value,
-          onChange: setValue,
+          text: text,
+          onChange: setText,
         }),
       [],
     );
@@ -242,21 +242,21 @@ export const Command: StoryObj = {
       return editor.input(ref.current);
     }, []);
 
-    const [text, setText] = useState("text");
+    const [insertText, setInsertText] = useState("text");
 
     return (
       <div>
         <div style={{ padding: 4 }}>
           <div>
             <input
-              value={text}
+              value={insertText}
               onChange={(e) => {
-                setText(e.target.value);
+                setInsertText(e.target.value);
               }}
             />
             <button
               onClick={() => {
-                editor.apply(InsertText, text);
+                editor.apply(InsertText, insertText);
               }}
             >
               insert
@@ -320,7 +320,7 @@ export const Command: StoryObj = {
             padding: 8,
           }}
         >
-          {value.split("\n").map((r, i) => (
+          {text.split("\n").map((r, i) => (
             <div key={i}>{r ? r : <br />}</div>
           ))}
         </div>
@@ -332,13 +332,13 @@ export const Command: StoryObj = {
 export const SpanAsBlock: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
-    const [value, setValue] = useState("Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
+    const [text, setText] = useState("Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
     useEffect(() => {
       if (!ref.current) return;
       return createPlainEditor({
-        text: value,
+        text: text,
         isBlock: (node) => !!node.dataset.line,
-        onChange: setValue,
+        onChange: setText,
       }).input(ref.current);
     }, []);
 
@@ -351,7 +351,7 @@ export const SpanAsBlock: StoryObj = {
           padding: 8,
         }}
       >
-        {value.split("\n").map((r, i) => (
+        {text.split("\n").map((r, i) => (
           <span key={i} data-line style={{ display: "block" }}>
             {r ? r : <br />}
           </span>
@@ -364,14 +364,14 @@ export const SpanAsBlock: StoryObj = {
 export const Rtl: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
-    const [value, setValue] = useState(`אחד !
+    const [text, setText] = useState(`אחד !
 two !
 שְׁלוֹשָׁה !`);
     useEffect(() => {
       if (!ref.current) return;
       return createPlainEditor({
-        text: value,
-        onChange: setValue,
+        text: text,
+        onChange: setText,
       }).input(ref.current);
     }, []);
     return (
@@ -382,7 +382,7 @@ two !
           background: "white",
         }}
       >
-        {value.split("\n").map((r, i) => (
+        {text.split("\n").map((r, i) => (
           <div key={i}>{r ? r : <br />}</div>
         ))}
       </div>
@@ -393,7 +393,7 @@ two !
 export const Vertical: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
-    const [value, setValue] =
+    const [text, setText] =
       useState(`春は、あけぼの。やうやうしろくなりゆく山ぎは、すこし明かりて、紫だちたる雲の、細くたなびきたる。
 夏は、夜。月のころはさらなり。闇もなほ、蛍の多く飛びちがひたる。また、ただ一つ二つなど、ほのかにうち光りて行くも、をかし。雨など降るも、をかし。
 秋は、夕暮。夕日のさして、山の端いと近うなりたるに、烏の寝どころへ行くとて、三つ四つ、二つ三つなど、飛びいそぐさへあはれなり。まいて、雁などのつらねたるが、いと小さく見ゆるは、いとをかし。日入りはてて、風の音、虫の音など、はた、言ふべきにあらず。
@@ -401,8 +401,8 @@ export const Vertical: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return createPlainEditor({
-        text: value,
-        onChange: setValue,
+        text: text,
+        onChange: setText,
       }).input(ref.current);
     }, []);
     return (
@@ -414,7 +414,7 @@ export const Vertical: StoryObj = {
           height: 400,
         }}
       >
-        {value.split("\n").map((r, i) => (
+        {text.split("\n").map((r, i) => (
           <div key={i}>{r ? r : <br />}</div>
         ))}
       </div>

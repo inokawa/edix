@@ -82,7 +82,7 @@ export const App = () => {
         padding: 8,
       }}
     >
-      {value.split("\n").map((t, i) => (
+      {text.split("\n").map((t, i) => (
         <div key={i}>{t ? t : <br />}</div>
       ))}
     </div>
@@ -113,7 +113,7 @@ export const App = () => {
   const ref = useRef<HTMLDivElement>(null);
 
   type Doc = v.InferOutput<typeof schema>;
-  const [value, setValue] = useState<Doc>([
+  const [doc, setDoc] = useState<Doc>([
     [
       { text: "Hello", bold: true },
       { text: " " },
@@ -125,9 +125,9 @@ export const App = () => {
   const editor = useMemo(
     () =>
       createEditor({
-        doc: value,
+        doc,
         schema,
-        onChange: setValue,
+        onChange: setDoc,
       }),
     [],
   );
@@ -162,7 +162,7 @@ export const App = () => {
           padding: 8,
         }}
       >
-        {value.map((r, i) => (
+        {doc.map((r, i) => (
           <div key={i}>
             {r.map((n, j) => (
               <span

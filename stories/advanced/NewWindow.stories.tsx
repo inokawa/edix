@@ -15,12 +15,12 @@ export default {
 
 const Content = () => {
   const ref = useRef<HTMLDivElement>(null);
-  const [value, setValue] = useState("This is new window!");
+  const [text, setText] = useState("This is new window!");
   useEffect(() => {
     if (!ref.current) return;
     return createPlainEditor({
-      text: value,
-      onChange: setValue,
+      text: text,
+      onChange: setText,
     }).input(ref.current);
   }, []);
   return (
@@ -30,7 +30,7 @@ const Content = () => {
         background: "white",
       }}
     >
-      {value.split("\n").map((r, i) => (
+      {text.split("\n").map((r, i) => (
         <div key={i}>{r ? r : <br />}</div>
       ))}
     </div>

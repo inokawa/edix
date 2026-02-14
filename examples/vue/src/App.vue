@@ -2,14 +2,14 @@
 import { onMounted, onUnmounted, ref } from 'vue';
 import { createPlainEditor } from "edix";
 
-const value = ref("Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒")
+const text = ref("Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒")
 const element = ref<HTMLDivElement>()
 let cleanup: (() => void) | null = null
 onMounted(() => {
   cleanup = createPlainEditor({
-    text: value.value,
+    text: text.value,
     onChange: (v) => {
-      value.value = v
+      text.value = v
     },
   }).input(element.value!)
 })
@@ -20,7 +20,7 @@ onUnmounted(() => {
 
 <template>
   <div ref="element" class="editor">
-    <div v-for="(t, i) in value.split('\n')">
+    <div v-for="(t, i) in text.split('\n')">
       <span :key="i" v-if="t">{{ t }}</span>
       <br v-else />
     </div>

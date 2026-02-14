@@ -7,7 +7,7 @@
 </style>
 
 <div #ref class="editor">
-  @for (t of value().split("\n"); track $index) {
+  @for (t of text().split("\n"); track $index) {
     <!-- https://github.com/angular/angular/issues/56323 -->
     <div>
       @if (t) {{{ t }}} @else {<br />}

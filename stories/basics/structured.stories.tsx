@@ -34,7 +34,7 @@ export const Basic: StoryObj = {
     const ref = useRef<HTMLDivElement>(null);
 
     type Doc = v.InferOutput<typeof basicSchema>;
-    const [value, setValue] = useState<Doc>([
+    const [doc, setDoc] = useState<Doc>([
       [{ text: "Hello world." }],
       [{ text: "こんにちは。" }],
       [{ text: "👍❤️🧑‍🧑‍🧒" }],
@@ -43,11 +43,11 @@ export const Basic: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return createEditor({
-        doc: value,
+        doc: doc,
         schema: basicSchema,
         copy: [htmlCopy(), plainCopy()],
         paste: [htmlPaste<Doc>((text) => ({ text })), plainPaste()],
-        onChange: setValue,
+        onChange: setDoc,
       }).input(ref.current);
     }, []);
 
@@ -60,7 +60,7 @@ export const Basic: StoryObj = {
           padding: 8,
         }}
       >
-        {value.map((r, i) => (
+        {doc.map((r, i) => (
           <div key={i}>
             {r.map((n, j) => (
               <span key={j}>{n.text || <br />}</span>
@@ -112,7 +112,7 @@ export const RichText: StoryObj = {
     const ref = useRef<HTMLDivElement>(null);
 
     type Doc = v.InferOutput<typeof richSchema>;
-    const [value, setValue] = useState<Doc>([
+    const [doc, setDoc] = useState<Doc>([
       [
         { text: "Hello", bold: true },
         { text: " " },
@@ -126,9 +126,9 @@ export const RichText: StoryObj = {
     const editor = useMemo(
       () =>
         createEditor({
-          doc: value,
+          doc: doc,
           schema: richSchema,
-          onChange: setValue,
+          onChange: setDoc,
         }),
       [],
     );
@@ -178,7 +178,7 @@ export const RichText: StoryObj = {
             padding: 8,
           }}
         >
-          {value.map((r, i) => (
+          {doc.map((r, i) => (
             <div key={i}>
               {r.map((n, j) => (
                 <Text
@@ -219,7 +219,7 @@ export const Tag: StoryObj = {
     const ref = useRef<HTMLDivElement>(null);
 
     type Doc = v.InferOutput<typeof tagSchema>;
-    const [value, setValue] = useState<Doc>([
+    const [doc, setDoc] = useState<Doc>([
       [
         { type: "text", text: "Hello " },
         { type: "tag", label: "Apple", value: "1" },
@@ -231,7 +231,7 @@ export const Tag: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return createEditor({
-        doc: value,
+        doc: doc,
         schema: tagSchema,
         plugins: [singlelinePlugin()],
         copy: [
@@ -255,7 +255,7 @@ export const Tag: StoryObj = {
           ),
           plainPaste(),
         ],
-        onChange: setValue,
+        onChange: setDoc,
       }).input(ref.current);
     }, []);
 
@@ -267,7 +267,7 @@ export const Tag: StoryObj = {
           padding: 8,
         }}
       >
-        {value[0].map((t, j) =>
+        {doc[0].map((t, j) =>
           t.type === "tag" ? (
             <span
               key={j}
@@ -312,7 +312,7 @@ export const Image: StoryObj = {
     const ref = useRef<HTMLDivElement>(null);
 
     type Doc = v.InferOutput<typeof imageSchema>;
-    const [value, setValue] = useState<Doc>([
+    const [doc, setDoc] = useState<Doc>([
       [
         {
           type: "text",
@@ -336,7 +336,7 @@ export const Image: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return createEditor({
-        doc: value,
+        doc: doc,
         schema: imageSchema,
         copy: [htmlCopy(), plainCopy()],
         paste: [
@@ -355,7 +355,7 @@ export const Image: StoryObj = {
           ),
           plainPaste(),
         ],
-        onChange: setValue,
+        onChange: setDoc,
       }).input(ref.current);
     }, []);
 
@@ -367,7 +367,7 @@ export const Image: StoryObj = {
           padding: 8,
         }}
       >
-        {value.map((r, i) => (
+        {doc.map((r, i) => (
           <div key={i}>
             {r.map((t, j) =>
               t.type === "image" ? (
@@ -403,7 +403,7 @@ export const Video: StoryObj = {
     const ref = useRef<HTMLDivElement>(null);
 
     type Doc = v.InferOutput<typeof videoSchema>;
-    const [value, setValue] = useState<Doc>([
+    const [doc, setDoc] = useState<Doc>([
       [
         {
           type: "text",
@@ -423,7 +423,7 @@ export const Video: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return createEditor({
-        doc: value,
+        doc: doc,
         schema: videoSchema,
         copy: [htmlCopy(), plainCopy()],
         paste: [
@@ -442,7 +442,7 @@ export const Video: StoryObj = {
           ),
           plainPaste(),
         ],
-        onChange: setValue,
+        onChange: setDoc,
       }).input(ref.current);
     }, []);
 
@@ -454,7 +454,7 @@ export const Video: StoryObj = {
           padding: 8,
         }}
       >
-        {value.map((r, i) => (
+        {doc.map((r, i) => (
           <div key={i}>
             {r.map((t, j) =>
               t.type === "video" ? (
@@ -513,7 +513,7 @@ export const Iframe: StoryObj = {
     const ref = useRef<HTMLDivElement>(null);
 
     type Doc = v.InferOutput<typeof youtubeSchema>;
-    const [value, setValue] = useState<Doc>([
+    const [doc, setDoc] = useState<Doc>([
       [
         {
           type: "text",
@@ -533,7 +533,7 @@ export const Iframe: StoryObj = {
     useEffect(() => {
       if (!ref.current) return;
       return createEditor({
-        doc: value,
+        doc: doc,
         schema: youtubeSchema,
         copy: [htmlCopy(), plainCopy()],
         paste: [
@@ -552,7 +552,7 @@ export const Iframe: StoryObj = {
           ),
           plainPaste(),
         ],
-        onChange: setValue,
+        onChange: setDoc,
       }).input(ref.current);
     }, []);
 
@@ -575,7 +575,7 @@ export const Iframe: StoryObj = {
             padding: 8,
           }}
         >
-          {value.map((r, i) => (
+          {doc.map((r, i) => (
             <div key={i}>
               {r.map((t, j) =>
                 t.type === "youtube" ? (

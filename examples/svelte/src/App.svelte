@@ -2,14 +2,14 @@
   import { onDestroy, onMount } from "svelte";
   import { createPlainEditor } from "edix";
 
-  let value = $state("Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
+  let text = $state("Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
   let ref: HTMLElement | undefined = $state();
   let cleanup: (() => void) | null = null;
   onMount(() => {
     cleanup = createPlainEditor({
-      text: value,
+      text: text,
       onChange: (v) => {
-        value = v;
+        text = v;
       },
     }).input(ref!);
   });
@@ -19,7 +19,7 @@
 </script>
 
 <div bind:this={ref} class="editor">
-  {#each value.split("\n") as t, i (i)}
+  {#each text.split("\n") as t, i (i)}
     <div>
       {#if t}
         {t}

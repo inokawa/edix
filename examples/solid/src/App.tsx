@@ -3,11 +3,11 @@ import { createPlainEditor } from "edix";
 
 function App() {
   let ref: HTMLDivElement | undefined;
-  const [value, setValue] = createSignal("Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
+  const [text, setText] = createSignal("Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
   onMount(() => {
     const editor = createPlainEditor({
-      text: value(),
-      onChange: setValue,
+      text: text(),
+      onChange: setText,
     });
     const dispose = editor.input(ref!);
     onCleanup(() => {
@@ -24,7 +24,7 @@ function App() {
         padding: "8px",
       }}
     >
-      <For each={createMemo(() => value().split("\n"))()}>
+      <For each={createMemo(() => text().split("\n"))()}>
         {(t) => <div>{t ? t : <br />}</div>}
       </For>
     </div>

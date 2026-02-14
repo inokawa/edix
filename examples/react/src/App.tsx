@@ -3,11 +3,11 @@ import { createPlainEditor } from "edix";
 
 function App() {
   const ref = useRef<HTMLDivElement>(null);
-  const [value, setValue] = useState("Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
+  const [text, setText] = useState("Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
   useEffect(() => {
     return createPlainEditor({
-      text: value,
-      onChange: setValue,
+      text: text,
+      onChange: setText,
     }).input(ref.current!);
   }, []);
 
@@ -20,7 +20,7 @@ function App() {
         padding: 8,
       }}
     >
-      {value.split("\n").map((t, i) => (
+      {text.split("\n").map((t, i) => (
         <div key={i}>{t ? t : <br />}</div>
       ))}
     </div>

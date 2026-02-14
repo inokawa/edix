@@ -33,25 +33,25 @@ const Span = ({
 const Editor = ({
   result,
   type,
-  value,
+  text,
   onChange,
 }: {
   result: DiffResult;
   type: "base" | "target";
-  value: string;
-  onChange: (value: string) => void;
+  text: string;
+  onChange: (text: string) => void;
 }) => {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!ref.current) return;
     return createPlainEditor({
-      text: value,
+      text: text,
       onChange,
     }).input(ref.current);
   }, []);
   return (
     <div ref={ref} style={{ background: "white", padding: 4, flex: 1 }}>
-      {value.split("\n").map((l, i) => {
+      {text.split("\n").map((l, i) => {
         const rowResult = result[i];
 
         return (
@@ -176,13 +176,13 @@ export const WithDiff: StoryObj = {
         <Editor
           type="base"
           result={result.base}
-          value={baseText}
+          text={baseText}
           onChange={setBaseText}
         />
         <Editor
           type="target"
           result={result.target}
-          value={targetText}
+          text={targetText}
           onChange={setTargetText}
         />
       </div>
