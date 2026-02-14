@@ -22,3 +22,13 @@ export const microtask: (fn: () => void) => void =
     : (fn) => {
         Promise.resolve().then(fn);
       };
+
+let id = 0;
+const nodeMap = new WeakMap<object, string>();
+export const nodeId = (node: object): string => {
+  let nid = nodeMap.get(node);
+  if (!nid) {
+    nodeMap.set(node, (nid = String(++id)));
+  }
+  return nid;
+};
