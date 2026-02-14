@@ -3,6 +3,9 @@ import { readDom } from "../../dom/index.js";
 import { isCommentNode } from "../../dom/parser.js";
 import type { PasteExtension } from "./types.js";
 
+/**
+ * An extension to handle pasting from HTML.
+ */
 export const htmlPaste = <T extends DocBase>(
   serializeText: (t: string) => Extract<InferNode<T>, TextNode>,
   serializers: ((

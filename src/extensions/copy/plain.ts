@@ -2,6 +2,9 @@ import type { DocBase, DocNode, InferNode } from "../../doc/types.js";
 import { docToString } from "../../doc/utils.js";
 import type { CopyExtension } from "./types.js";
 
+/**
+ * An extension to handle copying to plain text.
+ */
 export const plainCopy = <T extends DocBase>(
   serializer?: (node: InferNode<T>) => string,
 ): CopyExtension => {
