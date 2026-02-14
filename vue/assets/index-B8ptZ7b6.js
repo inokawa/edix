@@ -7,4 +7,4 @@
 `,"")}:n.t===3?{...n,l:[n.l.reduce((s,r)=>(pi(s,r),s),[])]}:n)))}),dc=({text:e,singleline:t,plugins:n=[],onChange:s,...r})=>{const i=[...n];return t&&i.unshift(ac()),uc({...r,doc:vs(e),plugins:i,onChange:o=>{s(bs(o))}})},hc={key:1},pc=So({__name:"App",setup(e){const t=Ts(`Hello world.
 こんにちは。
 👍❤️🧑‍🧑‍🧒`),n=Ts();let s=null;return Kr(()=>{s=dc({text:t.value,onChange:r=>{t.value=r}}).input(n.value)}),hs(()=>{s?.()}),(r,i)=>(At(),Pt("div",{ref_key:"element",ref:n,class:"editor"},[(At(!0),Pt(Ee,null,Fo(t.value.split(`
-`),(o,l)=>(At(),Pt("div",null,[o?(At(),Pt("span",{key:l},gr(o),1)):(At(),Pt("br",hc))]))),256))],512))}}),gc=(e,t)=>{const n=e.__vccOpts||e;for(const[s,r]of t)n[s]=r;return n},mc=gc(pc,[["__scopeId","data-v-2c40d181"]]);Jl(mc).mount("#app");
+`),(o,l)=>(At(),Pt("div",null,[o?(At(),Pt("span",{key:l},gr(o),1)):(At(),Pt("br",hc))]))),256))],512))}}),gc=(e,t)=>{const n=e.__vccOpts||e;for(const[s,r]of t)n[s]=r;return n},mc=gc(pc,[["__scopeId","data-v-f7976608"]]);Jl(mc).mount("#app");
