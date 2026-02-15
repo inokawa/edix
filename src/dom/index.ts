@@ -243,15 +243,9 @@ const serializePosition = (
 
   return parse(
     (next) => {
-      let type: TokenType | void;
       let offset = 0;
-      while ((type = next())) {
-        if (type === TOKEN_SOFT_BREAK) {
-          lineIndex++;
-          offset = 0;
-        } else {
-          offset += getNodeSize();
-        }
+      while (next()) {
+        offset += getNodeSize();
       }
       return [lineIndex, offset + offsetAtNode];
     },
