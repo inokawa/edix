@@ -183,18 +183,6 @@ const findPosition = (
   );
 };
 
-const findClosestBlockNode = (root: Element, startNode: Node): Element => {
-  let temp: Element = startNode as Element;
-  while (true) {
-    const parent = temp.parentElement!;
-    if (parent === root) {
-      break;
-    }
-    temp = parent;
-  }
-  return temp;
-};
-
 const indexOf = (node: Element): number => {
   let i = 0;
   while ((node = node.previousElementSibling!)) {
@@ -231,27 +219,39 @@ const serializePosition = (
     offsetAtNode = 0;
   }
 
-  const maybeBlock = findClosestBlockNode(root, node);
-  if (config._isBlock(maybeBlock)) {
-    row = maybeBlock;
+  const blocks: Element[] = [];
+  let maybeBlock: Node | null = node;
+  while (maybeBlock && maybeBlock !== root) {
+    if (isElementNode(maybeBlock) && config._isBlock(maybeBlock)) {
+      blocks.push(maybeBlock);
+    }
+    maybeBlock = maybeBlock.parentElement;
+  }
+
+  if (blocks.length) {
+    row = blocks[0]!;
     lineIndex = indexOf(row);
   } else {
     row = root;
     lineIndex = 0;
   }
 
-  return parse(
-    (next) => {
-      let offset = 0;
-      while (next()) {
-        offset += getNodeSize();
-      }
-      return [lineIndex, offset + offsetAtNode];
-    },
-    row,
-    config,
-    { _endNode: node, _excludeEnd: excludeEnd },
-  );
+  return [
+    lineIndex,
+    offsetAtNode +
+      parse(
+        (next) => {
+          let offset = 0;
+          while (next()) {
+            offset += getNodeSize();
+          }
+          return offset;
+        },
+        row,
+        config,
+        { _endNode: node, _excludeEnd: excludeEnd },
+      ),
+  ];
 };
 
 /**
