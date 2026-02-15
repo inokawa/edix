@@ -23,7 +23,6 @@ export interface ParserConfig {
 }
 
 interface ParserOption {
-  _startNode?: Node;
   _endNode?: Node;
   _excludeEnd?: boolean;
 }
@@ -175,14 +174,13 @@ const readNext = (): TokenType | void => {
       const text = node.data;
       // Ignore empty text nodes some frameworks may generate
       if (text) {
-        // Especially Shift+Enter in Chrome
-        if (text === "\n") {
-          return (tokenType = isValidSoftBreak(node)
-            ? TOKEN_SOFT_BREAK
-            : TOKEN_INVALID_SOFT_BREAK);
-        } else {
-          return (tokenType = TOKEN_TEXT);
-        }
+        return (tokenType =
+          // Especially Shift+Enter in Chrome
+          text === "\n"
+            ? isValidSoftBreak(node)
+              ? TOKEN_SOFT_BREAK
+              : TOKEN_INVALID_SOFT_BREAK
+            : TOKEN_TEXT);
       }
     } else if (isElementNode(node)) {
       const tagName = node.tagName;
@@ -217,10 +215,6 @@ export const parse = <T>(
     walker = document.createTreeWalker(root, SHOW_TEXT | SHOW_ELEMENT);
 
     if (option) {
-      if (option._startNode) {
-        walker.currentNode = option._startNode;
-        walker.previousNode();
-      }
       if (option._endNode) {
         endNode = option._endNode;
       }
