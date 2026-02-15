@@ -192,13 +192,13 @@ const isValidSoftBreak = (): boolean => {
   // And these do not include soft breaks:
   // <div><br/></div>             empty line
   // <div>[a]<br/></div>          type on empty line in Firefox
-  const current = node!.parentNode!;
+  const parent = node!.parentNode!;
   return peek(() => {
     while (next()) {
       if (readToken()) {
         return true;
       }
-      if (!current.contains(node)) {
+      if (!parent.contains(node)) {
         break;
       }
     }
