@@ -1,6 +1,6 @@
 let walker: TreeWalker | null;
 let node: Node | null;
-let tokenType: TokenType | null;
+let _token: TokenType | null;
 let endNode: Node | null;
 let isEndNodeVisited = false;
 let shouldExcludeEnd = false;
@@ -30,6 +30,7 @@ interface ParserOption {
 const SHOW_ELEMENT = 0x1;
 const SHOW_TEXT = 0x4;
 
+const TOKEN_NULL = 0;
 /** @internal */
 export const TOKEN_TEXT = 1;
 /** @internal */
@@ -45,6 +46,7 @@ const TOKEN_INVALID_SOFT_BREAK = 6;
  * @internal
  */
 export type TokenType =
+  | typeof TOKEN_NULL
   | typeof TOKEN_TEXT
   | typeof TOKEN_VOID
   | typeof TOKEN_SOFT_BREAK
@@ -94,23 +96,83 @@ export const getDomNode = <
  * @internal
  */
 export const getNodeSize = (): number => {
-  return tokenType === TOKEN_TEXT
+  const token = readToken();
+  return token === TOKEN_TEXT
     ? (node as Text).data.length
-    : tokenType === TOKEN_VOID
+    : token === TOKEN_VOID
       ? 1
       : 0;
+};
+
+const readToken = (): TokenType => {
+  if (_token != null) {
+    return _token;
+  }
+
+  if (node) {
+    if (isTextNode(node)) {
+      const text = node.data;
+      // Ignore empty text nodes some frameworks may generate
+      if (text) {
+        return (_token =
+          // Especially Shift+Enter in Chrome
+          text === "\n"
+            ? isValidSoftBreak()
+              ? TOKEN_SOFT_BREAK
+              : TOKEN_INVALID_SOFT_BREAK
+            : TOKEN_TEXT);
+      }
+    } else if (isElementNode(node)) {
+      const tagName = node.tagName;
+      if (tagName === "BR") {
+        return (_token = isValidSoftBreak()
+          ? // Especially Shift+Enter in Firefox
+            TOKEN_SOFT_BREAK
+          : // Returning <div><br/></div> is necessary to anchor selection
+            TOKEN_EMPTY_BLOCK_ANCHOR);
+      } else if (isVoidNode(node)) {
+        return (_token = TOKEN_VOID);
+      } else if (isBlockNode(node)) {
+        return (_token = TOKEN_BLOCK);
+      }
+    }
+  }
+  return (_token = TOKEN_NULL);
+};
+
+const next = (): Node | null => {
+  _token = null;
+  return (node = walker!.nextNode());
+};
+
+const nextSibling = (): Node | null => {
+  _token = null;
+  return (node = walker!.nextSibling());
+};
+
+const peek = <T>(fn: () => T) => {
+  const currentNode = node!;
+  const token = _token;
+  try {
+    return fn();
+  } finally {
+    walker!.currentNode = node = currentNode;
+    _token = token;
+  }
 };
 
 /**
  * @internal
  */
 export const moveToBlock = (index: number) => {
-  walker!.currentNode = walker!.currentNode.parentNode!.children[index]!;
+  while (index > 0 && nextSibling()) {
+    if (readToken() === TOKEN_BLOCK) {
+      index--;
+    }
+  }
 };
 
-const isValidSoftBreak = (node: Node): boolean => {
-  const next = node.nextSibling;
-
+const isValidSoftBreak = (): boolean => {
   // This function will return false if there are no nodes after soft break.
   //
   // In contenteditable, Shift+Enter will insert soft break. \n in Chrome, <br/> in Firefox. Safari doesn't insert soft break.
@@ -130,28 +192,29 @@ const isValidSoftBreak = (node: Node): boolean => {
   // And these do not include soft breaks:
   // <div><br/></div>             empty line
   // <div>[a]<br/></div>          type on empty line in Firefox
-  return (
-    !!next &&
-    // svelte/angular may have comment node
-    !isCommentNode(next)
-  );
+  return peek(() => {
+    while (next()) {
+      if (readToken()) {
+        return true;
+      }
+    }
+    return false;
+  });
 };
 
 const readNext = (): TokenType | void => {
   while (true) {
-    if (tokenType === TOKEN_VOID) {
+    if (readToken() === TOKEN_VOID) {
       const current = node!;
       // don't use TreeWalker.nextSibling() to support case like <body><p><a><img /></a></p><p>hello</p></body>
-      while ((node = walker!.nextNode())) {
+      while (next()) {
         if (!current.contains(node)) {
           break;
         }
       }
     } else {
-      node = walker!.nextNode();
+      next();
     }
-
-    tokenType = null;
 
     if (!node) {
       break;
@@ -170,31 +233,9 @@ const readNext = (): TokenType | void => {
       }
     }
 
-    if (isTextNode(node)) {
-      const text = node.data;
-      // Ignore empty text nodes some frameworks may generate
-      if (text) {
-        return (tokenType =
-          // Especially Shift+Enter in Chrome
-          text === "\n"
-            ? isValidSoftBreak(node)
-              ? TOKEN_SOFT_BREAK
-              : TOKEN_INVALID_SOFT_BREAK
-            : TOKEN_TEXT);
-      }
-    } else if (isElementNode(node)) {
-      const tagName = node.tagName;
-      if (tagName === "BR") {
-        return (tokenType = isValidSoftBreak(node)
-          ? // Especially Shift+Enter in Firefox
-            TOKEN_SOFT_BREAK
-          : // Returning <div><br/></div> is necessary to anchor selection
-            TOKEN_EMPTY_BLOCK_ANCHOR);
-      } else if (isVoidNode(node)) {
-        return (tokenType = TOKEN_VOID);
-      } else if (isBlockNode(node)) {
-        return (tokenType = TOKEN_BLOCK);
-      }
+    const t = readToken();
+    if (t) {
+      return t;
     }
   }
 };
@@ -223,7 +264,7 @@ export const parse = <T>(
 
     return scopeFn(readNext);
   } finally {
-    walker = node = tokenType = endNode = null;
+    walker = node = _token = endNode = null;
     isEndNodeVisited = shouldExcludeEnd = false;
   }
 };
