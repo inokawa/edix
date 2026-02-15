@@ -58,6 +58,8 @@ jobs:
         run: (cd examples/angular && npm install && npm link edix) && FRAMEWORK_DIR=examples/angular npm run e2e
       - name: Smoke preact
         run: (cd examples/preact && npm install && npm link edix) && FRAMEWORK_DIR=examples/preact npm run e2e
+      - name: Smoke alpine
+        run: (cd examples/alpine && npm install && npm link edix) && FRAMEWORK_DIR=examples/alpine npm run e2e
       # - uses: actions/upload-artifact@v3
       #   if: always()
       #   with:
