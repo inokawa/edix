@@ -1,5 +1,5 @@
 import type { DocBase, InferNode, TextNode } from "../../doc/types.js";
-import { readDom } from "../../dom/index.js";
+import { domToFragment } from "../../dom/index.js";
 import { isCommentNode } from "../../dom/parser.js";
 import type { PasteExtension } from "./types.js";
 
@@ -32,7 +32,7 @@ export const htmlPaste = <T extends DocBase>(
       }
 
       // TODO customizable dom to standard schema and validate
-      return readDom(dom, config, serializeText, (n) => {
+      return domToFragment(dom, config, serializeText, (n) => {
         for (const s of serializers) {
           const node = s(n as HTMLElement);
           if (node) {

@@ -316,7 +316,7 @@ export const takeSelectionSnapshot = (
 /**
  * @internal
  */
-export const readDom = (
+export const domToFragment = (
   root: Node,
   config: ParserConfig,
   serializeText: (text: string) => TextNode,

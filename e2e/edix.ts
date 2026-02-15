@@ -36,7 +36,7 @@ export const getText = async (
     (element, [NON_EDITABLE_PLACEHOLDER, { blockTag }]) => {
       const document = element.ownerDocument;
       return window.edix
-        .readDom(
+        .domToFragment(
           element,
           {
             _document: document,
@@ -67,7 +67,7 @@ export const getSeletedText = (
       const selection = document.getSelection()!;
       const range = selection.getRangeAt(0)!.cloneContents();
       return window.edix
-        .readDom(
+        .domToFragment(
           range,
           {
             _document: document,
