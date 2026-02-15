@@ -7,6 +7,7 @@ import {
   getEmptySelectionSnapshot,
   getPointedCaretPosition,
   defaultIsBlockNode,
+  defaultIsVoidNode,
   serializeRange,
 } from "./dom/index.js";
 import { createMutationObserver } from "./mutation.js";
@@ -370,6 +371,7 @@ export const createEditor = <
       const parserConfig: ParserConfig = {
         _document: document,
         _isBlock: isBlock as ParserConfig["_isBlock"],
+        _isVoid: defaultIsVoidNode,
       };
 
       setContentEditable = () => {

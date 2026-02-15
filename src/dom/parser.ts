@@ -5,6 +5,7 @@ let endNode: Node | null;
 let isEndNodeVisited = false;
 let shouldExcludeEnd = false;
 let isBlockNode: (node: Element) => boolean;
+let isVoidNode: (node: Element) => boolean;
 
 export interface ParserConfig {
   /**
@@ -15,6 +16,10 @@ export interface ParserConfig {
    * @internal
    */
   _isBlock: (node: Element) => boolean;
+  /**
+   * @internal
+   */
+  _isVoid: (node: Element) => boolean;
 }
 
 interface ParserOption {
@@ -71,31 +76,6 @@ export const isElementNode = (node: Node): node is Element => {
  */
 export const isCommentNode = (node: Node): node is Comment => {
   return node.nodeType === COMMENT_NODE;
-};
-
-// https://developer.mozilla.org/en-US/docs/Web/HTML/Content_categories
-// https://html.spec.whatwg.org/multipage/dom.html#embedded-content-category
-const EMBEDDED_CONTENT_TAG_NAMES = new Set([
-  "EMBED",
-  "IMG",
-  "PICTURE",
-  "AUDIO",
-  "VIDEO",
-  "SVG",
-  "CANVAS",
-  "MATH",
-  "IFRAME",
-  "OBJECT",
-]);
-
-/**
- * @internal
- */
-export const isVoidNode = (node: Element): boolean => {
-  return (
-    (node as HTMLElement).contentEditable === "false" ||
-    EMBEDDED_CONTENT_TAG_NAMES.has(node.tagName)
-  );
 };
 
 /**
@@ -227,11 +207,12 @@ const readNext = (): TokenType | void => {
 export const parse = <T>(
   scopeFn: (read: typeof readNext) => T,
   root: Node,
-  { _document: document, _isBlock: isBlock }: ParserConfig,
+  { _document: document, _isBlock: isBlock, _isVoid: isVoid }: ParserConfig,
   option?: ParserOption,
 ): T => {
   try {
     isBlockNode = isBlock;
+    isVoidNode = isVoid;
 
     walker = document.createTreeWalker(root, SHOW_TEXT | SHOW_ELEMENT);
 

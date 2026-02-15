@@ -9,7 +9,6 @@ import {
   TOKEN_SOFT_BREAK,
   TOKEN_BLOCK,
   type ParserConfig,
-  isVoidNode,
   moveToBlock,
 } from "./parser.js";
 import { comparePosition } from "../doc/position.js";
@@ -23,7 +22,7 @@ import type {
 } from "../doc/types.js";
 import { min } from "../utils.js";
 
-export { defaultIsBlockNode } from "./default.js";
+export { defaultIsBlockNode, defaultIsVoidNode } from "./default.js";
 
 // const DOCUMENT_POSITION_DISCONNECTED = 0x01;
 const DOCUMENT_POSITION_PRECEDING = 0x02;
@@ -218,7 +217,7 @@ const serializePosition = (
     return [0, 0];
   }
 
-  if (isElementNode(node) && !isVoidNode(node) && node.hasChildNodes()) {
+  if (isElementNode(node) && !config._isVoid(node) && node.hasChildNodes()) {
     // If start/end of Range is not selectable node, it will have offset relative to its parent
     //      0  1       2               3
     // <div>aaaa<img /><span>bbbb</span></div>

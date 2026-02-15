@@ -43,6 +43,7 @@ export const getText = async (
             _isBlock: blockTag
               ? (n) => n.tagName === blockTag.toUpperCase()
               : window.edix.defaultIsBlockNode,
+            _isVoid: window.edix.defaultIsVoidNode,
           },
           (text) => ({ text }),
           () => ({}),
@@ -74,6 +75,7 @@ export const getSeletedText = (
             _isBlock: blockTag
               ? (n) => n.tagName === blockTag.toUpperCase()
               : window.edix.defaultIsBlockNode,
+            _isVoid: window.edix.defaultIsVoidNode,
           },
           (text) => ({ text }),
           () => ({}),
@@ -98,6 +100,7 @@ export const getSelection = (
       _isBlock: blockTag
         ? (n) => n.tagName === blockTag.toUpperCase()
         : window.edix.defaultIsBlockNode,
+      _isVoid: window.edix.defaultIsVoidNode,
     });
   }, config);
 };
