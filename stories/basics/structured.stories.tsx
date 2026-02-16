@@ -16,6 +16,7 @@ import {
   singlelinePlugin,
   internalCopy,
   internalPaste,
+  nodeId,
 } from "../../src";
 import * as v from "valibot";
 
@@ -66,10 +67,10 @@ export const Basic: StoryObj = {
           padding: 8,
         }}
       >
-        {doc.map((r, i) => (
-          <div key={i}>
-            {r.map((n, j) => (
-              <span key={j}>{n.text || <br />}</span>
+        {doc.map((r) => (
+          <div key={nodeId(r)}>
+            {r.map((n) => (
+              <span key={nodeId(n)}>{n.text || <br />}</span>
             ))}
           </div>
         ))}
@@ -178,10 +179,10 @@ export const RichText: StoryObj = {
             padding: 8,
           }}
         >
-          {doc.map((r, i) => (
-            <div key={i}>
-              {r.map((n, j) => (
-                <Text key={j} node={n} />
+          {doc.map((r) => (
+            <div key={nodeId(r)}>
+              {r.map((n) => (
+                <Text key={nodeId(n)} node={n} />
               ))}
             </div>
           ))}
@@ -244,10 +245,10 @@ export const Tag: StoryObj = {
           padding: 8,
         }}
       >
-        {doc[0].map((t, j) =>
+        {doc[0].map((t) =>
           t.type === "tag" ? (
             <span
-              key={j}
+              key={nodeId(t)}
               contentEditable={false}
               data-tag-value={t.value}
               style={{
@@ -261,7 +262,7 @@ export const Tag: StoryObj = {
               {t.label}
             </span>
           ) : (
-            <span key={j}>{t.text || <br />}</span>
+            <span key={nodeId(t)}>{t.text || <br />}</span>
           ),
         )}
       </div>
@@ -345,13 +346,13 @@ export const Image: StoryObj = {
           padding: 8,
         }}
       >
-        {doc.map((r, i) => (
-          <div key={i}>
-            {r.map((t, j) =>
+        {doc.map((r) => (
+          <div key={nodeId(r)}>
+            {r.map((t) =>
               t.type === "image" ? (
-                <img key={j} src={t.src} style={{ maxWidth: 200 }} />
+                <img key={nodeId(t)} src={t.src} style={{ maxWidth: 200 }} />
               ) : (
-                <span key={j}>{t.text || <br />}</span>
+                <span key={nodeId(t)}>{t.text || <br />}</span>
               ),
             )}
           </div>
@@ -433,13 +434,13 @@ export const Video: StoryObj = {
           padding: 8,
         }}
       >
-        {doc.map((r, i) => (
-          <div key={i}>
-            {r.map((t, j) =>
+        {doc.map((r) => (
+          <div key={nodeId(r)}>
+            {r.map((t) =>
               t.type === "video" ? (
                 // safari needs contentEditable="false"
                 <video
-                  key={j}
+                  key={nodeId(t)}
                   width={400}
                   controls
                   contentEditable="false"
@@ -448,7 +449,7 @@ export const Video: StoryObj = {
                   <source src={t.src} />
                 </video>
               ) : (
-                <span key={j}>{t.text || <br />}</span>
+                <span key={nodeId(t)}>{t.text || <br />}</span>
               ),
             )}
           </div>
@@ -555,13 +556,13 @@ export const Iframe: StoryObj = {
             padding: 8,
           }}
         >
-          {doc.map((r, i) => (
-            <div key={i}>
-              {r.map((t, j) =>
+          {doc.map((r) => (
+            <div key={nodeId(r)}>
+              {r.map((t) =>
                 t.type === "youtube" ? (
-                  <Youtube key={j} id={t.id} />
+                  <Youtube key={nodeId(t)} id={t.id} />
                 ) : (
-                  <span key={j}>{t.text || <br />}</span>
+                  <span key={nodeId(t)}>{t.text || <br />}</span>
                 ),
               )}
             </div>
