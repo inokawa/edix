@@ -16,9 +16,13 @@ export const isString = (n: unknown) => typeof n === "string";
 /**
  * @internal
  */
-export const microtask: (fn: () => void) => void =
-  typeof queueMicrotask === "function"
-    ? queueMicrotask
-    : (fn) => {
-        Promise.resolve().then(fn);
-      };
+export const isFunction = (n: unknown) => typeof n === "function";
+
+/**
+ * @internal
+ */
+export const microtask: (fn: () => void) => void = isFunction(queueMicrotask)
+  ? queueMicrotask
+  : (fn) => {
+      Promise.resolve().then(fn);
+    };

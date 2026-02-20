@@ -12,7 +12,7 @@ import {
 } from "./dom/index.js";
 import { createMutationObserver } from "./mutation.js";
 import type { DocBase, Fragment, SelectionSnapshot } from "./doc/types.js";
-import { isString, microtask } from "./utils.js";
+import { isFunction, isString, microtask } from "./utils.js";
 import type { EditorCommand } from "./commands.js";
 import {
   applyTransaction as _applyTransaction,
@@ -321,7 +321,7 @@ export const createEditor = <
       setContentEditable();
     },
     apply: (fn: Transaction | EditorCommand<any, T>, ...args: unknown[]) => {
-      if (typeof fn === "function") {
+      if (isFunction(fn)) {
         fn.call(editor, ...args);
       } else {
         apply(fn);
@@ -330,10 +330,7 @@ export const createEditor = <
     },
     input: (element) => {
       if (
-        !(
-          window.InputEvent &&
-          typeof InputEvent.prototype.getTargetRanges === "function"
-        )
+        !(window.InputEvent && isFunction(InputEvent.prototype.getTargetRanges))
       ) {
         onError("beforeinput event is not supported.");
         return noop;
