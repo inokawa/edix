@@ -141,7 +141,7 @@ export interface EditorOptions<
 }
 
 /**
- * Methods of editor instance.
+ * The editor instance.
  */
 export interface Editor<T extends DocBase = DocBase> {
   readonly doc: T;
@@ -166,7 +166,7 @@ export interface Editor<T extends DocBase = DocBase> {
 }
 
 /**
- * A function to initialize editor.
+ * A function to initialize {@link Editor}.
  */
 export const createEditor = <
   T extends DocBase,
