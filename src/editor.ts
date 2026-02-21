@@ -152,17 +152,17 @@ export interface Editor<T extends DocBase = DocBase> {
    */
   readonly: boolean;
   /**
-   * A function to make DOM editable.
-   * @returns A function to stop subscribing DOM changes and restores previous DOM state.
-   */
-  input: (element: HTMLElement) => () => void;
-  /**
    * Dispatches editing operations.
    * @param tr {@link Transaction} or {@link EditorCommand}
    * @param args arguments of {@link EditorCommand}
    */
   apply(tr: Transaction): this;
   apply<A extends unknown[]>(fn: EditorCommand<A, T>, ...args: A): this;
+  /**
+   * A function to make DOM editable.
+   * @returns A function to stop subscribing DOM changes and restores previous DOM state.
+   */
+  input: (element: HTMLElement) => () => void;
 }
 
 /**
@@ -172,7 +172,7 @@ export const createEditor = <
   T extends DocBase,
   S extends StandardSchemaV1<T, T> | void = void,
 >({
-  doc: initialDoc,
+  doc,
   schema,
   plugins = [],
   copy: copyExtensions = [plainCopy()],
@@ -206,7 +206,7 @@ export const createEditor = <
 
   let initialError: string | undefined;
   if (
-    !validate(initialDoc, (m) => {
+    !validate(doc, (m) => {
       initialError = m;
     }) &&
     initialError
@@ -214,19 +214,17 @@ export const createEditor = <
     throw new Error(initialError);
   }
 
-  const doc = (): T => history.get()[0];
-
   const history = createHistory<
     readonly [doc: T, selection: SelectionSnapshot]
-  >([initialDoc, selection]);
+  >([doc, selection]);
 
   const keydownHandlers: KeyboardHandler[] = [
     hotkey("z", { mod: true }, (): boolean | void => {
       if (!readonly) {
         const nextHistory = history.undo();
         if (nextHistory) {
-          onChange(nextHistory[0]);
-          selection = nextHistory[1];
+          [doc, selection] = nextHistory;
+          onChange(doc);
         }
         return true;
       }
@@ -235,8 +233,8 @@ export const createEditor = <
       if (!readonly) {
         const nextHistory = history.redo();
         if (nextHistory) {
-          onChange(nextHistory[0]);
-          selection = nextHistory[1];
+          [doc, selection] = nextHistory;
+          onChange(doc);
         }
         return true;
       }
@@ -282,7 +280,7 @@ export const createEditor = <
 
   const commit = () => {
     if (transactions.length) {
-      let nextDoc: T = doc();
+      let nextDoc: T = doc;
       let nextSelection: SelectionSnapshot = selection;
 
       let tr: Transaction | undefined;
@@ -294,21 +292,21 @@ export const createEditor = <
         }
       }
 
-      const currentDoc = doc();
+      const currentDoc = doc;
+      const currentSelection = selection;
+      selection = nextSelection;
 
       if (!isDocEqual(nextDoc, currentDoc)) {
-        history.set([currentDoc, selection]);
-        history.push([nextDoc, nextSelection]);
-        onChange(nextDoc);
+        history.set([currentDoc, currentSelection]);
+        history.push([(doc = nextDoc), nextSelection]);
+        onChange(doc);
       }
-
-      selection = nextSelection;
     }
   };
 
   const editor: Editor<T> = {
     get doc() {
-      return doc();
+      return doc;
     },
     get selection() {
       return selection;
@@ -553,7 +551,7 @@ export const createEditor = <
       const copySelected = (dataTransfer: DataTransfer) => {
         syncSelection();
         if (comparePosition(...selection) !== 0) {
-          copy(dataTransfer, sliceDoc(doc(), ...toRange(selection)));
+          copy(dataTransfer, sliceDoc(doc, ...toRange(selection)));
         }
       };
 
