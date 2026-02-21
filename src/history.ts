@@ -21,7 +21,6 @@ export const createHistory = <T>(initialValue: T) => {
   };
 
   return {
-    get,
     set: (history: T) => {
       histories[index] = history;
     },
