@@ -292,12 +292,11 @@ export const createEditor = <
         }
       }
 
-      const currentDoc = doc;
       const currentSelection = selection;
       selection = nextSelection;
 
-      if (!isDocEqual(nextDoc, currentDoc)) {
-        history.set([currentDoc, currentSelection]);
+      if (!isDocEqual(nextDoc, doc)) {
+        history.set([doc, currentSelection]);
         history.push([(doc = nextDoc), nextSelection]);
         onChange(doc);
       }
@@ -438,9 +437,9 @@ export const createEditor = <
 
         if (inputTransaction) {
           apply(inputTransaction);
+          inputTransaction = null;
         }
         isComposing = false;
-        inputTransaction = null;
       };
 
       // spec compliant: keydown -> beforeinput -> input (-> keyup)
