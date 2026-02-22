@@ -2,7 +2,7 @@ import { concat } from "../doc/edit.js";
 import type { DocNode } from "../doc/types.js";
 import type { EditorPlugin } from "./types.js";
 
-export const singlelinePlugin: EditorPlugin = () => {
+export const singlelinePlugin = (): EditorPlugin => {
   return {
     mount: (element) => {
       element.ariaMultiLine = null;

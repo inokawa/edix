@@ -22,7 +22,7 @@ import {
 } from "./doc/edit.js";
 import type { ParserConfig } from "./dom/parser.js";
 import { comparePosition, toRange } from "./doc/position.js";
-import type { PluginObject } from "./plugins/types.js";
+import type { EditorPlugin } from "./plugins/types.js";
 import {
   type CopyExtension,
   type PasteExtension,
@@ -107,7 +107,7 @@ export interface EditorOptions<
   /**
    * TODO
    */
-  plugins?: PluginObject[];
+  plugins?: EditorPlugin[];
   /**
    * Functions to handle copy events
    * @default [plainCopy()]
@@ -244,8 +244,8 @@ export const createEditor = <
     keydownHandlers.push(onKeyDownHandler);
   }
 
-  const applyHooks: Exclude<PluginObject["apply"], undefined>[] = [];
-  const mountHooks: Exclude<PluginObject["mount"], undefined>[] = [];
+  const applyHooks: Exclude<EditorPlugin["apply"], undefined>[] = [];
+  const mountHooks: Exclude<EditorPlugin["mount"], undefined>[] = [];
   plugins.forEach(({ apply, mount }) => {
     if (apply) {
       applyHooks.push(apply);

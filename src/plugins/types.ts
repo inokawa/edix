@@ -1,8 +1,6 @@
 import { type Operation } from "../doc/edit.js";
 
-export interface PluginObject {
+export interface EditorPlugin {
   apply?: (op: Operation, next: (op?: Operation) => void) => void;
   mount?: (element: HTMLElement) => void | (() => void);
 }
-
-export type EditorPlugin = () => PluginObject;
