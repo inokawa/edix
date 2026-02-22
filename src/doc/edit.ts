@@ -403,68 +403,64 @@ const rebasePosition = (position: Position, op: EditOperation): Position => {
 /**
  * @internal
  */
-export const applyTransaction = <T extends DocBase>(
+export const applyOperation = <T extends DocBase>(
   doc: T,
   selection: SelectionSnapshot,
-  tr: Transaction,
+  op: Operation,
   onError?: (message: string) => void,
 ): [T, SelectionSnapshot] | undefined => {
   try {
-    for (const op of tr.ops) {
-      if (isValidOperation(doc, op)) {
-        switch (op._type) {
-          case TYPE_DELETE: {
-            doc = replaceRange(doc, [], op._start, op._end);
-            break;
-          }
-          case TYPE_INSERT_TEXT: {
-            doc = replaceRange(doc, op._text, op._pos);
-            break;
-          }
-          case TYPE_INSERT_NODE: {
-            doc = replaceRange(doc, op._fragment, op._pos);
-            break;
-          }
-          case TYPE_SET_ATTR: {
-            const { _start: start, _end: end, _attr: attr } = op;
-            doc = replaceRange(
-              doc,
-              sliceDoc(doc, start, end).map((line) =>
-                line.map((node) =>
-                  isTextNode(node) ? { ...node, ...attr } : node,
-                ),
-              ),
-              start,
-              end,
-            );
-            break;
-          }
-          case TYPE_SELECT: {
-            if (op._anchor || op._focus) {
-              selection = [
-                op._anchor || selection[0],
-                op._focus || selection[1],
-              ];
-            }
-            break;
-          }
-          default: {
-            op satisfies never;
-          }
+    if (isValidOperation(doc, op)) {
+      switch (op._type) {
+        case TYPE_DELETE: {
+          doc = replaceRange(doc, [], op._start, op._end);
+          break;
         }
-        if (isEditOperation(op)) {
-          selection = [
-            rebasePosition(selection[0], op),
-            rebasePosition(selection[1], op),
-          ];
+        case TYPE_INSERT_TEXT: {
+          doc = replaceRange(doc, op._text, op._pos);
+          break;
+        }
+        case TYPE_INSERT_NODE: {
+          doc = replaceRange(doc, op._fragment, op._pos);
+          break;
+        }
+        case TYPE_SET_ATTR: {
+          const { _start: start, _end: end, _attr: attr } = op;
+          doc = replaceRange(
+            doc,
+            sliceDoc(doc, start, end).map((line) =>
+              line.map((node) =>
+                isTextNode(node) ? { ...node, ...attr } : node,
+              ),
+            ),
+            start,
+            end,
+          );
+          break;
+        }
+        case TYPE_SELECT: {
+          if (op._anchor || op._focus) {
+            selection = [op._anchor || selection[0], op._focus || selection[1]];
+          }
+          break;
+        }
+        default: {
+          op satisfies never;
         }
       }
+      if (isEditOperation(op)) {
+        selection = [
+          rebasePosition(selection[0], op),
+          rebasePosition(selection[1], op),
+        ];
+      }
     }
+
     return [doc, selection];
   } catch (e) {
     // rollback
     if (onError) {
-      onError("rollback transaction: " + e);
+      onError("rollback operation: " + e);
     }
 
     return;

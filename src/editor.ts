@@ -15,10 +15,11 @@ import type { DocBase, Fragment, SelectionSnapshot } from "./doc/types.js";
 import { isFunction, isString, microtask } from "./utils.js";
 import type { EditorCommand } from "./commands.js";
 import {
-  applyTransaction as _applyTransaction,
+  applyOperation as _applyOperation,
   Transaction,
   sliceDoc,
   isDocEqual,
+  type Operation,
 } from "./doc/edit.js";
 import type { ParserConfig } from "./dom/parser.js";
 import { comparePosition, toRange } from "./doc/position.js";
@@ -244,37 +245,41 @@ export const createEditor = <
     keydownHandlers.push(onKeyDownHandler);
   }
 
-  const applies: Exclude<PluginObject["apply"], undefined>[] = [];
-  plugins.forEach(({ apply }) => {
+  const applyHooks: Exclude<PluginObject["apply"], undefined>[] = [];
+  const mountHooks: Exclude<PluginObject["mount"], undefined>[] = [];
+  plugins.forEach(({ apply, mount }) => {
     if (apply) {
-      applies.push(apply);
+      applyHooks.push(apply);
+    }
+    if (mount) {
+      mountHooks.push(mount);
     }
   });
 
-  const applyTransaction = (tr: Transaction): void => {
+  const applyOperation = (op: Operation, unsafe: boolean): void => {
     let index = 0;
 
-    const length = applies.length;
+    const length = applyHooks.length;
 
     const dispatch = () => {
       if (index < length) {
         const i = index;
-        applies[index]!(tr, next);
+        applyHooks[index]!(op, next);
         if (i === index) {
           next();
         }
       } else if (index === length) {
         index++;
-        const res = _applyTransaction(doc, selection, tr);
-        if (res && (!tr.unsafe || validate(res[0] as T, onError))) {
+        const res = _applyOperation(doc, selection, op, onError);
+        if (res && (!unsafe || validate(res[0] as T, onError))) {
           [doc, selection] = res;
         }
       }
     };
 
-    const next = (t?: Transaction): void => {
-      if (t) {
-        tr = t;
+    const next = (o?: Operation): void => {
+      if (o) {
+        op = o;
       }
       index++;
       dispatch();
@@ -310,7 +315,9 @@ export const createEditor = <
       const currentSelection = selection;
       let tr: Transaction | undefined;
       while ((tr = transactions.pop())) {
-        applyTransaction(tr);
+        for (const op of tr.ops) {
+          applyOperation(op, tr.unsafe);
+        }
       }
 
       if (!isDocEqual(currentDoc, doc)) {
@@ -366,10 +373,6 @@ export const createEditor = <
       // https://html.spec.whatwg.org/multipage/interaction.html#best-practices-for-in-page-editors
       element.style.whiteSpace = "pre-wrap";
       element.ariaMultiLine = "true";
-
-      plugins.forEach(({ mount }) => {
-        mount && mount(element);
-      });
 
       let disposed = false;
       let selectionReverted = false;
@@ -651,6 +654,14 @@ export const createEditor = <
       element.addEventListener("dragstart", onDragStart);
       element.addEventListener("dragend", onDragEnd);
 
+      const unmountHooks: (() => void)[] = [];
+      mountHooks.forEach((mount) => {
+        const cb = mount(element);
+        if (cb) {
+          unmountHooks.push(cb);
+        }
+      });
+
       return () => {
         if (disposed) return;
         disposed = true;
@@ -680,6 +691,10 @@ export const createEditor = <
         element.removeEventListener("drop", onDrop);
         element.removeEventListener("dragstart", onDragStart);
         element.removeEventListener("dragend", onDragEnd);
+
+        unmountHooks.forEach((cb) => {
+          cb();
+        });
       };
     },
   };
