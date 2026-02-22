@@ -15,7 +15,7 @@ import type { DocBase, Fragment, SelectionSnapshot } from "./doc/types.js";
 import { is, isFunction, isString, microtask } from "./utils.js";
 import type { EditorCommand } from "./commands.js";
 import {
-  applyOperation as _applyOperation,
+  applyOperation,
   Transaction,
   sliceDoc,
   type Operation,
@@ -255,38 +255,6 @@ export const createEditor = <
     }
   });
 
-  const applyOperation = (op: Operation, unsafe: boolean): void => {
-    let index = 0;
-
-    const length = applyHooks.length;
-
-    const dispatch = () => {
-      if (index < length) {
-        const i = index;
-        applyHooks[index]!(op, next);
-        if (i === index) {
-          next();
-        }
-      } else if (index === length) {
-        index++;
-        const res = _applyOperation(doc, selection, op, onError);
-        if (res && (!unsafe || validate(res[0] as T, onError))) {
-          [doc, selection] = res;
-        }
-      }
-    };
-
-    const next = (o?: Operation): void => {
-      if (o) {
-        op = o;
-      }
-      index++;
-      dispatch();
-    };
-
-    dispatch();
-  };
-
   const transactions: Transaction[] = [];
   const apply = (arg: Transaction) => {
     if (!readonly) {
@@ -312,10 +280,38 @@ export const createEditor = <
     if (transactions.length) {
       const currentDoc = doc;
       const currentSelection = selection;
+      const length = applyHooks.length;
+
       let tr: Transaction | undefined;
       while ((tr = transactions.pop())) {
-        for (const op of tr.ops) {
-          applyOperation(op, tr.unsafe);
+        for (let op of tr.ops) {
+          let index = 0;
+
+          const dispatch = () => {
+            if (index < length) {
+              const i = index;
+              applyHooks[index]!(op, next);
+              if (i === index) {
+                next();
+              }
+            } else if (index === length) {
+              index++;
+              const res = applyOperation(doc, selection, op, onError);
+              if (res && (!tr!.unsafe || validate(res[0] as T, onError))) {
+                [doc, selection] = res;
+              }
+            }
+          };
+
+          const next = (o?: Operation): void => {
+            if (o) {
+              op = o;
+            }
+            index++;
+            dispatch();
+          };
+
+          dispatch();
         }
       }
 
