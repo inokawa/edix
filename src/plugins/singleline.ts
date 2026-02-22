@@ -7,8 +7,8 @@ export const singlelinePlugin: EditorPlugin = () => {
     mount: (element) => {
       element.ariaMultiLine = null;
     },
-    apply: (next, tr) => {
-      return next(
+    apply: (tr, next) => {
+      next(
         new Transaction(
           tr.ops.map((op): Operation => {
             if (op._type === 2) {
