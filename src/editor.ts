@@ -244,18 +244,44 @@ export const createEditor = <
     keydownHandlers.push(onKeyDownHandler);
   }
 
-  const applyTransaction = plugins.reduceRight<
-    (
-      doc: T,
-      sel: SelectionSnapshot,
-      tr: Transaction,
-    ) => ReturnType<typeof _applyTransaction>
-  >(
-    (acc, { apply: fn }) => {
-      return fn ? (doc, sel, tr) => fn((tr) => acc(doc, sel, tr), tr) : acc;
-    },
-    (doc, sel, tr) => _applyTransaction(doc, sel, tr, onError),
-  );
+  const applies: Exclude<PluginObject["apply"], undefined>[] = [];
+  plugins.forEach(({ apply }) => {
+    if (apply) {
+      applies.push(apply);
+    }
+  });
+
+  const applyTransaction = (tr: Transaction): void => {
+    let index = 0;
+
+    const length = applies.length;
+
+    const dispatch = () => {
+      if (index < length) {
+        const i = index;
+        applies[index]!(tr, next);
+        if (i === index) {
+          next();
+        }
+      } else if (index === length) {
+        index++;
+        const res = _applyTransaction(doc, selection, tr);
+        if (res && (!tr.unsafe || validate(res[0] as T, onError))) {
+          [doc, selection] = res;
+        }
+      }
+    };
+
+    const next = (t?: Transaction): void => {
+      if (t) {
+        tr = t;
+      }
+      index++;
+      dispatch();
+    };
+
+    dispatch();
+  };
 
   const transactions: Transaction[] = [];
   const apply = (arg: Transaction) => {
@@ -280,24 +306,16 @@ export const createEditor = <
 
   const commit = () => {
     if (transactions.length) {
-      let nextDoc: T = doc;
-      let nextSelection: SelectionSnapshot = selection;
-
+      const currentDoc = doc;
+      const currentSelection = selection;
       let tr: Transaction | undefined;
       while ((tr = transactions.pop())) {
-        const res = applyTransaction(nextDoc, nextSelection, tr);
-        if (res && (!tr.unsafe || validate(res[0] as T, onError))) {
-          nextDoc = res[0] as T; // TODO improve
-          nextSelection = res[1];
-        }
+        applyTransaction(tr);
       }
 
-      const currentSelection = selection;
-      selection = nextSelection;
-
-      if (!isDocEqual(nextDoc, doc)) {
-        history.set([doc, currentSelection]);
-        history.push([(doc = nextDoc), nextSelection]);
+      if (!isDocEqual(currentDoc, doc)) {
+        history.set([currentDoc, currentSelection]);
+        history.push([doc, selection]);
         onChange(doc);
       }
     }
