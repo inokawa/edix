@@ -12,13 +12,12 @@ import {
 } from "./dom/index.js";
 import { createMutationObserver } from "./mutation.js";
 import type { DocBase, Fragment, SelectionSnapshot } from "./doc/types.js";
-import { isFunction, isString, microtask } from "./utils.js";
+import { is, isFunction, isString, microtask } from "./utils.js";
 import type { EditorCommand } from "./commands.js";
 import {
   applyOperation as _applyOperation,
   Transaction,
   sliceDoc,
-  isDocEqual,
   type Operation,
 } from "./doc/edit.js";
 import type { ParserConfig } from "./dom/parser.js";
@@ -320,7 +319,7 @@ export const createEditor = <
         }
       }
 
-      if (!isDocEqual(currentDoc, doc)) {
+      if (!is(currentDoc, doc)) {
         history.set([currentDoc, currentSelection]);
         history.push([doc, selection]);
         onChange(doc);

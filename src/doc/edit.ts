@@ -124,13 +124,6 @@ export class Transaction {
 /**
  * @internal
  */
-export const isDocEqual = (docA: DocBase, docB: DocBase): boolean =>
-  // TODO improve
-  docA.length === docB.length && docA.every((l, i) => l === docB[i]);
-
-/**
- * @internal
- */
 export const isTextNode = (node: DocNode): node is TextNode => "text" in node;
 
 const isSameNode = (a: DocNode, b: DocNode): boolean => {

@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { Transaction, applyOperation, isDocEqual } from "./edit.js";
+import { Transaction, applyOperation } from "./edit.js";
 import { type DocBase, type SelectionSnapshot } from "./types.js";
+import { is } from "../utils.js";
 
 type Doc = { id: number; text: string }[][];
 
@@ -102,7 +103,7 @@ describe("insert", () => {
         new Transaction().insert([-1, 0], "test"),
       )!;
 
-      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
     });
 
@@ -123,7 +124,7 @@ describe("insert", () => {
         new Transaction().insert([100, 0], "test"),
       )!;
 
-      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
     });
 
@@ -144,7 +145,7 @@ describe("insert", () => {
         new Transaction().insert([0, -1], "test"),
       )!;
 
-      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
     });
 
@@ -165,7 +166,7 @@ describe("insert", () => {
         new Transaction().insert([0, 100], "test"),
       )!;
 
-      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
     });
 
@@ -186,7 +187,7 @@ describe("insert", () => {
         new Transaction().insert([0, 1], ""),
       )!;
 
-      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
     });
   });
@@ -684,7 +685,7 @@ describe("insert node", () => {
         new Transaction().insertFragment([-1, 0], [[{ text: "test" }]]),
       )!;
 
-      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
     });
 
@@ -705,7 +706,7 @@ describe("insert node", () => {
         new Transaction().insertFragment([100, 0], [[{ text: "test" }]]),
       )!;
 
-      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
     });
 
@@ -726,7 +727,7 @@ describe("insert node", () => {
         new Transaction().insertFragment([0, -1], [[{ text: "test" }]]),
       )!;
 
-      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
     });
 
@@ -747,7 +748,7 @@ describe("insert node", () => {
         new Transaction().insertFragment([0, 100], [[{ text: "test" }]]),
       )!;
 
-      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
     });
 
@@ -768,7 +769,7 @@ describe("insert node", () => {
         new Transaction().insertFragment([0, 1], [[{ text: "" }]]),
       )!;
 
-      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
     });
   });
@@ -1145,7 +1146,7 @@ describe("delete", () => {
         new Transaction().delete([-1, 0], [0, 1]),
       )!;
 
-      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
     });
 
@@ -1162,7 +1163,7 @@ describe("delete", () => {
         new Transaction().delete([0, 0], [100, 1]),
       )!;
 
-      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
     });
 
@@ -1179,7 +1180,7 @@ describe("delete", () => {
         new Transaction().delete([0, -1], [0, 1]),
       )!;
 
-      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
     });
 
@@ -1196,7 +1197,7 @@ describe("delete", () => {
         new Transaction().delete([0, 0], [0, 100]),
       )!;
 
-      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
     });
 
@@ -1213,7 +1214,7 @@ describe("delete", () => {
         new Transaction().delete([0, 1], [0, 1]),
       )!;
 
-      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
     });
   });
@@ -1721,7 +1722,7 @@ describe("update attr", () => {
         new Transaction().attr([-1, 0], [0, 1], { foo: "bar" }),
       )!;
 
-      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
     });
 
@@ -1738,7 +1739,7 @@ describe("update attr", () => {
         new Transaction().attr([0, 0], [100, 1], { foo: "bar" }),
       )!;
 
-      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
     });
 
@@ -1755,7 +1756,7 @@ describe("update attr", () => {
         new Transaction().attr([0, -1], [0, 1], { foo: "bar" }),
       )!;
 
-      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
     });
 
@@ -1772,7 +1773,7 @@ describe("update attr", () => {
         new Transaction().attr([0, 0], [0, 100], { foo: "bar" }),
       )!;
 
-      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
     });
 
@@ -1789,7 +1790,7 @@ describe("update attr", () => {
         new Transaction().attr([0, 1], [0, 1], { foo: "bar" }),
       )!;
 
-      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
     });
   });
@@ -2190,7 +2191,7 @@ describe("selection", () => {
         new Transaction().select([-1, 0], [0, 1]),
       )!;
 
-      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
     });
 
@@ -2207,7 +2208,7 @@ describe("selection", () => {
         new Transaction().select([0, 0], [100, 1]),
       )!;
 
-      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
     });
 
@@ -2224,7 +2225,7 @@ describe("selection", () => {
         new Transaction().select([0, -1], [0, 1]),
       )!;
 
-      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
     });
 
@@ -2241,7 +2242,7 @@ describe("selection", () => {
         new Transaction().select([0, 0], [0, 100]),
       )!;
 
-      expect(isDocEqual(res[0], doc)).toBe(true);
+      expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
     });
   });
@@ -2263,7 +2264,7 @@ describe("selection", () => {
       new Transaction().select(...nextSel),
     )!;
 
-    expect(isDocEqual(res[0], doc)).toBe(true);
+    expect(is(res[0], doc)).toBe(true);
     expect(res[1]).toEqual(nextSel);
   });
 
