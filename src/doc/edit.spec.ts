@@ -1,8 +1,23 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { Transaction, applyTransaction, isDocEqual } from "./edit.js";
-import { type SelectionSnapshot } from "./types.js";
+import { Transaction, applyOperation, isDocEqual } from "./edit.js";
+import { type DocBase, type SelectionSnapshot } from "./types.js";
 
 type Doc = { id: number; text: string }[][];
+
+const applyTransaction = <T extends DocBase>(
+  doc: T,
+  selection: SelectionSnapshot,
+  tr: Transaction,
+  onError?: (message: string) => void,
+): [T, SelectionSnapshot] => {
+  for (const op of tr.ops) {
+    const res = applyOperation(doc, selection, op, onError);
+    if (res) {
+      [doc, selection] = res;
+    }
+  }
+  return [doc, selection];
+};
 
 const splitAt = (targetStr: string, index: number): [string, string] => {
   return [targetStr.slice(0, index), targetStr.slice(index)];
@@ -57,13 +72,10 @@ it("discard if error", () => {
 
   const mockConsole = vi.fn();
 
-  const res = applyTransaction(
+  const res = applyOperation(
     doc,
     sel,
-    new Transaction([
-      { _type: 1, _start: [0, 0], _end: [0, 1] },
-      { _type: 3, _pos: [0, 0], _fragment: {} as any },
-    ]),
+    { _type: 3, _pos: [0, 0], _fragment: {} as any },
     mockConsole,
   );
 
