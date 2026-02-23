@@ -113,11 +113,11 @@ export interface EditorOptions<
    */
   plugins?: EditorPlugin[];
   /**
-   * Functions to handle `keydown` events.
+   * Functions to handle keyboard events.
    *
    * Return `true` if you want to stop propagation.
    */
-  keydown?: KeyboardHandler[];
+  keyboard?: KeyboardHandler[];
   /**
    * Functions to handle copy events
    * @default [plainCopy()]
@@ -180,7 +180,7 @@ export const createEditor = <
   readonly = false,
   schema,
   plugins,
-  keydown,
+  keyboard,
   copy: copyExtensions = [plainCopy()],
   paste: pasteExtensions = [plainPaste()],
   isBlock = defaultIsBlockNode,
@@ -250,8 +250,8 @@ export const createEditor = <
       { mod: true, shift: true },
     ),
   ];
-  if (keydown) {
-    keydownHandlers.push(...keydown);
+  if (keyboard) {
+    keydownHandlers.push(...keyboard);
   }
 
   const applyHooks: Exclude<EditorPlugin["apply"], undefined>[] = [];
