@@ -1,8 +1,5 @@
 export type KeyboardHandler = (keyboard: KeyboardEvent) => boolean | void;
 
-/**
- * @internal
- */
 export const hotkey = (
   key: string,
   cb: (e: KeyboardEvent) => void,
