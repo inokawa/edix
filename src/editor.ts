@@ -174,7 +174,7 @@ export const createEditor = <
 >({
   doc,
   schema,
-  plugins = [],
+  plugins,
   copy: copyExtensions = [plainCopy()],
   paste: pasteExtensions = [plainPaste()],
   isBlock = defaultIsBlockNode,
@@ -246,14 +246,17 @@ export const createEditor = <
 
   const applyHooks: Exclude<EditorPlugin["apply"], undefined>[] = [];
   const mountHooks: Exclude<EditorPlugin["mount"], undefined>[] = [];
-  plugins.forEach(({ apply, mount }) => {
-    if (apply) {
-      applyHooks.push(apply);
-    }
-    if (mount) {
-      mountHooks.push(mount);
-    }
-  });
+  if (plugins) {
+    plugins.forEach(({ apply, mount }) => {
+      if (apply) {
+        applyHooks.push(apply);
+      }
+      if (mount) {
+        mountHooks.push(mount);
+      }
+    });
+    plugins = undefined;
+  }
 
   const transactions: Transaction[] = [];
   const apply = (arg: Transaction) => {
