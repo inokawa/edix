@@ -17,6 +17,7 @@ import {
   internalCopy,
   internalPaste,
   filePaste,
+  hotkey,
 } from "../../src";
 import * as v from "valibot";
 
@@ -127,6 +128,36 @@ export const RichText: StoryObj = {
         createEditor({
           doc: doc,
           schema: richSchema,
+          keyboard: [
+            hotkey(
+              "b",
+              () => {
+                editor.apply(ToggleFormat, "bold");
+              },
+              { mod: true },
+            ),
+            hotkey(
+              "i",
+              () => {
+                editor.apply(ToggleFormat, "italic");
+              },
+              { mod: true },
+            ),
+            hotkey(
+              "u",
+              () => {
+                editor.apply(ToggleFormat, "underline");
+              },
+              { mod: true },
+            ),
+            hotkey(
+              "s",
+              () => {
+                editor.apply(ToggleFormat, "strike");
+              },
+              { mod: true },
+            ),
+          ],
           copy: [internalCopy(), plainCopy()],
           paste: [internalPaste(), plainPaste()],
           onChange: setDoc,
