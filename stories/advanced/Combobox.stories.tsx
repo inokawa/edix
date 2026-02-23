@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { createPlainEditor, ReplaceAll } from "../../src";
+import { createPlainEditor, hotkey, ReplaceAll } from "../../src";
 
 export default {
   component: createPlainEditor,
@@ -500,26 +500,22 @@ export const Combobox: StoryObj = {
       setIndex(-1);
     }
 
-    const onKeyDown = useEffectEvent((e: KeyboardEvent): boolean | void => {
+    const onPrev = useEffectEvent(() => {
       if (!length) return;
-      switch (e.key) {
-        case "ArrowUp":
-          const nextIndex = index === -1 ? length - 1 : index - 1;
-          setIndex(nextIndex);
-          return true;
-        case "ArrowDown":
-          const prevIndex = index >= length - 1 ? -1 : index + 1;
-          setIndex(prevIndex);
-          return true;
-        case "Enter":
-        case " ":
-          if (index === -1) break;
-          complete(index);
-          return true;
-        case "Escape":
-          setIndex(-1);
-          return true;
-      }
+      setIndex((prev) => (prev === -1 ? length - 1 : prev - 1));
+    });
+    const onNext = useEffectEvent(() => {
+      if (!length) return;
+      setIndex((prev) => (prev >= length - 1 ? -1 : prev + 1));
+    });
+    const onComplete = useEffectEvent(() => {
+      if (!length) return;
+      if (index === -1) return;
+      complete(index);
+    });
+    const onCancel = useEffectEvent(() => {
+      if (!length) return;
+      setIndex(-1);
     });
 
     const editor = useMemo(
@@ -527,7 +523,13 @@ export const Combobox: StoryObj = {
         createPlainEditor({
           text: text,
           singleline: true,
-          keydown: [onKeyDown],
+          keydown: [
+            hotkey("ArrowUp", onPrev),
+            hotkey("ArrowDown", onNext),
+            hotkey("Enter", onComplete),
+            hotkey(" ", onComplete),
+            hotkey("Escape", onCancel),
+          ],
           onChange: setText,
         }),
       [],
