@@ -9,10 +9,11 @@ const applyTransaction = <T extends DocBase>(
   doc: T,
   selection: SelectionSnapshot,
   tr: Transaction,
-  onError?: (message: string) => void,
 ): [T, SelectionSnapshot] => {
   for (const op of tr.ops) {
-    const res = applyOperation(doc, selection, op, onError);
+    const res = applyOperation(doc, selection, op, () => {
+      // NOP
+    });
     if (res) {
       [doc, selection] = res;
     }

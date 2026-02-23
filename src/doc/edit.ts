@@ -400,7 +400,7 @@ export const applyOperation = <T extends DocBase>(
   doc: T,
   selection: SelectionSnapshot,
   op: Operation,
-  onError?: (message: string) => void,
+  onError: (message: string) => void,
 ): [T, SelectionSnapshot] | undefined => {
   try {
     if (isValidOperation(doc, op)) {
@@ -452,9 +452,7 @@ export const applyOperation = <T extends DocBase>(
     return [doc, selection];
   } catch (e) {
     // rollback
-    if (onError) {
-      onError("rollback operation: " + e);
-    }
+    onError("rollback operation: " + e);
 
     return;
   }
