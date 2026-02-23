@@ -16,6 +16,7 @@ import {
   singlelinePlugin,
   internalCopy,
   internalPaste,
+  filePaste,
 } from "../../src";
 import * as v from "valibot";
 
@@ -318,6 +319,12 @@ export const Image: StoryObj = {
         copy: [internalCopy(), htmlCopy(), plainCopy()],
         paste: [
           internalPaste(),
+          filePaste({
+            "image/png": (file) => ({
+              type: "image",
+              src: URL.createObjectURL(file),
+            }),
+          }),
           htmlPaste<Doc>(
             (text) => ({ type: "text", text }),
             [

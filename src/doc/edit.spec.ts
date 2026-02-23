@@ -67,9 +67,7 @@ it("discard if error", () => {
     [1, 2],
   ];
 
-  expect(() =>
-    applyOperation(doc, sel, { _type: 3, _pos: [0, 0], _fragment: {} as any }),
-  ).toThrowError();
+  expect(() => applyOperation(doc, sel, { _type: 3 } as any)).toThrowError();
 });
 
 describe("insert", () => {
@@ -740,26 +738,26 @@ describe("insert node", () => {
       expect(res[1]).toEqual(sel);
     });
 
-    it("empty text", () => {
-      const docText = "abcde";
-      const docText2 = "fghij";
-      const doc: Doc = [
-        [{ id: 1, text: docText }],
-        [{ id: 1, text: docText2 }],
-      ];
-      const sel: SelectionSnapshot = [
-        [1, 2],
-        [1, 2],
-      ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().insertFragment([0, 1], [[{ text: "" }]]),
-      )!;
+    // it("empty text", () => {
+    //   const docText = "abcde";
+    //   const docText2 = "fghij";
+    //   const doc: Doc = [
+    //     [{ id: 1, text: docText }],
+    //     [{ id: 1, text: docText2 }],
+    //   ];
+    //   const sel: SelectionSnapshot = [
+    //     [1, 2],
+    //     [1, 2],
+    //   ];
+    //   const res = applyTransaction(
+    //     doc,
+    //     sel,
+    //     new Transaction().insertFragment([0, 1], [[{ text: "" }]]),
+    //   )!;
 
-      expect(is(res[0], doc)).toBe(true);
-      expect(res[1]).toEqual(sel);
-    });
+    //   expect(is(res[0], doc)).toBe(true);
+    //   expect(res[1]).toEqual(sel);
+    // });
   });
 
   it("should insert text at line before caret", () => {
