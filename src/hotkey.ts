@@ -5,6 +5,7 @@ export type KeyboardHandler = (keyboard: KeyboardEvent) => boolean | void;
  */
 export const hotkey = (
   key: string,
+  cb: (e: KeyboardEvent) => void,
   {
     mod,
     shift = false,
@@ -16,10 +17,9 @@ export const hotkey = (
     shift?: boolean;
     alt?: boolean;
     // phase?: 'down' | 'up';
-  },
-  cb: KeyboardHandler,
+  } = {},
 ): KeyboardHandler => {
-  return (e) => {
+  return (e): boolean | void => {
     if (e.key === key) {
       if (
         // TODO detect OS
@@ -27,7 +27,8 @@ export const hotkey = (
         shift === e.shiftKey &&
         alt === e.altKey
       ) {
-        return cb(e);
+        cb(e);
+        return true;
       }
     }
   };

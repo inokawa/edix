@@ -223,26 +223,32 @@ export const createEditor = <
   >([doc, selection]);
 
   const keydownHandlers: KeyboardHandler[] = [
-    hotkey("z", { mod: true }, (): boolean | void => {
-      if (!readonly) {
-        const nextHistory = history.undo();
-        if (nextHistory) {
-          [doc, selection] = nextHistory;
-          onChange(doc);
+    hotkey(
+      "z",
+      () => {
+        if (!readonly) {
+          const nextHistory = history.undo();
+          if (nextHistory) {
+            [doc, selection] = nextHistory;
+            onChange(doc);
+          }
         }
-        return true;
-      }
-    }),
-    hotkey("z", { mod: true, shift: true }, (): boolean | void => {
-      if (!readonly) {
-        const nextHistory = history.redo();
-        if (nextHistory) {
-          [doc, selection] = nextHistory;
-          onChange(doc);
+      },
+      { mod: true },
+    ),
+    hotkey(
+      "z",
+      () => {
+        if (!readonly) {
+          const nextHistory = history.redo();
+          if (nextHistory) {
+            [doc, selection] = nextHistory;
+            onChange(doc);
+          }
         }
-        return true;
-      }
-    }),
+      },
+      { mod: true, shift: true },
+    ),
   ];
   if (keydown) {
     keydownHandlers.push(...keydown);
