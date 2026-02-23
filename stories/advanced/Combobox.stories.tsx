@@ -523,7 +523,7 @@ export const Combobox: StoryObj = {
         createPlainEditor({
           text: text,
           singleline: true,
-          keydown: [
+          keyboard: [
             hotkey("ArrowUp", onPrev),
             hotkey("ArrowDown", onNext),
             hotkey("Enter", onComplete),
