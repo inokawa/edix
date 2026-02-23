@@ -105,6 +105,10 @@ export interface EditorOptions<
    */
   doc: T;
   /**
+   * The state editable or not.
+   */
+  readonly?: boolean;
+  /**
    * TODO
    */
   plugins?: EditorPlugin[];
@@ -173,6 +177,7 @@ export const createEditor = <
   S extends StandardSchemaV1<T, T> | void = void,
 >({
   doc,
+  readonly = false,
   schema,
   plugins,
   copy: copyExtensions = [plainCopy()],
@@ -183,7 +188,6 @@ export const createEditor = <
   onError = console.error,
 }: EditorOptions<T, S>): Editor<T> => {
   let selection: SelectionSnapshot = getEmptySelectionSnapshot();
-  let readonly = false;
   let setContentEditable: () => void = noop;
 
   const validate = (value: T, onError: (m: string) => void): boolean => {
