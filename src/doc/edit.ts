@@ -8,7 +8,7 @@ import type {
   SelectionSnapshot,
   TextNode,
 } from "./types.js";
-import { docToString, stringToFragment } from "./utils.js";
+import { stringToFragment } from "./utils.js";
 
 const TYPE_DELETE = 1;
 type DeleteOperation = Readonly<{
@@ -317,11 +317,7 @@ const isValidOperation = (doc: DocBase, op: Operation): boolean => {
       );
     }
     case TYPE_INSERT_NODE: {
-      return (
-        isValidPosition(doc, op._pos) &&
-        // TODO optimize later
-        !!docToString(op._fragment)
-      );
+      return isValidPosition(doc, op._pos);
     }
     case TYPE_SET_ATTR: {
       const { _start: start, _end: end } = op;
