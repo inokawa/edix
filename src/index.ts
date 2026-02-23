@@ -8,7 +8,8 @@ export {
   Format,
   ToggleFormat,
 } from "./commands.js";
-export * from "./editor.js";
+export { createEditor } from "./editor.js";
+export type { EditorOptions, Editor } from "./editor.js";
 export * from "./extensions/index.js";
 export * from "./presets/index.js";
 export * from "./plugins/index.js";
