@@ -113,6 +113,12 @@ export interface EditorOptions<
    */
   plugins?: EditorPlugin[];
   /**
+   * Functions to handle `keydown` events.
+   *
+   * Return `true` if you want to stop propagation.
+   */
+  keydown?: KeyboardHandler[];
+  /**
    * Functions to handle copy events
    * @default [plainCopy()]
    */
@@ -130,12 +136,6 @@ export interface EditorOptions<
    * Callback invoked when document changes.
    */
   onChange: (doc: T) => void;
-  /**
-   * Callback invoked when `keydown` events are dispatched.
-   *
-   * Return `true` if you want to cancel the editor's default behavior.
-   */
-  onKeyDown?: KeyboardHandler;
   /**
    * Callback invoked when errors happen.
    *
@@ -180,11 +180,11 @@ export const createEditor = <
   readonly = false,
   schema,
   plugins,
+  keydown,
   copy: copyExtensions = [plainCopy()],
   paste: pasteExtensions = [plainPaste()],
   isBlock = defaultIsBlockNode,
   onChange,
-  onKeyDown: onKeyDownHandler,
   onError = console.error,
 }: EditorOptions<T, S>): Editor<T> => {
   let selection: SelectionSnapshot = getEmptySelectionSnapshot();
@@ -244,8 +244,8 @@ export const createEditor = <
       }
     }),
   ];
-  if (onKeyDownHandler) {
-    keydownHandlers.push(onKeyDownHandler);
+  if (keydown) {
+    keydownHandlers.push(...keydown);
   }
 
   const applyHooks: Exclude<EditorPlugin["apply"], undefined>[] = [];

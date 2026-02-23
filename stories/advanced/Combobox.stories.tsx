@@ -527,8 +527,8 @@ export const Combobox: StoryObj = {
         createPlainEditor({
           text: text,
           singleline: true,
+          keydown: [onKeyDown],
           onChange: setText,
-          onKeyDown: onKeyDown,
         }),
       [],
     );
