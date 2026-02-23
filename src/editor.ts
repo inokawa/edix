@@ -296,9 +296,20 @@ export const createEditor = <
               }
             } else if (index === length) {
               index++;
-              const res = applyOperation(doc, selection, op, onError);
-              if (res && (!tr!.unsafe || validate(res[0] as T, onError))) {
-                [doc, selection] = res;
+
+              try {
+                const [nextDoc, nextSelection] = applyOperation(
+                  doc,
+                  selection,
+                  op,
+                );
+                if (!tr!.unsafe || validate(nextDoc, onError)) {
+                  doc = nextDoc;
+                  selection = nextSelection;
+                }
+              } catch (e) {
+                // rollback
+                onError("rollback operation: " + e);
               }
             }
           };

@@ -11,12 +11,7 @@ const applyTransaction = <T extends DocBase>(
   tr: Transaction,
 ): [T, SelectionSnapshot] => {
   for (const op of tr.ops) {
-    const res = applyOperation(doc, selection, op, () => {
-      // NOP
-    });
-    if (res) {
-      [doc, selection] = res;
-    }
+    [doc, selection] = applyOperation(doc, selection, op);
   }
   return [doc, selection];
 };
@@ -72,17 +67,9 @@ it("discard if error", () => {
     [1, 2],
   ];
 
-  const mockConsole = vi.fn();
-
-  const res = applyOperation(
-    doc,
-    sel,
-    { _type: 3, _pos: [0, 0], _fragment: {} as any },
-    mockConsole,
-  );
-
-  expect(mockConsole).toHaveBeenCalledOnce();
-  expect(res).toBe(undefined);
+  expect(() =>
+    applyOperation(doc, sel, { _type: 3, _pos: [0, 0], _fragment: {} as any }),
+  ).toThrowError();
 });
 
 describe("insert", () => {
