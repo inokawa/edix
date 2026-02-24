@@ -193,17 +193,17 @@ export const concat = <T extends DocNode>(a: T[], b: readonly T[]): void => {
   }
 };
 
-const copyArray = <T extends DocNode>(
-  ...arrays: (readonly T[])[]
+const joinBlocks = <T extends DocNode>(
+  ...blocks: (readonly T[])[]
 ): readonly T[] => {
   const result: T[] = [];
-  arrays.forEach((a) => {
+  blocks.forEach((a) => {
     concat(result, a);
   });
   return result;
 };
 
-const split = <T extends DocNode>(
+const splitBlock = <T extends DocNode>(
   nodes: readonly T[],
   offset: number,
 ): [readonly T[], readonly T[]] => {
@@ -237,13 +237,16 @@ const replaceRange = <T extends DocBase>(
   doc: T,
   inserted: Fragment | string,
   start: Position,
-  end?: Position,
+  end: Position,
 ): T => {
-  const [startLine] = start;
-  const [endLine] = end || start;
+  const [startLine, startOffset] = start;
+  const [endLine, endOffset] = end;
 
-  const [before, docEnd] = split(doc[start[0]]!, start[1]);
-  const after = end ? split(doc[end[0]]!, end[1])[1] : docEnd;
+  const [before, maybeAfter] = splitBlock(doc[startLine]!, startOffset);
+  const after =
+    comparePosition(start, end) === 1
+      ? splitBlock(doc[endLine]!, endOffset)[1]
+      : maybeAfter;
 
   if (isString(inserted)) {
     // inherit style from previous text node
@@ -261,10 +264,10 @@ const replaceRange = <T extends DocBase>(
   let lines: (readonly DocNode[])[];
   if (inserted.length) {
     lines = [...inserted];
-    lines[0] = copyArray(before, lines[0]!);
-    lines[lines.length - 1] = copyArray(lines[lines.length - 1]!, after);
+    lines[0] = joinBlocks(before, lines[0]!);
+    lines[lines.length - 1] = joinBlocks(lines[lines.length - 1]!, after);
   } else {
-    lines = [copyArray(before, after)];
+    lines = [joinBlocks(before, after)];
   }
 
   const newDoc = doc.slice();
@@ -281,12 +284,12 @@ export const sliceDoc = (
   end: Position,
 ): Fragment => {
   if (compareLine(start, end) === 0) {
-    return [split(split(doc[start[0]]!, end[1])[0], start[1])[1]];
+    return [splitBlock(splitBlock(doc[start[0]]!, end[1])[0], start[1])[1]];
   }
   return [
-    split(doc[start[0]]!, start[1])[1],
+    splitBlock(doc[start[0]]!, start[1])[1],
     ...doc.slice(start[0] + 1, end[0]),
-    split(doc[end[0]]!, end[1])[0],
+    splitBlock(doc[end[0]]!, end[1])[0],
   ];
 };
 
@@ -404,11 +407,11 @@ export const applyOperation = <T extends DocBase>(
         break;
       }
       case TYPE_INSERT_TEXT: {
-        doc = replaceRange(doc, op._text, op._pos);
+        doc = replaceRange(doc, op._text, op._pos, op._pos);
         break;
       }
       case TYPE_INSERT_NODE: {
-        doc = replaceRange(doc, op._fragment, op._pos);
+        doc = replaceRange(doc, op._fragment, op._pos, op._pos);
         break;
       }
       case TYPE_SET_ATTR: {
