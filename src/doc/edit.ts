@@ -230,9 +230,9 @@ const splitBlock = <T extends DocNode>(
 
 const replaceRange = <T extends DocBase>(
   doc: T,
-  inserted: Fragment | string,
   start: Position,
   end: Position,
+  inserted: Fragment | string,
 ): T => {
   const [startLine, startOffset] = start;
   const [endLine, endOffset] = end;
@@ -378,19 +378,15 @@ export const applyOperation = <T extends DocBase>(
         isValidPosition(doc, end) &&
         comparePosition(start, end) === 1
       ) {
-        doc = replaceRange(doc, [], start, end);
+        doc = replaceRange(doc, start, end, []);
         selection = rebaseSelection(selection, op);
       }
       break;
     }
     case TYPE_INSERT_TEXT: {
       const { _pos: pos, _text: text } = op;
-      if (
-        isValidPosition(doc, pos) &&
-        // TODO optimize later
-        !!text
-      ) {
-        doc = replaceRange(doc, text, pos, pos);
+      if (isValidPosition(doc, pos) && text) {
+        doc = replaceRange(doc, pos, pos, text);
         selection = rebaseSelection(selection, op);
       }
       break;
@@ -398,7 +394,7 @@ export const applyOperation = <T extends DocBase>(
     case TYPE_INSERT_NODE: {
       const { _pos: pos, _fragment: fragment } = op;
       if (isValidPosition(doc, pos)) {
-        doc = replaceRange(doc, fragment, pos, pos);
+        doc = replaceRange(doc, pos, pos, fragment);
         selection = rebaseSelection(selection, op);
       }
       break;
@@ -412,13 +408,13 @@ export const applyOperation = <T extends DocBase>(
       ) {
         doc = replaceRange(
           doc,
+          start,
+          end,
           sliceDoc(doc, start, end).map((line) =>
             line.map((node) =>
               isTextNode(node) ? { ...node, ...attr } : node,
             ),
           ),
-          start,
-          end,
         );
       }
       break;
