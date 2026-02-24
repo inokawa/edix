@@ -52,8 +52,6 @@ type EditOperation =
   | SetAttrOperation;
 export type Operation = EditOperation | SelectOperataion;
 
-const isEditOperation = (op: Operation) => op._type !== TYPE_SELECT;
-
 export class Transaction {
   private readonly _ops: Operation[];
   unsafe: boolean = false;
@@ -114,10 +112,7 @@ export class Transaction {
   }
 
   transform(position: Position): Position {
-    return this._ops.reduce(
-      (acc, op) => (isEditOperation(op) ? rebasePosition(acc, op) : acc),
-      position,
-    );
+    return this._ops.reduce((acc, op) => rebasePosition(acc, op), position);
   }
 }
 
@@ -304,44 +299,7 @@ const isValidPosition = (doc: DocBase, [line, offset]: Position): boolean => {
   return false;
 };
 
-const isValidOperation = (doc: DocBase, op: Operation): boolean => {
-  switch (op._type) {
-    case TYPE_DELETE: {
-      const { _start: start, _end: end } = op;
-      return (
-        isValidPosition(doc, start) &&
-        isValidPosition(doc, end) &&
-        comparePosition(start, end) === 1
-      );
-    }
-    case TYPE_INSERT_TEXT: {
-      return (
-        isValidPosition(doc, op._pos) &&
-        // TODO optimize later
-        !!op._text
-      );
-    }
-    case TYPE_INSERT_NODE: {
-      return isValidPosition(doc, op._pos);
-    }
-    case TYPE_SET_ATTR: {
-      const { _start: start, _end: end } = op;
-      return (
-        isValidPosition(doc, start) &&
-        isValidPosition(doc, end) &&
-        comparePosition(start, end) === 1
-      );
-    }
-    case TYPE_SELECT: {
-      return (
-        (!op._anchor || isValidPosition(doc, op._anchor)) &&
-        (!op._focus || isValidPosition(doc, op._focus))
-      );
-    }
-  }
-};
-
-const rebasePosition = (position: Position, op: EditOperation): Position => {
+const rebasePosition = (position: Position, op: Operation): Position => {
   switch (op._type) {
     case TYPE_DELETE: {
       const { _start: start, _end: end } = op;
@@ -386,7 +344,8 @@ const rebasePosition = (position: Position, op: EditOperation): Position => {
       }
       break;
     }
-    case TYPE_SET_ATTR: {
+    case TYPE_SET_ATTR:
+    case TYPE_SELECT: {
       break;
     }
     default: {
@@ -404,22 +363,55 @@ export const applyOperation = <T extends DocBase>(
   selection: SelectionSnapshot,
   op: Operation,
 ): [T, SelectionSnapshot] => {
-  if (isValidOperation(doc, op)) {
-    switch (op._type) {
-      case TYPE_DELETE: {
-        doc = replaceRange(doc, [], op._start, op._end);
-        break;
+  switch (op._type) {
+    case TYPE_DELETE: {
+      const { _start: start, _end: end } = op;
+      if (
+        isValidPosition(doc, start) &&
+        isValidPosition(doc, end) &&
+        comparePosition(start, end) === 1
+      ) {
+        doc = replaceRange(doc, [], start, end);
+        selection = [
+          rebasePosition(selection[0], op),
+          rebasePosition(selection[1], op),
+        ];
       }
-      case TYPE_INSERT_TEXT: {
-        doc = replaceRange(doc, op._text, op._pos, op._pos);
-        break;
+      break;
+    }
+    case TYPE_INSERT_TEXT: {
+      const { _pos: pos, _text: text } = op;
+      if (
+        isValidPosition(doc, pos) &&
+        // TODO optimize later
+        !!text
+      ) {
+        doc = replaceRange(doc, text, pos, pos);
+        selection = [
+          rebasePosition(selection[0], op),
+          rebasePosition(selection[1], op),
+        ];
       }
-      case TYPE_INSERT_NODE: {
-        doc = replaceRange(doc, op._fragment, op._pos, op._pos);
-        break;
+      break;
+    }
+    case TYPE_INSERT_NODE: {
+      const { _pos: pos, _fragment: fragment } = op;
+      if (isValidPosition(doc, pos)) {
+        doc = replaceRange(doc, fragment, pos, pos);
+        selection = [
+          rebasePosition(selection[0], op),
+          rebasePosition(selection[1], op),
+        ];
       }
-      case TYPE_SET_ATTR: {
-        const { _start: start, _end: end, _attr: attr } = op;
+      break;
+    }
+    case TYPE_SET_ATTR: {
+      const { _start: start, _end: end, _attr: attr } = op;
+      if (
+        isValidPosition(doc, start) &&
+        isValidPosition(doc, end) &&
+        comparePosition(start, end) === 1
+      ) {
         doc = replaceRange(
           doc,
           sliceDoc(doc, start, end).map((line) =>
@@ -430,23 +422,23 @@ export const applyOperation = <T extends DocBase>(
           start,
           end,
         );
-        break;
       }
-      case TYPE_SELECT: {
-        if (op._anchor || op._focus) {
-          selection = [op._anchor || selection[0], op._focus || selection[1]];
-        }
-        break;
-      }
-      default: {
-        op satisfies never;
-      }
+      break;
     }
-    if (isEditOperation(op)) {
-      selection = [
-        rebasePosition(selection[0], op),
-        rebasePosition(selection[1], op),
-      ];
+    case TYPE_SELECT: {
+      const { _anchor: anchor, _focus: focus } = op;
+      if (
+        (!anchor || isValidPosition(doc, anchor)) &&
+        (!focus || isValidPosition(doc, focus))
+      ) {
+        if (anchor || focus) {
+          selection = [anchor || selection[0], focus || selection[1]];
+        }
+      }
+      break;
+    }
+    default: {
+      op satisfies never;
     }
   }
 
