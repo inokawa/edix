@@ -7,8 +7,8 @@ import type { Position, PositionRange } from "./types.js";
  * -1: A is after B (backward)
  */
 export const compareLine = (
-  [lineA]: Position,
-  [lineB]: Position,
+  lineA: Position[0],
+  lineB: Position[0],
 ): 0 | 1 | -1 => {
   if (lineA === lineB) {
     return 0;
@@ -23,10 +23,13 @@ export const compareLine = (
  * 1 : A is before B (forward)
  * -1: A is after B (backward)
  */
-export const comparePosition = (posA: Position, posB: Position): 0 | 1 | -1 => {
-  const line = compareLine(posA, posB);
+export const comparePosition = (
+  [lineA, offsetA]: Position,
+  [lineB, offsetB]: Position,
+): 0 | 1 | -1 => {
+  const line = compareLine(lineA, lineB);
   if (line === 0) {
-    return posA[1] === posB[1] ? 0 : posA[1] < posB[1] ? 1 : -1;
+    return offsetA === offsetB ? 0 : offsetA < offsetB ? 1 : -1;
   } else {
     return line;
   }

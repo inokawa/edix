@@ -280,16 +280,18 @@ const replaceRange = <T extends DocBase>(
  */
 export const sliceDoc = (
   doc: DocBase,
-  start: Position,
-  end: Position,
+  [startLine, startOffset]: Position,
+  [endLine, endOffset]: Position,
 ): Fragment => {
-  if (compareLine(start, end) === 0) {
-    return [splitBlock(splitBlock(doc[start[0]]!, end[1])[0], start[1])[1]];
+  if (compareLine(startLine, endLine) === 0) {
+    return [
+      splitBlock(splitBlock(doc[startLine]!, endOffset)[0], startOffset)[1],
+    ];
   }
   return [
-    splitBlock(doc[start[0]]!, start[1])[1],
-    ...doc.slice(start[0] + 1, end[0]),
-    splitBlock(doc[end[0]]!, end[1])[0],
+    splitBlock(doc[startLine]!, startOffset)[1],
+    ...doc.slice(startLine + 1, endLine),
+    splitBlock(doc[endLine]!, endOffset)[0],
   ];
 };
 
@@ -351,7 +353,9 @@ const rebasePosition = (position: Position, op: EditOperation): Position => {
             [
               position[0] + start[0] - end[0],
               position[1] +
-                (compareLine(end, position) === 0 ? start[1] - end[1] : 0),
+                (compareLine(end[0], position[0]) === 0
+                  ? start[1] - end[1]
+                  : 0),
             ]
           : // start <= position <= end
             start;
@@ -374,7 +378,7 @@ const rebasePosition = (position: Position, op: EditOperation): Position => {
         return [
           position[0] + lineDiff,
           position[1] +
-            (compareLine(position, pos) === 0
+            (compareLine(position[0], pos[0]) === 0
               ? getLineSize(lines[lineLength - 1]!) -
                 (lineDiff === 0 ? 0 : pos[1])
               : 0),
