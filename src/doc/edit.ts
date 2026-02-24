@@ -355,6 +355,13 @@ const rebasePosition = (position: Position, op: Operation): Position => {
   return position;
 };
 
+const rebaseSelection = (
+  selection: SelectionSnapshot,
+  op: Operation,
+): SelectionSnapshot => {
+  return [rebasePosition(selection[0], op), rebasePosition(selection[1], op)];
+};
+
 /**
  * @internal
  */
@@ -372,10 +379,7 @@ export const applyOperation = <T extends DocBase>(
         comparePosition(start, end) === 1
       ) {
         doc = replaceRange(doc, [], start, end);
-        selection = [
-          rebasePosition(selection[0], op),
-          rebasePosition(selection[1], op),
-        ];
+        selection = rebaseSelection(selection, op);
       }
       break;
     }
@@ -387,10 +391,7 @@ export const applyOperation = <T extends DocBase>(
         !!text
       ) {
         doc = replaceRange(doc, text, pos, pos);
-        selection = [
-          rebasePosition(selection[0], op),
-          rebasePosition(selection[1], op),
-        ];
+        selection = rebaseSelection(selection, op);
       }
       break;
     }
@@ -398,10 +399,7 @@ export const applyOperation = <T extends DocBase>(
       const { _pos: pos, _fragment: fragment } = op;
       if (isValidPosition(doc, pos)) {
         doc = replaceRange(doc, fragment, pos, pos);
-        selection = [
-          rebasePosition(selection[0], op),
-          rebasePosition(selection[1], op),
-        ];
+        selection = rebaseSelection(selection, op);
       }
       break;
     }
