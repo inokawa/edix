@@ -123,40 +123,29 @@ export const RichText: StoryObj = {
       [{ text: "👍❤️🧑‍🧑‍🧒" }],
     ]);
 
+    const toggleBold = () => {
+      editor.apply(ToggleFormat, "bold");
+    };
+    const toggleItalic = () => {
+      editor.apply(ToggleFormat, "italic");
+    };
+    const toggleUnderline = () => {
+      editor.apply(ToggleFormat, "underline");
+    };
+    const toggleStrike = () => {
+      editor.apply(ToggleFormat, "strike");
+    };
+
     const editor = useMemo(
       () =>
         createEditor({
           doc: doc,
           schema: richSchema,
           keyboard: [
-            hotkey(
-              "b",
-              () => {
-                editor.apply(ToggleFormat, "bold");
-              },
-              { mod: true },
-            ),
-            hotkey(
-              "i",
-              () => {
-                editor.apply(ToggleFormat, "italic");
-              },
-              { mod: true },
-            ),
-            hotkey(
-              "u",
-              () => {
-                editor.apply(ToggleFormat, "underline");
-              },
-              { mod: true },
-            ),
-            hotkey(
-              "s",
-              () => {
-                editor.apply(ToggleFormat, "strike");
-              },
-              { mod: true },
-            ),
+            hotkey("b", toggleBold, { mod: true }),
+            hotkey("i", toggleItalic, { mod: true }),
+            hotkey("u", toggleUnderline, { mod: true }),
+            hotkey("s", toggleStrike, { mod: true }),
           ],
           copy: [internalCopy(), plainCopy()],
           paste: [internalPaste(), plainPaste()],
@@ -173,34 +162,10 @@ export const RichText: StoryObj = {
     return (
       <div>
         <div>
-          <button
-            onClick={() => {
-              editor.apply(ToggleFormat, "bold");
-            }}
-          >
-            bold
-          </button>
-          <button
-            onClick={() => {
-              editor.apply(ToggleFormat, "italic");
-            }}
-          >
-            italic
-          </button>
-          <button
-            onClick={() => {
-              editor.apply(ToggleFormat, "underline");
-            }}
-          >
-            underline
-          </button>
-          <button
-            onClick={() => {
-              editor.apply(ToggleFormat, "strike");
-            }}
-          >
-            strike
-          </button>
+          <button onClick={toggleBold}>bold</button>
+          <button onClick={toggleItalic}>italic</button>
+          <button onClick={toggleUnderline}>underline</button>
+          <button onClick={toggleStrike}>strike</button>
         </div>
         <div
           ref={ref}
