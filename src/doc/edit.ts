@@ -93,6 +93,7 @@ export class Transaction {
   }
 
   attr(start: Position, end: Position, attr: Record<string, unknown>): this {
+    this.unsafe = true;
     this._ops.push({
       _type: TYPE_SET_ATTR,
       _start: start,
