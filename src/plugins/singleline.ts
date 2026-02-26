@@ -1,5 +1,4 @@
-import { concat } from "../doc/edit.js";
-import type { DocNode } from "../doc/types.js";
+import { joinBlocks } from "../doc/edit.js";
 import type { EditorPlugin } from "./types.js";
 
 export const singlelinePlugin = (): EditorPlugin => {
@@ -16,12 +15,7 @@ export const singlelinePlugin = (): EditorPlugin => {
       } else if (op._type === 3) {
         op = {
           ...op,
-          _fragment: [
-            op._fragment.reduce((acc: DocNode[], l) => {
-              concat(acc, l);
-              return acc;
-            }, []),
-          ],
+          _fragment: [joinBlocks(...op._fragment)],
         };
       }
       next(op);

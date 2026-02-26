@@ -176,10 +176,7 @@ const normalize = <T extends DocNode>(
   }
 };
 
-/**
- * @internal
- */
-export const concat = <T extends DocNode>(a: T[], b: readonly T[]): void => {
+const concat = <T extends DocNode>(a: T[], b: readonly T[]): void => {
   if (b.length) {
     const prevLength = a.length;
     a.push(...b);
@@ -189,14 +186,16 @@ export const concat = <T extends DocNode>(a: T[], b: readonly T[]): void => {
   }
 };
 
-const joinBlocks = <T extends DocNode>(
+/**
+ * @internal
+ */
+export const joinBlocks = <T extends DocNode>(
   ...blocks: (readonly T[])[]
 ): readonly T[] => {
-  const result: T[] = [];
-  blocks.forEach((a) => {
-    concat(result, a);
-  });
-  return result;
+  return blocks.reduce<T[]>((acc, b) => {
+    concat(acc, b);
+    return acc;
+  }, []);
 };
 
 const splitBlock = <T extends DocNode>(
@@ -259,16 +258,16 @@ const replaceRange = <T extends DocBase>(
 
   let lines: (readonly DocNode[])[];
   if (inserted.length) {
-    lines = [...inserted];
+    lines = inserted.slice();
     lines[0] = joinBlocks(before, lines[0]!);
     lines[lines.length - 1] = joinBlocks(lines[lines.length - 1]!, after);
   } else {
     lines = [joinBlocks(before, after)];
   }
 
-  const newDoc = doc.slice();
-  newDoc.splice(startLine, endLine - startLine + 1, ...lines);
-  return newDoc as DocBase as T; // TODO improve
+  const sliced = doc.slice();
+  sliced.splice(startLine, endLine - startLine + 1, ...lines);
+  return sliced as DocBase as T; // TODO improve
 };
 
 /**
@@ -284,7 +283,8 @@ export const sliceDoc = (
   }
 
   const sliced = doc.slice(start[0], end[0] + 1);
-  sliced[sliced.length - 1] = splitBlock(sliced[sliced.length - 1]!, end[1])[0];
+  const lastIndex = sliced.length - 1;
+  sliced[lastIndex] = splitBlock(sliced[lastIndex]!, end[1])[0];
   sliced[0] = splitBlock(sliced[0]!, start[1])[1];
   return sliced;
 };
