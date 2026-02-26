@@ -276,19 +276,17 @@ const replaceRange = <T extends DocBase>(
  */
 export const sliceDoc = (
   doc: DocBase,
-  [startLine, startOffset]: Position,
-  [endLine, endOffset]: Position,
+  start: Position,
+  end: Position,
 ): Fragment => {
-  if (compareLine(startLine, endLine) === 0) {
-    return [
-      splitBlock(splitBlock(doc[startLine]!, endOffset)[0], startOffset)[1],
-    ];
+  if (comparePosition(start, end) !== 1) {
+    return [];
   }
-  return [
-    splitBlock(doc[startLine]!, startOffset)[1],
-    ...doc.slice(startLine + 1, endLine),
-    splitBlock(doc[endLine]!, endOffset)[0],
-  ];
+
+  const sliced = doc.slice(start[0], end[0] + 1);
+  sliced[sliced.length - 1] = splitBlock(sliced[sliced.length - 1]!, end[1])[0];
+  sliced[0] = splitBlock(sliced[0]!, start[1])[1];
+  return sliced;
 };
 
 const isValidPosition = (doc: DocBase, [line, offset]: Position): boolean => {
