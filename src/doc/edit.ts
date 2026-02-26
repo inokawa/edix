@@ -392,7 +392,7 @@ export const applyOperation = <T extends DocBase>(
     }
     case TYPE_INSERT_NODE: {
       const { _pos: pos, _fragment: fragment } = op;
-      if (isValidPosition(doc, pos)) {
+      if (isValidPosition(doc, pos) && fragment.length) {
         doc = replaceRange(doc, pos, pos, fragment);
         selection = rebaseSelection(selection, op);
       }

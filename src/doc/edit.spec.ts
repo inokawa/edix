@@ -738,26 +738,26 @@ describe("insert node", () => {
       expect(res[1]).toEqual(sel);
     });
 
-    // it("empty text", () => {
-    //   const docText = "abcde";
-    //   const docText2 = "fghij";
-    //   const doc: Doc = [
-    //     [{ id: 1, text: docText }],
-    //     [{ id: 1, text: docText2 }],
-    //   ];
-    //   const sel: SelectionSnapshot = [
-    //     [1, 2],
-    //     [1, 2],
-    //   ];
-    //   const res = applyTransaction(
-    //     doc,
-    //     sel,
-    //     new Transaction().insertFragment([0, 1], [[{ text: "" }]]),
-    //   )!;
+    it("empty fragment", () => {
+      const docText = "abcde";
+      const docText2 = "fghij";
+      const doc: Doc = [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: docText2 }],
+      ];
+      const sel: SelectionSnapshot = [
+        [1, 2],
+        [1, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().insertFragment([0, 1], []),
+      )!;
 
-    //   expect(is(res[0], doc)).toBe(true);
-    //   expect(res[1]).toEqual(sel);
-    // });
+      expect(is(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
   });
 
   it("should insert text at line before caret", () => {
@@ -1198,6 +1198,23 @@ describe("delete", () => {
         doc,
         sel,
         new Transaction().delete([0, 1], [0, 1]),
+      )!;
+
+      expect(is(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
+
+    it("start and end is inverted", () => {
+      const docText = "abcde";
+      const doc: Doc = [[{ id: 1, text: docText }]];
+      const sel: SelectionSnapshot = [
+        [0, 2],
+        [0, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().delete([0, 2], [0, 1]),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -1774,6 +1791,23 @@ describe("update attr", () => {
         doc,
         sel,
         new Transaction().attr([0, 1], [0, 1], { foo: "bar" }),
+      )!;
+
+      expect(is(res[0], doc)).toBe(true);
+      expect(res[1]).toEqual(sel);
+    });
+
+    it("start and end is inverted", () => {
+      const docText = "abcde";
+      const doc: Doc = [[{ id: 1, text: docText }]];
+      const sel: SelectionSnapshot = [
+        [0, 2],
+        [0, 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().attr([0, 2], [0, 1], { foo: "bar" }),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
