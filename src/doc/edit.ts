@@ -259,11 +259,11 @@ const replaceRange = <T extends DocBase>(
   let lines: (readonly DocNode[])[];
   if (inserted.length) {
     lines = inserted.slice();
-    lines[0] = joinBlocks(before, lines[0]!);
     lines[lines.length - 1] = joinBlocks(lines[lines.length - 1]!, after);
   } else {
-    lines = [joinBlocks(before, after)];
+    lines = [after];
   }
+  lines[0] = joinBlocks(before, lines[0]!);
 
   const sliced = doc.slice();
   sliced.splice(startLine, endLine - startLine + 1, ...lines);
