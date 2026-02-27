@@ -1,5 +1,5 @@
 import { toRange } from "./doc/position.js";
-import { getLineSize, isTextNode, sliceDoc, Transaction } from "./doc/edit.js";
+import { getLineSize, isTextNode, sliceDoc, Edit } from "./doc/edit.js";
 import type { Editor } from "./editor.js";
 import type {
   DocBase,
@@ -21,7 +21,7 @@ export function Delete(
   this: Editor,
   range: PositionRange = toRange(this.selection),
 ) {
-  this.apply(new Transaction().delete(...range));
+  this.apply(new Edit().delete(...range));
 }
 
 /**
@@ -32,7 +32,7 @@ export function InsertText(
   text: string,
   position: Position = this.selection[0],
 ) {
-  this.apply(new Transaction().insert(position, text));
+  this.apply(new Edit().insert(position, text));
 }
 
 /**
@@ -43,7 +43,7 @@ export function InsertNode<T extends DocBase>(
   node: Exclude<InferNode<T>, TextNode>,
   position: Position = this.selection[0],
 ) {
-  this.apply(new Transaction().insertFragment(position, [[node]]));
+  this.apply(new Edit().insertFragment(position, [[node]]));
 }
 
 /**
@@ -51,7 +51,7 @@ export function InsertNode<T extends DocBase>(
  */
 export function ReplaceText(this: Editor, text: string) {
   const [start, end] = toRange(this.selection);
-  this.apply(new Transaction().delete(start, end).insert(start, text));
+  this.apply(new Edit().delete(start, end).insert(start, text));
 }
 
 /**
@@ -60,7 +60,7 @@ export function ReplaceText(this: Editor, text: string) {
 export function ReplaceAll(this: Editor, text: string) {
   const doc = this.doc;
   this.apply(
-    new Transaction()
+    new Edit()
       .delete([0, 0], [doc.length - 1, getLineSize(doc[doc.length - 1]!)])
       .insert([0, 0], text),
   );
@@ -84,7 +84,7 @@ export function Format<
   range: PositionRange = toRange(this.selection),
 ) {
   this.apply(
-    new Transaction().attr(...range, {
+    new Edit().attr(...range, {
       [key]: value,
     }),
   );
@@ -103,7 +103,7 @@ export function ToggleFormat<T extends DocBase>(
   );
   if (texts.length) {
     this.apply(
-      new Transaction().attr(...range, {
+      new Edit().attr(...range, {
         [key]: texts.some((n) => !n[key as keyof typeof n]) ? true : false,
       }),
     );

@@ -1,14 +1,14 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { Transaction, applyOperation } from "./edit.js";
+import { Edit, applyOperation } from "./edit.js";
 import { type DocBase, type SelectionSnapshot } from "./types.js";
 import { is } from "../utils.js";
 
 type Doc = { id: number; text: string }[][];
 
-const applyTransaction = <T extends DocBase>(
+const applyEdit = <T extends DocBase>(
   doc: T,
   selection: SelectionSnapshot,
-  tr: Transaction,
+  tr: Edit,
 ): [T, SelectionSnapshot] => {
   for (const op of tr.ops) {
     [doc, selection] = applyOperation(doc, selection, op);
@@ -83,11 +83,7 @@ describe("insert", () => {
         [1, 2],
         [1, 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().insert([-1, 0], "test"),
-      )!;
+      const res = applyEdit(doc, sel, new Edit().insert([-1, 0], "test"))!;
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -104,11 +100,7 @@ describe("insert", () => {
         [1, 2],
         [1, 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().insert([100, 0], "test"),
-      )!;
+      const res = applyEdit(doc, sel, new Edit().insert([100, 0], "test"))!;
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -125,11 +117,7 @@ describe("insert", () => {
         [1, 2],
         [1, 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().insert([0, -1], "test"),
-      )!;
+      const res = applyEdit(doc, sel, new Edit().insert([0, -1], "test"))!;
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -146,11 +134,7 @@ describe("insert", () => {
         [1, 2],
         [1, 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().insert([0, 100], "test"),
-      )!;
+      const res = applyEdit(doc, sel, new Edit().insert([0, 100], "test"))!;
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -167,11 +151,7 @@ describe("insert", () => {
         [1, 2],
         [1, 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().insert([0, 1], ""),
-      )!;
+      const res = applyEdit(doc, sel, new Edit().insert([0, 1], ""))!;
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -187,11 +167,7 @@ describe("insert", () => {
       [1, 2],
     ];
     const text = "ABC";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insert([0, 1], text),
-    )!;
+    const res = applyEdit(doc, sel, new Edit().insert([0, 1], text))!;
 
     expect(res[0]).toEqual([
       [{ id: 1, text: insertAt(docText, 1, text) }],
@@ -210,10 +186,10 @@ describe("insert", () => {
     ];
     const text = "ABC";
     const text2 = "DEFG";
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().insert([0, 1], text + "\n" + text2),
+      new Edit().insert([0, 1], text + "\n" + text2),
     )!;
 
     const [before, after] = splitAt(docText, 1);
@@ -233,11 +209,7 @@ describe("insert", () => {
       [0, 2],
     ];
     const text = "ABC";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insert([0, 1], text),
-    )!;
+    const res = applyEdit(doc, sel, new Edit().insert([0, 1], text))!;
 
     expect(res[0]).toEqual([[{ id: 1, text: insertAt(docText, 1, text) }]]);
     expect(res[1]).toEqual(moveOffset(sel, text.length));
@@ -257,11 +229,7 @@ describe("insert", () => {
       [1, 2],
     ];
     const text = "ABC";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insert([1, 1], text),
-    )!;
+    const res = applyEdit(doc, sel, new Edit().insert([1, 1], text))!;
 
     expect(res[0]).toEqual([
       [{ id: 1, text: docText }],
@@ -280,10 +248,10 @@ describe("insert", () => {
     ];
     const text = "ABC";
     const text2 = "DEFG";
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().insert([0, 1], text + "\n" + text2),
+      new Edit().insert([0, 1], text + "\n" + text2),
     )!;
 
     const [before, after] = splitAt(docText, 1);
@@ -304,11 +272,7 @@ describe("insert", () => {
       [0, 2],
     ];
     const text = "ABC";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insert([0, 2], text),
-    )!;
+    const res = applyEdit(doc, sel, new Edit().insert([0, 2], text))!;
 
     expect(res[0]).toEqual([[{ id: 1, text: insertAt(docText, 2, text) }]]);
     expect(res[1]).toEqual(moveOffset(sel, text.length));
@@ -323,10 +287,10 @@ describe("insert", () => {
     ];
     const text = "ABC";
     const text2 = "DEFG";
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().insert([0, 2], text + "\n" + text2),
+      new Edit().insert([0, 2], text + "\n" + text2),
     )!;
 
     const [before, after] = splitAt(docText, 2);
@@ -347,11 +311,7 @@ describe("insert", () => {
       [0, 3],
     ];
     const text = "ABC";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insert([0, 2], text),
-    )!;
+    const res = applyEdit(doc, sel, new Edit().insert([0, 2], text))!;
 
     expect(res[0]).toEqual([[{ id: 1, text: insertAt(docText, 2, text) }]]);
     expect(res[1]).toEqual(moveOffset(sel, { focus: text.length }));
@@ -366,10 +326,10 @@ describe("insert", () => {
     ];
     const text = "ABC";
     const text2 = "DEFG";
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().insert([0, 2], text + "\n" + text2),
+      new Edit().insert([0, 2], text + "\n" + text2),
     )!;
 
     const [before, after] = splitAt(docText, 2);
@@ -392,11 +352,7 @@ describe("insert", () => {
       [0, 2],
     ];
     const text = "ABC";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insert([0, 3], text),
-    )!;
+    const res = applyEdit(doc, sel, new Edit().insert([0, 3], text))!;
 
     expect(res[0]).toEqual([[{ id: 1, text: insertAt(docText, 3, text) }]]);
     expect(res[1]).toEqual(sel);
@@ -416,11 +372,7 @@ describe("insert", () => {
       [1, 2],
     ];
     const text = "ABC";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insert([1, 3], text),
-    )!;
+    const res = applyEdit(doc, sel, new Edit().insert([1, 3], text))!;
 
     expect(res[0]).toEqual([
       [{ id: 1, text: docText }],
@@ -439,10 +391,10 @@ describe("insert", () => {
     ];
     const text = "ABC";
     const text2 = "DEFG";
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().insert([0, 3], text + "\n" + text2),
+      new Edit().insert([0, 3], text + "\n" + text2),
     )!;
 
     const [before, after] = splitAt(docText, 3);
@@ -462,11 +414,7 @@ describe("insert", () => {
       [0, 2],
     ];
     const text = "ABC";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insert([1, 1], text),
-    )!;
+    const res = applyEdit(doc, sel, new Edit().insert([1, 1], text))!;
 
     expect(res[0]).toEqual([
       [{ id: 1, text: docText }],
@@ -485,10 +433,10 @@ describe("insert", () => {
     ];
     const text = "ABC";
     const text2 = "DEFG";
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().insert([1, 1], text + "\n" + text2),
+      new Edit().insert([1, 1], text + "\n" + text2),
     )!;
 
     const [before, after] = splitAt(docText2, 1);
@@ -508,11 +456,7 @@ describe("insert", () => {
       [0, 2],
       [0, 2],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insert([1, 0], "\n"),
-    )!;
+    const res = applyEdit(doc, sel, new Edit().insert([1, 0], "\n"))!;
     expect(res[0]).toEqual([
       [{ id: 1, text: docText }],
       [{ id: 2, text: "" }],
@@ -529,11 +473,7 @@ describe("insert", () => {
       [0, 2],
       [0, 2],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insert([1, 1], "\n"),
-    )!;
+    const res = applyEdit(doc, sel, new Edit().insert([1, 1], "\n"))!;
 
     const [before, after] = splitAt(docText2, 1);
     expect(res[0]).toEqual([
@@ -552,10 +492,10 @@ describe("insert", () => {
       [0, 2],
       [0, 2],
     ];
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().insert([0, docText.length], "\n"),
+      new Edit().insert([0, docText.length], "\n"),
     )!;
     expect(res[0]).toEqual([
       [{ id: 1, text: docText }],
@@ -579,10 +519,10 @@ describe("insert", () => {
       [0, 2],
     ];
     const text = "ABC";
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().insert([0, docText.length], text),
+      new Edit().insert([0, docText.length], text),
     )!;
 
     expect(res[0]).toEqual([
@@ -609,10 +549,10 @@ describe("insert", () => {
     ];
     const text = "ABC";
     const text2 = "DEFG";
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().insert([0, docText.length], text + "\n" + text2),
+      new Edit().insert([0, docText.length], text + "\n" + text2),
     )!;
 
     expect(res[0]).toEqual([
@@ -638,10 +578,10 @@ describe("insert", () => {
       [0, 2],
       [0, 2],
     ];
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().insert([0, docText.length], "\n"),
+      new Edit().insert([0, docText.length], "\n"),
     )!;
 
     expect(res[0]).toEqual([
@@ -665,10 +605,10 @@ describe("insert node", () => {
         [1, 2],
         [1, 2],
       ];
-      const res = applyTransaction(
+      const res = applyEdit(
         doc,
         sel,
-        new Transaction().insertFragment([-1, 0], [[{ text: "test" }]]),
+        new Edit().insertFragment([-1, 0], [[{ text: "test" }]]),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -686,10 +626,10 @@ describe("insert node", () => {
         [1, 2],
         [1, 2],
       ];
-      const res = applyTransaction(
+      const res = applyEdit(
         doc,
         sel,
-        new Transaction().insertFragment([100, 0], [[{ text: "test" }]]),
+        new Edit().insertFragment([100, 0], [[{ text: "test" }]]),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -707,10 +647,10 @@ describe("insert node", () => {
         [1, 2],
         [1, 2],
       ];
-      const res = applyTransaction(
+      const res = applyEdit(
         doc,
         sel,
-        new Transaction().insertFragment([0, -1], [[{ text: "test" }]]),
+        new Edit().insertFragment([0, -1], [[{ text: "test" }]]),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -728,10 +668,10 @@ describe("insert node", () => {
         [1, 2],
         [1, 2],
       ];
-      const res = applyTransaction(
+      const res = applyEdit(
         doc,
         sel,
-        new Transaction().insertFragment([0, 100], [[{ text: "test" }]]),
+        new Edit().insertFragment([0, 100], [[{ text: "test" }]]),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -749,11 +689,7 @@ describe("insert node", () => {
         [1, 2],
         [1, 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().insertFragment([0, 1], []),
-      )!;
+      const res = applyEdit(doc, sel, new Edit().insertFragment([0, 1], []))!;
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -769,10 +705,10 @@ describe("insert node", () => {
       [1, 2],
     ];
     const text = "ABC";
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().insertFragment([0, 1], [[{ text }]]),
+      new Edit().insertFragment([0, 1], [[{ text }]]),
     )!;
 
     const [before, after] = splitAt(docText, 1);
@@ -793,13 +729,10 @@ describe("insert node", () => {
     ];
     const text = "ABC";
     const text2 = "DEFG";
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().insertFragment(
-        [0, 1],
-        [[{ text: text }], [{ text: text2 }]],
-      ),
+      new Edit().insertFragment([0, 1], [[{ text: text }], [{ text: text2 }]]),
     )!;
 
     const [before, after] = splitAt(docText, 1);
@@ -819,10 +752,10 @@ describe("insert node", () => {
       [0, 2],
     ];
     const text = "ABC";
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().insertFragment([0, 1], [[{ text }]]),
+      new Edit().insertFragment([0, 1], [[{ text }]]),
     )!;
 
     const [before, after] = splitAt(docText, 1);
@@ -846,10 +779,10 @@ describe("insert node", () => {
       [1, 2],
     ];
     const text = "ABC";
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().insertFragment([1, 1], [[{ text }]]),
+      new Edit().insertFragment([1, 1], [[{ text }]]),
     )!;
 
     const [before, after] = splitAt(docText2, 1);
@@ -870,13 +803,10 @@ describe("insert node", () => {
     ];
     const text = "ABC";
     const text2 = "DEFG";
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().insertFragment(
-        [0, 1],
-        [[{ text: text }], [{ text: text2 }]],
-      ),
+      new Edit().insertFragment([0, 1], [[{ text: text }], [{ text: text2 }]]),
     )!;
 
     const [before, after] = splitAt(docText, 1);
@@ -897,10 +827,10 @@ describe("insert node", () => {
       [0, 2],
     ];
     const text = "ABC";
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().insertFragment([0, 2], [[{ text }]]),
+      new Edit().insertFragment([0, 2], [[{ text }]]),
     )!;
 
     const [before, after] = splitAt(docText, 2);
@@ -919,13 +849,10 @@ describe("insert node", () => {
     ];
     const text = "ABC";
     const text2 = "DEFG";
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().insertFragment(
-        [0, 2],
-        [[{ text: text }], [{ text: text2 }]],
-      ),
+      new Edit().insertFragment([0, 2], [[{ text: text }], [{ text: text2 }]]),
     )!;
 
     const [before, after] = splitAt(docText, 2);
@@ -946,10 +873,10 @@ describe("insert node", () => {
       [0, 3],
     ];
     const text = "ABC";
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().insertFragment([0, 2], [[{ text }]]),
+      new Edit().insertFragment([0, 2], [[{ text }]]),
     )!;
 
     const [before, after] = splitAt(docText, 2);
@@ -968,13 +895,10 @@ describe("insert node", () => {
     ];
     const text = "ABC";
     const text2 = "DEFG";
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().insertFragment(
-        [0, 2],
-        [[{ text: text }], [{ text: text2 }]],
-      ),
+      new Edit().insertFragment([0, 2], [[{ text: text }], [{ text: text2 }]]),
     )!;
 
     const [before, after] = splitAt(docText, 2);
@@ -997,10 +921,10 @@ describe("insert node", () => {
       [0, 2],
     ];
     const text = "ABC";
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().insertFragment([0, 3], [[{ text }]]),
+      new Edit().insertFragment([0, 3], [[{ text }]]),
     )!;
 
     const [before, after] = splitAt(docText, 3);
@@ -1024,10 +948,10 @@ describe("insert node", () => {
       [1, 2],
     ];
     const text = "ABC";
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().insertFragment([1, 3], [[{ text }]]),
+      new Edit().insertFragment([1, 3], [[{ text }]]),
     )!;
 
     const [before, after] = splitAt(docText2, 3);
@@ -1048,13 +972,10 @@ describe("insert node", () => {
     ];
     const text = "ABC";
     const text2 = "DEFG";
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().insertFragment(
-        [0, 3],
-        [[{ text: text }], [{ text: text2 }]],
-      ),
+      new Edit().insertFragment([0, 3], [[{ text: text }], [{ text: text2 }]]),
     )!;
 
     const [before, after] = splitAt(docText, 3);
@@ -1074,10 +995,10 @@ describe("insert node", () => {
       [0, 2],
     ];
     const text = "ABC";
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().insertFragment([1, 1], [[{ text }]]),
+      new Edit().insertFragment([1, 1], [[{ text }]]),
     )!;
 
     const [before, after] = splitAt(docText2, 1);
@@ -1098,13 +1019,10 @@ describe("insert node", () => {
     ];
     const text = "ABC";
     const text2 = "DEFG";
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().insertFragment(
-        [1, 1],
-        [[{ text: text }], [{ text: text2 }]],
-      ),
+      new Edit().insertFragment([1, 1], [[{ text: text }], [{ text: text2 }]]),
     )!;
 
     const [before, after] = splitAt(docText2, 1);
@@ -1126,11 +1044,7 @@ describe("delete", () => {
         [0, 2],
         [0, 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().delete([-1, 0], [0, 1]),
-      )!;
+      const res = applyEdit(doc, sel, new Edit().delete([-1, 0], [0, 1]))!;
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -1143,11 +1057,7 @@ describe("delete", () => {
         [0, 2],
         [0, 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().delete([0, 0], [100, 1]),
-      )!;
+      const res = applyEdit(doc, sel, new Edit().delete([0, 0], [100, 1]))!;
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -1160,11 +1070,7 @@ describe("delete", () => {
         [0, 2],
         [0, 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().delete([0, -1], [0, 1]),
-      )!;
+      const res = applyEdit(doc, sel, new Edit().delete([0, -1], [0, 1]))!;
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -1177,11 +1083,7 @@ describe("delete", () => {
         [0, 2],
         [0, 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().delete([0, 0], [0, 100]),
-      )!;
+      const res = applyEdit(doc, sel, new Edit().delete([0, 0], [0, 100]))!;
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -1194,11 +1096,7 @@ describe("delete", () => {
         [0, 2],
         [0, 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().delete([0, 1], [0, 1]),
-      )!;
+      const res = applyEdit(doc, sel, new Edit().delete([0, 1], [0, 1]))!;
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -1211,11 +1109,7 @@ describe("delete", () => {
         [0, 2],
         [0, 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().delete([0, 2], [0, 1]),
-      )!;
+      const res = applyEdit(doc, sel, new Edit().delete([0, 2], [0, 1]))!;
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -1230,11 +1124,7 @@ describe("delete", () => {
       [1, 2],
       [1, 2],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([0, 1], [0, 2]),
-    )!;
+    const res = applyEdit(doc, sel, new Edit().delete([0, 1], [0, 2]))!;
 
     expect(res[0]).toEqual([
       [{ id: 1, text: deleteAt(docText, 1, 1) }],
@@ -1252,11 +1142,7 @@ describe("delete", () => {
       [1, 3],
     ];
 
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([0, 2], [1, 1]),
-    )!;
+    const res = applyEdit(doc, sel, new Edit().delete([0, 2], [1, 1]))!;
 
     expect(res[0]).toEqual([
       [
@@ -1280,11 +1166,7 @@ describe("delete", () => {
       [0, 3],
       [0, 3],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([0, 1], [0, 2]),
-    )!;
+    const res = applyEdit(doc, sel, new Edit().delete([0, 1], [0, 2]))!;
 
     expect(res[0]).toEqual([[{ id: 1, text: deleteAt(docText, 1, 1) }]]);
     expect(res[1]).toEqual(moveOffset(sel, -1));
@@ -1303,11 +1185,7 @@ describe("delete", () => {
       [1, 3],
       [1, 3],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([1, 1], [1, 2]),
-    )!;
+    const res = applyEdit(doc, sel, new Edit().delete([1, 1], [1, 2]))!;
 
     expect(res[0]).toEqual([
       [{ id: 1, text: docText }],
@@ -1324,11 +1202,7 @@ describe("delete", () => {
       [0, 3],
       [0, 3],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([0, 2], [0, 3]),
-    )!;
+    const res = applyEdit(doc, sel, new Edit().delete([0, 2], [0, 3]))!;
 
     expect(res[0]).toEqual([[{ id: 1, text: deleteAt(docText, 2, 1) }]]);
     expect(res[1]).toEqual(moveOffset(sel, -1));
@@ -1341,11 +1215,7 @@ describe("delete", () => {
       [0, 3],
       [0, 3],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([0, 2], [0, 4]),
-    )!;
+    const res = applyEdit(doc, sel, new Edit().delete([0, 2], [0, 4]))!;
 
     expect(res[0]).toEqual([[{ id: 1, text: deleteAt(docText, 2, 2) }]]);
     expect(res[1]).toEqual(moveOffset(sel, -1));
@@ -1358,11 +1228,7 @@ describe("delete", () => {
       [0, 2],
       [0, 4],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([0, 1], [0, 5]),
-    )!;
+    const res = applyEdit(doc, sel, new Edit().delete([0, 1], [0, 5]))!;
 
     expect(res[0]).toEqual([[{ id: 1, text: deleteAt(docText, 1, 4) }]]);
     expect(res[1]).toEqual([
@@ -1378,11 +1244,7 @@ describe("delete", () => {
       [0, 2],
       [0, 4],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([0, 1], [0, 3]),
-    )!;
+    const res = applyEdit(doc, sel, new Edit().delete([0, 1], [0, 3]))!;
 
     expect(res[0]).toEqual([[{ id: 1, text: deleteAt(docText, 1, 2) }]]);
     expect(res[1]).toEqual(moveOffset(sel, { anchor: 1 - 2, focus: -2 }));
@@ -1395,11 +1257,7 @@ describe("delete", () => {
       [0, 2],
       [0, 4],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([0, 3], [0, 5]),
-    )!;
+    const res = applyEdit(doc, sel, new Edit().delete([0, 3], [0, 5]))!;
 
     expect(res[0]).toEqual([[{ id: 1, text: deleteAt(docText, 3, 2) }]]);
     expect(res[1]).toEqual(moveOffset(sel, { focus: 1 - 2 }));
@@ -1413,11 +1271,7 @@ describe("delete", () => {
       [0, 2],
       [1, 2],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([0, 3], [1, 1]),
-    )!;
+    const res = applyEdit(doc, sel, new Edit().delete([0, 3], [1, 1]))!;
 
     expect(res[0]).toEqual([
       [{ id: 1, text: splitAt(docText, 3)[0] + splitAt(docText2, 1)[1] }],
@@ -1435,11 +1289,7 @@ describe("delete", () => {
       [0, 3],
       [0, 3],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([0, 3], [0, 4]),
-    )!;
+    const res = applyEdit(doc, sel, new Edit().delete([0, 3], [0, 4]))!;
 
     expect(res[0]).toEqual([[{ id: 1, text: deleteAt(docText, 3, 1) }]]);
     expect(res[1]).toEqual(sel);
@@ -1452,11 +1302,7 @@ describe("delete", () => {
       [0, 3],
       [0, 3],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([0, 4], [0, 5]),
-    )!;
+    const res = applyEdit(doc, sel, new Edit().delete([0, 4], [0, 5]))!;
 
     expect(res[0]).toEqual([[{ id: 1, text: deleteAt(docText, 4, 1) }]]);
     expect(res[1]).toEqual(sel);
@@ -1475,11 +1321,7 @@ describe("delete", () => {
       [1, 2],
       [1, 2],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([1, 3], [1, 4]),
-    )!;
+    const res = applyEdit(doc, sel, new Edit().delete([1, 3], [1, 4]))!;
 
     expect(res[0]).toEqual([
       [{ id: 1, text: docText }],
@@ -1497,11 +1339,7 @@ describe("delete", () => {
       [0, 2],
       [0, 2],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([1, 1], [1, 2]),
-    )!;
+    const res = applyEdit(doc, sel, new Edit().delete([1, 1], [1, 2]))!;
 
     expect(res[0]).toEqual([
       [{ id: 1, text: docText }],
@@ -1519,10 +1357,10 @@ describe("delete", () => {
       [0, 2],
     ];
 
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().delete([0, docText.length], [1, 0]),
+      new Edit().delete([0, docText.length], [1, 0]),
     )!;
 
     expect(res[0]).toEqual([
@@ -1549,11 +1387,7 @@ describe("delete", () => {
       [0, 2],
       [0, 2],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([1, 1], [2, 1]),
-    )!;
+    const res = applyEdit(doc, sel, new Edit().delete([1, 1], [2, 1]))!;
 
     expect(res[0]).toEqual([
       [{ id: 1, text: docText }],
@@ -1582,10 +1416,10 @@ describe("delete", () => {
       [0, 2],
     ];
 
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().delete([0, docText.length], [1, 0]),
+      new Edit().delete([0, docText.length], [1, 0]),
     )!;
 
     expect(res[0]).toEqual([
@@ -1608,11 +1442,7 @@ describe("delete", () => {
       [0, 2],
     ];
 
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([1, 0], [2, 0]),
-    )!;
+    const res = applyEdit(doc, sel, new Edit().delete([1, 0], [2, 0]))!;
 
     expect(res[0]).toEqual([
       [{ id: 1, text: docText }],
@@ -1635,10 +1465,10 @@ describe("delete", () => {
       [0, 2],
     ];
 
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().delete([0, docText.length], [0, docText.length + 1]),
+      new Edit().delete([0, docText.length], [0, docText.length + 1]),
     )!;
 
     expect(res[0]).toEqual([
@@ -1664,10 +1494,10 @@ describe("delete", () => {
       [0, 2],
     ];
 
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().delete([0, docText.length - 1], [0, docText.length]),
+      new Edit().delete([0, docText.length - 1], [0, docText.length]),
     )!;
 
     expect(res[0]).toEqual([
@@ -1688,10 +1518,10 @@ describe("delete", () => {
       [0, 2],
     ];
 
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().delete([0, docText.length], [1, 0]),
+      new Edit().delete([0, docText.length], [1, 0]),
     )!;
 
     expect(res[0]).toEqual([
@@ -1719,10 +1549,10 @@ describe("update attr", () => {
         [0, 2],
         [0, 2],
       ];
-      const res = applyTransaction(
+      const res = applyEdit(
         doc,
         sel,
-        new Transaction().attr([-1, 0], [0, 1], { foo: "bar" }),
+        new Edit().attr([-1, 0], [0, 1], { foo: "bar" }),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -1736,10 +1566,10 @@ describe("update attr", () => {
         [0, 2],
         [0, 2],
       ];
-      const res = applyTransaction(
+      const res = applyEdit(
         doc,
         sel,
-        new Transaction().attr([0, 0], [100, 1], { foo: "bar" }),
+        new Edit().attr([0, 0], [100, 1], { foo: "bar" }),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -1753,10 +1583,10 @@ describe("update attr", () => {
         [0, 2],
         [0, 2],
       ];
-      const res = applyTransaction(
+      const res = applyEdit(
         doc,
         sel,
-        new Transaction().attr([0, -1], [0, 1], { foo: "bar" }),
+        new Edit().attr([0, -1], [0, 1], { foo: "bar" }),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -1770,10 +1600,10 @@ describe("update attr", () => {
         [0, 2],
         [0, 2],
       ];
-      const res = applyTransaction(
+      const res = applyEdit(
         doc,
         sel,
-        new Transaction().attr([0, 0], [0, 100], { foo: "bar" }),
+        new Edit().attr([0, 0], [0, 100], { foo: "bar" }),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -1787,10 +1617,10 @@ describe("update attr", () => {
         [0, 2],
         [0, 2],
       ];
-      const res = applyTransaction(
+      const res = applyEdit(
         doc,
         sel,
-        new Transaction().attr([0, 1], [0, 1], { foo: "bar" }),
+        new Edit().attr([0, 1], [0, 1], { foo: "bar" }),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -1804,10 +1634,10 @@ describe("update attr", () => {
         [0, 2],
         [0, 2],
       ];
-      const res = applyTransaction(
+      const res = applyEdit(
         doc,
         sel,
-        new Transaction().attr([0, 2], [0, 1], { foo: "bar" }),
+        new Edit().attr([0, 2], [0, 1], { foo: "bar" }),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -1823,10 +1653,10 @@ describe("update attr", () => {
       [1, 2],
       [1, 2],
     ];
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().attr([0, 1], [0, 2], { foo: "bar" }),
+      new Edit().attr([0, 1], [0, 2], { foo: "bar" }),
     )!;
 
     expect(res[0]).toEqual([
@@ -1849,10 +1679,10 @@ describe("update attr", () => {
       [1, 3],
     ];
 
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().attr([0, 2], [1, 1], { foo: "bar" }),
+      new Edit().attr([0, 2], [1, 1], { foo: "bar" }),
     )!;
 
     expect(res[0]).toEqual([
@@ -1875,10 +1705,10 @@ describe("update attr", () => {
       [0, 3],
       [0, 3],
     ];
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().attr([0, 1], [0, 2], { foo: "bar" }),
+      new Edit().attr([0, 1], [0, 2], { foo: "bar" }),
     )!;
 
     expect(res[0]).toEqual([
@@ -1904,10 +1734,10 @@ describe("update attr", () => {
       [1, 3],
       [1, 3],
     ];
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().attr([1, 1], [1, 2], { foo: "bar" }),
+      new Edit().attr([1, 1], [1, 2], { foo: "bar" }),
     )!;
 
     expect(res[0]).toEqual([
@@ -1929,10 +1759,10 @@ describe("update attr", () => {
       [0, 3],
       [0, 3],
     ];
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().attr([0, 2], [0, 3], { foo: "bar" }),
+      new Edit().attr([0, 2], [0, 3], { foo: "bar" }),
     )!;
 
     expect(res[0]).toEqual([
@@ -1952,10 +1782,10 @@ describe("update attr", () => {
       [0, 3],
       [0, 3],
     ];
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().attr([0, 2], [0, 4], { foo: "bar" }),
+      new Edit().attr([0, 2], [0, 4], { foo: "bar" }),
     )!;
 
     expect(res[0]).toEqual([
@@ -1975,10 +1805,10 @@ describe("update attr", () => {
       [0, 2],
       [0, 4],
     ];
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().attr([0, 1], [0, 5], { foo: "bar" }),
+      new Edit().attr([0, 1], [0, 5], { foo: "bar" }),
     )!;
 
     expect(res[0]).toEqual([
@@ -1997,10 +1827,10 @@ describe("update attr", () => {
       [0, 2],
       [0, 4],
     ];
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().attr([0, 1], [0, 3], { foo: "bar" }),
+      new Edit().attr([0, 1], [0, 3], { foo: "bar" }),
     )!;
 
     expect(res[0]).toEqual([
@@ -2020,10 +1850,10 @@ describe("update attr", () => {
       [0, 2],
       [0, 4],
     ];
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().attr([0, 3], [0, 5], { foo: "bar" }),
+      new Edit().attr([0, 3], [0, 5], { foo: "bar" }),
     )!;
 
     expect(res[0]).toEqual([
@@ -2043,10 +1873,10 @@ describe("update attr", () => {
       [0, 2],
       [1, 2],
     ];
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().attr([0, 3], [1, 1], { foo: "bar" }),
+      new Edit().attr([0, 3], [1, 1], { foo: "bar" }),
     )!;
 
     expect(res[0]).toEqual([
@@ -2069,10 +1899,10 @@ describe("update attr", () => {
       [0, 3],
       [0, 3],
     ];
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().attr([0, 3], [0, 4], { foo: "bar" }),
+      new Edit().attr([0, 3], [0, 4], { foo: "bar" }),
     )!;
 
     expect(res[0]).toEqual([
@@ -2092,10 +1922,10 @@ describe("update attr", () => {
       [0, 3],
       [0, 3],
     ];
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().attr([0, 4], [0, 5], { foo: "bar" }),
+      new Edit().attr([0, 4], [0, 5], { foo: "bar" }),
     )!;
 
     expect(res[0]).toEqual([
@@ -2120,10 +1950,10 @@ describe("update attr", () => {
       [1, 2],
       [1, 2],
     ];
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().attr([1, 3], [1, 4], { foo: "bar" }),
+      new Edit().attr([1, 3], [1, 4], { foo: "bar" }),
     )!;
 
     expect(res[0]).toEqual([
@@ -2145,10 +1975,10 @@ describe("update attr", () => {
       [0, 2],
       [0, 2],
     ];
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().attr([1, 1], [1, 2], { foo: "bar" }),
+      new Edit().attr([1, 1], [1, 2], { foo: "bar" }),
     )!;
 
     expect(res[0]).toEqual([
@@ -2175,10 +2005,10 @@ describe("update attr", () => {
       [0, 2],
       [0, 2],
     ];
-    const res = applyTransaction(
+    const res = applyEdit(
       doc,
       sel,
-      new Transaction().attr([1, 1], [2, 1], { foo: "bar" }),
+      new Edit().attr([1, 1], [2, 1], { foo: "bar" }),
     )!;
 
     expect(res[0]).toEqual([
@@ -2205,11 +2035,7 @@ describe("selection", () => {
         [0, 2],
         [0, 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().select([-1, 0], [0, 1]),
-      )!;
+      const res = applyEdit(doc, sel, new Edit().select([-1, 0], [0, 1]))!;
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -2222,11 +2048,7 @@ describe("selection", () => {
         [0, 2],
         [0, 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().select([0, 0], [100, 1]),
-      )!;
+      const res = applyEdit(doc, sel, new Edit().select([0, 0], [100, 1]))!;
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -2239,11 +2061,7 @@ describe("selection", () => {
         [0, 2],
         [0, 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().select([0, -1], [0, 1]),
-      )!;
+      const res = applyEdit(doc, sel, new Edit().select([0, -1], [0, 1]))!;
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -2256,11 +2074,7 @@ describe("selection", () => {
         [0, 2],
         [0, 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().select([0, 0], [0, 100]),
-      )!;
+      const res = applyEdit(doc, sel, new Edit().select([0, 0], [0, 100]))!;
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -2278,11 +2092,7 @@ describe("selection", () => {
       [0, 1],
       [0, 1],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().select(...nextSel),
-    )!;
+    const res = applyEdit(doc, sel, new Edit().select(...nextSel))!;
 
     expect(is(res[0], doc)).toBe(true);
     expect(res[1]).toEqual(nextSel);
@@ -2305,11 +2115,7 @@ describe("selection", () => {
       [1, 1],
       [2, 1],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().select(...nextSel),
-    )!;
+    const res = applyEdit(doc, sel, new Edit().select(...nextSel))!;
 
     expect(res[0]).toEqual(doc);
     expect(res[1]).toEqual(nextSel);
@@ -2327,11 +2133,7 @@ describe("selection", () => {
       [0, 2],
       [1, 1],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().select(...nextSel),
-    )!;
+    const res = applyEdit(doc, sel, new Edit().select(...nextSel))!;
 
     expect(res[0]).toEqual(doc);
     expect(res[1]).toEqual(nextSel);
@@ -2349,11 +2151,7 @@ describe("selection", () => {
       [0, 0],
       [doc.length - 1, doc[doc.length - 1]![0]!.text.length - 1],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().select(...nextSel),
-    )!;
+    const res = applyEdit(doc, sel, new Edit().select(...nextSel))!;
 
     expect(res[0]).toEqual(doc);
     expect(res[1]).toEqual(nextSel);
