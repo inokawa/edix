@@ -96,7 +96,7 @@ export const setSelectionToDOM = (
   const end = backward ? anchor : focus;
   // special path for empty content with empty selection, necessary for placeholder
   if (
-    start[0] === 0 &&
+    start[0].length === 0 &&
     start[1] === 0 &&
     isCollapsed &&
     !root.hasChildNodes()
@@ -153,20 +153,17 @@ type DOMPosition = [node: Text | Element, offsetAtNode: number];
 
 const findPosition = (
   root: Element,
-  [line, offset]: Position,
+  [path, offset]: Position,
   config: ParserConfig,
 ): DOMPosition | undefined => {
   return parse(
     (next): DOMPosition | undefined => {
+      let pathIndex = 0;
       let type: TokenType | void;
-      let isBlockVisited = false;
       while ((type = next())) {
         if (type === TOKEN_BLOCK) {
-          if (!isBlockVisited) {
-            isBlockVisited = true;
-            if (line !== 0) {
-              moveToBlock(line);
-            }
+          if (pathIndex < path.length) {
+            moveToBlock(path[pathIndex++]!);
           }
         } else {
           const length = getNodeSize();
@@ -197,12 +194,10 @@ const serializePosition = (
   offsetAtNode: number,
   config: ParserConfig,
 ): Position => {
-  let row: Element;
-  let lineIndex: number;
   let excludeEnd = true;
   if (root === node && !node.hasChildNodes()) {
     // for placeholder
-    return [0, 0];
+    return [[], 0];
   }
 
   if (isElementNode(node) && !config._isVoid(node) && node.hasChildNodes()) {
@@ -223,21 +218,13 @@ const serializePosition = (
   let maybeBlock: Node | null = node;
   while (maybeBlock && maybeBlock !== root) {
     if (isElementNode(maybeBlock) && config._isBlock(maybeBlock)) {
-      blocks.push(maybeBlock);
+      blocks.unshift(maybeBlock);
     }
     maybeBlock = maybeBlock.parentElement;
   }
 
-  if (blocks.length) {
-    row = blocks[0]!;
-    lineIndex = indexOf(row);
-  } else {
-    row = root;
-    lineIndex = 0;
-  }
-
   return [
-    lineIndex,
+    blocks.length ? [indexOf(blocks[blocks.length - 1]!)] : [],
     offsetAtNode +
       parse(
         (next) => {
@@ -247,7 +234,7 @@ const serializePosition = (
           }
           return offset;
         },
-        row,
+        blocks.length ? blocks[blocks.length - 1]! : root,
         config,
         { _endNode: node, _excludeEnd: excludeEnd },
       ),
@@ -276,8 +263,8 @@ export const serializeRange = (
  */
 export const getEmptySelectionSnapshot = (): SelectionSnapshot => {
   return [
-    [0, 0],
-    [0, 0],
+    [[], 0],
+    [[], 0],
   ];
 };
 

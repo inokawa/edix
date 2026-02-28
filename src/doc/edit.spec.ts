@@ -43,14 +43,14 @@ const moveOffset = (
 };
 
 const moveLine = (
-  selection: SelectionSnapshot,
+  [anchor, focus]: SelectionSnapshot,
   line: number | { anchor?: number; focus?: number },
 ): SelectionSnapshot => {
   const anchorLine = typeof line === "number" ? line : (line.anchor ?? 0);
   const focusLine = typeof line === "number" ? line : (line.focus ?? 0);
   return [
-    [selection[0][0] + anchorLine, selection[0][1]],
-    [selection[1][0] + focusLine, selection[1][1]],
+    [[(anchor[0].length ? anchor[0][0]! : 0) + anchorLine], anchor[1]],
+    [[(focus[0].length ? focus[0][0]! : 0) + focusLine], focus[1]],
   ];
 };
 
@@ -63,8 +63,8 @@ it("discard if error", () => {
   const docText2 = "fghij";
   const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
   const sel: SelectionSnapshot = [
-    [1, 2],
-    [1, 2],
+    [[1], 2],
+    [[1], 2],
   ];
 
   expect(() => applyOperation(doc, sel, { _type: 3 } as any)).toThrowError();
@@ -80,13 +80,13 @@ describe("insert", () => {
         [{ id: 1, text: docText2 }],
       ];
       const sel: SelectionSnapshot = [
-        [1, 2],
-        [1, 2],
+        [[1], 2],
+        [[1], 2],
       ];
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().insert([-1, 0], "test"),
+        new Transaction().insert([[-1], 0], "test"),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -101,13 +101,13 @@ describe("insert", () => {
         [{ id: 1, text: docText2 }],
       ];
       const sel: SelectionSnapshot = [
-        [1, 2],
-        [1, 2],
+        [[1], 2],
+        [[1], 2],
       ];
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().insert([100, 0], "test"),
+        new Transaction().insert([[100], 0], "test"),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -122,13 +122,13 @@ describe("insert", () => {
         [{ id: 1, text: docText2 }],
       ];
       const sel: SelectionSnapshot = [
-        [1, 2],
-        [1, 2],
+        [[1], 2],
+        [[1], 2],
       ];
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().insert([0, -1], "test"),
+        new Transaction().insert([[0], -1], "test"),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -143,13 +143,13 @@ describe("insert", () => {
         [{ id: 1, text: docText2 }],
       ];
       const sel: SelectionSnapshot = [
-        [1, 2],
-        [1, 2],
+        [[1], 2],
+        [[1], 2],
       ];
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().insert([0, 100], "test"),
+        new Transaction().insert([[0], 100], "test"),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -164,13 +164,13 @@ describe("insert", () => {
         [{ id: 1, text: docText2 }],
       ];
       const sel: SelectionSnapshot = [
-        [1, 2],
-        [1, 2],
+        [[1], 2],
+        [[1], 2],
       ];
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().insert([0, 1], ""),
+        new Transaction().insert([[0], 1], ""),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -183,14 +183,14 @@ describe("insert", () => {
     const docText2 = "fghij";
     const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
     const sel: SelectionSnapshot = [
-      [1, 2],
-      [1, 2],
+      [[1], 2],
+      [[1], 2],
     ];
     const text = "ABC";
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([0, 1], text),
+      new Transaction().insert([[0], 1], text),
     )!;
 
     expect(res[0]).toEqual([
@@ -205,15 +205,15 @@ describe("insert", () => {
     const docText2 = "fghij";
     const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
     const sel: SelectionSnapshot = [
-      [1, 2],
-      [1, 2],
+      [[1], 2],
+      [[1], 2],
     ];
     const text = "ABC";
     const text2 = "DEFG";
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([0, 1], text + "\n" + text2),
+      new Transaction().insert([[0], 1], text + "\n" + text2),
     )!;
 
     const [before, after] = splitAt(docText, 1);
@@ -229,14 +229,14 @@ describe("insert", () => {
     const docText = "abcde";
     const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
+      [[0], 2],
+      [[0], 2],
     ];
     const text = "ABC";
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([0, 1], text),
+      new Transaction().insert([[0], 1], text),
     )!;
 
     expect(res[0]).toEqual([[{ id: 1, text: insertAt(docText, 1, text) }]]);
@@ -253,14 +253,14 @@ describe("insert", () => {
       [{ id: 1, text: docText3 }],
     ];
     const sel: SelectionSnapshot = [
-      [1, 2],
-      [1, 2],
+      [[1], 2],
+      [[1], 2],
     ];
     const text = "ABC";
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([1, 1], text),
+      new Transaction().insert([[1], 1], text),
     )!;
 
     expect(res[0]).toEqual([
@@ -275,15 +275,15 @@ describe("insert", () => {
     const docText = "abcde";
     const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
+      [[0], 2],
+      [[0], 2],
     ];
     const text = "ABC";
     const text2 = "DEFG";
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([0, 1], text + "\n" + text2),
+      new Transaction().insert([[0], 1], text + "\n" + text2),
     )!;
 
     const [before, after] = splitAt(docText, 1);
@@ -300,14 +300,14 @@ describe("insert", () => {
     const docText = "abcde";
     const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
+      [[0], 2],
+      [[0], 2],
     ];
     const text = "ABC";
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([0, 2], text),
+      new Transaction().insert([[0], 2], text),
     )!;
 
     expect(res[0]).toEqual([[{ id: 1, text: insertAt(docText, 2, text) }]]);
@@ -318,15 +318,15 @@ describe("insert", () => {
     const docText = "abcde";
     const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
+      [[0], 2],
+      [[0], 2],
     ];
     const text = "ABC";
     const text2 = "DEFG";
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([0, 2], text + "\n" + text2),
+      new Transaction().insert([[0], 2], text + "\n" + text2),
     )!;
 
     const [before, after] = splitAt(docText, 2);
@@ -343,14 +343,14 @@ describe("insert", () => {
     const docText = "abcde";
     const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
-      [0, 1],
-      [0, 3],
+      [[0], 1],
+      [[0], 3],
     ];
     const text = "ABC";
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([0, 2], text),
+      new Transaction().insert([[0], 2], text),
     )!;
 
     expect(res[0]).toEqual([[{ id: 1, text: insertAt(docText, 2, text) }]]);
@@ -361,15 +361,15 @@ describe("insert", () => {
     const docText = "abcde";
     const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
-      [0, 1],
-      [0, 3],
+      [[0], 1],
+      [[0], 3],
     ];
     const text = "ABC";
     const text2 = "DEFG";
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([0, 2], text + "\n" + text2),
+      new Transaction().insert([[0], 2], text + "\n" + text2),
     )!;
 
     const [before, after] = splitAt(docText, 2);
@@ -388,14 +388,14 @@ describe("insert", () => {
     const docText = "abcde";
     const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
+      [[0], 2],
+      [[0], 2],
     ];
     const text = "ABC";
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([0, 3], text),
+      new Transaction().insert([[0], 3], text),
     )!;
 
     expect(res[0]).toEqual([[{ id: 1, text: insertAt(docText, 3, text) }]]);
@@ -412,14 +412,14 @@ describe("insert", () => {
       [{ id: 1, text: docText3 }],
     ];
     const sel: SelectionSnapshot = [
-      [1, 2],
-      [1, 2],
+      [[1], 2],
+      [[1], 2],
     ];
     const text = "ABC";
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([1, 3], text),
+      new Transaction().insert([[1], 3], text),
     )!;
 
     expect(res[0]).toEqual([
@@ -434,15 +434,15 @@ describe("insert", () => {
     const docText = "abcde";
     const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
+      [[0], 2],
+      [[0], 2],
     ];
     const text = "ABC";
     const text2 = "DEFG";
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([0, 3], text + "\n" + text2),
+      new Transaction().insert([[0], 3], text + "\n" + text2),
     )!;
 
     const [before, after] = splitAt(docText, 3);
@@ -458,14 +458,14 @@ describe("insert", () => {
     const docText2 = "fghij";
     const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
+      [[0], 2],
+      [[0], 2],
     ];
     const text = "ABC";
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([1, 1], text),
+      new Transaction().insert([[1], 1], text),
     )!;
 
     expect(res[0]).toEqual([
@@ -480,15 +480,15 @@ describe("insert", () => {
     const docText2 = "fghij";
     const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
+      [[0], 2],
+      [[0], 2],
     ];
     const text = "ABC";
     const text2 = "DEFG";
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([1, 1], text + "\n" + text2),
+      new Transaction().insert([[1], 1], text + "\n" + text2),
     )!;
 
     const [before, after] = splitAt(docText2, 1);
@@ -505,13 +505,13 @@ describe("insert", () => {
     const docText2 = "fghij";
     const doc: Doc = [[{ id: 1, text: docText }], [{ id: 2, text: docText2 }]];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
+      [[0], 2],
+      [[0], 2],
     ];
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([1, 0], "\n"),
+      new Transaction().insert([[1], 0], "\n"),
     )!;
     expect(res[0]).toEqual([
       [{ id: 1, text: docText }],
@@ -526,13 +526,13 @@ describe("insert", () => {
     const docText2 = "fghij";
     const doc: Doc = [[{ id: 1, text: docText }], [{ id: 2, text: docText2 }]];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
+      [[0], 2],
+      [[0], 2],
     ];
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([1, 1], "\n"),
+      new Transaction().insert([[1], 1], "\n"),
     )!;
 
     const [before, after] = splitAt(docText2, 1);
@@ -549,13 +549,13 @@ describe("insert", () => {
     const docText2 = "fghij";
     const doc: Doc = [[{ id: 1, text: docText }], [{ id: 2, text: docText2 }]];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
+      [[0], 2],
+      [[0], 2],
     ];
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([0, docText.length], "\n"),
+      new Transaction().insert([[0], docText.length], "\n"),
     )!;
     expect(res[0]).toEqual([
       [{ id: 1, text: docText }],
@@ -575,14 +575,14 @@ describe("insert", () => {
       ],
     ];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
+      [[0], 2],
+      [[0], 2],
     ];
     const text = "ABC";
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([0, docText.length], text),
+      new Transaction().insert([[0], docText.length], text),
     )!;
 
     expect(res[0]).toEqual([
@@ -604,15 +604,15 @@ describe("insert", () => {
       ],
     ];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
+      [[0], 2],
+      [[0], 2],
     ];
     const text = "ABC";
     const text2 = "DEFG";
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([0, docText.length], text + "\n" + text2),
+      new Transaction().insert([[0], docText.length], text + "\n" + text2),
     )!;
 
     expect(res[0]).toEqual([
@@ -635,13 +635,13 @@ describe("insert", () => {
       ],
     ];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
+      [[0], 2],
+      [[0], 2],
     ];
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([0, docText.length], "\n"),
+      new Transaction().insert([[0], docText.length], "\n"),
     )!;
 
     expect(res[0]).toEqual([
@@ -662,13 +662,13 @@ describe("insert node", () => {
         [{ id: 1, text: docText2 }],
       ];
       const sel: SelectionSnapshot = [
-        [1, 2],
-        [1, 2],
+        [[1], 2],
+        [[1], 2],
       ];
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().insertFragment([-1, 0], [[{ text: "test" }]]),
+        new Transaction().insertFragment([[-1], 0], [[{ text: "test" }]]),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -683,13 +683,13 @@ describe("insert node", () => {
         [{ id: 1, text: docText2 }],
       ];
       const sel: SelectionSnapshot = [
-        [1, 2],
-        [1, 2],
+        [[1], 2],
+        [[1], 2],
       ];
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().insertFragment([100, 0], [[{ text: "test" }]]),
+        new Transaction().insertFragment([[100], 0], [[{ text: "test" }]]),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -704,13 +704,13 @@ describe("insert node", () => {
         [{ id: 1, text: docText2 }],
       ];
       const sel: SelectionSnapshot = [
-        [1, 2],
-        [1, 2],
+        [[1], 2],
+        [[1], 2],
       ];
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().insertFragment([0, -1], [[{ text: "test" }]]),
+        new Transaction().insertFragment([[0], -1], [[{ text: "test" }]]),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -725,13 +725,13 @@ describe("insert node", () => {
         [{ id: 1, text: docText2 }],
       ];
       const sel: SelectionSnapshot = [
-        [1, 2],
-        [1, 2],
+        [[1], 2],
+        [[1], 2],
       ];
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().insertFragment([0, 100], [[{ text: "test" }]]),
+        new Transaction().insertFragment([[0], 100], [[{ text: "test" }]]),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -746,13 +746,13 @@ describe("insert node", () => {
         [{ id: 1, text: docText2 }],
       ];
       const sel: SelectionSnapshot = [
-        [1, 2],
-        [1, 2],
+        [[1], 2],
+        [[1], 2],
       ];
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().insertFragment([0, 1], []),
+        new Transaction().insertFragment([[0], 1], []),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -765,14 +765,14 @@ describe("insert node", () => {
     const docText2 = "fghij";
     const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
     const sel: SelectionSnapshot = [
-      [1, 2],
-      [1, 2],
+      [[1], 2],
+      [[1], 2],
     ];
     const text = "ABC";
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insertFragment([0, 1], [[{ text }]]),
+      new Transaction().insertFragment([[0], 1], [[{ text }]]),
     )!;
 
     const [before, after] = splitAt(docText, 1);
@@ -788,8 +788,8 @@ describe("insert node", () => {
     const docText2 = "fghij";
     const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
     const sel: SelectionSnapshot = [
-      [1, 2],
-      [1, 2],
+      [[1], 2],
+      [[1], 2],
     ];
     const text = "ABC";
     const text2 = "DEFG";
@@ -797,7 +797,7 @@ describe("insert node", () => {
       doc,
       sel,
       new Transaction().insertFragment(
-        [0, 1],
+        [[0], 1],
         [[{ text: text }], [{ text: text2 }]],
       ),
     )!;
@@ -815,14 +815,14 @@ describe("insert node", () => {
     const docText = "abcde";
     const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
+      [[0], 2],
+      [[0], 2],
     ];
     const text = "ABC";
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insertFragment([0, 1], [[{ text }]]),
+      new Transaction().insertFragment([[0], 1], [[{ text }]]),
     )!;
 
     const [before, after] = splitAt(docText, 1);
@@ -842,14 +842,14 @@ describe("insert node", () => {
       [{ id: 1, text: docText3 }],
     ];
     const sel: SelectionSnapshot = [
-      [1, 2],
-      [1, 2],
+      [[1], 2],
+      [[1], 2],
     ];
     const text = "ABC";
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insertFragment([1, 1], [[{ text }]]),
+      new Transaction().insertFragment([[1], 1], [[{ text }]]),
     )!;
 
     const [before, after] = splitAt(docText2, 1);
@@ -865,8 +865,8 @@ describe("insert node", () => {
     const docText = "abcde";
     const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
+      [[0], 2],
+      [[0], 2],
     ];
     const text = "ABC";
     const text2 = "DEFG";
@@ -874,7 +874,7 @@ describe("insert node", () => {
       doc,
       sel,
       new Transaction().insertFragment(
-        [0, 1],
+        [[0], 1],
         [[{ text: text }], [{ text: text2 }]],
       ),
     )!;
@@ -893,14 +893,14 @@ describe("insert node", () => {
     const docText = "abcde";
     const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
+      [[0], 2],
+      [[0], 2],
     ];
     const text = "ABC";
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insertFragment([0, 2], [[{ text }]]),
+      new Transaction().insertFragment([[0], 2], [[{ text }]]),
     )!;
 
     const [before, after] = splitAt(docText, 2);
@@ -914,8 +914,8 @@ describe("insert node", () => {
     const docText = "abcde";
     const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
+      [[0], 2],
+      [[0], 2],
     ];
     const text = "ABC";
     const text2 = "DEFG";
@@ -923,7 +923,7 @@ describe("insert node", () => {
       doc,
       sel,
       new Transaction().insertFragment(
-        [0, 2],
+        [[0], 2],
         [[{ text: text }], [{ text: text2 }]],
       ),
     )!;
@@ -942,14 +942,14 @@ describe("insert node", () => {
     const docText = "abcde";
     const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
-      [0, 1],
-      [0, 3],
+      [[0], 1],
+      [[0], 3],
     ];
     const text = "ABC";
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insertFragment([0, 2], [[{ text }]]),
+      new Transaction().insertFragment([[0], 2], [[{ text }]]),
     )!;
 
     const [before, after] = splitAt(docText, 2);
@@ -963,8 +963,8 @@ describe("insert node", () => {
     const docText = "abcde";
     const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
-      [0, 1],
-      [0, 3],
+      [[0], 1],
+      [[0], 3],
     ];
     const text = "ABC";
     const text2 = "DEFG";
@@ -972,7 +972,7 @@ describe("insert node", () => {
       doc,
       sel,
       new Transaction().insertFragment(
-        [0, 2],
+        [[0], 2],
         [[{ text: text }], [{ text: text2 }]],
       ),
     )!;
@@ -993,14 +993,14 @@ describe("insert node", () => {
     const docText = "abcde";
     const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
+      [[0], 2],
+      [[0], 2],
     ];
     const text = "ABC";
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insertFragment([0, 3], [[{ text }]]),
+      new Transaction().insertFragment([[0], 3], [[{ text }]]),
     )!;
 
     const [before, after] = splitAt(docText, 3);
@@ -1020,14 +1020,14 @@ describe("insert node", () => {
       [{ id: 1, text: docText3 }],
     ];
     const sel: SelectionSnapshot = [
-      [1, 2],
-      [1, 2],
+      [[1], 2],
+      [[1], 2],
     ];
     const text = "ABC";
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insertFragment([1, 3], [[{ text }]]),
+      new Transaction().insertFragment([[1], 3], [[{ text }]]),
     )!;
 
     const [before, after] = splitAt(docText2, 3);
@@ -1043,8 +1043,8 @@ describe("insert node", () => {
     const docText = "abcde";
     const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
+      [[0], 2],
+      [[0], 2],
     ];
     const text = "ABC";
     const text2 = "DEFG";
@@ -1052,7 +1052,7 @@ describe("insert node", () => {
       doc,
       sel,
       new Transaction().insertFragment(
-        [0, 3],
+        [[0], 3],
         [[{ text: text }], [{ text: text2 }]],
       ),
     )!;
@@ -1070,14 +1070,14 @@ describe("insert node", () => {
     const docText2 = "fghij";
     const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
+      [[0], 2],
+      [[0], 2],
     ];
     const text = "ABC";
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insertFragment([1, 1], [[{ text }]]),
+      new Transaction().insertFragment([[1], 1], [[{ text }]]),
     )!;
 
     const [before, after] = splitAt(docText2, 1);
@@ -1093,8 +1093,8 @@ describe("insert node", () => {
     const docText2 = "fghij";
     const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
+      [[0], 2],
+      [[0], 2],
     ];
     const text = "ABC";
     const text2 = "DEFG";
@@ -1102,7 +1102,7 @@ describe("insert node", () => {
       doc,
       sel,
       new Transaction().insertFragment(
-        [1, 1],
+        [[1], 1],
         [[{ text: text }], [{ text: text2 }]],
       ),
     )!;
@@ -1123,13 +1123,13 @@ describe("delete", () => {
       const docText = "abcde";
       const doc: Doc = [[{ id: 1, text: docText }]];
       const sel: SelectionSnapshot = [
-        [0, 2],
-        [0, 2],
+        [[0], 2],
+        [[0], 2],
       ];
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().delete([-1, 0], [0, 1]),
+        new Transaction().delete([[-1], 0], [[0], 1]),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -1140,13 +1140,13 @@ describe("delete", () => {
       const docText = "abcde";
       const doc: Doc = [[{ id: 1, text: docText }]];
       const sel: SelectionSnapshot = [
-        [0, 2],
-        [0, 2],
+        [[0], 2],
+        [[0], 2],
       ];
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().delete([0, 0], [100, 1]),
+        new Transaction().delete([[0], 0], [[100], 1]),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -1157,13 +1157,13 @@ describe("delete", () => {
       const docText = "abcde";
       const doc: Doc = [[{ id: 1, text: docText }]];
       const sel: SelectionSnapshot = [
-        [0, 2],
-        [0, 2],
+        [[0], 2],
+        [[0], 2],
       ];
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().delete([0, -1], [0, 1]),
+        new Transaction().delete([[0], -1], [[0], 1]),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -1174,13 +1174,13 @@ describe("delete", () => {
       const docText = "abcde";
       const doc: Doc = [[{ id: 1, text: docText }]];
       const sel: SelectionSnapshot = [
-        [0, 2],
-        [0, 2],
+        [[0], 2],
+        [[0], 2],
       ];
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().delete([0, 0], [0, 100]),
+        new Transaction().delete([[0], 0], [[0], 100]),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -1191,13 +1191,13 @@ describe("delete", () => {
       const docText = "abcde";
       const doc: Doc = [[{ id: 1, text: docText }]];
       const sel: SelectionSnapshot = [
-        [0, 2],
-        [0, 2],
+        [[0], 2],
+        [[0], 2],
       ];
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().delete([0, 1], [0, 1]),
+        new Transaction().delete([[0], 1], [[0], 1]),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -1208,13 +1208,13 @@ describe("delete", () => {
       const docText = "abcde";
       const doc: Doc = [[{ id: 1, text: docText }]];
       const sel: SelectionSnapshot = [
-        [0, 2],
-        [0, 2],
+        [[0], 2],
+        [[0], 2],
       ];
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().delete([0, 2], [0, 1]),
+        new Transaction().delete([[0], 2], [[0], 1]),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -1227,13 +1227,13 @@ describe("delete", () => {
     const docText2 = "fghij";
     const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
     const sel: SelectionSnapshot = [
-      [1, 2],
-      [1, 2],
+      [[1], 2],
+      [[1], 2],
     ];
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().delete([0, 1], [0, 2]),
+      new Transaction().delete([[0], 1], [[0], 2]),
     )!;
 
     expect(res[0]).toEqual([
@@ -1248,14 +1248,14 @@ describe("delete", () => {
     const docText2 = "fghij";
     const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
     const sel: SelectionSnapshot = [
-      [1, 3],
-      [1, 3],
+      [[1], 3],
+      [[1], 3],
     ];
 
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().delete([0, 2], [1, 1]),
+      new Transaction().delete([[0], 2], [[1], 1]),
     )!;
 
     expect(res[0]).toEqual([
@@ -1268,8 +1268,8 @@ describe("delete", () => {
       ],
     ]);
     expect(res[1]).toEqual([
-      [0, 2 + (3 - 1)],
-      [0, 2 + (3 - 1)],
+      [[0], 2 + (3 - 1)],
+      [[0], 2 + (3 - 1)],
     ]);
   });
 
@@ -1277,13 +1277,13 @@ describe("delete", () => {
     const docText = "abcde";
     const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
-      [0, 3],
-      [0, 3],
+      [[0], 3],
+      [[0], 3],
     ];
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().delete([0, 1], [0, 2]),
+      new Transaction().delete([[0], 1], [[0], 2]),
     )!;
 
     expect(res[0]).toEqual([[{ id: 1, text: deleteAt(docText, 1, 1) }]]);
@@ -1300,13 +1300,13 @@ describe("delete", () => {
       [{ id: 1, text: docText3 }],
     ];
     const sel: SelectionSnapshot = [
-      [1, 3],
-      [1, 3],
+      [[1], 3],
+      [[1], 3],
     ];
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().delete([1, 1], [1, 2]),
+      new Transaction().delete([[1], 1], [[1], 2]),
     )!;
 
     expect(res[0]).toEqual([
@@ -1321,13 +1321,13 @@ describe("delete", () => {
     const docText = "abcde";
     const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
-      [0, 3],
-      [0, 3],
+      [[0], 3],
+      [[0], 3],
     ];
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().delete([0, 2], [0, 3]),
+      new Transaction().delete([[0], 2], [[0], 3]),
     )!;
 
     expect(res[0]).toEqual([[{ id: 1, text: deleteAt(docText, 2, 1) }]]);
@@ -1338,13 +1338,13 @@ describe("delete", () => {
     const docText = "abcde";
     const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
-      [0, 3],
-      [0, 3],
+      [[0], 3],
+      [[0], 3],
     ];
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().delete([0, 2], [0, 4]),
+      new Transaction().delete([[0], 2], [[0], 4]),
     )!;
 
     expect(res[0]).toEqual([[{ id: 1, text: deleteAt(docText, 2, 2) }]]);
@@ -1355,19 +1355,19 @@ describe("delete", () => {
     const docText = "abcde";
     const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 4],
+      [[0], 2],
+      [[0], 4],
     ];
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().delete([0, 1], [0, 5]),
+      new Transaction().delete([[0], 1], [[0], 5]),
     )!;
 
     expect(res[0]).toEqual([[{ id: 1, text: deleteAt(docText, 1, 4) }]]);
     expect(res[1]).toEqual([
-      [0, 1],
-      [0, 1],
+      [[0], 1],
+      [[0], 1],
     ]);
   });
 
@@ -1375,13 +1375,13 @@ describe("delete", () => {
     const docText = "abcde";
     const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 4],
+      [[0], 2],
+      [[0], 4],
     ];
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().delete([0, 1], [0, 3]),
+      new Transaction().delete([[0], 1], [[0], 3]),
     )!;
 
     expect(res[0]).toEqual([[{ id: 1, text: deleteAt(docText, 1, 2) }]]);
@@ -1392,13 +1392,13 @@ describe("delete", () => {
     const docText = "abcde";
     const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 4],
+      [[0], 2],
+      [[0], 4],
     ];
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().delete([0, 3], [0, 5]),
+      new Transaction().delete([[0], 3], [[0], 5]),
     )!;
 
     expect(res[0]).toEqual([[{ id: 1, text: deleteAt(docText, 3, 2) }]]);
@@ -1410,21 +1410,21 @@ describe("delete", () => {
     const docText2 = "fghij";
     const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [1, 2],
+      [[0], 2],
+      [[1], 2],
     ];
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().delete([0, 3], [1, 1]),
+      new Transaction().delete([[0], 3], [[1], 1]),
     )!;
 
     expect(res[0]).toEqual([
       [{ id: 1, text: splitAt(docText, 3)[0] + splitAt(docText2, 1)[1] }],
     ]);
     expect(res[1]).toEqual([
-      [0, 2],
-      [0, 3 + 1],
+      [[0], 2],
+      [[0], 3 + 1],
     ]);
   });
 
@@ -1432,13 +1432,13 @@ describe("delete", () => {
     const docText = "abcde";
     const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
-      [0, 3],
-      [0, 3],
+      [[0], 3],
+      [[0], 3],
     ];
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().delete([0, 3], [0, 4]),
+      new Transaction().delete([[0], 3], [[0], 4]),
     )!;
 
     expect(res[0]).toEqual([[{ id: 1, text: deleteAt(docText, 3, 1) }]]);
@@ -1449,13 +1449,13 @@ describe("delete", () => {
     const docText = "abcde";
     const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
-      [0, 3],
-      [0, 3],
+      [[0], 3],
+      [[0], 3],
     ];
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().delete([0, 4], [0, 5]),
+      new Transaction().delete([[0], 4], [[0], 5]),
     )!;
 
     expect(res[0]).toEqual([[{ id: 1, text: deleteAt(docText, 4, 1) }]]);
@@ -1472,13 +1472,13 @@ describe("delete", () => {
       [{ id: 1, text: docText3 }],
     ];
     const sel: SelectionSnapshot = [
-      [1, 2],
-      [1, 2],
+      [[1], 2],
+      [[1], 2],
     ];
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().delete([1, 3], [1, 4]),
+      new Transaction().delete([[1], 3], [[1], 4]),
     )!;
 
     expect(res[0]).toEqual([
@@ -1494,13 +1494,13 @@ describe("delete", () => {
     const docText2 = "fghij";
     const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
+      [[0], 2],
+      [[0], 2],
     ];
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().delete([1, 1], [1, 2]),
+      new Transaction().delete([[1], 1], [[1], 2]),
     )!;
 
     expect(res[0]).toEqual([
@@ -1515,14 +1515,14 @@ describe("delete", () => {
     const docText2 = "fghij";
     const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
+      [[0], 2],
+      [[0], 2],
     ];
 
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().delete([0, docText.length], [1, 0]),
+      new Transaction().delete([[0], docText.length], [[1], 0]),
     )!;
 
     expect(res[0]).toEqual([
@@ -1546,13 +1546,13 @@ describe("delete", () => {
       [{ id: 1, text: docText3 }],
     ];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
+      [[0], 2],
+      [[0], 2],
     ];
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().delete([1, 1], [2, 1]),
+      new Transaction().delete([[1], 1], [[2], 1]),
     )!;
 
     expect(res[0]).toEqual([
@@ -1578,14 +1578,14 @@ describe("delete", () => {
       [{ id: 1, text: docText2 }],
     ];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
+      [[0], 2],
+      [[0], 2],
     ];
 
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().delete([0, docText.length], [1, 0]),
+      new Transaction().delete([[0], docText.length], [[1], 0]),
     )!;
 
     expect(res[0]).toEqual([
@@ -1604,14 +1604,14 @@ describe("delete", () => {
       [{ id: 1, text: docText2 }],
     ];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
+      [[0], 2],
+      [[0], 2],
     ];
 
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().delete([1, 0], [2, 0]),
+      new Transaction().delete([[1], 0], [[2], 0]),
     )!;
 
     expect(res[0]).toEqual([
@@ -1631,14 +1631,17 @@ describe("delete", () => {
       ],
     ];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
+      [[0], 2],
+      [[0], 2],
     ];
 
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().delete([0, docText.length], [0, docText.length + 1]),
+      new Transaction().delete(
+        [[0], docText.length],
+        [[0], docText.length + 1],
+      ),
     )!;
 
     expect(res[0]).toEqual([
@@ -1660,14 +1663,17 @@ describe("delete", () => {
       ],
     ];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
+      [[0], 2],
+      [[0], 2],
     ];
 
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().delete([0, docText.length - 1], [0, docText.length]),
+      new Transaction().delete(
+        [[0], docText.length - 1],
+        [[0], docText.length],
+      ),
     )!;
 
     expect(res[0]).toEqual([
@@ -1684,14 +1690,14 @@ describe("delete", () => {
     const docText2 = "fghij";
     const doc: Doc = [[{ id: 1, text: docText }], [{ id: 2, text: docText2 }]];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
+      [[0], 2],
+      [[0], 2],
     ];
 
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().delete([0, docText.length], [1, 0]),
+      new Transaction().delete([[0], docText.length], [[1], 0]),
     )!;
 
     expect(res[0]).toEqual([
@@ -1716,13 +1722,13 @@ describe("update attr", () => {
       const docText = "abcde";
       const doc: Doc = [[{ id: 1, text: docText }]];
       const sel: SelectionSnapshot = [
-        [0, 2],
-        [0, 2],
+        [[0], 2],
+        [[0], 2],
       ];
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().attr([-1, 0], [0, 1], { foo: "bar" }),
+        new Transaction().attr([[-1], 0], [[0], 1], { foo: "bar" }),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -1733,13 +1739,13 @@ describe("update attr", () => {
       const docText = "abcde";
       const doc: Doc = [[{ id: 1, text: docText }]];
       const sel: SelectionSnapshot = [
-        [0, 2],
-        [0, 2],
+        [[0], 2],
+        [[0], 2],
       ];
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().attr([0, 0], [100, 1], { foo: "bar" }),
+        new Transaction().attr([[0], 0], [[100], 1], { foo: "bar" }),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -1750,13 +1756,13 @@ describe("update attr", () => {
       const docText = "abcde";
       const doc: Doc = [[{ id: 1, text: docText }]];
       const sel: SelectionSnapshot = [
-        [0, 2],
-        [0, 2],
+        [[0], 2],
+        [[0], 2],
       ];
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().attr([0, -1], [0, 1], { foo: "bar" }),
+        new Transaction().attr([[0], -1], [[0], 1], { foo: "bar" }),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -1767,13 +1773,13 @@ describe("update attr", () => {
       const docText = "abcde";
       const doc: Doc = [[{ id: 1, text: docText }]];
       const sel: SelectionSnapshot = [
-        [0, 2],
-        [0, 2],
+        [[0], 2],
+        [[0], 2],
       ];
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().attr([0, 0], [0, 100], { foo: "bar" }),
+        new Transaction().attr([[0], 0], [[0], 100], { foo: "bar" }),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -1784,13 +1790,13 @@ describe("update attr", () => {
       const docText = "abcde";
       const doc: Doc = [[{ id: 1, text: docText }]];
       const sel: SelectionSnapshot = [
-        [0, 2],
-        [0, 2],
+        [[0], 2],
+        [[0], 2],
       ];
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().attr([0, 1], [0, 1], { foo: "bar" }),
+        new Transaction().attr([[0], 1], [[0], 1], { foo: "bar" }),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -1801,13 +1807,13 @@ describe("update attr", () => {
       const docText = "abcde";
       const doc: Doc = [[{ id: 1, text: docText }]];
       const sel: SelectionSnapshot = [
-        [0, 2],
-        [0, 2],
+        [[0], 2],
+        [[0], 2],
       ];
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().attr([0, 2], [0, 1], { foo: "bar" }),
+        new Transaction().attr([[0], 2], [[0], 1], { foo: "bar" }),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -1820,13 +1826,13 @@ describe("update attr", () => {
     const docText2 = "fghij";
     const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
     const sel: SelectionSnapshot = [
-      [1, 2],
-      [1, 2],
+      [[1], 2],
+      [[1], 2],
     ];
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().attr([0, 1], [0, 2], { foo: "bar" }),
+      new Transaction().attr([[0], 1], [[0], 2], { foo: "bar" }),
     )!;
 
     expect(res[0]).toEqual([
@@ -1845,14 +1851,14 @@ describe("update attr", () => {
     const docText2 = "fghij";
     const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
     const sel: SelectionSnapshot = [
-      [1, 3],
-      [1, 3],
+      [[1], 3],
+      [[1], 3],
     ];
 
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().attr([0, 2], [1, 1], { foo: "bar" }),
+      new Transaction().attr([[0], 2], [[1], 1], { foo: "bar" }),
     )!;
 
     expect(res[0]).toEqual([
@@ -1872,13 +1878,13 @@ describe("update attr", () => {
     const docText = "abcde";
     const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
-      [0, 3],
-      [0, 3],
+      [[0], 3],
+      [[0], 3],
     ];
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().attr([0, 1], [0, 2], { foo: "bar" }),
+      new Transaction().attr([[0], 1], [[0], 2], { foo: "bar" }),
     )!;
 
     expect(res[0]).toEqual([
@@ -1901,13 +1907,13 @@ describe("update attr", () => {
       [{ id: 1, text: docText3 }],
     ];
     const sel: SelectionSnapshot = [
-      [1, 3],
-      [1, 3],
+      [[1], 3],
+      [[1], 3],
     ];
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().attr([1, 1], [1, 2], { foo: "bar" }),
+      new Transaction().attr([[1], 1], [[1], 2], { foo: "bar" }),
     )!;
 
     expect(res[0]).toEqual([
@@ -1926,13 +1932,13 @@ describe("update attr", () => {
     const docText = "abcde";
     const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
-      [0, 3],
-      [0, 3],
+      [[0], 3],
+      [[0], 3],
     ];
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().attr([0, 2], [0, 3], { foo: "bar" }),
+      new Transaction().attr([[0], 2], [[0], 3], { foo: "bar" }),
     )!;
 
     expect(res[0]).toEqual([
@@ -1949,13 +1955,13 @@ describe("update attr", () => {
     const docText = "abcde";
     const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
-      [0, 3],
-      [0, 3],
+      [[0], 3],
+      [[0], 3],
     ];
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().attr([0, 2], [0, 4], { foo: "bar" }),
+      new Transaction().attr([[0], 2], [[0], 4], { foo: "bar" }),
     )!;
 
     expect(res[0]).toEqual([
@@ -1972,13 +1978,13 @@ describe("update attr", () => {
     const docText = "abcde";
     const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 4],
+      [[0], 2],
+      [[0], 4],
     ];
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().attr([0, 1], [0, 5], { foo: "bar" }),
+      new Transaction().attr([[0], 1], [[0], 5], { foo: "bar" }),
     )!;
 
     expect(res[0]).toEqual([
@@ -1994,13 +2000,13 @@ describe("update attr", () => {
     const docText = "abcde";
     const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 4],
+      [[0], 2],
+      [[0], 4],
     ];
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().attr([0, 1], [0, 3], { foo: "bar" }),
+      new Transaction().attr([[0], 1], [[0], 3], { foo: "bar" }),
     )!;
 
     expect(res[0]).toEqual([
@@ -2017,13 +2023,13 @@ describe("update attr", () => {
     const docText = "abcde";
     const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 4],
+      [[0], 2],
+      [[0], 4],
     ];
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().attr([0, 3], [0, 5], { foo: "bar" }),
+      new Transaction().attr([[0], 3], [[0], 5], { foo: "bar" }),
     )!;
 
     expect(res[0]).toEqual([
@@ -2040,13 +2046,13 @@ describe("update attr", () => {
     const docText2 = "fghij";
     const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [1, 2],
+      [[0], 2],
+      [[1], 2],
     ];
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().attr([0, 3], [1, 1], { foo: "bar" }),
+      new Transaction().attr([[0], 3], [[1], 1], { foo: "bar" }),
     )!;
 
     expect(res[0]).toEqual([
@@ -2066,13 +2072,13 @@ describe("update attr", () => {
     const docText = "abcde";
     const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
-      [0, 3],
-      [0, 3],
+      [[0], 3],
+      [[0], 3],
     ];
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().attr([0, 3], [0, 4], { foo: "bar" }),
+      new Transaction().attr([[0], 3], [[0], 4], { foo: "bar" }),
     )!;
 
     expect(res[0]).toEqual([
@@ -2089,13 +2095,13 @@ describe("update attr", () => {
     const docText = "abcde";
     const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
-      [0, 3],
-      [0, 3],
+      [[0], 3],
+      [[0], 3],
     ];
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().attr([0, 4], [0, 5], { foo: "bar" }),
+      new Transaction().attr([[0], 4], [[0], 5], { foo: "bar" }),
     )!;
 
     expect(res[0]).toEqual([
@@ -2117,13 +2123,13 @@ describe("update attr", () => {
       [{ id: 1, text: docText3 }],
     ];
     const sel: SelectionSnapshot = [
-      [1, 2],
-      [1, 2],
+      [[1], 2],
+      [[1], 2],
     ];
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().attr([1, 3], [1, 4], { foo: "bar" }),
+      new Transaction().attr([[1], 3], [[1], 4], { foo: "bar" }),
     )!;
 
     expect(res[0]).toEqual([
@@ -2142,13 +2148,13 @@ describe("update attr", () => {
     const docText2 = "fghij";
     const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
+      [[0], 2],
+      [[0], 2],
     ];
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().attr([1, 1], [1, 2], { foo: "bar" }),
+      new Transaction().attr([[1], 1], [[1], 2], { foo: "bar" }),
     )!;
 
     expect(res[0]).toEqual([
@@ -2172,13 +2178,13 @@ describe("update attr", () => {
       [{ id: 1, text: docText3 }],
     ];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
+      [[0], 2],
+      [[0], 2],
     ];
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().attr([1, 1], [2, 1], { foo: "bar" }),
+      new Transaction().attr([[1], 1], [[2], 1], { foo: "bar" }),
     )!;
 
     expect(res[0]).toEqual([
@@ -2202,13 +2208,13 @@ describe("selection", () => {
       const docText = "abcde";
       const doc: Doc = [[{ id: 1, text: docText }]];
       const sel: SelectionSnapshot = [
-        [0, 2],
-        [0, 2],
+        [[0], 2],
+        [[0], 2],
       ];
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().select([-1, 0], [0, 1]),
+        new Transaction().select([[-1], 0], [[0], 1]),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -2219,13 +2225,13 @@ describe("selection", () => {
       const docText = "abcde";
       const doc: Doc = [[{ id: 1, text: docText }]];
       const sel: SelectionSnapshot = [
-        [0, 2],
-        [0, 2],
+        [[0], 2],
+        [[0], 2],
       ];
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().select([0, 0], [100, 1]),
+        new Transaction().select([[0], 0], [[100], 1]),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -2236,13 +2242,13 @@ describe("selection", () => {
       const docText = "abcde";
       const doc: Doc = [[{ id: 1, text: docText }]];
       const sel: SelectionSnapshot = [
-        [0, 2],
-        [0, 2],
+        [[0], 2],
+        [[0], 2],
       ];
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().select([0, -1], [0, 1]),
+        new Transaction().select([[0], -1], [[0], 1]),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -2253,13 +2259,13 @@ describe("selection", () => {
       const docText = "abcde";
       const doc: Doc = [[{ id: 1, text: docText }]];
       const sel: SelectionSnapshot = [
-        [0, 2],
-        [0, 2],
+        [[0], 2],
+        [[0], 2],
       ];
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().select([0, 0], [0, 100]),
+        new Transaction().select([[0], 0], [[0], 100]),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -2271,12 +2277,12 @@ describe("selection", () => {
     const docText = "abcde";
     const doc: Doc = [[{ id: 1, text: docText }]];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
+      [[0], 2],
+      [[0], 2],
     ];
     const nextSel: SelectionSnapshot = [
-      [0, 1],
-      [0, 1],
+      [[0], 1],
+      [[0], 1],
     ];
     const res = applyTransaction(
       doc,
@@ -2298,12 +2304,12 @@ describe("selection", () => {
       [{ id: 1, text: docText3 }],
     ];
     const sel: SelectionSnapshot = [
-      [0, 2],
-      [0, 2],
+      [[0], 2],
+      [[0], 2],
     ];
     const nextSel: SelectionSnapshot = [
-      [1, 1],
-      [2, 1],
+      [[1], 1],
+      [[2], 1],
     ];
     const res = applyTransaction(
       doc,
@@ -2320,12 +2326,12 @@ describe("selection", () => {
     const docText2 = "fghij";
     const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
     const sel: SelectionSnapshot = [
-      [0, 1],
-      [0, 1],
+      [[0], 1],
+      [[0], 1],
     ];
     const nextSel: SelectionSnapshot = [
-      [0, 2],
-      [1, 1],
+      [[0], 2],
+      [[1], 1],
     ];
     const res = applyTransaction(
       doc,
@@ -2342,12 +2348,12 @@ describe("selection", () => {
     const docText2 = "fghij";
     const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
     const sel: SelectionSnapshot = [
-      [0, 1],
-      [0, 1],
+      [[0], 1],
+      [[0], 1],
     ];
     const nextSel: SelectionSnapshot = [
-      [0, 0],
-      [doc.length - 1, doc[doc.length - 1]![0]!.text.length - 1],
+      [[0], 0],
+      [[doc.length - 1], doc[doc.length - 1]![0]!.text.length - 1],
     ];
     const res = applyTransaction(
       doc,

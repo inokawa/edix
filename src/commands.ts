@@ -61,8 +61,9 @@ export function ReplaceAll(this: Editor, text: string) {
   const doc = this.doc;
   this.apply(
     new Transaction()
-      .delete([0, 0], [doc.length - 1, getLineSize(doc[doc.length - 1]!)])
-      .insert([0, 0], text),
+      // TODO improve
+      .delete([[], 0], [[doc.length - 1], getLineSize(doc[doc.length - 1]!)])
+      .insert([[], 0], text),
   );
 }
 

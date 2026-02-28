@@ -1,5 +1,5 @@
 import { is, isString, keys } from "../utils.js";
-import { compareLine, comparePosition } from "./position.js";
+import { comparePath, comparePosition } from "./position.js";
 import type {
   DocBase,
   Fragment,
@@ -7,6 +7,7 @@ import type {
   Position,
   SelectionSnapshot,
   TextNode,
+  Path,
 } from "./types.js";
 import { stringToFragment } from "./utils.js";
 
@@ -228,19 +229,36 @@ const splitBlock = <T extends DocNode>(
   return [nodes, []];
 };
 
+const normalizePath = (path: Path): number => {
+  // TODO support nested node
+  return path.length ? path[0]! : 0;
+};
+
+const blockAtPath = (doc: DocBase, path: Path): readonly DocNode[] => {
+  return doc[normalizePath(path)]!;
+};
+
+const movePath = (path: Path, int: number): Path => {
+  // TODO support nested node
+  return [normalizePath(path) + int];
+};
+
 const replaceRange = <T extends DocBase>(
   doc: T,
   start: Position,
   end: Position,
   inserted: Fragment | string,
 ): T => {
-  const [startLine, startOffset] = start;
-  const [endLine, endOffset] = end;
+  const [startPath, startOffset] = start;
+  const [endPath, endOffset] = end;
 
-  const [before, maybeAfter] = splitBlock(doc[startLine]!, startOffset);
+  const [before, maybeAfter] = splitBlock(
+    blockAtPath(doc, startPath),
+    startOffset,
+  );
   const after =
     comparePosition(start, end) === 1
-      ? splitBlock(doc[endLine]!, endOffset)[1]
+      ? splitBlock(blockAtPath(doc, endPath), endOffset)[1]
       : maybeAfter;
 
   if (isString(inserted)) {
@@ -266,7 +284,11 @@ const replaceRange = <T extends DocBase>(
   lines[0] = joinBlocks(before, lines[0]!);
 
   const sliced = doc.slice();
-  sliced.splice(startLine, endLine - startLine + 1, ...lines);
+  sliced.splice(
+    normalizePath(startPath),
+    normalizePath(endPath) - normalizePath(startPath) + 1,
+    ...lines,
+  );
   return sliced as DocBase as T; // TODO improve
 };
 
@@ -282,16 +304,17 @@ export const sliceDoc = (
     return [];
   }
 
-  const sliced = doc.slice(start[0], end[0] + 1);
+  const sliced = doc.slice(normalizePath(start[0]), normalizePath(end[0]) + 1);
   const lastIndex = sliced.length - 1;
   sliced[lastIndex] = splitBlock(sliced[lastIndex]!, end[1])[0];
   sliced[0] = splitBlock(sliced[0]!, start[1])[1];
   return sliced;
 };
 
-const isValidPosition = (doc: DocBase, [line, offset]: Position): boolean => {
-  if (line >= 0 && line < doc.length) {
-    if (offset >= 0 && offset <= getLineSize(doc[line]!)) {
+const isValidPosition = (doc: DocBase, [path, offset]: Position): boolean => {
+  // TODO improve
+  if (!path.length || (path[0]! >= 0 && path[0]! < doc.length)) {
+    if (offset >= 0 && offset <= getLineSize(blockAtPath(doc, path))) {
       return true;
     }
   }
@@ -308,9 +331,12 @@ const rebasePosition = (position: Position, op: Operation): Position => {
         return comparePosition(end, position) === 1
           ? // start <= end < position
             [
-              position[0] + start[0] - end[0],
+              movePath(
+                position[0],
+                normalizePath(start[0]) - normalizePath(end[0]),
+              ),
               position[1] +
-                (compareLine(end[0], position[0]) === 0
+                (comparePath(end[0], position[0]) === 0
                   ? start[1] - end[1]
                   : 0),
             ]
@@ -333,9 +359,9 @@ const rebasePosition = (position: Position, op: Operation): Position => {
       if (comparePosition(position, pos) !== 1) {
         // pos <= position
         return [
-          position[0] + lineDiff,
+          movePath(position[0], lineDiff),
           position[1] +
-            (compareLine(position[0], pos[0]) === 0
+            (comparePath(position[0], pos[0]) === 0
               ? getLineSize(lines[lineLength - 1]!) -
                 (lineDiff === 0 ? 0 : pos[1])
               : 0),
