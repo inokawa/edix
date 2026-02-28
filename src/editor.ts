@@ -14,12 +14,7 @@ import { createMutationObserver } from "./mutation.js";
 import type { DocBase, Fragment, SelectionSnapshot } from "./doc/types.js";
 import { is, isFunction, isString, microtask } from "./utils.js";
 import type { EditorCommand } from "./commands.js";
-import {
-  applyOperation,
-  Transaction,
-  sliceDoc,
-  type Operation,
-} from "./doc/edit.js";
+import { applyOperation, Edit, sliceDoc, type Operation } from "./doc/edit.js";
 import type { ParserConfig } from "./dom/parser.js";
 import { comparePosition, toRange } from "./doc/position.js";
 import type { EditorPlugin } from "./plugins/types.js";
@@ -157,10 +152,10 @@ export interface Editor<T extends DocBase = DocBase> {
   readonly: boolean;
   /**
    * Dispatches editing operations.
-   * @param tr {@link Transaction} or {@link EditorCommand}
+   * @param tr {@link Edit} or {@link EditorCommand}
    * @param args arguments of {@link EditorCommand}
    */
-  apply(tr: Transaction): this;
+  apply(tr: Edit): this;
   apply<A extends unknown[]>(fn: EditorCommand<A, T>, ...args: A): this;
   /**
    * A function to make DOM editable.
@@ -268,8 +263,8 @@ export const createEditor = <
     plugins = undefined;
   }
 
-  const transactions: Transaction[] = [];
-  const apply = (arg: Transaction) => {
+  const transactions: Edit[] = [];
+  const apply = (arg: Edit) => {
     if (!readonly) {
       transactions.unshift(arg);
       queueTask(commit);
@@ -295,7 +290,7 @@ export const createEditor = <
       const currentSelection = selection;
       const length = applyHooks.length;
 
-      let tr: Transaction | undefined;
+      let tr: Edit | undefined;
       while ((tr = transactions.pop())) {
         for (let op of tr.ops) {
           let index = 0;
@@ -361,7 +356,7 @@ export const createEditor = <
       readonly = value;
       setContentEditable();
     },
-    apply: (fn: Transaction | EditorCommand<any, T>, ...args: unknown[]) => {
+    apply: (fn: Edit | EditorCommand<any, T>, ...args: unknown[]) => {
       if (isFunction(fn)) {
         fn.call(editor, ...args);
       } else {
@@ -395,7 +390,7 @@ export const createEditor = <
 
       let disposed = false;
       let selectionReverted = false;
-      let inputTransaction: Transaction | null = null;
+      let inputTransaction: Edit | null = null;
       let isComposing = false;
       let hasFocus = false;
       let isDragging = false;
@@ -542,7 +537,7 @@ export const createEditor = <
           }
 
           if (!inputTransaction) {
-            inputTransaction = new Transaction().select(...selection);
+            inputTransaction = new Edit().select(...selection);
           }
           if (comparePosition(...range) !== 0) {
             // replace or delete
@@ -602,7 +597,7 @@ export const createEditor = <
         e.preventDefault();
         if (!readonly) {
           copySelected(e.clipboardData!);
-          apply(new Transaction().delete(...toRange(selection)));
+          apply(new Edit().delete(...toRange(selection)));
         }
       };
       const onPaste = (e: ClipboardEvent) => {
@@ -610,7 +605,7 @@ export const createEditor = <
         const pasted = paste(e.clipboardData!);
         if (pasted) {
           const [start, end] = toRange(selection);
-          const tr = new Transaction().delete(start, end);
+          const tr = new Edit().delete(start, end);
           if (isString(pasted)) {
             tr.insert(start, pasted);
           } else {
@@ -631,7 +626,7 @@ export const createEditor = <
           parserConfig,
         );
         if (dataTransfer && droppedPosition) {
-          const tr = new Transaction();
+          const tr = new Edit();
           if (isDragging) {
             tr.delete(...toRange(selection));
           }

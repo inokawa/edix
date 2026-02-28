@@ -45,14 +45,18 @@ type SelectOperataion = Readonly<{
   _anchor: Position | undefined;
   _focus: Position | undefined;
 }>;
-type EditOperation =
+
+export type Operation =
   | DeleteOperation
   | InsertOperation
   | InsertNodeOperation
-  | SetAttrOperation;
-export type Operation = EditOperation | SelectOperataion;
+  | SetAttrOperation
+  | SelectOperataion;
 
-export class Transaction {
+/**
+ * An object that represents edits to be be applied to a document.
+ */
+export class Edit {
   private readonly _ops: Operation[];
   unsafe: boolean = false;
 
