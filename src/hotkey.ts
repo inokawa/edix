@@ -19,8 +19,11 @@ export const hotkey = (
     // phase?: 'down' | 'up';
   } = {},
 ): KeyboardHandler => {
+  key = key.toLowerCase();
+
   return (e): boolean | void => {
-    if (e.key === key) {
+    // TODO should we handle it e.code?
+    if (e.key.toLowerCase() === key) {
       if (
         // TODO detect OS
         (!mod || e.ctrlKey || e.metaKey) &&
