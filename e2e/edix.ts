@@ -160,28 +160,6 @@ export const insertLineBreakAt = (
   });
 };
 
-export const createSelection = (
-  opts:
-    | {
-        line?: number;
-        offset?: number;
-        extent?: number;
-      }
-    | { anchor: [number, number]; focus: [number, number] } = {},
-): SelectionSnapshot => {
-  if ("anchor" in opts) {
-    return [opts.anchor, opts.focus];
-  }
-
-  const line = opts.line ?? 0;
-  const anchorOffset = opts.offset ?? 0;
-  const focusOffset = anchorOffset + (opts.extent ?? 0);
-  return [
-    [line, anchorOffset],
-    [line, focusOffset],
-  ];
-};
-
 // export const logInput = (editable: Locator) =>
 //   editable.evaluate((e) => {
 //     return new Promise<[string, string, any, any, any]>((res) => {

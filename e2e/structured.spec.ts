@@ -1,6 +1,5 @@
 import { test, expect, Page } from "@playwright/test";
 import {
-  createSelection,
   getSelection,
   getText,
   initEdixHelpers,
@@ -24,71 +23,82 @@ test.describe("smoke node", () => {
 
     await editable.focus();
 
-    expect(await getSelection(editable)).toEqual(createSelection());
+    expect(await getSelection(editable)).toEqual([
+      [0, 0],
+      [0, 0],
+    ]);
 
     const nodeOffset = initialValue[0].indexOf(NON_EDITABLE_PLACEHOLDER);
     const char = "a";
 
     // type just before node
     await loop(nodeOffset, () => page.keyboard.press("ArrowRight"));
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: nodeOffset }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, nodeOffset],
+      [0, nodeOffset],
+    ]);
 
     // insert
     await type(editable, char);
     expect(await getText(editable)).toEqual(
       insertAt(initialValue, char, [0, nodeOffset]),
     );
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: nodeOffset + 1 }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, nodeOffset + 1],
+      [0, nodeOffset + 1],
+    ]);
 
     // delete
     await page.keyboard.press("Backspace");
     expect(await getText(editable)).toEqual(initialValue);
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: nodeOffset }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, nodeOffset],
+      [0, nodeOffset],
+    ]);
 
     // type just after node
     await page.keyboard.press("ArrowRight");
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: nodeOffset + 1 }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, nodeOffset + 1],
+      [0, nodeOffset + 1],
+    ]);
 
     // insert
     await type(editable, char);
     expect(await getText(editable)).toEqual(
       insertAt(initialValue, char, [0, nodeOffset + 1]),
     );
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: nodeOffset + 2 }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, nodeOffset + 2],
+      [0, nodeOffset + 2],
+    ]);
 
     // delete
     await page.keyboard.press("Backspace");
     expect(await getText(editable)).toEqual(initialValue);
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: nodeOffset + 1 }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, nodeOffset + 1],
+      [0, nodeOffset + 1],
+    ]);
 
     // delete custom node
     await page.keyboard.press("Backspace");
     expect(await getText(editable)).toEqual(
       deleteAt(initialValue, 1, [0, nodeOffset]),
     );
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: nodeOffset }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, nodeOffset],
+      [0, nodeOffset],
+    ]);
 
     // undo
     await page.keyboard.press(`ControlOrMeta+z`);
     await moveSelectionToOrigin(editable);
     expect(await getText(editable)).toEqual(initialValue);
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: 0 }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, 0],
+      [0, 0],
+    ]);
 
     // delete selected custom node and texts
     await loop(nodeOffset - 1, () => page.keyboard.press("ArrowRight"));
@@ -99,17 +109,19 @@ test.describe("smoke node", () => {
     expect(await getText(editable)).toEqual(
       deleteAt(initialValue, 3, [0, nodeOffset - 1]),
     );
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: nodeOffset - 1 }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, nodeOffset - 1],
+      [0, nodeOffset - 1],
+    ]);
 
     // undo
     await page.keyboard.press(`ControlOrMeta+z`);
     await moveSelectionToOrigin(editable);
     expect(await getText(editable)).toEqual(initialValue);
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: 0 }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, 0],
+      [0, 0],
+    ]);
 
     // replace selected custom node
     const replaceText = "Z";
@@ -122,9 +134,10 @@ test.describe("smoke node", () => {
         nodeOffset,
       ]),
     );
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: nodeOffset + 1 }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, nodeOffset + 1],
+      [0, nodeOffset + 1],
+    ]);
   });
 
   test("img", async ({ page }) => {
@@ -135,71 +148,82 @@ test.describe("smoke node", () => {
 
     await editable.focus();
 
-    expect(await getSelection(editable)).toEqual(createSelection());
+    expect(await getSelection(editable)).toEqual([
+      [0, 0],
+      [0, 0],
+    ]);
 
     const nodeOffset = initialValue[0].indexOf(NON_EDITABLE_PLACEHOLDER);
     const char = "a";
 
     // type just before node
     await loop(nodeOffset, () => page.keyboard.press("ArrowRight"));
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: nodeOffset }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, nodeOffset],
+      [0, nodeOffset],
+    ]);
 
     // insert
     await type(editable, char);
     expect(await getText(editable)).toEqual(
       insertAt(initialValue, char, [0, nodeOffset]),
     );
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: nodeOffset + 1 }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, nodeOffset + 1],
+      [0, nodeOffset + 1],
+    ]);
 
     // delete
     await page.keyboard.press("Backspace");
     expect(await getText(editable)).toEqual(initialValue);
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: nodeOffset }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, nodeOffset],
+      [0, nodeOffset],
+    ]);
 
     // type just after node
     await page.keyboard.press("ArrowRight");
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: nodeOffset + 1 }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, nodeOffset + 1],
+      [0, nodeOffset + 1],
+    ]);
 
     // insert
     await type(editable, char);
     expect(await getText(editable)).toEqual(
       insertAt(initialValue, char, [0, nodeOffset + 1]),
     );
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: nodeOffset + 2 }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, nodeOffset + 2],
+      [0, nodeOffset + 2],
+    ]);
 
     // delete
     await page.keyboard.press("Backspace");
     expect(await getText(editable)).toEqual(initialValue);
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: nodeOffset + 1 }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, nodeOffset + 1],
+      [0, nodeOffset + 1],
+    ]);
 
     // delete custom node
     await page.keyboard.press("Backspace");
     expect(await getText(editable)).toEqual(
       deleteAt(initialValue, 1, [0, nodeOffset]),
     );
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: nodeOffset }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, nodeOffset],
+      [0, nodeOffset],
+    ]);
 
     // undo
     await page.keyboard.press(`ControlOrMeta+z`);
     await moveSelectionToOrigin(editable);
     expect(await getText(editable)).toEqual(initialValue);
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: 0 }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, 0],
+      [0, 0],
+    ]);
 
     // delete selected custom node and texts
     await loop(nodeOffset - 1, () => page.keyboard.press("ArrowRight"));
@@ -210,17 +234,19 @@ test.describe("smoke node", () => {
     expect(await getText(editable)).toEqual(
       deleteAt(initialValue, 3, [0, nodeOffset - 1]),
     );
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: nodeOffset - 1 }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, nodeOffset - 1],
+      [0, nodeOffset - 1],
+    ]);
 
     // undo
     await page.keyboard.press(`ControlOrMeta+z`);
     await moveSelectionToOrigin(editable);
     expect(await getText(editable)).toEqual(initialValue);
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: 0 }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, 0],
+      [0, 0],
+    ]);
 
     // replace selected custom node
     const replaceText = "Z";
@@ -233,9 +259,10 @@ test.describe("smoke node", () => {
         nodeOffset,
       ]),
     );
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: nodeOffset + 1 }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, nodeOffset + 1],
+      [0, nodeOffset + 1],
+    ]);
   });
 
   test("video", async ({ page }) => {
@@ -246,63 +273,73 @@ test.describe("smoke node", () => {
 
     await editable.focus();
 
-    expect(await getSelection(editable)).toEqual(createSelection());
+    expect(await getSelection(editable)).toEqual([
+      [0, 0],
+      [0, 0],
+    ]);
 
     const nodeOffset = initialValue[0].indexOf(NON_EDITABLE_PLACEHOLDER);
     const char = "a";
 
     // type just before node
     await loop(nodeOffset, () => page.keyboard.press("ArrowRight"));
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: nodeOffset }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, nodeOffset],
+      [0, nodeOffset],
+    ]);
 
     // insert
     await type(editable, char);
     expect(await getText(editable)).toEqual(
       insertAt(initialValue, char, [0, nodeOffset]),
     );
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: nodeOffset + 1 }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, nodeOffset + 1],
+      [0, nodeOffset + 1],
+    ]);
 
     // delete
     await page.keyboard.press("Backspace");
     expect(await getText(editable)).toEqual(initialValue);
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: nodeOffset }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, nodeOffset],
+      [0, nodeOffset],
+    ]);
 
     // type just after node
     await page.keyboard.press("ArrowRight");
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: nodeOffset + 1 }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, nodeOffset + 1],
+      [0, nodeOffset + 1],
+    ]);
 
     // insert
     await type(editable, char);
     expect(await getText(editable)).toEqual(
       insertAt(initialValue, char, [0, nodeOffset + 1]),
     );
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: nodeOffset + 2 }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, nodeOffset + 2],
+      [0, nodeOffset + 2],
+    ]);
 
     // delete
     await page.keyboard.press("Backspace");
     expect(await getText(editable)).toEqual(initialValue);
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: nodeOffset + 1 }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, nodeOffset + 1],
+      [0, nodeOffset + 1],
+    ]);
 
     // delete custom node
     await page.keyboard.press("Backspace");
     expect(await getText(editable)).toEqual(
       deleteAt(initialValue, 1, [0, nodeOffset]),
     );
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: nodeOffset }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, nodeOffset],
+      [0, nodeOffset],
+    ]);
   });
 
   test("iframe", async ({ page }) => {
@@ -313,63 +350,73 @@ test.describe("smoke node", () => {
 
     await editable.focus();
 
-    expect(await getSelection(editable)).toEqual(createSelection());
+    expect(await getSelection(editable)).toEqual([
+      [0, 0],
+      [0, 0],
+    ]);
 
     const nodeOffset = initialValue[0].indexOf(NON_EDITABLE_PLACEHOLDER);
     const char = "a";
 
     // type just before node
     await loop(nodeOffset, () => page.keyboard.press("ArrowRight"));
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: nodeOffset }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, nodeOffset],
+      [0, nodeOffset],
+    ]);
 
     // insert
     await type(editable, char);
     expect(await getText(editable)).toEqual(
       insertAt(initialValue, char, [0, nodeOffset]),
     );
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: nodeOffset + 1 }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, nodeOffset + 1],
+      [0, nodeOffset + 1],
+    ]);
 
     // delete
     await page.keyboard.press("Backspace");
     expect(await getText(editable)).toEqual(initialValue);
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: nodeOffset }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, nodeOffset],
+      [0, nodeOffset],
+    ]);
 
     // type just after node
     await page.keyboard.press("ArrowRight");
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: nodeOffset + 1 }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, nodeOffset + 1],
+      [0, nodeOffset + 1],
+    ]);
 
     // insert
     await type(editable, char);
     expect(await getText(editable)).toEqual(
       insertAt(initialValue, char, [0, nodeOffset + 1]),
     );
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: nodeOffset + 2 }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, nodeOffset + 2],
+      [0, nodeOffset + 2],
+    ]);
 
     // delete
     await page.keyboard.press("Backspace");
     expect(await getText(editable)).toEqual(initialValue);
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: nodeOffset + 1 }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, nodeOffset + 1],
+      [0, nodeOffset + 1],
+    ]);
 
     // delete custom node
     await page.keyboard.press("Backspace");
     expect(await getText(editable)).toEqual(
       deleteAt(initialValue, 1, [0, nodeOffset]),
     );
-    expect(await getSelection(editable)).toEqual(
-      createSelection({ offset: nodeOffset }),
-    );
+    expect(await getSelection(editable)).toEqual([
+      [0, nodeOffset],
+      [0, nodeOffset],
+    ]);
   });
 });
 
@@ -388,7 +435,10 @@ test.describe("Copy", () => {
 
     await editable.focus();
 
-    expect(await getSelection(editable)).toEqual(createSelection());
+    expect(await getSelection(editable)).toEqual([
+      [0, 0],
+      [0, 0],
+    ]);
 
     await page.keyboard.press("ControlOrMeta+A");
     await page.keyboard.press("ControlOrMeta+C");
