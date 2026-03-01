@@ -1,1 +1,0 @@
-import{c as e,k as c,s as g,l}from"./singleline-BR54kWbF.js";const d=({text:i,singleline:s,plugins:t=[],onChange:o,...r})=>{const n=[...t];return s&&n.unshift(g()),e({...r,doc:c(i),plugins:n,onChange:a=>{o(l(a))}})};export{d as c};
