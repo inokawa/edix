@@ -21,15 +21,15 @@ test("smoke", async ({ page }) => {
   await editable.focus();
 
   expect(await getSelection(editable)).toEqual([
-    [0, 0],
-    [0, 0],
+    [[0], 0],
+    [[0], 0],
   ]);
 
   // Move caret
   await page.keyboard.press("ArrowRight");
   expect(await getSelection(editable)).toEqual([
-    [0, 1],
-    [0, 1],
+    [[0], 1],
+    [[0], 1],
   ]);
 
   // Input
@@ -40,8 +40,8 @@ test("smoke", async ({ page }) => {
   expect(await getText(editable)).toEqual(value1);
   const textLength = text.length;
   expect(await getSelection(editable)).toEqual([
-    [0, 1 + textLength],
-    [0, 1 + textLength],
+    [[0], 1 + textLength],
+    [[0], 1 + textLength],
   ]);
 
   // Split
@@ -49,8 +49,8 @@ test("smoke", async ({ page }) => {
   const value2 = insertLineBreakAt(value1, [0, 1 + textLength]);
   expect(await getText(editable)).toEqual(value2);
   expect(await getSelection(editable)).toEqual([
-    [1, 0],
-    [1, 0],
+    [[1], 0],
+    [[1], 0],
   ]);
 
   // Split again
@@ -58,8 +58,8 @@ test("smoke", async ({ page }) => {
   const value3 = insertLineBreakAt(value2, [1, 0]);
   expect(await getText(editable)).toEqual(value3);
   expect(await getSelection(editable)).toEqual([
-    [2, 0],
-    [2, 0],
+    [[2], 0],
+    [[2], 0],
   ]);
 
   // Insert empty line
@@ -67,7 +67,7 @@ test("smoke", async ({ page }) => {
   await page.keyboard.press("Enter", { delay: 20 }); // Angular fails without delay option for some reason
   expect(await getText(editable)).toEqual(insertLineBreakAt(value3, [1, 0]));
   expect(await getSelection(editable)).toEqual([
-    [2, 0],
-    [2, 0],
+    [[2], 0],
+    [[2], 0],
   ]);
 });

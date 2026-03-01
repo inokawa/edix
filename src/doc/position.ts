@@ -1,4 +1,5 @@
-import type { Position, PositionRange } from "./types.js";
+import { min } from "../utils.js";
+import type { Path, Position, PositionRange } from "./types.js";
 
 /**
  * @internal
@@ -6,15 +7,15 @@ import type { Position, PositionRange } from "./types.js";
  * 1 : A is before B (forward)
  * -1: A is after B (backward)
  */
-export const compareLine = (
-  lineA: Position[0],
-  lineB: Position[0],
-): 0 | 1 | -1 => {
-  if (lineA === lineB) {
-    return 0;
-  } else {
-    return lineA < lineB ? 1 : -1;
+export const comparePath = (pathA: Path, pathB: Path): 0 | 1 | -1 => {
+  const length = min(pathA.length, pathB.length);
+  for (let i = 0; i < length; i++) {
+    const a = pathA[i]!;
+    const b = pathB[i]!;
+    if (a < b) return 1;
+    if (a > b) return -1;
   }
+  return 0;
 };
 
 /**
@@ -24,14 +25,14 @@ export const compareLine = (
  * -1: A is after B (backward)
  */
 export const comparePosition = (
-  [lineA, offsetA]: Position,
-  [lineB, offsetB]: Position,
+  [pathA, offsetA]: Position,
+  [pathB, offsetB]: Position,
 ): 0 | 1 | -1 => {
-  const line = compareLine(lineA, lineB);
-  if (line === 0) {
+  const comp = comparePath(pathA, pathB);
+  if (comp === 0) {
     return offsetA === offsetB ? 0 : offsetA < offsetB ? 1 : -1;
   } else {
-    return line;
+    return comp;
   }
 };
 
