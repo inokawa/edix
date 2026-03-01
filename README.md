@@ -99,28 +99,32 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { createEditor, ToggleFormat } from "edix";
 import * as v from "valibot";
 
-const schema = v.array(
-  v.array(
-    v.strictObject({
-      text: v.string(),
-      bold: v.optional(v.boolean()),
-      italic: v.optional(v.boolean()),
-    }),
+const schema = v.strictObject({
+  children: v.array(
+    v.array(
+      v.strictObject({
+        text: v.string(),
+        bold: v.optional(v.boolean()),
+        italic: v.optional(v.boolean()),
+      }),
+    ),
   ),
-);
+});
 
 export const App = () => {
   const ref = useRef<HTMLDivElement>(null);
 
   type Doc = v.InferOutput<typeof schema>;
-  const [doc, setDoc] = useState<Doc>([
-    [
-      { text: "Hello", bold: true },
-      { text: " " },
-      { text: "World", italic: true },
-      { text: "." },
+  const [doc, setDoc] = useState<Doc>({
+    children: [
+      [
+        { text: "Hello", bold: true },
+        { text: " " },
+        { text: "World", italic: true },
+        { text: "." },
+      ],
     ],
-  ]);
+  });
 
   const editor = useMemo(
     () =>
@@ -162,7 +166,7 @@ export const App = () => {
           padding: 8,
         }}
       >
-        {doc.map((r, i) => (
+        {doc.children.map((r, i) => (
           <div key={i}>
             {r.map((n, j) => (
               <span

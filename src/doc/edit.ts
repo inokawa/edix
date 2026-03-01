@@ -235,7 +235,7 @@ const normalizePath = (path: Path): number => {
 };
 
 const blockAtPath = (doc: DocBase, path: Path): readonly DocNode[] => {
-  return doc[normalizePath(path)]!;
+  return doc.children[normalizePath(path)]!;
 };
 
 const movePath = (path: Path, int: number): Path => {
@@ -283,13 +283,13 @@ const replaceRange = <T extends DocBase>(
   }
   lines[0] = joinBlocks(before, lines[0]!);
 
-  const sliced = doc.slice();
+  const sliced = doc.children.slice();
   sliced.splice(
     normalizePath(startPath),
     normalizePath(endPath) - normalizePath(startPath) + 1,
     ...lines,
   );
-  return sliced as DocBase as T; // TODO improve
+  return { ...doc, children: sliced } as DocBase as T; // TODO improve
 };
 
 /**
@@ -304,7 +304,10 @@ export const sliceDoc = (
     return [];
   }
 
-  const sliced = doc.slice(normalizePath(start[0]), normalizePath(end[0]) + 1);
+  const sliced = doc.children.slice(
+    normalizePath(start[0]),
+    normalizePath(end[0]) + 1,
+  );
   const lastIndex = sliced.length - 1;
   sliced[lastIndex] = splitBlock(sliced[lastIndex]!, end[1])[0];
   sliced[0] = splitBlock(sliced[0]!, start[1])[1];
@@ -313,7 +316,7 @@ export const sliceDoc = (
 
 const isValidPosition = (doc: DocBase, [path, offset]: Position): boolean => {
   // TODO improve
-  if (!path.length || (path[0]! >= 0 && path[0]! < doc.length)) {
+  if (!path.length || (path[0]! >= 0 && path[0]! < doc.children.length)) {
     if (offset >= 0 && offset <= getLineSize(blockAtPath(doc, path))) {
       return true;
     }

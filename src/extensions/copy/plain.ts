@@ -11,7 +11,10 @@ export const plainCopy = <T extends DocBase>(
   return (dataTransfer, data) => {
     dataTransfer.setData(
       "text/plain",
-      docToString(data, serializer as ((node: DocNode) => string) | undefined),
+      docToString(
+        { children: data },
+        serializer as ((node: DocNode) => string) | undefined,
+      ),
     );
   };
 };

@@ -3,7 +3,7 @@ import { Transaction, applyOperation } from "./edit.js";
 import { type DocBase, type SelectionSnapshot } from "./types.js";
 import { is } from "../utils.js";
 
-type Doc = { id: number; text: string }[][];
+type Doc = { children: { id: number; text: string }[][] };
 
 const applyTransaction = <T extends DocBase>(
   doc: T,
@@ -61,7 +61,9 @@ afterEach(() => {
 it("discard if error", () => {
   const docText = "abcde";
   const docText2 = "fghij";
-  const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
+  const doc: Doc = {
+    children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+  };
   const sel: SelectionSnapshot = [
     [[1], 2],
     [[1], 2],
@@ -75,10 +77,9 @@ describe("insert", () => {
     it("path less than min", () => {
       const docText = "abcde";
       const docText2 = "fghij";
-      const doc: Doc = [
-        [{ id: 1, text: docText }],
-        [{ id: 1, text: docText2 }],
-      ];
+      const doc: Doc = {
+        children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+      };
       const sel: SelectionSnapshot = [
         [[1], 2],
         [[1], 2],
@@ -96,10 +97,9 @@ describe("insert", () => {
     it("path more than max", () => {
       const docText = "abcde";
       const docText2 = "fghij";
-      const doc: Doc = [
-        [{ id: 1, text: docText }],
-        [{ id: 1, text: docText2 }],
-      ];
+      const doc: Doc = {
+        children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+      };
       const sel: SelectionSnapshot = [
         [[1], 2],
         [[1], 2],
@@ -117,10 +117,9 @@ describe("insert", () => {
     it("offset less than min", () => {
       const docText = "abcde";
       const docText2 = "fghij";
-      const doc: Doc = [
-        [{ id: 1, text: docText }],
-        [{ id: 1, text: docText2 }],
-      ];
+      const doc: Doc = {
+        children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+      };
       const sel: SelectionSnapshot = [
         [[1], 2],
         [[1], 2],
@@ -138,10 +137,9 @@ describe("insert", () => {
     it("offset more than max", () => {
       const docText = "abcde";
       const docText2 = "fghij";
-      const doc: Doc = [
-        [{ id: 1, text: docText }],
-        [{ id: 1, text: docText2 }],
-      ];
+      const doc: Doc = {
+        children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+      };
       const sel: SelectionSnapshot = [
         [[1], 2],
         [[1], 2],
@@ -159,10 +157,9 @@ describe("insert", () => {
     it("empty text", () => {
       const docText = "abcde";
       const docText2 = "fghij";
-      const doc: Doc = [
-        [{ id: 1, text: docText }],
-        [{ id: 1, text: docText2 }],
-      ];
+      const doc: Doc = {
+        children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+      };
       const sel: SelectionSnapshot = [
         [[1], 2],
         [[1], 2],
@@ -181,7 +178,9 @@ describe("insert", () => {
   it("should insert text at line before caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
+    const doc: Doc = {
+      children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+    };
     const sel: SelectionSnapshot = [
       [[1], 2],
       [[1], 2],
@@ -193,17 +192,21 @@ describe("insert", () => {
       new Transaction().insert([[0], 1], text),
     )!;
 
-    expect(res[0]).toEqual([
-      [{ id: 1, text: insertAt(docText, 1, text) }],
-      [{ id: 1, text: docText2 }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: insertAt(docText, 1, text) }],
+        [{ id: 1, text: docText2 }],
+      ],
+    });
     expect(res[1]).toEqual(sel);
   });
 
   it("should insert lines at line before caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
+    const doc: Doc = {
+      children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+    };
     const sel: SelectionSnapshot = [
       [[1], 2],
       [[1], 2],
@@ -217,17 +220,19 @@ describe("insert", () => {
     )!;
 
     const [before, after] = splitAt(docText, 1);
-    expect(res[0]).toEqual([
-      [{ id: 1, text: before + text }],
-      [{ id: 1, text: text2 + after }],
-      [{ id: 1, text: docText2 }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: before + text }],
+        [{ id: 1, text: text2 + after }],
+        [{ id: 1, text: docText2 }],
+      ],
+    });
     expect(res[1]).toEqual(moveLine(sel, 1));
   });
 
   it("should insert text before caret", () => {
     const docText = "abcde";
-    const doc: Doc = [[{ id: 1, text: docText }]];
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 2],
@@ -239,7 +244,9 @@ describe("insert", () => {
       new Transaction().insert([[0], 1], text),
     )!;
 
-    expect(res[0]).toEqual([[{ id: 1, text: insertAt(docText, 1, text) }]]);
+    expect(res[0]).toEqual({
+      children: [[{ id: 1, text: insertAt(docText, 1, text) }]],
+    });
     expect(res[1]).toEqual(moveOffset(sel, text.length));
   });
 
@@ -247,11 +254,13 @@ describe("insert", () => {
     const docText = "abcde";
     const docText2 = "fghi";
     const docText3 = "jkl";
-    const doc: Doc = [
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: docText2 }],
-      [{ id: 1, text: docText3 }],
-    ];
+    const doc: Doc = {
+      children: [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: docText2 }],
+        [{ id: 1, text: docText3 }],
+      ],
+    };
     const sel: SelectionSnapshot = [
       [[1], 2],
       [[1], 2],
@@ -263,17 +272,19 @@ describe("insert", () => {
       new Transaction().insert([[1], 1], text),
     )!;
 
-    expect(res[0]).toEqual([
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: insertAt(docText2, 1, text) }],
-      [{ id: 1, text: docText3 }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: insertAt(docText2, 1, text) }],
+        [{ id: 1, text: docText3 }],
+      ],
+    });
     expect(res[1]).toEqual(moveOffset(sel, text.length));
   });
 
   it("should insert lines before caret", () => {
     const docText = "abcde";
-    const doc: Doc = [[{ id: 1, text: docText }]];
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 2],
@@ -287,10 +298,12 @@ describe("insert", () => {
     )!;
 
     const [before, after] = splitAt(docText, 1);
-    expect(res[0]).toEqual([
-      [{ id: 1, text: before + text }],
-      [{ id: 1, text: text2 + after }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: before + text }],
+        [{ id: 1, text: text2 + after }],
+      ],
+    });
     expect(res[1]).toEqual(
       moveLine(moveOffset(sel, -before.length + text2.length), 1),
     );
@@ -298,7 +311,7 @@ describe("insert", () => {
 
   it("should insert text on caret", () => {
     const docText = "abcde";
-    const doc: Doc = [[{ id: 1, text: docText }]];
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 2],
@@ -310,13 +323,15 @@ describe("insert", () => {
       new Transaction().insert([[0], 2], text),
     )!;
 
-    expect(res[0]).toEqual([[{ id: 1, text: insertAt(docText, 2, text) }]]);
+    expect(res[0]).toEqual({
+      children: [[{ id: 1, text: insertAt(docText, 2, text) }]],
+    });
     expect(res[1]).toEqual(moveOffset(sel, text.length));
   });
 
   it("should insert lines on caret", () => {
     const docText = "abcde";
-    const doc: Doc = [[{ id: 1, text: docText }]];
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 2],
@@ -330,10 +345,12 @@ describe("insert", () => {
     )!;
 
     const [before, after] = splitAt(docText, 2);
-    expect(res[0]).toEqual([
-      [{ id: 1, text: before + text }],
-      [{ id: 1, text: text2 + after }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: before + text }],
+        [{ id: 1, text: text2 + after }],
+      ],
+    });
     expect(res[1]).toEqual(
       moveLine(moveOffset(sel, -before.length + text2.length), 1),
     );
@@ -341,7 +358,7 @@ describe("insert", () => {
 
   it("should insert text inside selection", () => {
     const docText = "abcde";
-    const doc: Doc = [[{ id: 1, text: docText }]];
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
       [[0], 1],
       [[0], 3],
@@ -353,13 +370,15 @@ describe("insert", () => {
       new Transaction().insert([[0], 2], text),
     )!;
 
-    expect(res[0]).toEqual([[{ id: 1, text: insertAt(docText, 2, text) }]]);
+    expect(res[0]).toEqual({
+      children: [[{ id: 1, text: insertAt(docText, 2, text) }]],
+    });
     expect(res[1]).toEqual(moveOffset(sel, { focus: text.length }));
   });
 
   it("should insert lines inside selection", () => {
     const docText = "abcde";
-    const doc: Doc = [[{ id: 1, text: docText }]];
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
       [[0], 1],
       [[0], 3],
@@ -373,10 +392,12 @@ describe("insert", () => {
     )!;
 
     const [before, after] = splitAt(docText, 2);
-    expect(res[0]).toEqual([
-      [{ id: 1, text: before + text }],
-      [{ id: 1, text: text2 + after }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: before + text }],
+        [{ id: 1, text: text2 + after }],
+      ],
+    });
     expect(res[1]).toEqual(
       moveLine(moveOffset(sel, { focus: -before.length + text2.length }), {
         focus: 1,
@@ -386,7 +407,7 @@ describe("insert", () => {
 
   it("should insert text after caret", () => {
     const docText = "abcde";
-    const doc: Doc = [[{ id: 1, text: docText }]];
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 2],
@@ -398,7 +419,9 @@ describe("insert", () => {
       new Transaction().insert([[0], 3], text),
     )!;
 
-    expect(res[0]).toEqual([[{ id: 1, text: insertAt(docText, 3, text) }]]);
+    expect(res[0]).toEqual({
+      children: [[{ id: 1, text: insertAt(docText, 3, text) }]],
+    });
     expect(res[1]).toEqual(sel);
   });
 
@@ -406,11 +429,13 @@ describe("insert", () => {
     const docText = "abcde";
     const docText2 = "fghi";
     const docText3 = "jkl";
-    const doc: Doc = [
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: docText2 }],
-      [{ id: 1, text: docText3 }],
-    ];
+    const doc: Doc = {
+      children: [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: docText2 }],
+        [{ id: 1, text: docText3 }],
+      ],
+    };
     const sel: SelectionSnapshot = [
       [[1], 2],
       [[1], 2],
@@ -422,17 +447,19 @@ describe("insert", () => {
       new Transaction().insert([[1], 3], text),
     )!;
 
-    expect(res[0]).toEqual([
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: insertAt(docText2, 3, text) }],
-      [{ id: 1, text: docText3 }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: insertAt(docText2, 3, text) }],
+        [{ id: 1, text: docText3 }],
+      ],
+    });
     expect(res[1]).toEqual(sel);
   });
 
   it("should insert lines after caret", () => {
     const docText = "abcde";
-    const doc: Doc = [[{ id: 1, text: docText }]];
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 2],
@@ -446,17 +473,21 @@ describe("insert", () => {
     )!;
 
     const [before, after] = splitAt(docText, 3);
-    expect(res[0]).toEqual([
-      [{ id: 1, text: before + text }],
-      [{ id: 1, text: text2 + after }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: before + text }],
+        [{ id: 1, text: text2 + after }],
+      ],
+    });
     expect(res[1]).toEqual(sel);
   });
 
   it("should insert text at line after caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
+    const doc: Doc = {
+      children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+    };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 2],
@@ -468,17 +499,21 @@ describe("insert", () => {
       new Transaction().insert([[1], 1], text),
     )!;
 
-    expect(res[0]).toEqual([
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: insertAt(docText2, 1, text) }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: insertAt(docText2, 1, text) }],
+      ],
+    });
     expect(res[1]).toEqual(sel);
   });
 
   it("should insert lines at line after caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
+    const doc: Doc = {
+      children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+    };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 2],
@@ -492,18 +527,22 @@ describe("insert", () => {
     )!;
 
     const [before, after] = splitAt(docText2, 1);
-    expect(res[0]).toEqual([
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: before + text }],
-      [{ id: 1, text: text2 + after }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: before + text }],
+        [{ id: 1, text: text2 + after }],
+      ],
+    });
     expect(res[1]).toEqual(sel);
   });
 
   it("should insert line break at start of line", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 2, text: docText2 }]];
+    const doc: Doc = {
+      children: [[{ id: 1, text: docText }], [{ id: 2, text: docText2 }]],
+    };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 2],
@@ -513,18 +552,22 @@ describe("insert", () => {
       sel,
       new Transaction().insert([[1], 0], "\n"),
     )!;
-    expect(res[0]).toEqual([
-      [{ id: 1, text: docText }],
-      [{ id: 2, text: "" }],
-      [{ id: 2, text: docText2 }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: docText }],
+        [{ id: 2, text: "" }],
+        [{ id: 2, text: docText2 }],
+      ],
+    });
     expect(res[1]).toEqual(sel);
   });
 
   it("should insert line break at middle of line", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 2, text: docText2 }]];
+    const doc: Doc = {
+      children: [[{ id: 1, text: docText }], [{ id: 2, text: docText2 }]],
+    };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 2],
@@ -536,18 +579,22 @@ describe("insert", () => {
     )!;
 
     const [before, after] = splitAt(docText2, 1);
-    expect(res[0]).toEqual([
-      [{ id: 1, text: docText }],
-      [{ id: 2, text: before }],
-      [{ id: 2, text: after }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: docText }],
+        [{ id: 2, text: before }],
+        [{ id: 2, text: after }],
+      ],
+    });
     expect(res[1]).toEqual(sel);
   });
 
   it("should insert line break at end of line", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 2, text: docText2 }]];
+    const doc: Doc = {
+      children: [[{ id: 1, text: docText }], [{ id: 2, text: docText2 }]],
+    };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 2],
@@ -557,23 +604,27 @@ describe("insert", () => {
       sel,
       new Transaction().insert([[0], docText.length], "\n"),
     )!;
-    expect(res[0]).toEqual([
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: "" }],
-      [{ id: 2, text: docText2 }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: "" }],
+        [{ id: 2, text: docText2 }],
+      ],
+    });
     expect(res[1]).toEqual(sel);
   });
 
   it("should insert text at the edge of text node", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Doc = [
-      [
-        { id: 1, text: docText },
-        { id: 2, text: docText2 },
+    const doc: Doc = {
+      children: [
+        [
+          { id: 1, text: docText },
+          { id: 2, text: docText2 },
+        ],
       ],
-    ];
+    };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 2],
@@ -585,24 +636,28 @@ describe("insert", () => {
       new Transaction().insert([[0], docText.length], text),
     )!;
 
-    expect(res[0]).toEqual([
-      [
-        { id: 1, text: docText + text },
-        { id: 2, text: docText2 },
+    expect(res[0]).toEqual({
+      children: [
+        [
+          { id: 1, text: docText + text },
+          { id: 2, text: docText2 },
+        ],
       ],
-    ]);
+    });
     expect(res[1]).toEqual(sel);
   });
 
   it("should insert lines at the edge of text node", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Doc = [
-      [
-        { id: 1, text: docText },
-        { id: 2, text: docText2 },
+    const doc: Doc = {
+      children: [
+        [
+          { id: 1, text: docText },
+          { id: 2, text: docText2 },
+        ],
       ],
-    ];
+    };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 2],
@@ -615,25 +670,29 @@ describe("insert", () => {
       new Transaction().insert([[0], docText.length], text + "\n" + text2),
     )!;
 
-    expect(res[0]).toEqual([
-      [{ id: 1, text: docText + text }],
-      [
-        { id: 1, text: text2 },
-        { id: 2, text: docText2 },
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: docText + text }],
+        [
+          { id: 1, text: text2 },
+          { id: 2, text: docText2 },
+        ],
       ],
-    ]);
+    });
     expect(res[1]).toEqual(sel);
   });
 
   it("should insert line break at the edge of text node", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Doc = [
-      [
-        { id: 1, text: docText },
-        { id: 2, text: docText2 },
+    const doc: Doc = {
+      children: [
+        [
+          { id: 1, text: docText },
+          { id: 2, text: docText2 },
+        ],
       ],
-    ];
+    };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 2],
@@ -644,10 +703,9 @@ describe("insert", () => {
       new Transaction().insert([[0], docText.length], "\n"),
     )!;
 
-    expect(res[0]).toEqual([
-      [{ id: 1, text: docText }],
-      [{ id: 2, text: docText2 }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [[{ id: 1, text: docText }], [{ id: 2, text: docText2 }]],
+    });
     expect(res[1]).toEqual(sel);
   });
 });
@@ -657,10 +715,9 @@ describe("insert node", () => {
     it("path less than min", () => {
       const docText = "abcde";
       const docText2 = "fghij";
-      const doc: Doc = [
-        [{ id: 1, text: docText }],
-        [{ id: 1, text: docText2 }],
-      ];
+      const doc: Doc = {
+        children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+      };
       const sel: SelectionSnapshot = [
         [[1], 2],
         [[1], 2],
@@ -678,10 +735,9 @@ describe("insert node", () => {
     it("path more than max", () => {
       const docText = "abcde";
       const docText2 = "fghij";
-      const doc: Doc = [
-        [{ id: 1, text: docText }],
-        [{ id: 1, text: docText2 }],
-      ];
+      const doc: Doc = {
+        children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+      };
       const sel: SelectionSnapshot = [
         [[1], 2],
         [[1], 2],
@@ -699,10 +755,9 @@ describe("insert node", () => {
     it("offset less than min", () => {
       const docText = "abcde";
       const docText2 = "fghij";
-      const doc: Doc = [
-        [{ id: 1, text: docText }],
-        [{ id: 1, text: docText2 }],
-      ];
+      const doc: Doc = {
+        children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+      };
       const sel: SelectionSnapshot = [
         [[1], 2],
         [[1], 2],
@@ -720,10 +775,9 @@ describe("insert node", () => {
     it("offset more than max", () => {
       const docText = "abcde";
       const docText2 = "fghij";
-      const doc: Doc = [
-        [{ id: 1, text: docText }],
-        [{ id: 1, text: docText2 }],
-      ];
+      const doc: Doc = {
+        children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+      };
       const sel: SelectionSnapshot = [
         [[1], 2],
         [[1], 2],
@@ -741,10 +795,9 @@ describe("insert node", () => {
     it("empty fragment", () => {
       const docText = "abcde";
       const docText2 = "fghij";
-      const doc: Doc = [
-        [{ id: 1, text: docText }],
-        [{ id: 1, text: docText2 }],
-      ];
+      const doc: Doc = {
+        children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+      };
       const sel: SelectionSnapshot = [
         [[1], 2],
         [[1], 2],
@@ -763,7 +816,9 @@ describe("insert node", () => {
   it("should insert text at line before caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
+    const doc: Doc = {
+      children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+    };
     const sel: SelectionSnapshot = [
       [[1], 2],
       [[1], 2],
@@ -776,17 +831,21 @@ describe("insert node", () => {
     )!;
 
     const [before, after] = splitAt(docText, 1);
-    expect(res[0]).toEqual([
-      [{ id: 1, text: before }, { text }, { id: 1, text: after }],
-      [{ id: 1, text: docText2 }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: before }, { text }, { id: 1, text: after }],
+        [{ id: 1, text: docText2 }],
+      ],
+    });
     expect(res[1]).toEqual(sel);
   });
 
   it("should insert lines at line before caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
+    const doc: Doc = {
+      children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+    };
     const sel: SelectionSnapshot = [
       [[1], 2],
       [[1], 2],
@@ -803,17 +862,19 @@ describe("insert node", () => {
     )!;
 
     const [before, after] = splitAt(docText, 1);
-    expect(res[0]).toEqual([
-      [{ id: 1, text: before }, { text }],
-      [{ text: text2 }, { id: 1, text: after }],
-      [{ id: 1, text: docText2 }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: before }, { text }],
+        [{ text: text2 }, { id: 1, text: after }],
+        [{ id: 1, text: docText2 }],
+      ],
+    });
     expect(res[1]).toEqual(moveLine(sel, 1));
   });
 
   it("should insert text before caret", () => {
     const docText = "abcde";
-    const doc: Doc = [[{ id: 1, text: docText }]];
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 2],
@@ -826,9 +887,9 @@ describe("insert node", () => {
     )!;
 
     const [before, after] = splitAt(docText, 1);
-    expect(res[0]).toEqual([
-      [{ id: 1, text: before }, { text }, { id: 1, text: after }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [[{ id: 1, text: before }, { text }, { id: 1, text: after }]],
+    });
     expect(res[1]).toEqual(moveOffset(sel, text.length));
   });
 
@@ -836,11 +897,13 @@ describe("insert node", () => {
     const docText = "abcde";
     const docText2 = "fghi";
     const docText3 = "jkl";
-    const doc: Doc = [
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: docText2 }],
-      [{ id: 1, text: docText3 }],
-    ];
+    const doc: Doc = {
+      children: [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: docText2 }],
+        [{ id: 1, text: docText3 }],
+      ],
+    };
     const sel: SelectionSnapshot = [
       [[1], 2],
       [[1], 2],
@@ -853,17 +916,19 @@ describe("insert node", () => {
     )!;
 
     const [before, after] = splitAt(docText2, 1);
-    expect(res[0]).toEqual([
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: before }, { text }, { id: 1, text: after }],
-      [{ id: 1, text: docText3 }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: before }, { text }, { id: 1, text: after }],
+        [{ id: 1, text: docText3 }],
+      ],
+    });
     expect(res[1]).toEqual(moveOffset(sel, text.length));
   });
 
   it("should insert lines before caret", () => {
     const docText = "abcde";
-    const doc: Doc = [[{ id: 1, text: docText }]];
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 2],
@@ -880,10 +945,12 @@ describe("insert node", () => {
     )!;
 
     const [before, after] = splitAt(docText, 1);
-    expect(res[0]).toEqual([
-      [{ id: 1, text: before }, { text }],
-      [{ text: text2 }, { id: 1, text: after }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: before }, { text }],
+        [{ text: text2 }, { id: 1, text: after }],
+      ],
+    });
     expect(res[1]).toEqual(
       moveLine(moveOffset(sel, -before.length + text2.length), 1),
     );
@@ -891,7 +958,7 @@ describe("insert node", () => {
 
   it("should insert text on caret", () => {
     const docText = "abcde";
-    const doc: Doc = [[{ id: 1, text: docText }]];
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 2],
@@ -904,15 +971,15 @@ describe("insert node", () => {
     )!;
 
     const [before, after] = splitAt(docText, 2);
-    expect(res[0]).toEqual([
-      [{ id: 1, text: before }, { text }, { id: 1, text: after }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [[{ id: 1, text: before }, { text }, { id: 1, text: after }]],
+    });
     expect(res[1]).toEqual(moveOffset(sel, text.length));
   });
 
   it("should insert lines on caret", () => {
     const docText = "abcde";
-    const doc: Doc = [[{ id: 1, text: docText }]];
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 2],
@@ -929,10 +996,12 @@ describe("insert node", () => {
     )!;
 
     const [before, after] = splitAt(docText, 2);
-    expect(res[0]).toEqual([
-      [{ id: 1, text: before }, { text }],
-      [{ text: text2 }, { id: 1, text: after }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: before }, { text }],
+        [{ text: text2 }, { id: 1, text: after }],
+      ],
+    });
     expect(res[1]).toEqual(
       moveLine(moveOffset(sel, -before.length + text2.length), 1),
     );
@@ -940,7 +1009,7 @@ describe("insert node", () => {
 
   it("should insert text inside selection", () => {
     const docText = "abcde";
-    const doc: Doc = [[{ id: 1, text: docText }]];
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
       [[0], 1],
       [[0], 3],
@@ -953,15 +1022,15 @@ describe("insert node", () => {
     )!;
 
     const [before, after] = splitAt(docText, 2);
-    expect(res[0]).toEqual([
-      [{ id: 1, text: before }, { text }, { id: 1, text: after }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [[{ id: 1, text: before }, { text }, { id: 1, text: after }]],
+    });
     expect(res[1]).toEqual(moveOffset(sel, { focus: text.length }));
   });
 
   it("should insert lines inside selection", () => {
     const docText = "abcde";
-    const doc: Doc = [[{ id: 1, text: docText }]];
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
       [[0], 1],
       [[0], 3],
@@ -978,10 +1047,12 @@ describe("insert node", () => {
     )!;
 
     const [before, after] = splitAt(docText, 2);
-    expect(res[0]).toEqual([
-      [{ id: 1, text: before }, { text }],
-      [{ text: text2 }, { id: 1, text: after }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: before }, { text }],
+        [{ text: text2 }, { id: 1, text: after }],
+      ],
+    });
     expect(res[1]).toEqual(
       moveLine(moveOffset(sel, { focus: -before.length + text2.length }), {
         focus: 1,
@@ -991,7 +1062,7 @@ describe("insert node", () => {
 
   it("should insert text after caret", () => {
     const docText = "abcde";
-    const doc: Doc = [[{ id: 1, text: docText }]];
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 2],
@@ -1004,9 +1075,9 @@ describe("insert node", () => {
     )!;
 
     const [before, after] = splitAt(docText, 3);
-    expect(res[0]).toEqual([
-      [{ id: 1, text: before }, { text }, { id: 1, text: after }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [[{ id: 1, text: before }, { text }, { id: 1, text: after }]],
+    });
     expect(res[1]).toEqual(sel);
   });
 
@@ -1014,11 +1085,13 @@ describe("insert node", () => {
     const docText = "abcde";
     const docText2 = "fghi";
     const docText3 = "jkl";
-    const doc: Doc = [
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: docText2 }],
-      [{ id: 1, text: docText3 }],
-    ];
+    const doc: Doc = {
+      children: [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: docText2 }],
+        [{ id: 1, text: docText3 }],
+      ],
+    };
     const sel: SelectionSnapshot = [
       [[1], 2],
       [[1], 2],
@@ -1031,17 +1104,19 @@ describe("insert node", () => {
     )!;
 
     const [before, after] = splitAt(docText2, 3);
-    expect(res[0]).toEqual([
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: before }, { text }, { id: 1, text: after }],
-      [{ id: 1, text: docText3 }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: before }, { text }, { id: 1, text: after }],
+        [{ id: 1, text: docText3 }],
+      ],
+    });
     expect(res[1]).toEqual(sel);
   });
 
   it("should insert lines after caret", () => {
     const docText = "abcde";
-    const doc: Doc = [[{ id: 1, text: docText }]];
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 2],
@@ -1058,17 +1133,21 @@ describe("insert node", () => {
     )!;
 
     const [before, after] = splitAt(docText, 3);
-    expect(res[0]).toEqual([
-      [{ id: 1, text: before }, { text }],
-      [{ text: text2 }, { id: 1, text: after }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: before }, { text }],
+        [{ text: text2 }, { id: 1, text: after }],
+      ],
+    });
     expect(res[1]).toEqual(sel);
   });
 
   it("should insert text at line after caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
+    const doc: Doc = {
+      children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+    };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 2],
@@ -1081,17 +1160,21 @@ describe("insert node", () => {
     )!;
 
     const [before, after] = splitAt(docText2, 1);
-    expect(res[0]).toEqual([
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: before }, { text }, { id: 1, text: after }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: before }, { text }, { id: 1, text: after }],
+      ],
+    });
     expect(res[1]).toEqual(sel);
   });
 
   it("should insert lines at line after caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
+    const doc: Doc = {
+      children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+    };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 2],
@@ -1108,11 +1191,13 @@ describe("insert node", () => {
     )!;
 
     const [before, after] = splitAt(docText2, 1);
-    expect(res[0]).toEqual([
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: before }, { text: text }],
-      [{ text: text2 }, { id: 1, text: after }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: before }, { text: text }],
+        [{ text: text2 }, { id: 1, text: after }],
+      ],
+    });
     expect(res[1]).toEqual(sel);
   });
 });
@@ -1121,7 +1206,7 @@ describe("delete", () => {
   describe("validation", () => {
     it("path less than min", () => {
       const docText = "abcde";
-      const doc: Doc = [[{ id: 1, text: docText }]];
+      const doc: Doc = { children: [[{ id: 1, text: docText }]] };
       const sel: SelectionSnapshot = [
         [[0], 2],
         [[0], 2],
@@ -1138,7 +1223,7 @@ describe("delete", () => {
 
     it("path more than max", () => {
       const docText = "abcde";
-      const doc: Doc = [[{ id: 1, text: docText }]];
+      const doc: Doc = { children: [[{ id: 1, text: docText }]] };
       const sel: SelectionSnapshot = [
         [[0], 2],
         [[0], 2],
@@ -1155,7 +1240,7 @@ describe("delete", () => {
 
     it("offset less than min", () => {
       const docText = "abcde";
-      const doc: Doc = [[{ id: 1, text: docText }]];
+      const doc: Doc = { children: [[{ id: 1, text: docText }]] };
       const sel: SelectionSnapshot = [
         [[0], 2],
         [[0], 2],
@@ -1172,7 +1257,7 @@ describe("delete", () => {
 
     it("offset more than max", () => {
       const docText = "abcde";
-      const doc: Doc = [[{ id: 1, text: docText }]];
+      const doc: Doc = { children: [[{ id: 1, text: docText }]] };
       const sel: SelectionSnapshot = [
         [[0], 2],
         [[0], 2],
@@ -1189,7 +1274,7 @@ describe("delete", () => {
 
     it("start and end is the same", () => {
       const docText = "abcde";
-      const doc: Doc = [[{ id: 1, text: docText }]];
+      const doc: Doc = { children: [[{ id: 1, text: docText }]] };
       const sel: SelectionSnapshot = [
         [[0], 2],
         [[0], 2],
@@ -1206,7 +1291,7 @@ describe("delete", () => {
 
     it("start and end is inverted", () => {
       const docText = "abcde";
-      const doc: Doc = [[{ id: 1, text: docText }]];
+      const doc: Doc = { children: [[{ id: 1, text: docText }]] };
       const sel: SelectionSnapshot = [
         [[0], 2],
         [[0], 2],
@@ -1225,7 +1310,9 @@ describe("delete", () => {
   it("should delete text at line before caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
+    const doc: Doc = {
+      children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+    };
     const sel: SelectionSnapshot = [
       [[1], 2],
       [[1], 2],
@@ -1236,17 +1323,21 @@ describe("delete", () => {
       new Transaction().delete([[0], 1], [[0], 2]),
     )!;
 
-    expect(res[0]).toEqual([
-      [{ id: 1, text: deleteAt(docText, 1, 1) }],
-      [{ id: 1, text: docText2 }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: deleteAt(docText, 1, 1) }],
+        [{ id: 1, text: docText2 }],
+      ],
+    });
     expect(res[1]).toEqual(sel);
   });
 
   it("should delete linebreak at line before caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
+    const doc: Doc = {
+      children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+    };
     const sel: SelectionSnapshot = [
       [[1], 3],
       [[1], 3],
@@ -1258,15 +1349,18 @@ describe("delete", () => {
       new Transaction().delete([[0], 2], [[1], 1]),
     )!;
 
-    expect(res[0]).toEqual([
-      [
-        {
-          id: 1,
-          text:
-            deleteAt(docText, 2, docText.length - 1) + deleteAt(docText2, 0, 1),
-        },
+    expect(res[0]).toEqual({
+      children: [
+        [
+          {
+            id: 1,
+            text:
+              deleteAt(docText, 2, docText.length - 1) +
+              deleteAt(docText2, 0, 1),
+          },
+        ],
       ],
-    ]);
+    });
     expect(res[1]).toEqual([
       [[0], 2 + (3 - 1)],
       [[0], 2 + (3 - 1)],
@@ -1275,7 +1369,7 @@ describe("delete", () => {
 
   it("should delete text before caret", () => {
     const docText = "abcde";
-    const doc: Doc = [[{ id: 1, text: docText }]];
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
       [[0], 3],
       [[0], 3],
@@ -1286,7 +1380,9 @@ describe("delete", () => {
       new Transaction().delete([[0], 1], [[0], 2]),
     )!;
 
-    expect(res[0]).toEqual([[{ id: 1, text: deleteAt(docText, 1, 1) }]]);
+    expect(res[0]).toEqual({
+      children: [[{ id: 1, text: deleteAt(docText, 1, 1) }]],
+    });
     expect(res[1]).toEqual(moveOffset(sel, -1));
   });
 
@@ -1294,11 +1390,13 @@ describe("delete", () => {
     const docText = "abcde";
     const docText2 = "fghi";
     const docText3 = "jkl";
-    const doc: Doc = [
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: docText2 }],
-      [{ id: 1, text: docText3 }],
-    ];
+    const doc: Doc = {
+      children: [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: docText2 }],
+        [{ id: 1, text: docText3 }],
+      ],
+    };
     const sel: SelectionSnapshot = [
       [[1], 3],
       [[1], 3],
@@ -1309,17 +1407,19 @@ describe("delete", () => {
       new Transaction().delete([[1], 1], [[1], 2]),
     )!;
 
-    expect(res[0]).toEqual([
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: deleteAt(docText2, 1, 1) }],
-      [{ id: 1, text: docText3 }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: deleteAt(docText2, 1, 1) }],
+        [{ id: 1, text: docText3 }],
+      ],
+    });
     expect(res[1]).toEqual(moveOffset(sel, -1));
   });
 
   it("should delete text just before caret", () => {
     const docText = "abcde";
-    const doc: Doc = [[{ id: 1, text: docText }]];
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
       [[0], 3],
       [[0], 3],
@@ -1330,13 +1430,15 @@ describe("delete", () => {
       new Transaction().delete([[0], 2], [[0], 3]),
     )!;
 
-    expect(res[0]).toEqual([[{ id: 1, text: deleteAt(docText, 2, 1) }]]);
+    expect(res[0]).toEqual({
+      children: [[{ id: 1, text: deleteAt(docText, 2, 1) }]],
+    });
     expect(res[1]).toEqual(moveOffset(sel, -1));
   });
 
   it("should delete text around caret", () => {
     const docText = "abcde";
-    const doc: Doc = [[{ id: 1, text: docText }]];
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
       [[0], 3],
       [[0], 3],
@@ -1347,13 +1449,15 @@ describe("delete", () => {
       new Transaction().delete([[0], 2], [[0], 4]),
     )!;
 
-    expect(res[0]).toEqual([[{ id: 1, text: deleteAt(docText, 2, 2) }]]);
+    expect(res[0]).toEqual({
+      children: [[{ id: 1, text: deleteAt(docText, 2, 2) }]],
+    });
     expect(res[1]).toEqual(moveOffset(sel, -1));
   });
 
   it("should delete text around selection", () => {
     const docText = "abcde";
-    const doc: Doc = [[{ id: 1, text: docText }]];
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 4],
@@ -1364,7 +1468,9 @@ describe("delete", () => {
       new Transaction().delete([[0], 1], [[0], 5]),
     )!;
 
-    expect(res[0]).toEqual([[{ id: 1, text: deleteAt(docText, 1, 4) }]]);
+    expect(res[0]).toEqual({
+      children: [[{ id: 1, text: deleteAt(docText, 1, 4) }]],
+    });
     expect(res[1]).toEqual([
       [[0], 1],
       [[0], 1],
@@ -1373,7 +1479,7 @@ describe("delete", () => {
 
   it("should delete text around selection anchor", () => {
     const docText = "abcde";
-    const doc: Doc = [[{ id: 1, text: docText }]];
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 4],
@@ -1384,13 +1490,15 @@ describe("delete", () => {
       new Transaction().delete([[0], 1], [[0], 3]),
     )!;
 
-    expect(res[0]).toEqual([[{ id: 1, text: deleteAt(docText, 1, 2) }]]);
+    expect(res[0]).toEqual({
+      children: [[{ id: 1, text: deleteAt(docText, 1, 2) }]],
+    });
     expect(res[1]).toEqual(moveOffset(sel, { anchor: 1 - 2, focus: -2 }));
   });
 
   it("should delete text around selection focus", () => {
     const docText = "abcde";
-    const doc: Doc = [[{ id: 1, text: docText }]];
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 4],
@@ -1401,14 +1509,18 @@ describe("delete", () => {
       new Transaction().delete([[0], 3], [[0], 5]),
     )!;
 
-    expect(res[0]).toEqual([[{ id: 1, text: deleteAt(docText, 3, 2) }]]);
+    expect(res[0]).toEqual({
+      children: [[{ id: 1, text: deleteAt(docText, 3, 2) }]],
+    });
     expect(res[1]).toEqual(moveOffset(sel, { focus: 1 - 2 }));
   });
 
   it("should delete linebreak inside selection", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
+    const doc: Doc = {
+      children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+    };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[1], 2],
@@ -1419,9 +1531,11 @@ describe("delete", () => {
       new Transaction().delete([[0], 3], [[1], 1]),
     )!;
 
-    expect(res[0]).toEqual([
-      [{ id: 1, text: splitAt(docText, 3)[0] + splitAt(docText2, 1)[1] }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: splitAt(docText, 3)[0] + splitAt(docText2, 1)[1] }],
+      ],
+    });
     expect(res[1]).toEqual([
       [[0], 2],
       [[0], 3 + 1],
@@ -1430,7 +1544,7 @@ describe("delete", () => {
 
   it("should delete text just after caret", () => {
     const docText = "abcde";
-    const doc: Doc = [[{ id: 1, text: docText }]];
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
       [[0], 3],
       [[0], 3],
@@ -1441,13 +1555,15 @@ describe("delete", () => {
       new Transaction().delete([[0], 3], [[0], 4]),
     )!;
 
-    expect(res[0]).toEqual([[{ id: 1, text: deleteAt(docText, 3, 1) }]]);
+    expect(res[0]).toEqual({
+      children: [[{ id: 1, text: deleteAt(docText, 3, 1) }]],
+    });
     expect(res[1]).toEqual(sel);
   });
 
   it("should delete text after caret", () => {
     const docText = "abcde";
-    const doc: Doc = [[{ id: 1, text: docText }]];
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
       [[0], 3],
       [[0], 3],
@@ -1458,7 +1574,9 @@ describe("delete", () => {
       new Transaction().delete([[0], 4], [[0], 5]),
     )!;
 
-    expect(res[0]).toEqual([[{ id: 1, text: deleteAt(docText, 4, 1) }]]);
+    expect(res[0]).toEqual({
+      children: [[{ id: 1, text: deleteAt(docText, 4, 1) }]],
+    });
     expect(res[1]).toEqual(sel);
   });
 
@@ -1466,11 +1584,13 @@ describe("delete", () => {
     const docText = "abcde";
     const docText2 = "fghi";
     const docText3 = "jkl";
-    const doc: Doc = [
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: docText2 }],
-      [{ id: 1, text: docText3 }],
-    ];
+    const doc: Doc = {
+      children: [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: docText2 }],
+        [{ id: 1, text: docText3 }],
+      ],
+    };
     const sel: SelectionSnapshot = [
       [[1], 2],
       [[1], 2],
@@ -1481,18 +1601,22 @@ describe("delete", () => {
       new Transaction().delete([[1], 3], [[1], 4]),
     )!;
 
-    expect(res[0]).toEqual([
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: deleteAt(docText2, 3, 1) }],
-      [{ id: 1, text: docText3 }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: deleteAt(docText2, 3, 1) }],
+        [{ id: 1, text: docText3 }],
+      ],
+    });
     expect(res[1]).toEqual(sel);
   });
 
   it("should delete text at line after caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
+    const doc: Doc = {
+      children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+    };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 2],
@@ -1503,17 +1627,21 @@ describe("delete", () => {
       new Transaction().delete([[1], 1], [[1], 2]),
     )!;
 
-    expect(res[0]).toEqual([
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: deleteAt(docText2, 1, 1) }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: deleteAt(docText2, 1, 1) }],
+      ],
+    });
     expect(res[1]).toEqual(sel);
   });
 
   it("should delete linebreak", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
+    const doc: Doc = {
+      children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+    };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 2],
@@ -1525,14 +1653,16 @@ describe("delete", () => {
       new Transaction().delete([[0], docText.length], [[1], 0]),
     )!;
 
-    expect(res[0]).toEqual([
-      [
-        {
-          id: 1,
-          text: docText + docText2,
-        },
+    expect(res[0]).toEqual({
+      children: [
+        [
+          {
+            id: 1,
+            text: docText + docText2,
+          },
+        ],
       ],
-    ]);
+    });
     expect(res[1]).toEqual(sel);
   });
 
@@ -1540,11 +1670,13 @@ describe("delete", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const docText3 = "klmno";
-    const doc: Doc = [
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: docText2 }],
-      [{ id: 1, text: docText3 }],
-    ];
+    const doc: Doc = {
+      children: [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: docText2 }],
+        [{ id: 1, text: docText3 }],
+      ],
+    };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 2],
@@ -1555,28 +1687,32 @@ describe("delete", () => {
       new Transaction().delete([[1], 1], [[2], 1]),
     )!;
 
-    expect(res[0]).toEqual([
-      [{ id: 1, text: docText }],
-      [
-        {
-          id: 1,
-          text:
-            deleteAt(docText2, 1, docText2.length - 1) +
-            deleteAt(docText3, 0, 1),
-        },
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: docText }],
+        [
+          {
+            id: 1,
+            text:
+              deleteAt(docText2, 1, docText2.length - 1) +
+              deleteAt(docText3, 0, 1),
+          },
+        ],
       ],
-    ]);
+    });
     expect(res[1]).toEqual(sel);
   });
 
   it("should delete empty line from the start", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Doc = [
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: "" }],
-      [{ id: 1, text: docText2 }],
-    ];
+    const doc: Doc = {
+      children: [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: "" }],
+        [{ id: 1, text: docText2 }],
+      ],
+    };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 2],
@@ -1588,21 +1724,22 @@ describe("delete", () => {
       new Transaction().delete([[0], docText.length], [[1], 0]),
     )!;
 
-    expect(res[0]).toEqual([
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: docText2 }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+    });
     expect(res[1]).toEqual(sel);
   });
 
   it("should delete empty line from the end", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Doc = [
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: "" }],
-      [{ id: 1, text: docText2 }],
-    ];
+    const doc: Doc = {
+      children: [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: "" }],
+        [{ id: 1, text: docText2 }],
+      ],
+    };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 2],
@@ -1614,22 +1751,23 @@ describe("delete", () => {
       new Transaction().delete([[1], 0], [[2], 0]),
     )!;
 
-    expect(res[0]).toEqual([
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: docText2 }],
-    ]);
+    expect(res[0]).toEqual({
+      children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+    });
     expect(res[1]).toEqual(sel);
   });
 
   it("should delete forward at the edge of text node", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Doc = [
-      [
-        { id: 1, text: docText },
-        { id: 2, text: docText2 },
+    const doc: Doc = {
+      children: [
+        [
+          { id: 1, text: docText },
+          { id: 2, text: docText2 },
+        ],
       ],
-    ];
+    };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 2],
@@ -1644,24 +1782,28 @@ describe("delete", () => {
       ),
     )!;
 
-    expect(res[0]).toEqual([
-      [
-        { id: 1, text: docText },
-        { id: 2, text: docText2.slice(1) },
+    expect(res[0]).toEqual({
+      children: [
+        [
+          { id: 1, text: docText },
+          { id: 2, text: docText2.slice(1) },
+        ],
       ],
-    ]);
+    });
     expect(res[1]).toEqual(sel);
   });
 
   it("should delete backward at the edge of text node", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Doc = [
-      [
-        { id: 1, text: docText },
-        { id: 2, text: docText2 },
+    const doc: Doc = {
+      children: [
+        [
+          { id: 1, text: docText },
+          { id: 2, text: docText2 },
+        ],
       ],
-    ];
+    };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 2],
@@ -1676,19 +1818,23 @@ describe("delete", () => {
       ),
     )!;
 
-    expect(res[0]).toEqual([
-      [
-        { id: 1, text: docText.slice(0, -1) },
-        { id: 2, text: docText2 },
+    expect(res[0]).toEqual({
+      children: [
+        [
+          { id: 1, text: docText.slice(0, -1) },
+          { id: 2, text: docText2 },
+        ],
       ],
-    ]);
+    });
     expect(res[1]).toEqual(sel);
   });
 
   it("should delete linebreak at the edge of text node", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 2, text: docText2 }]];
+    const doc: Doc = {
+      children: [[{ id: 1, text: docText }], [{ id: 2, text: docText2 }]],
+    };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 2],
@@ -1700,18 +1846,20 @@ describe("delete", () => {
       new Transaction().delete([[0], docText.length], [[1], 0]),
     )!;
 
-    expect(res[0]).toEqual([
-      [
-        {
-          id: 1,
-          text: docText,
-        },
-        {
-          id: 2,
-          text: docText2,
-        },
+    expect(res[0]).toEqual({
+      children: [
+        [
+          {
+            id: 1,
+            text: docText,
+          },
+          {
+            id: 2,
+            text: docText2,
+          },
+        ],
       ],
-    ]);
+    });
     expect(res[1]).toEqual(sel);
   });
 });
@@ -1720,7 +1868,7 @@ describe("update attr", () => {
   describe("validation", () => {
     it("path less than min", () => {
       const docText = "abcde";
-      const doc: Doc = [[{ id: 1, text: docText }]];
+      const doc: Doc = { children: [[{ id: 1, text: docText }]] };
       const sel: SelectionSnapshot = [
         [[0], 2],
         [[0], 2],
@@ -1737,7 +1885,7 @@ describe("update attr", () => {
 
     it("path more than max", () => {
       const docText = "abcde";
-      const doc: Doc = [[{ id: 1, text: docText }]];
+      const doc: Doc = { children: [[{ id: 1, text: docText }]] };
       const sel: SelectionSnapshot = [
         [[0], 2],
         [[0], 2],
@@ -1754,7 +1902,7 @@ describe("update attr", () => {
 
     it("offset less than min", () => {
       const docText = "abcde";
-      const doc: Doc = [[{ id: 1, text: docText }]];
+      const doc: Doc = { children: [[{ id: 1, text: docText }]] };
       const sel: SelectionSnapshot = [
         [[0], 2],
         [[0], 2],
@@ -1771,7 +1919,7 @@ describe("update attr", () => {
 
     it("offset more than max", () => {
       const docText = "abcde";
-      const doc: Doc = [[{ id: 1, text: docText }]];
+      const doc: Doc = { children: [[{ id: 1, text: docText }]] };
       const sel: SelectionSnapshot = [
         [[0], 2],
         [[0], 2],
@@ -1788,7 +1936,7 @@ describe("update attr", () => {
 
     it("start and end is the same", () => {
       const docText = "abcde";
-      const doc: Doc = [[{ id: 1, text: docText }]];
+      const doc: Doc = { children: [[{ id: 1, text: docText }]] };
       const sel: SelectionSnapshot = [
         [[0], 2],
         [[0], 2],
@@ -1805,7 +1953,7 @@ describe("update attr", () => {
 
     it("start and end is inverted", () => {
       const docText = "abcde";
-      const doc: Doc = [[{ id: 1, text: docText }]];
+      const doc: Doc = { children: [[{ id: 1, text: docText }]] };
       const sel: SelectionSnapshot = [
         [[0], 2],
         [[0], 2],
@@ -1824,7 +1972,9 @@ describe("update attr", () => {
   it("should update attr text at line before caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
+    const doc: Doc = {
+      children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+    };
     const sel: SelectionSnapshot = [
       [[1], 2],
       [[1], 2],
@@ -1835,21 +1985,25 @@ describe("update attr", () => {
       new Transaction().attr([[0], 1], [[0], 2], { foo: "bar" }),
     )!;
 
-    expect(res[0]).toEqual([
-      [
-        { id: 1, text: docText.slice(0, 1) },
-        { id: 1, text: docText.slice(1, 2), foo: "bar" },
-        { id: 1, text: docText.slice(2) },
+    expect(res[0]).toEqual({
+      children: [
+        [
+          { id: 1, text: docText.slice(0, 1) },
+          { id: 1, text: docText.slice(1, 2), foo: "bar" },
+          { id: 1, text: docText.slice(2) },
+        ],
+        [{ id: 1, text: docText2 }],
       ],
-      [{ id: 1, text: docText2 }],
-    ]);
+    });
     expect(res[1]).toEqual(sel);
   });
 
   it("should update attr linebreak at line before caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
+    const doc: Doc = {
+      children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+    };
     const sel: SelectionSnapshot = [
       [[1], 3],
       [[1], 3],
@@ -1861,22 +2015,24 @@ describe("update attr", () => {
       new Transaction().attr([[0], 2], [[1], 1], { foo: "bar" }),
     )!;
 
-    expect(res[0]).toEqual([
-      [
-        { id: 1, text: docText.slice(0, 2) },
-        { id: 1, text: docText.slice(2), foo: "bar" },
+    expect(res[0]).toEqual({
+      children: [
+        [
+          { id: 1, text: docText.slice(0, 2) },
+          { id: 1, text: docText.slice(2), foo: "bar" },
+        ],
+        [
+          { id: 1, text: docText2.slice(0, 1), foo: "bar" },
+          { id: 1, text: docText2.slice(1) },
+        ],
       ],
-      [
-        { id: 1, text: docText2.slice(0, 1), foo: "bar" },
-        { id: 1, text: docText2.slice(1) },
-      ],
-    ]);
+    });
     expect(res[1]).toEqual(sel);
   });
 
   it("should update attr text before caret", () => {
     const docText = "abcde";
-    const doc: Doc = [[{ id: 1, text: docText }]];
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
       [[0], 3],
       [[0], 3],
@@ -1887,13 +2043,15 @@ describe("update attr", () => {
       new Transaction().attr([[0], 1], [[0], 2], { foo: "bar" }),
     )!;
 
-    expect(res[0]).toEqual([
-      [
-        { id: 1, text: docText.slice(0, 1) },
-        { id: 1, text: docText.slice(1, 2), foo: "bar" },
-        { id: 1, text: docText.slice(2) },
+    expect(res[0]).toEqual({
+      children: [
+        [
+          { id: 1, text: docText.slice(0, 1) },
+          { id: 1, text: docText.slice(1, 2), foo: "bar" },
+          { id: 1, text: docText.slice(2) },
+        ],
       ],
-    ]);
+    });
     expect(res[1]).toEqual(sel);
   });
 
@@ -1901,11 +2059,13 @@ describe("update attr", () => {
     const docText = "abcde";
     const docText2 = "fghi";
     const docText3 = "jkl";
-    const doc: Doc = [
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: docText2 }],
-      [{ id: 1, text: docText3 }],
-    ];
+    const doc: Doc = {
+      children: [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: docText2 }],
+        [{ id: 1, text: docText3 }],
+      ],
+    };
     const sel: SelectionSnapshot = [
       [[1], 3],
       [[1], 3],
@@ -1916,21 +2076,23 @@ describe("update attr", () => {
       new Transaction().attr([[1], 1], [[1], 2], { foo: "bar" }),
     )!;
 
-    expect(res[0]).toEqual([
-      [{ id: 1, text: docText }],
-      [
-        { id: 1, text: docText2.slice(0, 1) },
-        { id: 1, text: docText2.slice(1, 2), foo: "bar" },
-        { id: 1, text: docText2.slice(2) },
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: docText }],
+        [
+          { id: 1, text: docText2.slice(0, 1) },
+          { id: 1, text: docText2.slice(1, 2), foo: "bar" },
+          { id: 1, text: docText2.slice(2) },
+        ],
+        [{ id: 1, text: docText3 }],
       ],
-      [{ id: 1, text: docText3 }],
-    ]);
+    });
     expect(res[1]).toEqual(sel);
   });
 
   it("should update attr text just before caret", () => {
     const docText = "abcde";
-    const doc: Doc = [[{ id: 1, text: docText }]];
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
       [[0], 3],
       [[0], 3],
@@ -1941,19 +2103,21 @@ describe("update attr", () => {
       new Transaction().attr([[0], 2], [[0], 3], { foo: "bar" }),
     )!;
 
-    expect(res[0]).toEqual([
-      [
-        { id: 1, text: docText.slice(0, 2) },
-        { id: 1, text: docText.slice(2, 3), foo: "bar" },
-        { id: 1, text: docText.slice(3) },
+    expect(res[0]).toEqual({
+      children: [
+        [
+          { id: 1, text: docText.slice(0, 2) },
+          { id: 1, text: docText.slice(2, 3), foo: "bar" },
+          { id: 1, text: docText.slice(3) },
+        ],
       ],
-    ]);
+    });
     expect(res[1]).toEqual(sel);
   });
 
   it("should update attr text around caret", () => {
     const docText = "abcde";
-    const doc: Doc = [[{ id: 1, text: docText }]];
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
       [[0], 3],
       [[0], 3],
@@ -1964,19 +2128,21 @@ describe("update attr", () => {
       new Transaction().attr([[0], 2], [[0], 4], { foo: "bar" }),
     )!;
 
-    expect(res[0]).toEqual([
-      [
-        { id: 1, text: docText.slice(0, 2) },
-        { id: 1, text: docText.slice(2, 4), foo: "bar" },
-        { id: 1, text: docText.slice(4) },
+    expect(res[0]).toEqual({
+      children: [
+        [
+          { id: 1, text: docText.slice(0, 2) },
+          { id: 1, text: docText.slice(2, 4), foo: "bar" },
+          { id: 1, text: docText.slice(4) },
+        ],
       ],
-    ]);
+    });
     expect(res[1]).toEqual(sel);
   });
 
   it("should update attr text around selection", () => {
     const docText = "abcde";
-    const doc: Doc = [[{ id: 1, text: docText }]];
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 4],
@@ -1987,18 +2153,20 @@ describe("update attr", () => {
       new Transaction().attr([[0], 1], [[0], 5], { foo: "bar" }),
     )!;
 
-    expect(res[0]).toEqual([
-      [
-        { id: 1, text: docText.slice(0, 1) },
-        { id: 1, text: docText.slice(1, 5), foo: "bar" },
+    expect(res[0]).toEqual({
+      children: [
+        [
+          { id: 1, text: docText.slice(0, 1) },
+          { id: 1, text: docText.slice(1, 5), foo: "bar" },
+        ],
       ],
-    ]);
+    });
     expect(res[1]).toEqual(sel);
   });
 
   it("should update attr text around selection anchor", () => {
     const docText = "abcde";
-    const doc: Doc = [[{ id: 1, text: docText }]];
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 4],
@@ -2009,19 +2177,21 @@ describe("update attr", () => {
       new Transaction().attr([[0], 1], [[0], 3], { foo: "bar" }),
     )!;
 
-    expect(res[0]).toEqual([
-      [
-        { id: 1, text: docText.slice(0, 1) },
-        { id: 1, text: docText.slice(1, 3), foo: "bar" },
-        { id: 1, text: docText.slice(3) },
+    expect(res[0]).toEqual({
+      children: [
+        [
+          { id: 1, text: docText.slice(0, 1) },
+          { id: 1, text: docText.slice(1, 3), foo: "bar" },
+          { id: 1, text: docText.slice(3) },
+        ],
       ],
-    ]);
+    });
     expect(res[1]).toEqual(sel);
   });
 
   it("should update attr text around selection focus", () => {
     const docText = "abcde";
-    const doc: Doc = [[{ id: 1, text: docText }]];
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 4],
@@ -2032,19 +2202,23 @@ describe("update attr", () => {
       new Transaction().attr([[0], 3], [[0], 5], { foo: "bar" }),
     )!;
 
-    expect(res[0]).toEqual([
-      [
-        { id: 1, text: docText.slice(0, 3) },
-        { id: 1, text: docText.slice(3, 5), foo: "bar" },
+    expect(res[0]).toEqual({
+      children: [
+        [
+          { id: 1, text: docText.slice(0, 3) },
+          { id: 1, text: docText.slice(3, 5), foo: "bar" },
+        ],
       ],
-    ]);
+    });
     expect(res[1]).toEqual(sel);
   });
 
   it("should update attr linebreak inside selection", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
+    const doc: Doc = {
+      children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+    };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[1], 2],
@@ -2055,22 +2229,24 @@ describe("update attr", () => {
       new Transaction().attr([[0], 3], [[1], 1], { foo: "bar" }),
     )!;
 
-    expect(res[0]).toEqual([
-      [
-        { id: 1, text: docText.slice(0, 3) },
-        { id: 1, text: docText.slice(3), foo: "bar" },
+    expect(res[0]).toEqual({
+      children: [
+        [
+          { id: 1, text: docText.slice(0, 3) },
+          { id: 1, text: docText.slice(3), foo: "bar" },
+        ],
+        [
+          { id: 1, text: docText2.slice(0, 1), foo: "bar" },
+          { id: 1, text: docText2.slice(1) },
+        ],
       ],
-      [
-        { id: 1, text: docText2.slice(0, 1), foo: "bar" },
-        { id: 1, text: docText2.slice(1) },
-      ],
-    ]);
+    });
     expect(res[1]).toEqual(sel);
   });
 
   it("should update attr text just after caret", () => {
     const docText = "abcde";
-    const doc: Doc = [[{ id: 1, text: docText }]];
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
       [[0], 3],
       [[0], 3],
@@ -2081,19 +2257,21 @@ describe("update attr", () => {
       new Transaction().attr([[0], 3], [[0], 4], { foo: "bar" }),
     )!;
 
-    expect(res[0]).toEqual([
-      [
-        { id: 1, text: docText.slice(0, 3) },
-        { id: 1, text: docText.slice(3, 4), foo: "bar" },
-        { id: 1, text: docText.slice(4) },
+    expect(res[0]).toEqual({
+      children: [
+        [
+          { id: 1, text: docText.slice(0, 3) },
+          { id: 1, text: docText.slice(3, 4), foo: "bar" },
+          { id: 1, text: docText.slice(4) },
+        ],
       ],
-    ]);
+    });
     expect(res[1]).toEqual(sel);
   });
 
   it("should update attr text after caret", () => {
     const docText = "abcde";
-    const doc: Doc = [[{ id: 1, text: docText }]];
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
       [[0], 3],
       [[0], 3],
@@ -2104,12 +2282,14 @@ describe("update attr", () => {
       new Transaction().attr([[0], 4], [[0], 5], { foo: "bar" }),
     )!;
 
-    expect(res[0]).toEqual([
-      [
-        { id: 1, text: docText.slice(0, 4) },
-        { id: 1, text: docText.slice(4, 5), foo: "bar" },
+    expect(res[0]).toEqual({
+      children: [
+        [
+          { id: 1, text: docText.slice(0, 4) },
+          { id: 1, text: docText.slice(4, 5), foo: "bar" },
+        ],
       ],
-    ]);
+    });
     expect(res[1]).toEqual(sel);
   });
 
@@ -2117,11 +2297,13 @@ describe("update attr", () => {
     const docText = "abcde";
     const docText2 = "fghi";
     const docText3 = "jkl";
-    const doc: Doc = [
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: docText2 }],
-      [{ id: 1, text: docText3 }],
-    ];
+    const doc: Doc = {
+      children: [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: docText2 }],
+        [{ id: 1, text: docText3 }],
+      ],
+    };
     const sel: SelectionSnapshot = [
       [[1], 2],
       [[1], 2],
@@ -2132,21 +2314,25 @@ describe("update attr", () => {
       new Transaction().attr([[1], 3], [[1], 4], { foo: "bar" }),
     )!;
 
-    expect(res[0]).toEqual([
-      [{ id: 1, text: docText }],
-      [
-        { id: 1, text: docText2.slice(0, 3) },
-        { id: 1, text: docText2.slice(3, 4), foo: "bar" },
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: docText }],
+        [
+          { id: 1, text: docText2.slice(0, 3) },
+          { id: 1, text: docText2.slice(3, 4), foo: "bar" },
+        ],
+        [{ id: 1, text: docText3 }],
       ],
-      [{ id: 1, text: docText3 }],
-    ]);
+    });
     expect(res[1]).toEqual(sel);
   });
 
   it("should update attr text at line after caret", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
+    const doc: Doc = {
+      children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+    };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 2],
@@ -2157,14 +2343,16 @@ describe("update attr", () => {
       new Transaction().attr([[1], 1], [[1], 2], { foo: "bar" }),
     )!;
 
-    expect(res[0]).toEqual([
-      [{ id: 1, text: docText }],
-      [
-        { id: 1, text: docText2.slice(0, 1) },
-        { id: 1, text: docText2.slice(1, 2), foo: "bar" },
-        { id: 1, text: docText2.slice(2) },
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: docText }],
+        [
+          { id: 1, text: docText2.slice(0, 1) },
+          { id: 1, text: docText2.slice(1, 2), foo: "bar" },
+          { id: 1, text: docText2.slice(2) },
+        ],
       ],
-    ]);
+    });
     expect(res[1]).toEqual(sel);
   });
 
@@ -2172,11 +2360,13 @@ describe("update attr", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const docText3 = "klmno";
-    const doc: Doc = [
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: docText2 }],
-      [{ id: 1, text: docText3 }],
-    ];
+    const doc: Doc = {
+      children: [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: docText2 }],
+        [{ id: 1, text: docText3 }],
+      ],
+    };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 2],
@@ -2187,17 +2377,19 @@ describe("update attr", () => {
       new Transaction().attr([[1], 1], [[2], 1], { foo: "bar" }),
     )!;
 
-    expect(res[0]).toEqual([
-      [{ id: 1, text: docText }],
-      [
-        { id: 1, text: docText2.slice(0, 1) },
-        { id: 1, text: docText2.slice(1), foo: "bar" },
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: docText }],
+        [
+          { id: 1, text: docText2.slice(0, 1) },
+          { id: 1, text: docText2.slice(1), foo: "bar" },
+        ],
+        [
+          { id: 1, text: docText3.slice(0, 1), foo: "bar" },
+          { id: 1, text: docText3.slice(1) },
+        ],
       ],
-      [
-        { id: 1, text: docText3.slice(0, 1), foo: "bar" },
-        { id: 1, text: docText3.slice(1) },
-      ],
-    ]);
+    });
     expect(res[1]).toEqual(sel);
   });
 });
@@ -2206,7 +2398,7 @@ describe("selection", () => {
   describe("validation", () => {
     it("path less than min", () => {
       const docText = "abcde";
-      const doc: Doc = [[{ id: 1, text: docText }]];
+      const doc: Doc = { children: [[{ id: 1, text: docText }]] };
       const sel: SelectionSnapshot = [
         [[0], 2],
         [[0], 2],
@@ -2223,7 +2415,7 @@ describe("selection", () => {
 
     it("path more than max", () => {
       const docText = "abcde";
-      const doc: Doc = [[{ id: 1, text: docText }]];
+      const doc: Doc = { children: [[{ id: 1, text: docText }]] };
       const sel: SelectionSnapshot = [
         [[0], 2],
         [[0], 2],
@@ -2240,7 +2432,7 @@ describe("selection", () => {
 
     it("offset less than min", () => {
       const docText = "abcde";
-      const doc: Doc = [[{ id: 1, text: docText }]];
+      const doc: Doc = { children: [[{ id: 1, text: docText }]] };
       const sel: SelectionSnapshot = [
         [[0], 2],
         [[0], 2],
@@ -2257,7 +2449,7 @@ describe("selection", () => {
 
     it("offset more than max", () => {
       const docText = "abcde";
-      const doc: Doc = [[{ id: 1, text: docText }]];
+      const doc: Doc = { children: [[{ id: 1, text: docText }]] };
       const sel: SelectionSnapshot = [
         [[0], 2],
         [[0], 2],
@@ -2275,7 +2467,7 @@ describe("selection", () => {
 
   it("should select cursor", () => {
     const docText = "abcde";
-    const doc: Doc = [[{ id: 1, text: docText }]];
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 2],
@@ -2298,11 +2490,13 @@ describe("selection", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const docText3 = "klmno";
-    const doc: Doc = [
-      [{ id: 1, text: docText }],
-      [{ id: 1, text: docText2 }],
-      [{ id: 1, text: docText3 }],
-    ];
+    const doc: Doc = {
+      children: [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: docText2 }],
+        [{ id: 1, text: docText3 }],
+      ],
+    };
     const sel: SelectionSnapshot = [
       [[0], 2],
       [[0], 2],
@@ -2324,7 +2518,9 @@ describe("selection", () => {
   it("should select linebreak", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
+    const doc: Doc = {
+      children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+    };
     const sel: SelectionSnapshot = [
       [[0], 1],
       [[0], 1],
@@ -2346,14 +2542,19 @@ describe("selection", () => {
   it("should select all", () => {
     const docText = "abcde";
     const docText2 = "fghij";
-    const doc: Doc = [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]];
+    const doc: Doc = {
+      children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+    };
     const sel: SelectionSnapshot = [
       [[0], 1],
       [[0], 1],
     ];
     const nextSel: SelectionSnapshot = [
       [[0], 0],
-      [[doc.length - 1], doc[doc.length - 1]![0]!.text.length - 1],
+      [
+        [doc.children.length - 1],
+        doc.children[doc.children.length - 1]![0]!.text.length - 1,
+      ],
     ];
     const res = applyTransaction(
       doc,

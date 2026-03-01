@@ -8,7 +8,7 @@ export const docToString = (
   doc: DocBase,
   serializer: (node: DocNode) => string = (n) => (isTextNode(n) ? n.text : ""),
 ): string => {
-  return doc.reduce((acc, r, i) => {
+  return doc.children.reduce((acc, r, i) => {
     if (i !== 0) {
       acc += "\n";
     }

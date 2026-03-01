@@ -62,7 +62,13 @@ export function ReplaceAll(this: Editor, text: string) {
   this.apply(
     new Transaction()
       // TODO improve
-      .delete([[], 0], [[doc.length - 1], getLineSize(doc[doc.length - 1]!)])
+      .delete(
+        [[], 0],
+        [
+          [doc.children.length - 1],
+          getLineSize(doc.children[doc.children.length - 1]!),
+        ],
+      )
       .insert([[], 0], text),
   );
 }
