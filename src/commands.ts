@@ -2,14 +2,14 @@ import { toRange } from "./doc/position.js";
 import { getLineSize, isTextNode, sliceDoc, Transaction } from "./doc/edit.js";
 import type { Editor } from "./editor.js";
 import type {
-  DocBase,
+  DocNode,
   InferNode,
   Position,
   PositionRange,
   TextNode,
 } from "./doc/types.js";
 
-export type EditorCommand<A extends unknown[], T extends DocBase> = (
+export type EditorCommand<A extends unknown[], T extends DocNode> = (
   this: Editor<T>,
   ...args: A
 ) => void;
@@ -38,7 +38,7 @@ export function InsertText(
 /**
  * Insert node at the caret or specified position.
  */
-export function InsertNode<T extends DocBase>(
+export function InsertNode<T extends DocNode>(
   this: Editor<T>,
   node: Exclude<InferNode<T>, TextNode>,
   position: Position = this.selection[0],
@@ -81,7 +81,7 @@ type ToggleableKey<T> = {
  * Format content in the selection or specified range.
  */
 export function Format<
-  T extends DocBase,
+  T extends DocNode,
   N extends Omit<InferNode<T>, "text">,
   K extends keyof N,
 >(
@@ -100,7 +100,7 @@ export function Format<
 /**
  * Toggle formatting in the selection or specified range.
  */
-export function ToggleFormat<T extends DocBase>(
+export function ToggleFormat<T extends DocNode>(
   this: Editor<T>,
   key: ToggleableKey<Omit<InferNode<T>, "text">>,
   range: PositionRange = toRange(this.selection),

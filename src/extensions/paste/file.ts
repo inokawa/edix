@@ -1,11 +1,11 @@
-import type { DocNode } from "../../doc/types.js";
+import type { InlineNode } from "../../doc/types.js";
 import type { PasteExtension } from "./types.js";
 
 /**
  * An extension to handle pasting / dropping from File.
  */
 export const filePaste = (
-  handlerByMime: Record<string, (file: File) => DocNode>,
+  handlerByMime: Record<string, (file: File) => InlineNode>,
 ): PasteExtension => {
   return (dataTransfer) => {
     for (const item of dataTransfer.items) {

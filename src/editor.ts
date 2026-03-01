@@ -11,7 +11,7 @@ import {
   serializeRange,
 } from "./dom/index.js";
 import { createMutationObserver } from "./mutation.js";
-import type { DocBase, Fragment, SelectionSnapshot } from "./doc/types.js";
+import type { DocNode, Fragment, SelectionSnapshot } from "./doc/types.js";
 import { is, isFunction, isString, microtask } from "./utils.js";
 import type { EditorCommand } from "./commands.js";
 import {
@@ -93,7 +93,7 @@ type InputType =
  * Options of {@link createEditor}.
  */
 export interface EditorOptions<
-  T extends DocBase,
+  T extends DocNode,
   S extends StandardSchemaV1<T, T> | void = void,
 > {
   /**
@@ -147,7 +147,7 @@ export interface EditorOptions<
 /**
  * The editor instance.
  */
-export interface Editor<T extends DocBase = DocBase> {
+export interface Editor<T extends DocNode = DocNode> {
   readonly doc: T;
   readonly selection: SelectionSnapshot;
   /**
@@ -173,7 +173,7 @@ export interface Editor<T extends DocBase = DocBase> {
  * A function to initialize {@link Editor}.
  */
 export const createEditor = <
-  T extends DocBase,
+  T extends DocNode,
   S extends StandardSchemaV1<T, T> | void = void,
 >({
   doc,

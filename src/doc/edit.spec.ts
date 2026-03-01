@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Transaction, applyOperation } from "./edit.js";
-import { type DocBase, type SelectionSnapshot } from "./types.js";
+import { type DocNode, type SelectionSnapshot } from "./types.js";
 import { is } from "../utils.js";
 
 type Doc = { children: { id: number; text: string }[][] };
 
-const applyTransaction = <T extends DocBase>(
+const applyTransaction = <T extends DocNode>(
   doc: T,
   selection: SelectionSnapshot,
   tr: Transaction,

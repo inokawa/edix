@@ -1,12 +1,13 @@
 import { isTextNode } from "./edit.js";
-import { type DocBase, type DocNode, type TextNode } from "./types.js";
+import { type DocNode, type InlineNode, type TextNode } from "./types.js";
 
 /**
  * @internal
  */
 export const docToString = (
-  doc: DocBase,
-  serializer: (node: DocNode) => string = (n) => (isTextNode(n) ? n.text : ""),
+  doc: DocNode,
+  serializer: (node: InlineNode) => string = (n) =>
+    isTextNode(n) ? n.text : "",
 ): string => {
   return doc.children.reduce((acc, r, i) => {
     if (i !== 0) {
