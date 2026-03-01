@@ -1,9 +1,9 @@
 import { is, isString, keys } from "../utils.js";
 import { comparePath, comparePosition } from "./position.js";
 import type {
-  DocBase,
-  Fragment,
   DocNode,
+  Fragment,
+  InlineNode,
   Position,
   SelectionSnapshot,
   TextNode,
@@ -121,9 +121,10 @@ export class Transaction {
 /**
  * @internal
  */
-export const isTextNode = (node: DocNode): node is TextNode => "text" in node;
+export const isTextNode = (node: InlineNode): node is TextNode =>
+  "text" in node;
 
-const isSameNode = (a: DocNode, b: DocNode): boolean => {
+const isSameNode = (a: InlineNode, b: InlineNode): boolean => {
   const aKeys = keys(a);
   if (aKeys.length !== keys(b).length) {
     return false;
@@ -136,16 +137,16 @@ const isSameNode = (a: DocNode, b: DocNode): boolean => {
   });
 };
 
-const getNodeSize = (node: DocNode): number =>
+const getNodeSize = (node: InlineNode): number =>
   isTextNode(node) ? node.text.length : 1;
 
 /**
  * @internal
  */
-export const getLineSize = (line: readonly DocNode[]): number =>
+export const getLineSize = (line: readonly InlineNode[]): number =>
   line.reduce((acc: number, n) => acc + getNodeSize(n), 0);
 
-const normalize = <T extends DocNode>(
+const normalize = <T extends InlineNode>(
   array: T[],
   start: number = 0,
   end: number = array.length - 1,
@@ -177,7 +178,7 @@ const normalize = <T extends DocNode>(
   }
 };
 
-const concat = <T extends DocNode>(a: T[], b: readonly T[]): void => {
+const concat = <T extends InlineNode>(a: T[], b: readonly T[]): void => {
   if (b.length) {
     const prevLength = a.length;
     a.push(...b);
@@ -190,7 +191,7 @@ const concat = <T extends DocNode>(a: T[], b: readonly T[]): void => {
 /**
  * @internal
  */
-export const joinBlocks = <T extends DocNode>(
+export const joinBlocks = <T extends InlineNode>(
   ...blocks: (readonly T[])[]
 ): readonly T[] => {
   return blocks.reduce<T[]>((acc, b) => {
@@ -199,7 +200,7 @@ export const joinBlocks = <T extends DocNode>(
   }, []);
 };
 
-const splitBlock = <T extends DocNode>(
+const splitBlock = <T extends InlineNode>(
   nodes: readonly T[],
   offset: number,
 ): [readonly T[], readonly T[]] => {
@@ -234,8 +235,8 @@ const normalizePath = (path: Path): number => {
   return path.length ? path[0]! : 0;
 };
 
-const blockAtPath = (doc: DocBase, path: Path): readonly DocNode[] => {
-  return doc[normalizePath(path)]!;
+const blockAtPath = (doc: DocNode, path: Path): readonly InlineNode[] => {
+  return doc.children[normalizePath(path)]!;
 };
 
 const movePath = (path: Path, int: number): Path => {
@@ -243,7 +244,7 @@ const movePath = (path: Path, int: number): Path => {
   return [normalizePath(path) + int];
 };
 
-const replaceRange = <T extends DocBase>(
+const replaceRange = <T extends DocNode>(
   doc: T,
   start: Position,
   end: Position,
@@ -274,7 +275,7 @@ const replaceRange = <T extends DocBase>(
     inserted = stringToFragment(inserted, anchorNode);
   }
 
-  let lines: (readonly DocNode[])[];
+  let lines: (readonly InlineNode[])[];
   if (inserted.length) {
     lines = inserted.slice();
     lines[lines.length - 1] = joinBlocks(lines[lines.length - 1]!, after);
@@ -283,20 +284,20 @@ const replaceRange = <T extends DocBase>(
   }
   lines[0] = joinBlocks(before, lines[0]!);
 
-  const sliced = doc.slice();
+  const sliced = doc.children.slice();
   sliced.splice(
     normalizePath(startPath),
     normalizePath(endPath) - normalizePath(startPath) + 1,
     ...lines,
   );
-  return sliced as DocBase as T; // TODO improve
+  return { ...doc, children: sliced } as DocNode as T; // TODO improve
 };
 
 /**
  * @internal
  */
 export const sliceDoc = (
-  doc: DocBase,
+  doc: DocNode,
   start: Position,
   end: Position,
 ): Fragment => {
@@ -304,16 +305,19 @@ export const sliceDoc = (
     return [];
   }
 
-  const sliced = doc.slice(normalizePath(start[0]), normalizePath(end[0]) + 1);
+  const sliced = doc.children.slice(
+    normalizePath(start[0]),
+    normalizePath(end[0]) + 1,
+  );
   const lastIndex = sliced.length - 1;
   sliced[lastIndex] = splitBlock(sliced[lastIndex]!, end[1])[0];
   sliced[0] = splitBlock(sliced[0]!, start[1])[1];
   return sliced;
 };
 
-const isValidPosition = (doc: DocBase, [path, offset]: Position): boolean => {
+const isValidPosition = (doc: DocNode, [path, offset]: Position): boolean => {
   // TODO improve
-  if (!path.length || (path[0]! >= 0 && path[0]! < doc.length)) {
+  if (!path.length || (path[0]! >= 0 && path[0]! < doc.children.length)) {
     if (offset >= 0 && offset <= getLineSize(blockAtPath(doc, path))) {
       return true;
     }
@@ -390,7 +394,7 @@ const rebaseSelection = (
 /**
  * @internal
  */
-export const applyOperation = <T extends DocBase>(
+export const applyOperation = <T extends DocNode>(
   doc: T,
   selection: SelectionSnapshot,
   op: Operation,

@@ -14,7 +14,7 @@ import {
 import { comparePosition } from "../doc/position.js";
 import type {
   Position,
-  DocNode,
+  InlineNode,
   SelectionSnapshot,
   PositionRange,
   Fragment,
@@ -306,16 +306,16 @@ export const domToFragment = (
   root: Node,
   config: ParserConfig,
   serializeText: (text: string) => TextNode,
-  serializeVoid: (node: Element) => DocNode | void,
+  serializeVoid: (node: Element) => InlineNode | void,
 ): Fragment => {
   return parse(
     (next) => {
       let type: TokenType | void;
-      let row: DocNode[] | null = null;
+      let row: InlineNode[] | null = null;
       let text = "";
       let hasContent = false;
 
-      const rows: DocNode[][] = [];
+      const rows: InlineNode[][] = [];
 
       const completeText = () => {
         if (text) {

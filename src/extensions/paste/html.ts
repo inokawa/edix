@@ -1,4 +1,4 @@
-import type { DocBase, InferNode, TextNode } from "../../doc/types.js";
+import type { DocNode, InferNode, TextNode } from "../../doc/types.js";
 import { domToFragment } from "../../dom/index.js";
 import { isCommentNode } from "../../dom/parser.js";
 import type { PasteExtension } from "./types.js";
@@ -6,7 +6,7 @@ import type { PasteExtension } from "./types.js";
 /**
  * An extension to handle pasting / dropping from HTML.
  */
-export const htmlPaste = <T extends DocBase>(
+export const htmlPaste = <T extends DocNode>(
   serializeText: (t: string) => Extract<InferNode<T>, TextNode>,
   serializers: ((
     node: HTMLElement,

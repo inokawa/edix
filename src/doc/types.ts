@@ -4,12 +4,14 @@ export interface TextNode {
 
 export interface VoidNode {}
 
-export type DocNode = TextNode | VoidNode;
+export type InlineNode = TextNode | VoidNode;
 
-export type DocBase = readonly (readonly DocNode[])[];
-export type Fragment = readonly (readonly DocNode[])[];
+export interface DocNode {
+  readonly children: readonly (readonly InlineNode[])[];
+}
+export type Fragment = DocNode["children"];
 
-export type InferNode<T extends DocBase> = T[number][number];
+export type InferNode<T extends DocNode> = T["children"][number][number];
 
 export type Path = readonly [number?];
 export type Position = readonly [path: Path, offset: number];

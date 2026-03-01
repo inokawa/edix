@@ -3,7 +3,7 @@ import { createEditor, type Editor, type EditorOptions } from "../editor.js";
 import { singlelinePlugin } from "../plugins/index.js";
 import type { EditorPlugin } from "../plugins/types.js";
 
-type PlainDoc = { text: string }[][];
+type PlainDoc = { children: { text: string }[][] };
 
 export interface PlainEditorOptions extends Omit<
   EditorOptions<PlainDoc>,
@@ -39,7 +39,7 @@ export const createPlainEditor = ({
   }
   return createEditor({
     ...opts,
-    doc: stringToFragment(text),
+    doc: { children: stringToFragment(text) },
     plugins,
     onChange: (doc) => {
       onChange(docToString(doc));
