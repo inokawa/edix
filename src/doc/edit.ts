@@ -290,7 +290,7 @@ const replaceRange = <T extends DocNode>(
     normalizePath(endPath) - normalizePath(startPath) + 1,
     ...lines,
   );
-  return { ...doc, children: sliced } as DocNode as T; // TODO improve
+  return { ...doc, children: sliced };
 };
 
 /**
