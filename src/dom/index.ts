@@ -234,15 +234,26 @@ const serializePosition = (
 
   return parse(
     (next) => {
+      let isEndNodeVisited = false;
       let offset = 0;
       while (next()) {
+        if (node.contains(getDomNode())) {
+          isEndNodeVisited = true;
+          if (excludeEnd) {
+            break;
+          }
+        } else {
+          if (isEndNodeVisited) {
+            break;
+          }
+        }
+
         offset += getNodeSize();
       }
       return [isRoot ? [] : [indexOf(parseRoot)], offsetAtNode + offset];
     },
     parseRoot,
     config,
-    { _endNode: node, _excludeEnd: excludeEnd },
   );
 };
 

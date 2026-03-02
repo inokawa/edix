@@ -1,11 +1,7 @@
 let walker: TreeWalker | null;
 let node: Node | null;
 let _token: TokenType | null;
-let endNode: Node | null;
-let isEndNodeVisited = false;
-let shouldExcludeEnd = false;
-let isBlockNode: (node: Element) => boolean;
-let isVoidNode: (node: Element) => boolean;
+let currentConfig: ParserConfig | null;
 
 export interface ParserConfig {
   /**
@@ -20,11 +16,6 @@ export interface ParserConfig {
    * @internal
    */
   _isVoid: (node: Element) => boolean;
-}
-
-interface ParserOption {
-  _endNode?: Node;
-  _excludeEnd?: boolean;
 }
 
 const SHOW_ELEMENT = 0x1;
@@ -130,9 +121,9 @@ const readToken = (): TokenType => {
             TOKEN_SOFT_BREAK
           : // Returning <div><br/></div> is necessary to anchor selection
             TOKEN_EMPTY_BLOCK_ANCHOR);
-      } else if (isVoidNode(node)) {
+      } else if (currentConfig!._isVoid(node)) {
         return (_token = TOKEN_VOID);
-      } else if (isBlockNode(node)) {
+      } else if (currentConfig!._isBlock(node)) {
         return (_token = TOKEN_BLOCK);
       }
     }
@@ -224,19 +215,6 @@ const readNext = (): TokenType | void => {
       break;
     }
 
-    if (endNode) {
-      if (endNode.contains(node)) {
-        isEndNodeVisited = true;
-        if (shouldExcludeEnd) {
-          break;
-        }
-      } else {
-        if (isEndNodeVisited) {
-          break;
-        }
-      }
-    }
-
     const t = readToken();
     if (t) {
       return t;
@@ -250,25 +228,15 @@ const readNext = (): TokenType | void => {
 export const parse = <T>(
   scopeFn: (read: typeof readNext) => T,
   root: Node,
-  { _document: document, _isBlock: isBlock, _isVoid: isVoid }: ParserConfig,
-  option?: ParserOption,
+  config: ParserConfig,
 ): T => {
   try {
-    isBlockNode = isBlock;
-    isVoidNode = isVoid;
+    currentConfig = config;
 
-    walker = document.createTreeWalker(root, SHOW_TEXT | SHOW_ELEMENT);
-
-    if (option) {
-      if (option._endNode) {
-        endNode = option._endNode;
-      }
-      shouldExcludeEnd = option._excludeEnd || false;
-    }
+    walker = config._document.createTreeWalker(root, SHOW_TEXT | SHOW_ELEMENT);
 
     return scopeFn(readNext);
   } finally {
-    walker = node = _token = endNode = null;
-    isEndNodeVisited = shouldExcludeEnd = false;
+    walker = node = _token = currentConfig = null;
   }
 };
