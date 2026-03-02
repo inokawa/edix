@@ -1,7 +1,7 @@
-let walker: TreeWalker | null;
-let node: Node | null;
-let _token: TokenType | null;
-let currentConfig: ParserConfig | null;
+let walker: TreeWalker | null = null;
+let node: Node | null = null;
+let _token: TokenType | null = null;
+let config: ParserConfig | null = null;
 
 export interface ParserConfig {
   /**
@@ -121,9 +121,9 @@ const readToken = (): TokenType => {
             TOKEN_SOFT_BREAK
           : // Returning <div><br/></div> is necessary to anchor selection
             TOKEN_EMPTY_BLOCK_ANCHOR);
-      } else if (currentConfig!._isVoid(node)) {
+      } else if (config!._isVoid(node)) {
         return (_token = TOKEN_VOID);
-      } else if (currentConfig!._isBlock(node)) {
+      } else if (config!._isBlock(node)) {
         return (_token = TOKEN_BLOCK);
       }
     }
@@ -139,17 +139,6 @@ const next = (): Node | null => {
 const nextSibling = (): Node | null => {
   _token = null;
   return (node = walker!.nextSibling());
-};
-
-const peek = <T>(fn: () => T) => {
-  const currentNode = node!;
-  const token = _token;
-  try {
-    return fn();
-  } finally {
-    walker!.currentNode = node = currentNode;
-    _token = token;
-  }
 };
 
 /**
@@ -184,7 +173,7 @@ const isValidSoftBreak = (): boolean => {
   // <div><br/></div>             empty line
   // <div>[a]<br/></div>          type on empty line in Firefox
   const parent = node!.parentNode!;
-  return peek(() => {
+  return parse(() => {
     while (next()) {
       if (readToken()) {
         return true;
@@ -227,16 +216,29 @@ const readNext = (): TokenType | void => {
  */
 export const parse = <T>(
   scopeFn: (read: typeof readNext) => T,
-  root: Node,
-  config: ParserConfig,
+  root?: Node,
+  newConfig?: ParserConfig,
 ): T => {
+  const prevConfig = config;
+  const prevWalker = walker;
+  const prevNode = node;
+  const prevToken = _token;
   try {
-    currentConfig = config;
-
-    walker = config._document.createTreeWalker(root, SHOW_TEXT | SHOW_ELEMENT);
-
+    if (newConfig) {
+      config = newConfig;
+      walker = config._document.createTreeWalker(
+        root!,
+        SHOW_TEXT | SHOW_ELEMENT,
+      );
+    }
     return scopeFn(readNext);
   } finally {
-    walker = node = _token = currentConfig = null;
+    config = prevConfig;
+    walker = prevWalker;
+    node = prevNode;
+    _token = prevToken;
+    if (walker && prevNode) {
+      walker.currentNode = prevNode;
+    }
   }
 };
