@@ -229,22 +229,21 @@ const serializePosition = (
     maybeBlock = maybeBlock.parentElement;
   }
 
-  return [
-    blocks.length ? [indexOf(blocks[blocks.length - 1]!)] : [],
-    offsetAtNode +
-      parse(
-        (next) => {
-          let offset = 0;
-          while (next()) {
-            offset += getNodeSize();
-          }
-          return offset;
-        },
-        blocks.length ? blocks[blocks.length - 1]! : root,
-        config,
-        { _endNode: node, _excludeEnd: excludeEnd },
-      ),
-  ];
+  const isRoot = !blocks.length;
+  const parseRoot = isRoot ? root : blocks[blocks.length - 1]!;
+
+  return parse(
+    (next) => {
+      let offset = 0;
+      while (next()) {
+        offset += getNodeSize();
+      }
+      return [isRoot ? [] : [indexOf(parseRoot)], offsetAtNode + offset];
+    },
+    parseRoot,
+    config,
+    { _endNode: node, _excludeEnd: excludeEnd },
+  );
 };
 
 /**
