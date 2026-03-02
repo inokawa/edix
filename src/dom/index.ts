@@ -10,6 +10,7 @@ import {
   TOKEN_BLOCK,
   type ParserConfig,
   nextBlock,
+  readNext as next,
 } from "./parser.js";
 import { comparePosition } from "../doc/position.js";
 import type {
@@ -157,7 +158,7 @@ const findPosition = (
   config: ParserConfig,
 ): DOMPosition | undefined => {
   return parse(
-    (next): DOMPosition | undefined => {
+    (): DOMPosition | undefined => {
       let pathIndex = 0;
       let type: TokenType | void;
       while ((type = next())) {
@@ -233,7 +234,7 @@ const serializePosition = (
   const parseRoot = isRoot ? root : blocks[blocks.length - 1]!;
 
   return parse(
-    (next) => {
+    () => {
       let isEndNodeVisited = false;
       let offset = 0;
       while (next()) {
@@ -325,7 +326,7 @@ export const domToFragment = (
   serializeVoid: (node: Element) => InlineNode | void,
 ): Fragment => {
   return parse(
-    (next) => {
+    () => {
       let type: TokenType | void;
       let row: InlineNode[] | null = null;
       let text = "";

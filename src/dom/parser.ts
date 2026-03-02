@@ -131,21 +131,16 @@ const readToken = (): TokenType => {
   return (_token = TOKEN_NULL);
 };
 
-const next = (): Node | null => {
+const nextNode = (): Node | null => {
   _token = null;
   return (node = walker!.nextNode());
-};
-
-const nextSibling = (): Node | null => {
-  _token = null;
-  return (node = walker!.nextSibling());
 };
 
 /**
  * @internal
  */
 export const nextBlock = () => {
-  while (nextSibling()) {
+  while ((_token = null) || (node = walker!.nextSibling())) {
     if (readToken() === TOKEN_BLOCK) {
       return;
     }
@@ -174,7 +169,7 @@ const isValidSoftBreak = (): boolean => {
   // <div>[a]<br/></div>          type on empty line in Firefox
   const parent = node!.parentNode!;
   return parse(() => {
-    while (next()) {
+    while (nextNode()) {
       if (readToken()) {
         return true;
       }
@@ -186,18 +181,21 @@ const isValidSoftBreak = (): boolean => {
   });
 };
 
-const readNext = (): TokenType | void => {
+/**
+ * @internal
+ */
+export const readNext = (): TokenType | void => {
   while (true) {
     if (readToken() === TOKEN_VOID) {
       const current = node!;
       // don't use TreeWalker.nextSibling() to support case like <body><p><a><img /></a></p><p>hello</p></body>
-      while (next()) {
+      while (nextNode()) {
         if (!current.contains(node)) {
           break;
         }
       }
     } else {
-      next();
+      nextNode();
     }
 
     if (!node) {
@@ -215,7 +213,7 @@ const readNext = (): TokenType | void => {
  * @internal
  */
 export const parse = <T>(
-  scopeFn: (read: typeof readNext) => T,
+  scopeFn: () => T,
   root?: Node,
   newConfig?: ParserConfig,
 ): T => {
@@ -231,7 +229,7 @@ export const parse = <T>(
         SHOW_TEXT | SHOW_ELEMENT,
       );
     }
-    return scopeFn(readNext);
+    return scopeFn();
   } finally {
     config = prevConfig;
     walker = prevWalker;
