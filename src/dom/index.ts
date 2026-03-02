@@ -9,7 +9,7 @@ import {
   TOKEN_SOFT_BREAK,
   TOKEN_BLOCK,
   type ParserConfig,
-  moveToBlock,
+  nextBlock,
 } from "./parser.js";
 import { comparePosition } from "../doc/position.js";
 import type {
@@ -163,7 +163,13 @@ const findPosition = (
       while ((type = next())) {
         if (type === TOKEN_BLOCK) {
           if (pathIndex < path.length) {
-            moveToBlock(path[pathIndex++]!);
+            for (
+              let blockIndex = path[pathIndex++]!;
+              blockIndex > 0;
+              blockIndex--
+            ) {
+              nextBlock();
+            }
           }
         } else {
           const length = getNodeSize();

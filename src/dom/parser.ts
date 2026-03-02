@@ -164,10 +164,10 @@ const peek = <T>(fn: () => T) => {
 /**
  * @internal
  */
-export const moveToBlock = (index: number) => {
-  while (index > 0 && nextSibling()) {
+export const nextBlock = () => {
+  while (nextSibling()) {
     if (readToken() === TOKEN_BLOCK) {
-      index--;
+      return;
     }
   }
 };
