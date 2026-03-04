@@ -22,6 +22,7 @@ import type {
   PositionRange,
   Fragment,
   TextNode,
+  Path,
 } from "../doc/types.js";
 import { min } from "../utils.js";
 
@@ -230,7 +231,7 @@ const serializePosition = (
         parentBlock();
       }
 
-      const blocks = parse(() => {
+      const path = parse((): Path => {
         const blocks: Element[] = [];
         // TODO improve type
         let block: Element | null;
@@ -238,7 +239,8 @@ const serializePosition = (
           blocks.unshift(block);
           parentBlock();
         }
-        return blocks;
+
+        return !blocks.length ? [] : [indexOf(blocks[blocks.length - 1]!)];
       });
 
       let offset = 0;
@@ -256,10 +258,7 @@ const serializePosition = (
         }
         offset += getNodeSize();
       }
-      return [
-        !blocks.length ? [] : [indexOf(blocks[blocks.length - 1]!)],
-        offsetAtNode + offset,
-      ];
+      return [path, offset + offsetAtNode];
     },
     root,
     config,
