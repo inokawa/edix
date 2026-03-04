@@ -95,7 +95,10 @@ export const getNodeSize = (): number => {
       : 0;
 };
 
-const readToken = (): TokenType => {
+/**
+ * @internal
+ */
+export const readToken = (): TokenType => {
   if (_token != null) {
     return _token;
   }
@@ -147,6 +150,17 @@ export const nextBlock = () => {
   }
 };
 
+/**
+ * @internal
+ */
+export const parentBlock = () => {
+  while ((_token = null) || (node = walker!.parentNode())) {
+    if (readToken() === TOKEN_BLOCK) {
+      return;
+    }
+  }
+};
+
 const isValidSoftBreak = (): boolean => {
   // This function will return false if there are no nodes after soft break.
   //
@@ -184,7 +198,7 @@ const isValidSoftBreak = (): boolean => {
 /**
  * @internal
  */
-export const readNext = (): TokenType | void => {
+export const readNext = (): Exclude<TokenType, typeof TOKEN_NULL> | void => {
   while (true) {
     if (readToken() === TOKEN_VOID) {
       const current = node!;
@@ -216,6 +230,7 @@ export const parse = <T>(
   scopeFn: () => T,
   root?: Node,
   newConfig?: ParserConfig,
+  startNode?: Node,
 ): T => {
   const prevConfig = config;
   const prevWalker = walker;
@@ -228,6 +243,9 @@ export const parse = <T>(
         root!,
         SHOW_TEXT | SHOW_ELEMENT,
       );
+    }
+    if (startNode) {
+      walker!.currentNode = node = startNode;
     }
     return scopeFn();
   } finally {

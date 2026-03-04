@@ -11,6 +11,8 @@ import {
   type ParserConfig,
   nextBlock,
   readNext as next,
+  parentBlock,
+  readToken,
 } from "./parser.js";
 import { comparePosition } from "../doc/position.js";
 import type {
@@ -27,9 +29,9 @@ export { defaultIsBlockNode, defaultIsVoidNode } from "./default.js";
 
 // const DOCUMENT_POSITION_DISCONNECTED = 0x01;
 const DOCUMENT_POSITION_PRECEDING = 0x02;
-// const DOCUMENT_POSITION_FOLLOWING = 0x04;
+const DOCUMENT_POSITION_FOLLOWING = 0x04;
 // const DOCUMENT_POSITION_CONTAINS = 0x08;
-// const DOCUMENT_POSITION_CONTAINED_BY = 0x10;
+const DOCUMENT_POSITION_CONTAINED_BY = 0x10;
 // const DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20;
 
 /**
@@ -175,7 +177,7 @@ const findPosition = (
         } else {
           const length = getNodeSize();
           if (offset <= length) {
-            return [getDomNode(), offset];
+            return [getDomNode<typeof type>(), offset];
           }
           offset -= length;
         }
@@ -215,46 +217,53 @@ const serializePosition = (
     // And there are other possible cases:
     // - Selection with Ctrl+A in Firefox
     // - getTargetRanges() when deleting contenteditable:false in Firefox
+    // - Selection.setBaseAndExtent(element, 0, element, 0)
     const index = min(offsetAtNode, node.childNodes.length - 1);
     node = node.childNodes[index]!;
     excludeEnd = index === offsetAtNode;
     offsetAtNode = 0;
   }
 
-  const blocks: Element[] = [];
-  let maybeBlock: Node | null = node;
-  while (maybeBlock && maybeBlock !== root) {
-    if (isElementNode(maybeBlock) && config._isBlock(maybeBlock)) {
-      blocks.unshift(maybeBlock);
-    }
-    maybeBlock = maybeBlock.parentElement;
-  }
-
-  const isRoot = !blocks.length;
-  const parseRoot = isRoot ? root : blocks[blocks.length - 1]!;
-
   return parse(
     () => {
-      let isEndNodeVisited = false;
+      if (readToken() !== TOKEN_BLOCK) {
+        parentBlock();
+      }
+
+      const blocks = parse(() => {
+        const blocks: Element[] = [];
+        // TODO improve type
+        let block: Element | null;
+        while ((block = getDomNode<typeof TOKEN_BLOCK>()) && block !== root) {
+          blocks.unshift(block);
+          parentBlock();
+        }
+        return blocks;
+      });
+
       let offset = 0;
       while (next()) {
-        if (node.contains(getDomNode())) {
-          isEndNodeVisited = true;
+        const comp = compareDomPosition(node, getDomNode());
+        if (
+          comp === 0 || // same object
+          comp & DOCUMENT_POSITION_CONTAINED_BY
+        ) {
           if (excludeEnd) {
             break;
           }
-        } else {
-          if (isEndNodeVisited) {
-            break;
-          }
+        } else if (comp & DOCUMENT_POSITION_FOLLOWING) {
+          break;
         }
-
         offset += getNodeSize();
       }
-      return [isRoot ? [] : [indexOf(parseRoot)], offsetAtNode + offset];
+      return [
+        !blocks.length ? [] : [indexOf(blocks[blocks.length - 1]!)],
+        offsetAtNode + offset,
+      ];
     },
-    parseRoot,
+    root,
     config,
+    node,
   );
 };
 
