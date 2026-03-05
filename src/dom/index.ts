@@ -190,14 +190,6 @@ const findPosition = (
   );
 };
 
-const indexOf = (node: Element): number => {
-  let i = 0;
-  while ((node = node.previousElementSibling!)) {
-    i++;
-  }
-  return i;
-};
-
 const serializePosition = (
   root: Element,
   node: Node,
@@ -240,7 +232,16 @@ const serializePosition = (
           parentBlock();
         }
 
-        return !blocks.length ? [] : [indexOf(blocks[blocks.length - 1]!)];
+        if (!blocks.length) {
+          return [];
+        }
+
+        let i = 0;
+        let sib: Element = blocks[blocks.length - 1]!;
+        while ((sib = sib.previousElementSibling!)) {
+          i++;
+        }
+        return [i];
       });
 
       let offset = 0;
