@@ -230,6 +230,7 @@ If you find a problem, feel free to create an [issue](https://github.com/inokawa
 - [urql](https://github.com/urql-graphql/urql)
 - [TanStack DB](https://github.com/tanstack/db)
 - [VS Code](https://github.com/microsoft/vscode)
+- [Language Server Protocol](https://github.com/microsoft/language-server-protocol)
 - [Textbus](https://github.com/textbus/textbus)
 - [vistree](https://github.com/mizchi/vistree)
 - Proposed [EditContext API](https://github.com/w3c/edit-context)
