@@ -35,6 +35,8 @@ const DOCUMENT_POSITION_FOLLOWING = 0x04;
 const DOCUMENT_POSITION_CONTAINED_BY = 0x10;
 // const DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC = 0x20;
 
+const compareDomPosition = (a: Node, b: Node) => a.compareDocumentPosition(b);
+
 /**
  * @internal
  */
@@ -176,11 +178,11 @@ const findPosition = (
             }
           }
         } else {
-          const length = getNodeSize();
-          if (offset <= length) {
+          const size = getNodeSize();
+          if (offset <= size) {
             return [getDomNode<typeof type>(), offset];
           }
-          offset -= length;
+          offset -= size;
         }
       }
       return;
@@ -294,8 +296,6 @@ export const getEmptySelectionSnapshot = (): SelectionSnapshot => {
   ];
 };
 
-const compareDomPosition = (a: Node, b: Node) => a.compareDocumentPosition(b);
-
 /**
  * @internal
  */
@@ -310,19 +310,16 @@ export const takeSelectionSnapshot = (
   }
 
   const range = serializeRange(root, config, domRange);
+  const comp = compareDomPosition(selection.anchorNode!, selection.focusNode!);
 
+  // https://stackoverflow.com/questions/9180405/detect-direction-of-user-selection-with-javascript
   return (
-    // https://stackoverflow.com/questions/9180405/detect-direction-of-user-selection-with-javascript
-    (
-      selection.anchorNode === selection.focusNode
-        ? selection.anchorOffset > selection.focusOffset
-        : (compareDomPosition(selection.anchorNode!, selection.focusNode!) &
-            DOCUMENT_POSITION_PRECEDING) !==
-          0
-    )
-      ? [range[1], range[0]]
-      : range
-  );
+    comp === 0 // same object
+      ? selection.anchorOffset > selection.focusOffset
+      : comp & DOCUMENT_POSITION_PRECEDING
+  )
+    ? [range[1], range[0]]
+    : range;
 };
 
 /**
