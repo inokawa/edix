@@ -97,7 +97,7 @@ export const setSelectionToDOM = (
 ): boolean => {
   const posDiff = comparePosition(anchor, focus);
   const isCollapsed = posDiff === 0;
-  const backward = posDiff === -1;
+  const backward = posDiff === 1;
   const start = backward ? focus : anchor;
   const end = backward ? anchor : focus;
   // special path for empty content with empty selection, necessary for placeholder

@@ -258,7 +258,7 @@ const replaceRange = <T extends DocNode>(
     startOffset,
   );
   const after =
-    comparePosition(start, end) === 1
+    comparePosition(start, end) === -1
       ? splitBlock(blockAtPath(doc, endPath), endOffset)[1]
       : maybeAfter;
 
@@ -301,7 +301,7 @@ export const sliceDoc = (
   start: Position,
   end: Position,
 ): Fragment => {
-  if (comparePosition(start, end) !== 1) {
+  if (comparePosition(start, end) !== -1) {
     return [];
   }
 
@@ -330,9 +330,9 @@ const rebasePosition = (position: Position, op: Operation): Position => {
     case TYPE_DELETE: {
       const { _start: start, _end: end } = op;
 
-      if (comparePosition(position, start) !== 1) {
+      if (comparePosition(position, start) !== -1) {
         // start <= position
-        return comparePosition(end, position) === 1
+        return comparePosition(end, position) === -1
           ? // start <= end < position
             [
               movePath(
@@ -360,7 +360,7 @@ const rebasePosition = (position: Position, op: Operation): Position => {
       const lineLength = lines.length;
       const lineDiff = lineLength - 1;
 
-      if (comparePosition(position, pos) !== 1) {
+      if (comparePosition(position, pos) !== -1) {
         // pos <= position
         return [
           movePath(position[0], lineDiff),
@@ -405,7 +405,7 @@ export const applyOperation = <T extends DocNode>(
       if (
         isValidPosition(doc, start) &&
         isValidPosition(doc, end) &&
-        comparePosition(start, end) === 1
+        comparePosition(start, end) === -1
       ) {
         doc = replaceRange(doc, start, end, []);
         selection = rebaseSelection(selection, op);
@@ -433,7 +433,7 @@ export const applyOperation = <T extends DocNode>(
       if (
         isValidPosition(doc, start) &&
         isValidPosition(doc, end) &&
-        comparePosition(start, end) === 1
+        comparePosition(start, end) === -1
       ) {
         doc = replaceRange(
           doc,
