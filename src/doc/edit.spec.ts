@@ -175,6 +175,81 @@ describe("insert text", () => {
     });
   });
 
+  describe("expanded", () => {
+    it("insert text inside selection", () => {
+      const docText = "abcde";
+      const doc: Doc = { children: [[{ id: 1, text: docText }]] };
+      const sel: SelectionSnapshot = [
+        [[0], 1],
+        [[0], 3],
+      ];
+      const text = "ABC";
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().insertText([[0], 2], text),
+      )!;
+
+      expect(res[0]).toEqual({
+        children: [[{ id: 1, text: insertAt(docText, 2, text) }]],
+      });
+      expect(res[1]).toEqual(moveOffset(sel, { focus: text.length }));
+    });
+
+    it("insert line break inside selection", () => {
+      const docText = "abcde";
+      const doc: Doc = { children: [[{ id: 1, text: docText }]] };
+      const sel: SelectionSnapshot = [
+        [[0], 1],
+        [[0], 3],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().insertText([[0], 2], "\n"),
+      )!;
+
+      const [before, after] = splitAt(docText, 2);
+      expect(res[0]).toEqual({
+        children: [[{ id: 1, text: before }], [{ id: 1, text: after }]],
+      });
+      expect(res[1]).toEqual(
+        moveLine(moveOffset(sel, { focus: -before.length }), {
+          focus: 1,
+        }),
+      );
+    });
+
+    it("insert lines inside selection", () => {
+      const docText = "abcde";
+      const doc: Doc = { children: [[{ id: 1, text: docText }]] };
+      const sel: SelectionSnapshot = [
+        [[0], 1],
+        [[0], 3],
+      ];
+      const text = "ABC";
+      const text2 = "DEFG";
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().insertText([[0], 2], text + "\n" + text2),
+      )!;
+
+      const [before, after] = splitAt(docText, 2);
+      expect(res[0]).toEqual({
+        children: [
+          [{ id: 1, text: before + text }],
+          [{ id: 1, text: text2 + after }],
+        ],
+      });
+      expect(res[1]).toEqual(
+        moveLine(moveOffset(sel, { focus: -before.length + text2.length }), {
+          focus: 1,
+        }),
+      );
+    });
+  });
+
   it("insert text at previous line", () => {
     const docText = "abcde";
     const docText2 = "fghij";
@@ -388,79 +463,6 @@ describe("insert text", () => {
     });
     expect(res[1]).toEqual(
       moveLine(moveOffset(sel, -before.length + text2.length), 1),
-    );
-  });
-
-  it("insert text inside selection", () => {
-    const docText = "abcde";
-    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
-    const sel: SelectionSnapshot = [
-      [[0], 1],
-      [[0], 3],
-    ];
-    const text = "ABC";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertText([[0], 2], text),
-    )!;
-
-    expect(res[0]).toEqual({
-      children: [[{ id: 1, text: insertAt(docText, 2, text) }]],
-    });
-    expect(res[1]).toEqual(moveOffset(sel, { focus: text.length }));
-  });
-
-  it("insert line break inside selection", () => {
-    const docText = "abcde";
-    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
-    const sel: SelectionSnapshot = [
-      [[0], 1],
-      [[0], 3],
-    ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertText([[0], 2], "\n"),
-    )!;
-
-    const [before, after] = splitAt(docText, 2);
-    expect(res[0]).toEqual({
-      children: [[{ id: 1, text: before }], [{ id: 1, text: after }]],
-    });
-    expect(res[1]).toEqual(
-      moveLine(moveOffset(sel, { focus: -before.length }), {
-        focus: 1,
-      }),
-    );
-  });
-
-  it("insert lines inside selection", () => {
-    const docText = "abcde";
-    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
-    const sel: SelectionSnapshot = [
-      [[0], 1],
-      [[0], 3],
-    ];
-    const text = "ABC";
-    const text2 = "DEFG";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertText([[0], 2], text + "\n" + text2),
-    )!;
-
-    const [before, after] = splitAt(docText, 2);
-    expect(res[0]).toEqual({
-      children: [
-        [{ id: 1, text: before + text }],
-        [{ id: 1, text: text2 + after }],
-      ],
-    });
-    expect(res[1]).toEqual(
-      moveLine(moveOffset(sel, { focus: -before.length + text2.length }), {
-        focus: 1,
-      }),
     );
   });
 
@@ -1379,6 +1381,95 @@ describe("delete", () => {
     });
   });
 
+  describe("expanded", () => {
+    it("delete text around selection", () => {
+      const docText = "abcde";
+      const doc: Doc = { children: [[{ id: 1, text: docText }]] };
+      const sel: SelectionSnapshot = [
+        [[0], 2],
+        [[0], 4],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().delete([[0], 1], [[0], 5]),
+      )!;
+
+      expect(res[0]).toEqual({
+        children: [[{ id: 1, text: deleteAt(docText, 1, 4) }]],
+      });
+      expect(res[1]).toEqual([
+        [[0], 1],
+        [[0], 1],
+      ]);
+    });
+
+    it("delete text around selection anchor", () => {
+      const docText = "abcde";
+      const doc: Doc = { children: [[{ id: 1, text: docText }]] };
+      const sel: SelectionSnapshot = [
+        [[0], 2],
+        [[0], 4],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().delete([[0], 1], [[0], 3]),
+      )!;
+
+      expect(res[0]).toEqual({
+        children: [[{ id: 1, text: deleteAt(docText, 1, 2) }]],
+      });
+      expect(res[1]).toEqual(moveOffset(sel, { anchor: 1 - 2, focus: -2 }));
+    });
+
+    it("delete text around selection focus", () => {
+      const docText = "abcde";
+      const doc: Doc = { children: [[{ id: 1, text: docText }]] };
+      const sel: SelectionSnapshot = [
+        [[0], 2],
+        [[0], 4],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().delete([[0], 3], [[0], 5]),
+      )!;
+
+      expect(res[0]).toEqual({
+        children: [[{ id: 1, text: deleteAt(docText, 3, 2) }]],
+      });
+      expect(res[1]).toEqual(moveOffset(sel, { focus: 1 - 2 }));
+    });
+
+    it("delete line break inside selection", () => {
+      const docText = "abcde";
+      const docText2 = "fghij";
+      const doc: Doc = {
+        children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+      };
+      const sel: SelectionSnapshot = [
+        [[0], 2],
+        [[1], 2],
+      ];
+      const res = applyTransaction(
+        doc,
+        sel,
+        new Transaction().delete([[0], 3], [[1], 1]),
+      )!;
+
+      expect(res[0]).toEqual({
+        children: [
+          [{ id: 1, text: splitAt(docText, 3)[0] + splitAt(docText2, 1)[1] }],
+        ],
+      });
+      expect(res[1]).toEqual([
+        [[0], 2],
+        [[0], 3 + 1],
+      ]);
+    });
+  });
+
   it("delete text at previous line", () => {
     const docText = "abcde";
     const docText2 = "fghij";
@@ -1526,93 +1617,6 @@ describe("delete", () => {
     expect(res[1]).toEqual(moveOffset(sel, -1));
   });
 
-  it("delete text around selection", () => {
-    const docText = "abcde";
-    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
-    const sel: SelectionSnapshot = [
-      [[0], 2],
-      [[0], 4],
-    ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([[0], 1], [[0], 5]),
-    )!;
-
-    expect(res[0]).toEqual({
-      children: [[{ id: 1, text: deleteAt(docText, 1, 4) }]],
-    });
-    expect(res[1]).toEqual([
-      [[0], 1],
-      [[0], 1],
-    ]);
-  });
-
-  it("delete text around selection anchor", () => {
-    const docText = "abcde";
-    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
-    const sel: SelectionSnapshot = [
-      [[0], 2],
-      [[0], 4],
-    ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([[0], 1], [[0], 3]),
-    )!;
-
-    expect(res[0]).toEqual({
-      children: [[{ id: 1, text: deleteAt(docText, 1, 2) }]],
-    });
-    expect(res[1]).toEqual(moveOffset(sel, { anchor: 1 - 2, focus: -2 }));
-  });
-
-  it("delete text around selection focus", () => {
-    const docText = "abcde";
-    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
-    const sel: SelectionSnapshot = [
-      [[0], 2],
-      [[0], 4],
-    ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([[0], 3], [[0], 5]),
-    )!;
-
-    expect(res[0]).toEqual({
-      children: [[{ id: 1, text: deleteAt(docText, 3, 2) }]],
-    });
-    expect(res[1]).toEqual(moveOffset(sel, { focus: 1 - 2 }));
-  });
-
-  it("delete line break inside selection", () => {
-    const docText = "abcde";
-    const docText2 = "fghij";
-    const doc: Doc = {
-      children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
-    };
-    const sel: SelectionSnapshot = [
-      [[0], 2],
-      [[1], 2],
-    ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([[0], 3], [[1], 1]),
-    )!;
-
-    expect(res[0]).toEqual({
-      children: [
-        [{ id: 1, text: splitAt(docText, 3)[0] + splitAt(docText2, 1)[1] }],
-      ],
-    });
-    expect(res[1]).toEqual([
-      [[0], 2],
-      [[0], 3 + 1],
-    ]);
-  });
-
   it("delete text just after caret", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
@@ -1706,6 +1710,41 @@ describe("delete", () => {
             text:
               deleteAt(docText2, 1, docText2.length - 1) +
               deleteAt(docText3, 0, 1),
+          },
+        ],
+      ],
+    });
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("delete lines at next line", () => {
+    const docText = "abcde";
+    const docText2 = "fghij";
+    const docText3 = "klmno";
+    const doc: Doc = {
+      children: [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: docText2 }],
+        [{ id: 1, text: docText3 }],
+      ],
+    };
+    const sel: SelectionSnapshot = [
+      [[0], 2],
+      [[0], 2],
+    ];
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().delete([[1], 0], [[2], 1]),
+    )!;
+
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: docText }],
+        [
+          {
+            id: 1,
+            text: deleteAt(docText3, 0, 1),
           },
         ],
       ],
@@ -2176,104 +2215,6 @@ describe("update attr", () => {
           { id: 1, text: docText.slice(0, 2) },
           { id: 1, text: docText.slice(2, 3), foo: "bar" },
           { id: 1, text: docText.slice(3) },
-        ],
-      ],
-    });
-    expect(res[1]).toEqual(sel);
-  });
-
-  it("update text around caret", () => {
-    const docText = "abcde";
-    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
-    const sel: SelectionSnapshot = [
-      [[0], 3],
-      [[0], 3],
-    ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().attr([[0], 2], [[0], 4], { foo: "bar" }),
-    )!;
-
-    expect(res[0]).toEqual({
-      children: [
-        [
-          { id: 1, text: docText.slice(0, 2) },
-          { id: 1, text: docText.slice(2, 4), foo: "bar" },
-          { id: 1, text: docText.slice(4) },
-        ],
-      ],
-    });
-    expect(res[1]).toEqual(sel);
-  });
-
-  it("update text around selection", () => {
-    const docText = "abcde";
-    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
-    const sel: SelectionSnapshot = [
-      [[0], 2],
-      [[0], 4],
-    ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().attr([[0], 1], [[0], 5], { foo: "bar" }),
-    )!;
-
-    expect(res[0]).toEqual({
-      children: [
-        [
-          { id: 1, text: docText.slice(0, 1) },
-          { id: 1, text: docText.slice(1, 5), foo: "bar" },
-        ],
-      ],
-    });
-    expect(res[1]).toEqual(sel);
-  });
-
-  it("update text around selection anchor", () => {
-    const docText = "abcde";
-    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
-    const sel: SelectionSnapshot = [
-      [[0], 2],
-      [[0], 4],
-    ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().attr([[0], 1], [[0], 3], { foo: "bar" }),
-    )!;
-
-    expect(res[0]).toEqual({
-      children: [
-        [
-          { id: 1, text: docText.slice(0, 1) },
-          { id: 1, text: docText.slice(1, 3), foo: "bar" },
-          { id: 1, text: docText.slice(3) },
-        ],
-      ],
-    });
-    expect(res[1]).toEqual(sel);
-  });
-
-  it("update text around selection focus", () => {
-    const docText = "abcde";
-    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
-    const sel: SelectionSnapshot = [
-      [[0], 2],
-      [[0], 4],
-    ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().attr([[0], 3], [[0], 5], { foo: "bar" }),
-    )!;
-
-    expect(res[0]).toEqual({
-      children: [
-        [
-          { id: 1, text: docText.slice(0, 3) },
-          { id: 1, text: docText.slice(3, 5), foo: "bar" },
         ],
       ],
     });
