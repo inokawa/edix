@@ -18,12 +18,42 @@ describe(comparePath.name, () => {
     expect(comparePath([1], [1])).toBe(0);
   });
 
-  it("should return forward if value is higher", () => {
+  it("should return forward if B is higher", () => {
     expect(comparePath([1], [2])).toBe(-1);
   });
 
-  it("should return backward if value is lower", () => {
+  it("should return backward if B is lower", () => {
     expect(comparePath([2], [1])).toBe(1);
+  });
+
+  it("should return same if B has common but shallower", () => {
+    // @ts-expect-error
+    expect(comparePath([1, 2], [1])).toBe(0);
+  });
+
+  it("should return same if B has common but deeper", () => {
+    // @ts-expect-error
+    expect(comparePath([1], [1, 2])).toBe(0);
+  });
+
+  it("should return forward if B is higher and shallower", () => {
+    // @ts-expect-error
+    expect(comparePath([1, 1], [2])).toBe(-1);
+  });
+
+  it("should return forward if B is higher and deeper", () => {
+    // @ts-expect-error
+    expect(comparePath([1], [2, 2])).toBe(-1);
+  });
+
+  it("should return backward if B is lower and shallower", () => {
+    // @ts-expect-error
+    expect(comparePath([2, 1], [1])).toBe(1);
+  });
+
+  it("should return backward if B is lower and deeper", () => {
+    // @ts-expect-error
+    expect(comparePath([2], [1, 1])).toBe(1);
   });
 });
 
