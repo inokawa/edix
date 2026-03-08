@@ -72,7 +72,7 @@ it("discard if error", () => {
   expect(() => applyOperation(doc, sel, { _type: 3 } as any)).toThrowError();
 });
 
-describe("insert", () => {
+describe("insert text", () => {
   describe("validation", () => {
     it("path less than min", () => {
       const docText = "abcde";
@@ -175,7 +175,7 @@ describe("insert", () => {
     });
   });
 
-  it("should insert text at line before caret", () => {
+  it("insert text at previous line", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Doc = {
@@ -201,7 +201,7 @@ describe("insert", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should insert lines at line before caret", () => {
+  it("insert lines at previous line", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Doc = {
@@ -230,7 +230,7 @@ describe("insert", () => {
     expect(res[1]).toEqual(moveLine(sel, 1));
   });
 
-  it("should insert text before caret", () => {
+  it("insert text before caret", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
@@ -250,7 +250,7 @@ describe("insert", () => {
     expect(res[1]).toEqual(moveOffset(sel, text.length));
   });
 
-  it("should insert text before caret on middle line", () => {
+  it("insert text before caret on middle line", () => {
     const docText = "abcde";
     const docText2 = "fghi";
     const docText3 = "jkl";
@@ -282,7 +282,7 @@ describe("insert", () => {
     expect(res[1]).toEqual(moveOffset(sel, text.length));
   });
 
-  it("should insert lines before caret", () => {
+  it("insert lines before caret", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
@@ -309,7 +309,7 @@ describe("insert", () => {
     );
   });
 
-  it("should insert text on caret", () => {
+  it("insert text on caret", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
@@ -329,7 +329,7 @@ describe("insert", () => {
     expect(res[1]).toEqual(moveOffset(sel, text.length));
   });
 
-  it("should insert lines on caret", () => {
+  it("insert lines on caret", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
@@ -356,7 +356,7 @@ describe("insert", () => {
     );
   });
 
-  it("should insert text inside selection", () => {
+  it("insert text inside selection", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
@@ -376,7 +376,7 @@ describe("insert", () => {
     expect(res[1]).toEqual(moveOffset(sel, { focus: text.length }));
   });
 
-  it("should insert lines inside selection", () => {
+  it("insert lines inside selection", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
@@ -405,7 +405,7 @@ describe("insert", () => {
     );
   });
 
-  it("should insert text after caret", () => {
+  it("insert text after caret", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
@@ -425,7 +425,7 @@ describe("insert", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should insert text after caret on middle line", () => {
+  it("insert text after caret on middle line", () => {
     const docText = "abcde";
     const docText2 = "fghi";
     const docText3 = "jkl";
@@ -457,7 +457,7 @@ describe("insert", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should insert lines after caret", () => {
+  it("insert lines after caret", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
@@ -482,7 +482,7 @@ describe("insert", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should insert text at line after caret", () => {
+  it("insert text at next line", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Doc = {
@@ -508,7 +508,7 @@ describe("insert", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should insert lines at line after caret", () => {
+  it("insert lines at next line", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Doc = {
@@ -537,7 +537,7 @@ describe("insert", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should insert line break at start of line", () => {
+  it("insert line break at start of line", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Doc = {
@@ -562,7 +562,7 @@ describe("insert", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should insert line break at middle of line", () => {
+  it("insert line break at middle of line", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Doc = {
@@ -589,7 +589,7 @@ describe("insert", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should insert line break at end of line", () => {
+  it("insert line break at end of line", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Doc = {
@@ -614,7 +614,7 @@ describe("insert", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should insert text at the edge of text node", () => {
+  it("insert text at the edge of text node", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Doc = {
@@ -647,7 +647,7 @@ describe("insert", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should insert lines at the edge of text node", () => {
+  it("insert lines at the edge of text node", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Doc = {
@@ -682,7 +682,7 @@ describe("insert", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should insert line break at the edge of text node", () => {
+  it("insert line break at the edge of text node", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Doc = {
@@ -813,7 +813,7 @@ describe("insert node", () => {
     });
   });
 
-  it("should insert text at line before caret", () => {
+  it("insert text at previous line", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Doc = {
@@ -840,7 +840,7 @@ describe("insert node", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should insert lines at line before caret", () => {
+  it("insert lines at previous line", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Doc = {
@@ -872,7 +872,7 @@ describe("insert node", () => {
     expect(res[1]).toEqual(moveLine(sel, 1));
   });
 
-  it("should insert text before caret", () => {
+  it("insert text before caret", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
@@ -893,7 +893,7 @@ describe("insert node", () => {
     expect(res[1]).toEqual(moveOffset(sel, text.length));
   });
 
-  it("should insert text before caret on middle line", () => {
+  it("insert text before caret on middle line", () => {
     const docText = "abcde";
     const docText2 = "fghi";
     const docText3 = "jkl";
@@ -926,7 +926,7 @@ describe("insert node", () => {
     expect(res[1]).toEqual(moveOffset(sel, text.length));
   });
 
-  it("should insert lines before caret", () => {
+  it("insert lines before caret", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
@@ -956,7 +956,7 @@ describe("insert node", () => {
     );
   });
 
-  it("should insert text on caret", () => {
+  it("insert text on caret", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
@@ -977,7 +977,7 @@ describe("insert node", () => {
     expect(res[1]).toEqual(moveOffset(sel, text.length));
   });
 
-  it("should insert lines on caret", () => {
+  it("insert lines on caret", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
@@ -1007,7 +1007,7 @@ describe("insert node", () => {
     );
   });
 
-  it("should insert text inside selection", () => {
+  it("insert text inside selection", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
@@ -1028,7 +1028,7 @@ describe("insert node", () => {
     expect(res[1]).toEqual(moveOffset(sel, { focus: text.length }));
   });
 
-  it("should insert lines inside selection", () => {
+  it("insert lines inside selection", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
@@ -1060,7 +1060,7 @@ describe("insert node", () => {
     );
   });
 
-  it("should insert text after caret", () => {
+  it("insert text after caret", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
@@ -1081,7 +1081,7 @@ describe("insert node", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should insert text after caret on middle line", () => {
+  it("insert text after caret on middle line", () => {
     const docText = "abcde";
     const docText2 = "fghi";
     const docText3 = "jkl";
@@ -1114,7 +1114,7 @@ describe("insert node", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should insert lines after caret", () => {
+  it("insert lines after caret", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
@@ -1142,7 +1142,7 @@ describe("insert node", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should insert text at line after caret", () => {
+  it("insert text at next line", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Doc = {
@@ -1169,7 +1169,7 @@ describe("insert node", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should insert lines at line after caret", () => {
+  it("insert lines at next line", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Doc = {
@@ -1307,7 +1307,7 @@ describe("delete", () => {
     });
   });
 
-  it("should delete text at line before caret", () => {
+  it("delete text at previous line", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Doc = {
@@ -1332,7 +1332,7 @@ describe("delete", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should delete linebreak at line before caret", () => {
+  it("delete linebreak at previous line", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Doc = {
@@ -1367,26 +1367,7 @@ describe("delete", () => {
     ]);
   });
 
-  it("should delete text before caret", () => {
-    const docText = "abcde";
-    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
-    const sel: SelectionSnapshot = [
-      [[0], 3],
-      [[0], 3],
-    ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([[0], 1], [[0], 2]),
-    )!;
-
-    expect(res[0]).toEqual({
-      children: [[{ id: 1, text: deleteAt(docText, 1, 1) }]],
-    });
-    expect(res[1]).toEqual(moveOffset(sel, -1));
-  });
-
-  it("should delete linebreak before caret", () => {
+  it("delete lines at previous line", () => {
     const docText = "abcde";
     const docText2 = "fghi";
     const docText3 = "jkl";
@@ -1416,7 +1397,26 @@ describe("delete", () => {
     expect(res[1]).toEqual(moveLine(sel, -1));
   });
 
-  it("should delete text before caret on middle line", () => {
+  it("delete text before caret", () => {
+    const docText = "abcde";
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
+    const sel: SelectionSnapshot = [
+      [[0], 3],
+      [[0], 3],
+    ];
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().delete([[0], 1], [[0], 2]),
+    )!;
+
+    expect(res[0]).toEqual({
+      children: [[{ id: 1, text: deleteAt(docText, 1, 1) }]],
+    });
+    expect(res[1]).toEqual(moveOffset(sel, -1));
+  });
+
+  it("delete text before caret on middle line", () => {
     const docText = "abcde";
     const docText2 = "fghi";
     const docText3 = "jkl";
@@ -1447,7 +1447,7 @@ describe("delete", () => {
     expect(res[1]).toEqual(moveOffset(sel, -1));
   });
 
-  it("should delete text just before caret", () => {
+  it("delete text just before caret", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
@@ -1466,7 +1466,7 @@ describe("delete", () => {
     expect(res[1]).toEqual(moveOffset(sel, -1));
   });
 
-  it("should delete text around caret", () => {
+  it("delete text around caret", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
@@ -1485,7 +1485,7 @@ describe("delete", () => {
     expect(res[1]).toEqual(moveOffset(sel, -1));
   });
 
-  it("should delete text around selection", () => {
+  it("delete text around selection", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
@@ -1507,7 +1507,7 @@ describe("delete", () => {
     ]);
   });
 
-  it("should delete text around selection anchor", () => {
+  it("delete text around selection anchor", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
@@ -1526,7 +1526,7 @@ describe("delete", () => {
     expect(res[1]).toEqual(moveOffset(sel, { anchor: 1 - 2, focus: -2 }));
   });
 
-  it("should delete text around selection focus", () => {
+  it("delete text around selection focus", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
@@ -1545,7 +1545,7 @@ describe("delete", () => {
     expect(res[1]).toEqual(moveOffset(sel, { focus: 1 - 2 }));
   });
 
-  it("should delete linebreak inside selection", () => {
+  it("delete linebreak inside selection", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Doc = {
@@ -1572,7 +1572,7 @@ describe("delete", () => {
     ]);
   });
 
-  it("should delete text just after caret", () => {
+  it("delete text just after caret", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
@@ -1591,7 +1591,7 @@ describe("delete", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should delete text after caret", () => {
+  it("delete text after caret", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
@@ -1610,7 +1610,7 @@ describe("delete", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should delete text after caret on middle line", () => {
+  it("delete text after caret on middle line", () => {
     const docText = "abcde";
     const docText2 = "fghi";
     const docText3 = "jkl";
@@ -1641,7 +1641,7 @@ describe("delete", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should delete text at line after caret", () => {
+  it("delete text at next line", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Doc = {
@@ -1666,7 +1666,7 @@ describe("delete", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should delete linebreak", () => {
+  it("delete linebreak", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Doc = {
@@ -1696,7 +1696,7 @@ describe("delete", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should delete linebreak at line after caret", () => {
+  it("delete linebreak at next line", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const docText3 = "klmno";
@@ -1733,7 +1733,7 @@ describe("delete", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should delete empty line from the start", () => {
+  it("delete empty line from the start", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Doc = {
@@ -1760,7 +1760,7 @@ describe("delete", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should delete empty line from the end", () => {
+  it("delete empty line from the end", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Doc = {
@@ -1787,7 +1787,7 @@ describe("delete", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should delete forward at the edge of text node", () => {
+  it("delete forward at the edge of text node", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Doc = {
@@ -1823,7 +1823,7 @@ describe("delete", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should delete backward at the edge of text node", () => {
+  it("delete backward at the edge of text node", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Doc = {
@@ -1859,7 +1859,7 @@ describe("delete", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should delete linebreak at the edge of text node", () => {
+  it("delete linebreak at the edge of text node", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Doc = {
@@ -1999,7 +1999,7 @@ describe("update attr", () => {
     });
   });
 
-  it("should update attr text at line before caret", () => {
+  it("update text at previous line", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Doc = {
@@ -2028,7 +2028,7 @@ describe("update attr", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should update attr linebreak at line before caret", () => {
+  it("update linebreak at previous line", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Doc = {
@@ -2060,7 +2060,7 @@ describe("update attr", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should update attr text before caret", () => {
+  it("update text before caret", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
@@ -2085,7 +2085,7 @@ describe("update attr", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should update attr text before caret on middle line", () => {
+  it("update text before caret on middle line", () => {
     const docText = "abcde";
     const docText2 = "fghi";
     const docText3 = "jkl";
@@ -2120,7 +2120,7 @@ describe("update attr", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should update attr text just before caret", () => {
+  it("update text just before caret", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
@@ -2145,7 +2145,7 @@ describe("update attr", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should update attr text around caret", () => {
+  it("update text around caret", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
@@ -2170,7 +2170,7 @@ describe("update attr", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should update attr text around selection", () => {
+  it("update text around selection", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
@@ -2194,7 +2194,7 @@ describe("update attr", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should update attr text around selection anchor", () => {
+  it("update text around selection anchor", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
@@ -2219,7 +2219,7 @@ describe("update attr", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should update attr text around selection focus", () => {
+  it("update text around selection focus", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
@@ -2243,7 +2243,7 @@ describe("update attr", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should update attr linebreak inside selection", () => {
+  it("update linebreak inside selection", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Doc = {
@@ -2274,7 +2274,7 @@ describe("update attr", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should update attr text just after caret", () => {
+  it("update text just after caret", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
@@ -2299,7 +2299,7 @@ describe("update attr", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should update attr text after caret", () => {
+  it("update text after caret", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
     const sel: SelectionSnapshot = [
@@ -2323,7 +2323,7 @@ describe("update attr", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should update attr text after caret on middle line", () => {
+  it("update text after caret on middle line", () => {
     const docText = "abcde";
     const docText2 = "fghi";
     const docText3 = "jkl";
@@ -2357,7 +2357,7 @@ describe("update attr", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should update attr text at line after caret", () => {
+  it("update text at next line", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Doc = {
@@ -2386,7 +2386,7 @@ describe("update attr", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("should update attr linebreak at line after caret", () => {
+  it("update linebreak at next line", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const docText3 = "klmno";
