@@ -117,8 +117,7 @@ export const readToken = (): TokenType => {
             : TOKEN_TEXT);
       }
     } else if (isElementNode(node)) {
-      const tagName = node.tagName;
-      if (tagName === "BR") {
+      if (node.tagName === "BR") {
         return (_token = isValidSoftBreak()
           ? // Especially Shift+Enter in Firefox
             TOKEN_SOFT_BREAK
