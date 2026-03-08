@@ -1386,6 +1386,36 @@ describe("delete", () => {
     expect(res[1]).toEqual(moveOffset(sel, -1));
   });
 
+  it("should delete linebreak before caret", () => {
+    const docText = "abcde";
+    const docText2 = "fghi";
+    const docText3 = "jkl";
+    const doc: Doc = {
+      children: [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: docText2 }],
+        [{ id: 1, text: docText3 }],
+      ],
+    };
+    const sel: SelectionSnapshot = [
+      [[2], 3],
+      [[2], 3],
+    ];
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().delete([[0], 0], [[1], 2]),
+    )!;
+
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: deleteAt(docText2, 0, 2) }],
+        [{ id: 1, text: docText3 }],
+      ],
+    });
+    expect(res[1]).toEqual(moveLine(sel, -1));
+  });
+
   it("should delete text before caret on middle line", () => {
     const docText = "abcde";
     const docText2 = "fghi";
