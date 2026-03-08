@@ -87,7 +87,7 @@ describe("insert", () => {
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().insert([[-1], 0], "test"),
+        new Transaction().insertText([[-1], 0], "test"),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -107,7 +107,7 @@ describe("insert", () => {
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().insert([[100], 0], "test"),
+        new Transaction().insertText([[100], 0], "test"),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -127,7 +127,7 @@ describe("insert", () => {
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().insert([[0], -1], "test"),
+        new Transaction().insertText([[0], -1], "test"),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -147,7 +147,7 @@ describe("insert", () => {
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().insert([[0], 100], "test"),
+        new Transaction().insertText([[0], 100], "test"),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -167,7 +167,7 @@ describe("insert", () => {
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().insert([[0], 1], ""),
+        new Transaction().insertText([[0], 1], ""),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -189,7 +189,7 @@ describe("insert", () => {
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([[0], 1], text),
+      new Transaction().insertText([[0], 1], text),
     )!;
 
     expect(res[0]).toEqual({
@@ -216,7 +216,7 @@ describe("insert", () => {
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([[0], 1], text + "\n" + text2),
+      new Transaction().insertText([[0], 1], text + "\n" + text2),
     )!;
 
     const [before, after] = splitAt(docText, 1);
@@ -241,7 +241,7 @@ describe("insert", () => {
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([[0], 1], text),
+      new Transaction().insertText([[0], 1], text),
     )!;
 
     expect(res[0]).toEqual({
@@ -269,7 +269,7 @@ describe("insert", () => {
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([[1], 1], text),
+      new Transaction().insertText([[1], 1], text),
     )!;
 
     expect(res[0]).toEqual({
@@ -294,7 +294,7 @@ describe("insert", () => {
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([[0], 1], text + "\n" + text2),
+      new Transaction().insertText([[0], 1], text + "\n" + text2),
     )!;
 
     const [before, after] = splitAt(docText, 1);
@@ -320,7 +320,7 @@ describe("insert", () => {
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([[0], 2], text),
+      new Transaction().insertText([[0], 2], text),
     )!;
 
     expect(res[0]).toEqual({
@@ -341,7 +341,7 @@ describe("insert", () => {
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([[0], 2], text + "\n" + text2),
+      new Transaction().insertText([[0], 2], text + "\n" + text2),
     )!;
 
     const [before, after] = splitAt(docText, 2);
@@ -367,7 +367,7 @@ describe("insert", () => {
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([[0], 2], text),
+      new Transaction().insertText([[0], 2], text),
     )!;
 
     expect(res[0]).toEqual({
@@ -388,7 +388,7 @@ describe("insert", () => {
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([[0], 2], text + "\n" + text2),
+      new Transaction().insertText([[0], 2], text + "\n" + text2),
     )!;
 
     const [before, after] = splitAt(docText, 2);
@@ -416,7 +416,7 @@ describe("insert", () => {
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([[0], 3], text),
+      new Transaction().insertText([[0], 3], text),
     )!;
 
     expect(res[0]).toEqual({
@@ -444,7 +444,7 @@ describe("insert", () => {
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([[1], 3], text),
+      new Transaction().insertText([[1], 3], text),
     )!;
 
     expect(res[0]).toEqual({
@@ -469,7 +469,7 @@ describe("insert", () => {
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([[0], 3], text + "\n" + text2),
+      new Transaction().insertText([[0], 3], text + "\n" + text2),
     )!;
 
     const [before, after] = splitAt(docText, 3);
@@ -496,7 +496,7 @@ describe("insert", () => {
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([[1], 1], text),
+      new Transaction().insertText([[1], 1], text),
     )!;
 
     expect(res[0]).toEqual({
@@ -523,7 +523,7 @@ describe("insert", () => {
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([[1], 1], text + "\n" + text2),
+      new Transaction().insertText([[1], 1], text + "\n" + text2),
     )!;
 
     const [before, after] = splitAt(docText2, 1);
@@ -550,7 +550,7 @@ describe("insert", () => {
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([[1], 0], "\n"),
+      new Transaction().insertText([[1], 0], "\n"),
     )!;
     expect(res[0]).toEqual({
       children: [
@@ -575,7 +575,7 @@ describe("insert", () => {
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([[1], 1], "\n"),
+      new Transaction().insertText([[1], 1], "\n"),
     )!;
 
     const [before, after] = splitAt(docText2, 1);
@@ -602,7 +602,7 @@ describe("insert", () => {
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([[0], docText.length], "\n"),
+      new Transaction().insertText([[0], docText.length], "\n"),
     )!;
     expect(res[0]).toEqual({
       children: [
@@ -633,7 +633,7 @@ describe("insert", () => {
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([[0], docText.length], text),
+      new Transaction().insertText([[0], docText.length], text),
     )!;
 
     expect(res[0]).toEqual({
@@ -667,7 +667,7 @@ describe("insert", () => {
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([[0], docText.length], text + "\n" + text2),
+      new Transaction().insertText([[0], docText.length], text + "\n" + text2),
     )!;
 
     expect(res[0]).toEqual({
@@ -700,7 +700,7 @@ describe("insert", () => {
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().insert([[0], docText.length], "\n"),
+      new Transaction().insertText([[0], docText.length], "\n"),
     )!;
 
     expect(res[0]).toEqual({

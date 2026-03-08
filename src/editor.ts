@@ -550,7 +550,7 @@ export const createEditor = <
           }
           if (data) {
             // replace or insert
-            inputTransaction.insert(range[0], data);
+            inputTransaction.insertText(range[0], data);
           }
         }
 
@@ -612,7 +612,7 @@ export const createEditor = <
           const [start, end] = toRange(selection);
           const tr = new Transaction().delete(start, end);
           if (isString(pasted)) {
-            tr.insert(start, pasted);
+            tr.insertText(start, pasted);
           } else {
             tr.insertFragment(start, pasted);
           }
@@ -640,7 +640,7 @@ export const createEditor = <
             const pos = tr.transform(droppedPosition);
             tr.select(pos, pos);
             if (isString(pasted)) {
-              tr.insert(pos, pasted);
+              tr.insertText(pos, pasted);
             } else {
               tr.insertFragment(pos, pasted);
             }

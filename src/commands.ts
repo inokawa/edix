@@ -32,7 +32,7 @@ export function InsertText(
   text: string,
   position: Position = this.selection[0],
 ) {
-  this.apply(new Transaction().insert(position, text));
+  this.apply(new Transaction().insertText(position, text));
 }
 
 /**
@@ -51,7 +51,7 @@ export function InsertNode<T extends DocNode>(
  */
 export function ReplaceText(this: Editor, text: string) {
   const [start, end] = toRange(this.selection);
-  this.apply(new Transaction().delete(start, end).insert(start, text));
+  this.apply(new Transaction().delete(start, end).insertText(start, text));
 }
 
 /**
@@ -69,7 +69,7 @@ export function ReplaceAll(this: Editor, text: string) {
           getLineSize(doc.children[doc.children.length - 1]!),
         ],
       )
-      .insert([[], 0], text),
+      .insertText([[], 0], text),
   );
 }
 

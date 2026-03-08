@@ -65,7 +65,7 @@ export class Transaction {
     return this._ops;
   }
 
-  insert(start: Position, text: string): this {
+  insertText(start: Position, text: string): this {
     this._ops.push({
       _type: TYPE_INSERT_TEXT,
       _pos: start,
