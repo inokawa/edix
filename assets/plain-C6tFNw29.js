@@ -1,1 +1,0 @@
-import{c as a,k as c,s as g,l}from"./singleline-DAboL_w_.js";const u=({text:i,singleline:r,plugins:s=[],onChange:t,...o})=>{const n=[...s];return r&&n.unshift(g()),a({...o,doc:{children:c(i)},plugins:n,onChange:e=>{t(l(e))}})};export{u as c};
