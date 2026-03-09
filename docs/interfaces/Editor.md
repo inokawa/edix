@@ -2,19 +2,102 @@
 
 ***
 
-# Interface: Editor
+# Interface: Editor\<T\>
 
-Defined in: [editor.ts:121](https://github.com/inokawa/edix/blob/17eb027c6558be0f6b434fe5269f1a66a1077362/src/editor.ts#L121)
+Defined in: [editor.ts:150](https://github.com/inokawa/edix/blob/96295ed67f7c2da9a7e213e46ab3f24cac805db8/src/editor.ts#L150)
 
-Methods of editor instance.
+The editor instance.
+
+## Type Parameters
+
+### T
+
+`T` *extends* `DocNode` = `DocNode`
+
+## Methods
+
+### apply()
+
+#### Call Signature
+
+> **apply**(`tr`): `this`
+
+Defined in: [editor.ts:163](https://github.com/inokawa/edix/blob/96295ed67f7c2da9a7e213e46ab3f24cac805db8/src/editor.ts#L163)
+
+Dispatches editing operations.
+
+##### Parameters
+
+###### tr
+
+[`Transaction`](../classes/Transaction.md)
+
+[Transaction](../classes/Transaction.md) or EditorCommand
+
+##### Returns
+
+`this`
+
+#### Call Signature
+
+> **apply**\<`A`\>(`fn`, ...`args`): `this`
+
+Defined in: [editor.ts:164](https://github.com/inokawa/edix/blob/96295ed67f7c2da9a7e213e46ab3f24cac805db8/src/editor.ts#L164)
+
+##### Type Parameters
+
+###### A
+
+`A` *extends* `unknown`[]
+
+##### Parameters
+
+###### fn
+
+`EditorCommand`\<`A`, `T`\>
+
+###### args
+
+...`A`
+
+##### Returns
+
+`this`
 
 ## Properties
+
+### doc
+
+> `readonly` **doc**: `T`
+
+Defined in: [editor.ts:151](https://github.com/inokawa/edix/blob/96295ed67f7c2da9a7e213e46ab3f24cac805db8/src/editor.ts#L151)
+
+***
+
+### selection
+
+> `readonly` **selection**: `SelectionSnapshot`
+
+Defined in: [editor.ts:152](https://github.com/inokawa/edix/blob/96295ed67f7c2da9a7e213e46ab3f24cac805db8/src/editor.ts#L152)
+
+***
+
+### readonly
+
+> **readonly**: `boolean`
+
+Defined in: [editor.ts:157](https://github.com/inokawa/edix/blob/96295ed67f7c2da9a7e213e46ab3f24cac805db8/src/editor.ts#L157)
+
+The getter/setter for the editor's read-only state.
+`true` to read-only. `false` to editable.
+
+***
 
 ### input()
 
 > **input**: (`element`) => () => `void`
 
-Defined in: [editor.ts:126](https://github.com/inokawa/edix/blob/17eb027c6558be0f6b434fe5269f1a66a1077362/src/editor.ts#L126)
+Defined in: [editor.ts:169](https://github.com/inokawa/edix/blob/96295ed67f7c2da9a7e213e46ab3f24cac805db8/src/editor.ts#L169)
 
 A function to make DOM editable.
 
@@ -31,61 +114,5 @@ A function to stop subscribing DOM changes and restores previous DOM state.
 > (): `void`
 
 ##### Returns
-
-`void`
-
-***
-
-### command()
-
-> **command**: \<`A`\>(`fn`, ...`args`) => `void`
-
-Defined in: [editor.ts:132](https://github.com/inokawa/edix/blob/17eb027c6558be0f6b434fe5269f1a66a1077362/src/editor.ts#L132)
-
-Dispatches editing command.
-
-#### Type Parameters
-
-##### A
-
-`A` *extends* `unknown`[]
-
-#### Parameters
-
-##### fn
-
-[`EditorCommand`](../type-aliases/EditorCommand.md)\<`A`\>
-
-command function
-
-##### args
-
-...`A`
-
-arguments of command
-
-#### Returns
-
-`void`
-
-***
-
-### readonly()
-
-> **readonly**: (`value`) => `void`
-
-Defined in: [editor.ts:137](https://github.com/inokawa/edix/blob/17eb027c6558be0f6b434fe5269f1a66a1077362/src/editor.ts#L137)
-
-Changes editor's read-only state.
-
-#### Parameters
-
-##### value
-
-`boolean`
-
-`true` to read-only. `false` to editable.
-
-#### Returns
 
 `void`

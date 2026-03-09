@@ -4,29 +4,40 @@
 
 # API
 
+## Classes
+
+- [Transaction](classes/Transaction.md)
+
 ## Functions
 
+- [hotkey](functions/hotkey.md)
+- [Delete](functions/Delete.md)
+- [InsertText](functions/InsertText.md)
+- [InsertNode](functions/InsertNode.md)
+- [ReplaceText](functions/ReplaceText.md)
+- [ReplaceAll](functions/ReplaceAll.md)
+- [Format](functions/Format.md)
+- [ToggleFormat](functions/ToggleFormat.md)
 - [createEditor](functions/createEditor.md)
-- [plainSchema](functions/plainSchema.md)
-- [voidNode](functions/voidNode.md)
-- [schema](functions/schema.md)
+- [plainCopy](functions/plainCopy.md)
+- [htmlCopy](functions/htmlCopy.md)
+- [internalCopy](functions/internalCopy.md)
+- [filePaste](functions/filePaste.md)
+- [plainPaste](functions/plainPaste.md)
+- [htmlPaste](functions/htmlPaste.md)
+- [internalPaste](functions/internalPaste.md)
+- [createPlainEditor](functions/createPlainEditor.md)
+- [singlelinePlugin](functions/singlelinePlugin.md)
 
 ## Interfaces
 
 - [EditorOptions](interfaces/EditorOptions.md)
 - [Editor](interfaces/Editor.md)
-- [EditableVoidSerializer](interfaces/EditableVoidSerializer.md)
-- [DocSchema](interfaces/DocSchema.md)
+- [PlainEditorOptions](interfaces/PlainEditorOptions.md)
+- [EditorPlugin](interfaces/EditorPlugin.md)
 
 ## Type Aliases
 
-- [KeyboardPayload](type-aliases/KeyboardPayload.md)
-- [EditorCommand](type-aliases/EditorCommand.md)
-- [InferDoc](type-aliases/InferDoc.md)
-- [InferNode](type-aliases/InferNode.md)
-
-## Variables
-
-- [Delete](variables/Delete.md)
-- [InsertText](variables/InsertText.md)
-- [ReplaceAll](variables/ReplaceAll.md)
+- [KeyboardHandler](type-aliases/KeyboardHandler.md)
+- [CopyExtension](type-aliases/CopyExtension.md)
+- [PasteExtension](type-aliases/PasteExtension.md)

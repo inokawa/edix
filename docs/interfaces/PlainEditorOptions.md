@@ -2,41 +2,53 @@
 
 ***
 
-# Interface: EditorOptions\<T, S\>
+# Interface: PlainEditorOptions
 
-Defined in: [editor.ts:95](https://github.com/inokawa/edix/blob/96295ed67f7c2da9a7e213e46ab3f24cac805db8/src/editor.ts#L95)
+Defined in: [presets/plain.ts:8](https://github.com/inokawa/edix/blob/96295ed67f7c2da9a7e213e46ab3f24cac805db8/src/presets/plain.ts#L8)
 
-Options of [createEditor](../functions/createEditor.md).
+## Extends
 
-## Type Parameters
-
-### T
-
-`T` *extends* `DocNode`
-
-### S
-
-`S` *extends* `StandardSchemaV1`\<`T`, `T`\> \| `void` = `void`
+- `Omit`\<[`EditorOptions`](EditorOptions.md)\<`PlainDoc`\>, `"doc"` \| `"schema"` \| `"onChange"`\>
 
 ## Properties
 
-### schema?
+### text
 
-> `optional` **schema**: `S`
+> **text**: `string`
 
-Defined in: [editor.ts:102](https://github.com/inokawa/edix/blob/96295ed67f7c2da9a7e213e46ab3f24cac805db8/src/editor.ts#L102)
+Defined in: [presets/plain.ts:15](https://github.com/inokawa/edix/blob/96295ed67f7c2da9a7e213e46ab3f24cac805db8/src/presets/plain.ts#L15)
 
-Optional [Standard Schema](https://github.com/standard-schema/standard-schema) to validate unsafe edits.
+Initial document text.
 
 ***
 
-### doc
+### singleline?
 
-> **doc**: `T`
+> `optional` **singleline**: `boolean`
 
-Defined in: [editor.ts:106](https://github.com/inokawa/edix/blob/96295ed67f7c2da9a7e213e46ab3f24cac805db8/src/editor.ts#L106)
+Defined in: [presets/plain.ts:19](https://github.com/inokawa/edix/blob/96295ed67f7c2da9a7e213e46ab3f24cac805db8/src/presets/plain.ts#L19)
 
-Initial document.
+TODO
+
+***
+
+### onChange()
+
+> **onChange**: (`text`) => `void`
+
+Defined in: [presets/plain.ts:23](https://github.com/inokawa/edix/blob/96295ed67f7c2da9a7e213e46ab3f24cac805db8/src/presets/plain.ts#L23)
+
+Callback invoked when document changes.
+
+#### Parameters
+
+##### text
+
+`string`
+
+#### Returns
+
+`void`
 
 ***
 
@@ -48,6 +60,10 @@ Defined in: [editor.ts:110](https://github.com/inokawa/edix/blob/96295ed67f7c2da
 
 The state editable or not.
 
+#### Inherited from
+
+`Omit.readonly`
+
 ***
 
 ### plugins?
@@ -57,6 +73,10 @@ The state editable or not.
 Defined in: [editor.ts:114](https://github.com/inokawa/edix/blob/96295ed67f7c2da9a7e213e46ab3f24cac805db8/src/editor.ts#L114)
 
 TODO
+
+#### Inherited from
+
+`Omit.plugins`
 
 ***
 
@@ -69,6 +89,10 @@ Defined in: [editor.ts:120](https://github.com/inokawa/edix/blob/96295ed67f7c2da
 Functions to handle keyboard events.
 
 Return `true` if you want to stop propagation.
+
+#### Inherited from
+
+`Omit.keyboard`
 
 ***
 
@@ -86,6 +110,10 @@ Functions to handle copy events
 [plainCopy()]
 ```
 
+#### Inherited from
+
+`Omit.copy`
+
 ***
 
 ### paste?
@@ -101,6 +129,10 @@ Functions to handle paste / drop events
 ```ts
 [plainPaste()]
 ```
+
+#### Inherited from
+
+`Omit.paste`
 
 ***
 
@@ -122,25 +154,9 @@ TODO
 
 `boolean`
 
-***
+#### Inherited from
 
-### onChange()
-
-> **onChange**: (`doc`) => `void`
-
-Defined in: [editor.ts:138](https://github.com/inokawa/edix/blob/96295ed67f7c2da9a7e213e46ab3f24cac805db8/src/editor.ts#L138)
-
-Callback invoked when document changes.
-
-#### Parameters
-
-##### doc
-
-`T`
-
-#### Returns
-
-`void`
+`Omit.isBlock`
 
 ***
 
@@ -167,3 +183,7 @@ Callback invoked when errors happen.
 ```ts
 console.error
 ```
+
+#### Inherited from
+
+`Omit.onError`
