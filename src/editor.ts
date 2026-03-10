@@ -159,8 +159,9 @@ export interface Editor<T extends DocNode = DocNode> {
    * Dispatches editing operations.
    * @param tr {@link Transaction} or {@link EditorCommand}
    * @param args arguments of {@link EditorCommand}
+   * @param immediate If true, flushes queued operations immediately.
    */
-  apply(tr: Transaction): this;
+  apply(tr: Transaction, immediate?: boolean): this;
   apply<A extends unknown[]>(fn: EditorCommand<A, T>, ...args: A): this;
   /**
    * A function to make DOM editable.
@@ -269,23 +270,15 @@ export const createEditor = <
   }
 
   const transactions: Transaction[] = [];
-  const apply = (arg: Transaction) => {
+  const apply = (tr: Transaction, immediate?: boolean) => {
     if (!readonly) {
-      transactions.unshift(arg);
-      queueTask(commit);
-    }
-  };
-
-  const tasks = new Set<() => void>();
-
-  const queueTask = (fn: () => void) => {
-    if (!tasks.has(fn)) {
-      tasks.add(fn);
-
-      microtask(() => {
-        tasks.delete(fn);
-        fn();
-      });
+      const shouldFlush = !transactions.length;
+      transactions.unshift(tr);
+      if (immediate) {
+        commit();
+      } else if (shouldFlush) {
+        microtask(commit);
+      }
     }
   };
 
@@ -361,11 +354,11 @@ export const createEditor = <
       readonly = value;
       setContentEditable();
     },
-    apply: (fn: Transaction | EditorCommand<any, T>, ...args: unknown[]) => {
-      if (isFunction(fn)) {
-        fn.call(editor, ...args);
+    apply: (tr: Transaction | EditorCommand<any, T>, ...args: unknown[]) => {
+      if (isFunction(tr)) {
+        tr.call(editor, ...args);
       } else {
-        apply(fn);
+        apply(tr, args[0] as boolean | undefined);
       }
       return editor;
     },
