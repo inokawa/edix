@@ -2017,7 +2017,7 @@ describe("update attr", () => {
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().attr([[-1], 0], [[0], 1], { foo: "bar" }),
+        new Transaction().attr([[-1], 0], [[0], 1], "foo", "bar"),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -2034,7 +2034,7 @@ describe("update attr", () => {
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().attr([[0], 0], [[100], 1], { foo: "bar" }),
+        new Transaction().attr([[0], 0], [[100], 1], "foo", "bar"),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -2051,7 +2051,7 @@ describe("update attr", () => {
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().attr([[0], -1], [[0], 1], { foo: "bar" }),
+        new Transaction().attr([[0], -1], [[0], 1], "foo", "bar"),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -2068,7 +2068,7 @@ describe("update attr", () => {
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().attr([[0], 0], [[0], 100], { foo: "bar" }),
+        new Transaction().attr([[0], 0], [[0], 100], "foo", "bar"),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -2085,7 +2085,7 @@ describe("update attr", () => {
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().attr([[0], 1], [[0], 1], { foo: "bar" }),
+        new Transaction().attr([[0], 1], [[0], 1], "foo", "bar"),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -2102,7 +2102,7 @@ describe("update attr", () => {
       const res = applyTransaction(
         doc,
         sel,
-        new Transaction().attr([[0], 2], [[0], 1], { foo: "bar" }),
+        new Transaction().attr([[0], 2], [[0], 1], "foo", "bar"),
       )!;
 
       expect(is(res[0], doc)).toBe(true);
@@ -2123,7 +2123,7 @@ describe("update attr", () => {
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().attr([[0], 1], [[0], 2], { foo: "bar" }),
+      new Transaction().attr([[0], 1], [[0], 2], "foo", "bar"),
     )!;
 
     expect(res[0]).toEqual({
@@ -2153,7 +2153,7 @@ describe("update attr", () => {
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().attr([[0], 2], [[1], 1], { foo: "bar" }),
+      new Transaction().attr([[0], 2], [[1], 1], "foo", "bar"),
     )!;
 
     expect(res[0]).toEqual({
@@ -2181,7 +2181,7 @@ describe("update attr", () => {
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().attr([[0], 1], [[0], 2], { foo: "bar" }),
+      new Transaction().attr([[0], 1], [[0], 2], "foo", "bar"),
     )!;
 
     expect(res[0]).toEqual({
@@ -2206,7 +2206,7 @@ describe("update attr", () => {
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().attr([[0], 2], [[0], 3], { foo: "bar" }),
+      new Transaction().attr([[0], 2], [[0], 3], "foo", "bar"),
     )!;
 
     expect(res[0]).toEqual({
@@ -2234,7 +2234,7 @@ describe("update attr", () => {
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().attr([[0], 3], [[1], 1], { foo: "bar" }),
+      new Transaction().attr([[0], 3], [[1], 1], "foo", "bar"),
     )!;
 
     expect(res[0]).toEqual({
@@ -2262,7 +2262,7 @@ describe("update attr", () => {
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().attr([[0], 3], [[0], 4], { foo: "bar" }),
+      new Transaction().attr([[0], 3], [[0], 4], "foo", "bar"),
     )!;
 
     expect(res[0]).toEqual({
@@ -2287,7 +2287,7 @@ describe("update attr", () => {
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().attr([[0], 4], [[0], 5], { foo: "bar" }),
+      new Transaction().attr([[0], 4], [[0], 5], "foo", "bar"),
     )!;
 
     expect(res[0]).toEqual({
@@ -2314,7 +2314,7 @@ describe("update attr", () => {
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().attr([[1], 1], [[1], 2], { foo: "bar" }),
+      new Transaction().attr([[1], 1], [[1], 2], "foo", "bar"),
     )!;
 
     expect(res[0]).toEqual({
@@ -2348,7 +2348,7 @@ describe("update attr", () => {
     const res = applyTransaction(
       doc,
       sel,
-      new Transaction().attr([[1], 1], [[2], 1], { foo: "bar" }),
+      new Transaction().attr([[1], 1], [[2], 1], "foo", "bar"),
     )!;
 
     expect(res[0]).toEqual({
