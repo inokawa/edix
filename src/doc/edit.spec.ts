@@ -1012,6 +1012,63 @@ describe("insert node", () => {
     expect(res[1]).toEqual(moveLine(sel, 1));
   });
 
+  it("insert text with attr at previous line", () => {
+    const docText = "abcde";
+    const docText2 = "fghij";
+    const doc: Doc = {
+      children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+    };
+    const sel: SelectionSnapshot = [
+      [[1], 2],
+      [[1], 2],
+    ];
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().insertFragment([[0], 1], [[{ foo: "bar" }]]),
+    )!;
+
+    const [before, after] = splitAt(docText, 1);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: before }, { foo: "bar" }, { id: 1, text: after }],
+        [{ id: 1, text: docText2 }],
+      ],
+    });
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("insert void at previous line", () => {
+    const docText = "abcde";
+    const docText2 = "fghij";
+    const doc: Doc = {
+      children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+    };
+    const sel: SelectionSnapshot = [
+      [[1], 2],
+      [[1], 2],
+    ];
+    const text = "ABC";
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().insertFragment([[0], 1], [[{ text, foo: "bar" }]]),
+    )!;
+
+    const [before, after] = splitAt(docText, 1);
+    expect(res[0]).toEqual({
+      children: [
+        [
+          { id: 1, text: before },
+          { text, foo: "bar" },
+          { id: 1, text: after },
+        ],
+        [{ id: 1, text: docText2 }],
+      ],
+    });
+    expect(res[1]).toEqual(sel);
+  });
+
   it("insert text before caret", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
@@ -1063,6 +1120,55 @@ describe("insert node", () => {
     );
   });
 
+  it("insert text with attr before caret", () => {
+    const docText = "abcde";
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
+    const sel: SelectionSnapshot = [
+      [[0], 2],
+      [[0], 2],
+    ];
+    const text = "ABC";
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().insertFragment([[0], 1], [[{ text, foo: "bar" }]]),
+    )!;
+
+    const [before, after] = splitAt(docText, 1);
+    expect(res[0]).toEqual({
+      children: [
+        [
+          { id: 1, text: before },
+          { text, foo: "bar" },
+          { id: 1, text: after },
+        ],
+      ],
+    });
+    expect(res[1]).toEqual(moveOffset(sel, text.length));
+  });
+
+  it("insert void before caret", () => {
+    const docText = "abcde";
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
+    const sel: SelectionSnapshot = [
+      [[0], 2],
+      [[0], 2],
+    ];
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().insertFragment([[0], 1], [[{ foo: "bar" }]]),
+    )!;
+
+    const [before, after] = splitAt(docText, 1);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: before }, { foo: "bar" }, { id: 1, text: after }],
+      ],
+    });
+    expect(res[1]).toEqual(moveOffset(sel, 1));
+  });
+
   it("insert text on caret", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
@@ -1112,6 +1218,55 @@ describe("insert node", () => {
     expect(res[1]).toEqual(
       moveLine(moveOffset(sel, -before.length + text2.length), 1),
     );
+  });
+
+  it("insert text with attr on caret", () => {
+    const docText = "abcde";
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
+    const sel: SelectionSnapshot = [
+      [[0], 2],
+      [[0], 2],
+    ];
+    const text = "ABC";
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().insertFragment([[0], 2], [[{ text, foo: "bar" }]]),
+    )!;
+
+    const [before, after] = splitAt(docText, 2);
+    expect(res[0]).toEqual({
+      children: [
+        [
+          { id: 1, text: before },
+          { text, foo: "bar" },
+          { id: 1, text: after },
+        ],
+      ],
+    });
+    expect(res[1]).toEqual(moveOffset(sel, text.length));
+  });
+
+  it("insert void on caret", () => {
+    const docText = "abcde";
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
+    const sel: SelectionSnapshot = [
+      [[0], 2],
+      [[0], 2],
+    ];
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().insertFragment([[0], 2], [[{ foo: "bar" }]]),
+    )!;
+
+    const [before, after] = splitAt(docText, 2);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: before }, { foo: "bar" }, { id: 1, text: after }],
+      ],
+    });
+    expect(res[1]).toEqual(moveOffset(sel, 1));
   });
 
   it("insert text inside selection", () => {
@@ -1167,6 +1322,55 @@ describe("insert node", () => {
     );
   });
 
+  it("insert text with attr inside selection", () => {
+    const docText = "abcde";
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
+    const sel: SelectionSnapshot = [
+      [[0], 1],
+      [[0], 3],
+    ];
+    const text = "ABC";
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().insertFragment([[0], 2], [[{ text, foo: "bar" }]]),
+    )!;
+
+    const [before, after] = splitAt(docText, 2);
+    expect(res[0]).toEqual({
+      children: [
+        [
+          { id: 1, text: before },
+          { text, foo: "bar" },
+          { id: 1, text: after },
+        ],
+      ],
+    });
+    expect(res[1]).toEqual(moveOffset(sel, { focus: text.length }));
+  });
+
+  it("insert void inside selection", () => {
+    const docText = "abcde";
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
+    const sel: SelectionSnapshot = [
+      [[0], 1],
+      [[0], 3],
+    ];
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().insertFragment([[0], 2], [[{ foo: "bar" }]]),
+    )!;
+
+    const [before, after] = splitAt(docText, 2);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: before }, { foo: "bar" }, { id: 1, text: after }],
+      ],
+    });
+    expect(res[1]).toEqual(moveOffset(sel, { focus: 1 }));
+  });
+
   it("insert text after caret", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
@@ -1211,6 +1415,55 @@ describe("insert node", () => {
       children: [
         [{ id: 1, text: before }, { text }],
         [{ text: text2 }, { id: 1, text: after }],
+      ],
+    });
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("insert text with attr after caret", () => {
+    const docText = "abcde";
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
+    const sel: SelectionSnapshot = [
+      [[0], 2],
+      [[0], 2],
+    ];
+    const text = "ABC";
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().insertFragment([[0], 3], [[{ text, foo: "bar" }]]),
+    )!;
+
+    const [before, after] = splitAt(docText, 3);
+    expect(res[0]).toEqual({
+      children: [
+        [
+          { id: 1, text: before },
+          { text, foo: "bar" },
+          { id: 1, text: after },
+        ],
+      ],
+    });
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("insert void after caret", () => {
+    const docText = "abcde";
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
+    const sel: SelectionSnapshot = [
+      [[0], 2],
+      [[0], 2],
+    ];
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().insertFragment([[0], 3], [[{ foo: "bar" }]]),
+    )!;
+
+    const [before, after] = splitAt(docText, 3);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: before }, { foo: "bar" }, { id: 1, text: after }],
       ],
     });
     expect(res[1]).toEqual(sel);
@@ -1270,6 +1523,63 @@ describe("insert node", () => {
         [{ id: 1, text: docText }],
         [{ id: 1, text: before }, { text: text }],
         [{ text: text2 }, { id: 1, text: after }],
+      ],
+    });
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("insert text at next line", () => {
+    const docText = "abcde";
+    const docText2 = "fghij";
+    const doc: Doc = {
+      children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+    };
+    const sel: SelectionSnapshot = [
+      [[0], 2],
+      [[0], 2],
+    ];
+    const text = "ABC";
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().insertFragment([[1], 1], [[{ text, foo: "bar" }]]),
+    )!;
+
+    const [before, after] = splitAt(docText2, 1);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: docText }],
+        [
+          { id: 1, text: before },
+          { text, foo: "bar" },
+          { id: 1, text: after },
+        ],
+      ],
+    });
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("insert void at next line", () => {
+    const docText = "abcde";
+    const docText2 = "fghij";
+    const doc: Doc = {
+      children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+    };
+    const sel: SelectionSnapshot = [
+      [[0], 2],
+      [[0], 2],
+    ];
+    const res = applyTransaction(
+      doc,
+      sel,
+      new Transaction().insertFragment([[1], 1], [[{ foo: "bar" }]]),
+    )!;
+
+    const [before, after] = splitAt(docText2, 1);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: before }, { foo: "bar" }, { id: 1, text: after }],
       ],
     });
     expect(res[1]).toEqual(sel);

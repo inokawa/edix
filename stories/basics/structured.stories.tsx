@@ -18,6 +18,7 @@ import {
   internalPaste,
   filePaste,
   hotkey,
+  InsertNode,
 } from "../../src";
 import * as v from "valibot";
 
@@ -230,49 +231,70 @@ export const Tag: StoryObj = {
       ],
     });
 
+    const editor = useMemo(
+      () =>
+        createEditor({
+          doc: doc,
+          schema: tagSchema,
+          plugins: [singlelinePlugin()],
+          copy: [
+            internalCopy(),
+            plainCopy<Doc>((node) => ("text" in node ? node.text : node.label)),
+          ],
+          paste: [internalPaste(), plainPaste()],
+          onChange: setDoc,
+        }),
+      [],
+    );
+
     useEffect(() => {
       if (!ref.current) return;
-      return createEditor({
-        doc: doc,
-        schema: tagSchema,
-        plugins: [singlelinePlugin()],
-        copy: [
-          internalCopy(),
-          plainCopy<Doc>((node) => ("text" in node ? node.text : node.label)),
-        ],
-        paste: [internalPaste(), plainPaste()],
-        onChange: setDoc,
-      }).input(ref.current);
+      return editor.input(ref.current);
     }, []);
 
     return (
-      <div
-        ref={ref}
-        style={{
-          backgroundColor: "white",
-          padding: 8,
-        }}
-      >
-        {doc.children[0].map((t, j) =>
-          t.type === "tag" ? (
-            <span
-              key={j}
-              contentEditable={false}
-              data-tag-value={t.value}
-              style={{
-                background: "slategray",
-                color: "white",
-                fontSize: 12,
-                padding: 4,
-                borderRadius: 8,
-              }}
-            >
-              {t.label}
-            </span>
-          ) : (
-            <span key={j}>{t.text || <br />}</span>
-          ),
-        )}
+      <div>
+        <div>
+          <button
+            onClick={() => {
+              const label = window.prompt("label");
+              if (!label) return;
+              const value = window.prompt("value");
+              if (!value) return;
+              editor.apply(InsertNode, { type: "tag", value, label });
+            }}
+          >
+            insert
+          </button>
+        </div>
+        <div
+          ref={ref}
+          style={{
+            backgroundColor: "white",
+            padding: 8,
+          }}
+        >
+          {doc.children[0].map((t, j) =>
+            t.type === "tag" ? (
+              <span
+                key={j}
+                contentEditable={false}
+                data-tag-value={t.value}
+                style={{
+                  background: "slategray",
+                  color: "white",
+                  fontSize: 12,
+                  padding: 4,
+                  borderRadius: 8,
+                }}
+              >
+                {t.label}
+              </span>
+            ) : (
+              <span key={j}>{t.text || <br />}</span>
+            ),
+          )}
+        </div>
       </div>
     );
   },
