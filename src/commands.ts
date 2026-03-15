@@ -83,18 +83,14 @@ type ToggleableKey<T> = {
 export function Format<
   T extends DocNode,
   N extends Omit<InferNode<T>, "text">,
-  K extends keyof N,
+  K extends Extract<keyof N, string>,
 >(
   this: Editor<T>,
   key: K,
   value: N[K],
   range: PositionRange = toRange(this.selection),
 ) {
-  this.apply(
-    new Transaction().attr(...range, {
-      [key]: value,
-    }),
-  );
+  this.apply(new Transaction().attr(...range, key, value));
 }
 
 /**
@@ -102,7 +98,7 @@ export function Format<
  */
 export function ToggleFormat<T extends DocNode>(
   this: Editor<T>,
-  key: ToggleableKey<Omit<InferNode<T>, "text">>,
+  key: Extract<ToggleableKey<Omit<InferNode<T>, "text">>, string>,
   range: PositionRange = toRange(this.selection),
 ) {
   const texts = sliceDoc(this.doc, ...range).flatMap((n) =>
@@ -110,9 +106,11 @@ export function ToggleFormat<T extends DocNode>(
   );
   if (texts.length) {
     this.apply(
-      new Transaction().attr(...range, {
-        [key]: texts.some((n) => !n[key as keyof typeof n]) ? true : false,
-      }),
+      new Transaction().attr(
+        ...range,
+        key,
+        texts.some((n) => !n[key as keyof typeof n]) ? true : false,
+      ),
     );
   }
 }

@@ -37,7 +37,8 @@ type SetAttrOperation = Readonly<{
   _type: typeof TYPE_SET_ATTR;
   _start: Position;
   _end: Position;
-  _attr: Record<string, unknown>;
+  _key: string;
+  _value: unknown;
 }>;
 
 const TYPE_SELECT = 5;
@@ -93,13 +94,14 @@ export class Transaction {
     return this;
   }
 
-  attr(start: Position, end: Position, attr: Record<string, unknown>): this {
+  attr(start: Position, end: Position, key: string, value: unknown): this {
     this.unsafe = true;
     this._ops.push({
       _type: TYPE_SET_ATTR,
       _start: start,
       _end: end,
-      _attr: attr,
+      _key: key,
+      _value: value,
     });
     return this;
   }
@@ -429,7 +431,7 @@ export const applyOperation = <T extends DocNode>(
       break;
     }
     case TYPE_SET_ATTR: {
-      const { _start: start, _end: end, _attr: attr } = op;
+      const { _start: start, _end: end, _key: key, _value: value } = op;
       if (
         isValidPosition(doc, start) &&
         isValidPosition(doc, end) &&
@@ -441,7 +443,7 @@ export const applyOperation = <T extends DocNode>(
           end,
           sliceDoc(doc, start, end).map((line) =>
             line.map((node) =>
-              isTextNode(node) ? { ...node, ...attr } : node,
+              isTextNode(node) ? { ...node, [key]: value } : node,
             ),
           ),
         );
