@@ -23,6 +23,10 @@ export default {
           path: "path-browserify",
         },
       },
+      legacy: {
+        // for textlint
+        inconsistentCjsInterop: true,
+      },
       define: {
         // For @textlint/kernel
         "process.env.TIMING": false,
