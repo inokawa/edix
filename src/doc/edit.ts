@@ -47,12 +47,13 @@ type SelectOperataion = Readonly<{
   _anchor: Position | undefined;
   _focus: Position | undefined;
 }>;
-type EditOperation =
+
+export type Operation =
   | DeleteOperation
   | InsertOperation
   | InsertNodeOperation
-  | SetAttrOperation;
-export type Operation = EditOperation | SelectOperataion;
+  | SetAttrOperation
+  | SelectOperataion;
 
 export class Transaction {
   private readonly _ops: Operation[];
@@ -334,44 +335,60 @@ const rebasePosition = (position: Position, op: Operation): Position => {
 
       if (comparePosition(position, start) !== -1) {
         // start <= position
-        return comparePosition(end, position) === -1
-          ? // start <= end < position
-            [
-              movePath(
-                position[0],
-                normalizePath(start[0]) - normalizePath(end[0]),
-              ),
-              position[1] +
-                (comparePath(end[0], position[0]) === 0
-                  ? start[1] - end[1]
-                  : 0),
-            ]
-          : // start <= position <= end
-            start;
+        if (comparePosition(end, position) !== -1) {
+          // start <= position <= end
+          return start;
+        }
+        // start <= end < position
+        const [path, offset] = position;
+        if (comparePath(end[0], path) === 0) {
+          // [start <= end < position]
+          return [
+            movePath(path, normalizePath(start[0]) - normalizePath(end[0])),
+            offset + start[1] - end[1],
+          ];
+        } else {
+          // [start <= end] < [position]
+          return [
+            movePath(
+              position[0],
+              normalizePath(start[0]) - normalizePath(end[0]),
+            ),
+            offset,
+          ];
+        }
       }
       break;
     }
     case TYPE_INSERT_TEXT:
     case TYPE_INSERT_NODE: {
       const pos = op._pos;
-      const lines =
-        op._type === TYPE_INSERT_TEXT
-          ? stringToFragment(op._text)
-          : op._fragment;
-
-      const lineLength = lines.length;
-      const lineDiff = lineLength - 1;
 
       if (comparePosition(position, pos) !== -1) {
         // pos <= position
-        return [
-          movePath(position[0], lineDiff),
-          position[1] +
-            (comparePath(position[0], pos[0]) === 0
-              ? getLineSize(lines[lineLength - 1]!) -
-                (lineDiff === 0 ? 0 : pos[1])
-              : 0),
-        ];
+
+        const lines =
+          op._type === TYPE_INSERT_TEXT
+            ? stringToFragment(op._text)
+            : op._fragment;
+
+        const lineLength = lines.length;
+        const linebreakCount = lineLength - 1;
+
+        const [path, offset] = position;
+
+        if (comparePath(pos[0], path) === 0) {
+          // [pos <= position]
+          return [
+            movePath(path, linebreakCount),
+            offset +
+              (getLineSize(lines[lineLength - 1]!) -
+                (linebreakCount === 0 ? 0 : pos[1])),
+          ];
+        } else {
+          // [pos] <= [position]
+          return [movePath(path, linebreakCount), offset];
+        }
       }
       break;
     }
