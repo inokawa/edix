@@ -54,9 +54,14 @@ type EditOperation =
   | SetAttrOperation;
 export type Operation = EditOperation | SelectOperataion;
 
+/**
+ * @internal
+ */
+export const isUnsafeOperation = ({ type }: Operation): boolean =>
+  type === TYPE_INSERT_NODE || type === TYPE_SET_ATTR;
+
 export class Transaction {
   private readonly _ops: Operation[];
-  unsafe: boolean = false;
 
   constructor(ops?: readonly Operation[]) {
     this._ops = ops ? ops.slice() : [];
@@ -76,7 +81,6 @@ export class Transaction {
   }
 
   insertFragment(start: Position, fragment: Fragment): this {
-    this.unsafe = true;
     this._ops.push({
       type: TYPE_INSERT_NODE,
       at: start,
@@ -95,7 +99,6 @@ export class Transaction {
   }
 
   attr(start: Position, end: Position, key: string, value: unknown): this {
-    this.unsafe = true;
     this._ops.push({
       type: TYPE_SET_ATTR,
       start: start,

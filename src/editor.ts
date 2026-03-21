@@ -19,6 +19,7 @@ import {
   Transaction,
   sliceDoc,
   type Operation,
+  isUnsafeOperation,
 } from "./doc/edit.js";
 import type { ParserConfig } from "./dom/parser.js";
 import { comparePosition, toRange } from "./doc/position.js";
@@ -309,7 +310,7 @@ export const createEditor = <
                   selection,
                   op,
                 );
-                if (!tr!.unsafe || validate(nextDoc, onError)) {
+                if (!isUnsafeOperation(op) || validate(nextDoc, onError)) {
                   doc = nextDoc;
                   selection = nextSelection;
                 }
