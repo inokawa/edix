@@ -11,41 +11,41 @@ import type {
 } from "./types.js";
 import { stringToFragment } from "./utils.js";
 
-const TYPE_DELETE = 1;
+const TYPE_DELETE = "delete";
 type DeleteOperation = Readonly<{
-  _type: typeof TYPE_DELETE;
-  _start: Position;
-  _end: Position;
+  type: typeof TYPE_DELETE;
+  start: Position;
+  end: Position;
 }>;
 
-const TYPE_INSERT_TEXT = 2;
+const TYPE_INSERT_TEXT = "insert_text";
 type InsertOperation = Readonly<{
-  _type: typeof TYPE_INSERT_TEXT;
-  _pos: Position;
-  _text: string;
+  type: typeof TYPE_INSERT_TEXT;
+  at: Position;
+  text: string;
 }>;
 
-const TYPE_INSERT_NODE = 3;
+const TYPE_INSERT_NODE = "insert_node";
 type InsertNodeOperation = Readonly<{
-  _type: typeof TYPE_INSERT_NODE;
-  _pos: Position;
-  _fragment: Fragment;
+  type: typeof TYPE_INSERT_NODE;
+  at: Position;
+  fragment: Fragment;
 }>;
 
-const TYPE_SET_ATTR = 4;
+const TYPE_SET_ATTR = "set_attr";
 type SetAttrOperation = Readonly<{
-  _type: typeof TYPE_SET_ATTR;
-  _start: Position;
-  _end: Position;
-  _key: string;
-  _value: unknown;
+  type: typeof TYPE_SET_ATTR;
+  start: Position;
+  end: Position;
+  key: string;
+  value: unknown;
 }>;
 
-const TYPE_SELECT = 5;
+const TYPE_SELECT = "select";
 type SelectOperataion = Readonly<{
-  _type: typeof TYPE_SELECT;
-  _anchor: Position | undefined;
-  _focus: Position | undefined;
+  type: typeof TYPE_SELECT;
+  anchor: Position | undefined;
+  focus: Position | undefined;
 }>;
 type EditOperation =
   | DeleteOperation
@@ -68,9 +68,9 @@ export class Transaction {
 
   insertText(start: Position, text: string): this {
     this._ops.push({
-      _type: TYPE_INSERT_TEXT,
-      _pos: start,
-      _text: text,
+      type: TYPE_INSERT_TEXT,
+      at: start,
+      text: text,
     });
     return this;
   }
@@ -78,18 +78,18 @@ export class Transaction {
   insertFragment(start: Position, fragment: Fragment): this {
     this.unsafe = true;
     this._ops.push({
-      _type: TYPE_INSERT_NODE,
-      _pos: start,
-      _fragment: fragment,
+      type: TYPE_INSERT_NODE,
+      at: start,
+      fragment: fragment,
     });
     return this;
   }
 
   delete(start: Position, end: Position): this {
     this._ops.push({
-      _type: TYPE_DELETE,
-      _start: start,
-      _end: end,
+      type: TYPE_DELETE,
+      start: start,
+      end: end,
     });
     return this;
   }
@@ -97,20 +97,20 @@ export class Transaction {
   attr(start: Position, end: Position, key: string, value: unknown): this {
     this.unsafe = true;
     this._ops.push({
-      _type: TYPE_SET_ATTR,
-      _start: start,
-      _end: end,
-      _key: key,
-      _value: value,
+      type: TYPE_SET_ATTR,
+      start: start,
+      end: end,
+      key: key,
+      value: value,
     });
     return this;
   }
 
   select(anchor?: Position, focus?: Position): this {
     this._ops.push({
-      _type: TYPE_SELECT,
-      _anchor: anchor,
-      _focus: focus,
+      type: TYPE_SELECT,
+      anchor: anchor,
+      focus: focus,
     });
     return this;
   }
@@ -328,9 +328,9 @@ const isValidPosition = (doc: DocNode, [path, offset]: Position): boolean => {
 };
 
 const rebasePosition = (position: Position, op: Operation): Position => {
-  switch (op._type) {
+  switch (op.type) {
     case TYPE_DELETE: {
-      const { _start: start, _end: end } = op;
+      const { start, end } = op;
 
       if (comparePosition(position, start) !== -1) {
         // start <= position
@@ -353,23 +353,21 @@ const rebasePosition = (position: Position, op: Operation): Position => {
     }
     case TYPE_INSERT_TEXT:
     case TYPE_INSERT_NODE: {
-      const pos = op._pos;
+      const at = op.at;
       const lines =
-        op._type === TYPE_INSERT_TEXT
-          ? stringToFragment(op._text)
-          : op._fragment;
+        op.type === TYPE_INSERT_TEXT ? stringToFragment(op.text) : op.fragment;
 
       const lineLength = lines.length;
       const lineDiff = lineLength - 1;
 
-      if (comparePosition(position, pos) !== -1) {
+      if (comparePosition(position, at) !== -1) {
         // pos <= position
         return [
           movePath(position[0], lineDiff),
           position[1] +
-            (comparePath(position[0], pos[0]) === 0
+            (comparePath(position[0], at[0]) === 0
               ? getLineSize(lines[lineLength - 1]!) -
-                (lineDiff === 0 ? 0 : pos[1])
+                (lineDiff === 0 ? 0 : at[1])
               : 0),
         ];
       }
@@ -401,9 +399,9 @@ export const applyOperation = <T extends DocNode>(
   selection: SelectionSnapshot,
   op: Operation,
 ): [T, SelectionSnapshot] => {
-  switch (op._type) {
+  switch (op.type) {
     case TYPE_DELETE: {
-      const { _start: start, _end: end } = op;
+      const { start, end } = op;
       if (
         isValidPosition(doc, start) &&
         isValidPosition(doc, end) &&
@@ -415,23 +413,23 @@ export const applyOperation = <T extends DocNode>(
       break;
     }
     case TYPE_INSERT_TEXT: {
-      const { _pos: pos, _text: text } = op;
-      if (isValidPosition(doc, pos) && text) {
-        doc = replaceRange(doc, pos, pos, text);
+      const { at, text } = op;
+      if (isValidPosition(doc, at) && text) {
+        doc = replaceRange(doc, at, at, text);
         selection = rebaseSelection(selection, op);
       }
       break;
     }
     case TYPE_INSERT_NODE: {
-      const { _pos: pos, _fragment: fragment } = op;
-      if (isValidPosition(doc, pos) && fragment.length) {
-        doc = replaceRange(doc, pos, pos, fragment);
+      const { at, fragment } = op;
+      if (isValidPosition(doc, at) && fragment.length) {
+        doc = replaceRange(doc, at, at, fragment);
         selection = rebaseSelection(selection, op);
       }
       break;
     }
     case TYPE_SET_ATTR: {
-      const { _start: start, _end: end, _key: key, _value: value } = op;
+      const { start, end, key, value } = op;
       if (
         isValidPosition(doc, start) &&
         isValidPosition(doc, end) &&
@@ -451,7 +449,7 @@ export const applyOperation = <T extends DocNode>(
       break;
     }
     case TYPE_SELECT: {
-      const { _anchor: anchor, _focus: focus } = op;
+      const { anchor: anchor, focus: focus } = op;
       if (
         (!anchor || isValidPosition(doc, anchor)) &&
         (!focus || isValidPosition(doc, focus))

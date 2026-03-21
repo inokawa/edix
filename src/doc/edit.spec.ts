@@ -1,20 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { Transaction, applyOperation } from "./edit.js";
-import { type DocNode, type SelectionSnapshot } from "./types.js";
+import { applyOperation } from "./edit.js";
+import { type SelectionSnapshot } from "./types.js";
 import { is } from "../utils.js";
 
 type Doc = { children: { id: number; text: string }[][] };
-
-const applyTransaction = <T extends DocNode>(
-  doc: T,
-  selection: SelectionSnapshot,
-  tr: Transaction,
-): [T, SelectionSnapshot] => {
-  for (const op of tr.ops) {
-    [doc, selection] = applyOperation(doc, selection, op);
-  }
-  return [doc, selection];
-};
 
 const splitAt = (targetStr: string, index: number): [string, string] => {
   return [targetStr.slice(0, index), targetStr.slice(index)];
@@ -69,7 +58,9 @@ it("discard if error", () => {
     [[1], 2],
   ];
 
-  expect(() => applyOperation(doc, sel, { _type: 3 } as any)).toThrowError();
+  expect(() =>
+    applyOperation(doc, sel, { type: "insert_node" } as any),
+  ).toThrow();
 });
 
 describe("insert text", () => {
@@ -84,11 +75,11 @@ describe("insert text", () => {
         [[1], 2],
         [[1], 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().insertText([[-1], 0], "test"),
-      )!;
+      const res = applyOperation(doc, sel, {
+        type: "insert_text",
+        at: [[-1], 0],
+        text: "test",
+      });
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -104,11 +95,11 @@ describe("insert text", () => {
         [[1], 2],
         [[1], 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().insertText([[100], 0], "test"),
-      )!;
+      const res = applyOperation(doc, sel, {
+        type: "insert_text",
+        at: [[100], 0],
+        text: "test",
+      });
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -124,11 +115,11 @@ describe("insert text", () => {
         [[1], 2],
         [[1], 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().insertText([[0], -1], "test"),
-      )!;
+      const res = applyOperation(doc, sel, {
+        type: "insert_text",
+        at: [[0], -1],
+        text: "test",
+      });
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -144,11 +135,11 @@ describe("insert text", () => {
         [[1], 2],
         [[1], 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().insertText([[0], 100], "test"),
-      )!;
+      const res = applyOperation(doc, sel, {
+        type: "insert_text",
+        at: [[0], 100],
+        text: "test",
+      });
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -164,11 +155,11 @@ describe("insert text", () => {
         [[1], 2],
         [[1], 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().insertText([[0], 1], ""),
-      )!;
+      const res = applyOperation(doc, sel, {
+        type: "insert_text",
+        at: [[0], 1],
+        text: "",
+      });
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -184,11 +175,11 @@ describe("insert text", () => {
         [[0], 3],
       ];
       const text = "ABC";
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().insertText([[0], 2], text),
-      )!;
+      const res = applyOperation(doc, sel, {
+        type: "insert_text",
+        at: [[0], 2],
+        text: text,
+      });
 
       expect(res[0]).toEqual({
         children: [[{ id: 1, text: insertAt(docText, 2, text) }]],
@@ -203,11 +194,11 @@ describe("insert text", () => {
         [[0], 1],
         [[0], 3],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().insertText([[0], 2], "\n"),
-      )!;
+      const res = applyOperation(doc, sel, {
+        type: "insert_text",
+        at: [[0], 2],
+        text: "\n",
+      });
 
       const [before, after] = splitAt(docText, 2);
       expect(res[0]).toEqual({
@@ -229,11 +220,11 @@ describe("insert text", () => {
       ];
       const text = "ABC";
       const text2 = "DEFG";
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().insertText([[0], 2], text + "\n" + text2),
-      )!;
+      const res = applyOperation(doc, sel, {
+        type: "insert_text",
+        at: [[0], 2],
+        text: text + "\n" + text2,
+      });
 
       const [before, after] = splitAt(docText, 2);
       expect(res[0]).toEqual({
@@ -261,11 +252,11 @@ describe("insert text", () => {
       [[1], 2],
     ];
     const text = "ABC";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertText([[0], 1], text),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_text",
+      at: [[0], 1],
+      text: text,
+    });
 
     expect(res[0]).toEqual({
       children: [
@@ -286,11 +277,11 @@ describe("insert text", () => {
       [[1], 2],
       [[1], 2],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertText([[0], 1], "\n"),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_text",
+      at: [[0], 1],
+      text: "\n",
+    });
 
     const [before, after] = splitAt(docText, 1);
     expect(res[0]).toEqual({
@@ -315,11 +306,11 @@ describe("insert text", () => {
     ];
     const text = "ABC";
     const text2 = "DEFG";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertText([[0], 1], text + "\n" + text2),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_text",
+      at: [[0], 1],
+      text: text + "\n" + text2,
+    });
 
     const [before, after] = splitAt(docText, 1);
     expect(res[0]).toEqual({
@@ -340,11 +331,11 @@ describe("insert text", () => {
       [[0], 2],
     ];
     const text = "ABC";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertText([[0], 1], text),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_text",
+      at: [[0], 1],
+      text: text,
+    });
 
     expect(res[0]).toEqual({
       children: [[{ id: 1, text: insertAt(docText, 1, text) }]],
@@ -359,11 +350,11 @@ describe("insert text", () => {
       [[0], 2],
       [[0], 2],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertText([[0], 1], "\n"),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_text",
+      at: [[0], 1],
+      text: "\n",
+    });
 
     const [before, after] = splitAt(docText, 1);
     expect(res[0]).toEqual({
@@ -381,11 +372,11 @@ describe("insert text", () => {
     ];
     const text = "ABC";
     const text2 = "DEFG";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertText([[0], 1], text + "\n" + text2),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_text",
+      at: [[0], 1],
+      text: text + "\n" + text2,
+    });
 
     const [before, after] = splitAt(docText, 1);
     expect(res[0]).toEqual({
@@ -407,11 +398,11 @@ describe("insert text", () => {
       [[0], 2],
     ];
     const text = "ABC";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertText([[0], 2], text),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_text",
+      at: [[0], 2],
+      text: text,
+    });
 
     expect(res[0]).toEqual({
       children: [[{ id: 1, text: insertAt(docText, 2, text) }]],
@@ -426,11 +417,11 @@ describe("insert text", () => {
       [[0], 2],
       [[0], 2],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertText([[0], 2], "\n"),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_text",
+      at: [[0], 2],
+      text: "\n",
+    });
 
     const [before, after] = splitAt(docText, 2);
     expect(res[0]).toEqual({
@@ -448,11 +439,11 @@ describe("insert text", () => {
     ];
     const text = "ABC";
     const text2 = "DEFG";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertText([[0], 2], text + "\n" + text2),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_text",
+      at: [[0], 2],
+      text: text + "\n" + text2,
+    });
 
     const [before, after] = splitAt(docText, 2);
     expect(res[0]).toEqual({
@@ -474,11 +465,11 @@ describe("insert text", () => {
       [[0], 2],
     ];
     const text = "ABC";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertText([[0], 3], text),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_text",
+      at: [[0], 3],
+      text: text,
+    });
 
     expect(res[0]).toEqual({
       children: [[{ id: 1, text: insertAt(docText, 3, text) }]],
@@ -493,11 +484,11 @@ describe("insert text", () => {
       [[0], 2],
       [[0], 2],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertText([[0], 3], "\n"),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_text",
+      at: [[0], 3],
+      text: "\n",
+    });
 
     const [before, after] = splitAt(docText, 3);
     expect(res[0]).toEqual({
@@ -515,11 +506,11 @@ describe("insert text", () => {
     ];
     const text = "ABC";
     const text2 = "DEFG";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertText([[0], 3], text + "\n" + text2),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_text",
+      at: [[0], 3],
+      text: text + "\n" + text2,
+    });
 
     const [before, after] = splitAt(docText, 3);
     expect(res[0]).toEqual({
@@ -542,11 +533,11 @@ describe("insert text", () => {
       [[0], 2],
     ];
     const text = "ABC";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertText([[1], 1], text),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_text",
+      at: [[1], 1],
+      text: text,
+    });
 
     expect(res[0]).toEqual({
       children: [
@@ -567,11 +558,11 @@ describe("insert text", () => {
       [[0], 2],
       [[0], 2],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertText([[1], 1], "\n"),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_text",
+      at: [[1], 1],
+      text: "\n",
+    });
 
     const [before, after] = splitAt(docText2, 1);
     expect(res[0]).toEqual({
@@ -596,11 +587,11 @@ describe("insert text", () => {
     ];
     const text = "ABC";
     const text2 = "DEFG";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertText([[1], 1], text + "\n" + text2),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_text",
+      at: [[1], 1],
+      text: text + "\n" + text2,
+    });
 
     const [before, after] = splitAt(docText2, 1);
     expect(res[0]).toEqual({
@@ -629,11 +620,11 @@ describe("insert text", () => {
       [[1], 2],
     ];
     const text = "ABC";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertText([[1], 1], text),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_text",
+      at: [[1], 1],
+      text: text,
+    });
 
     expect(res[0]).toEqual({
       children: [
@@ -661,11 +652,11 @@ describe("insert text", () => {
       [[1], 2],
     ];
     const text = "ABC";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertText([[1], 3], text),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_text",
+      at: [[1], 3],
+      text: text,
+    });
 
     expect(res[0]).toEqual({
       children: [
@@ -687,11 +678,11 @@ describe("insert text", () => {
       [[0], 2],
       [[0], 2],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertText([[1], 0], "\n"),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_text",
+      at: [[1], 0],
+      text: "\n",
+    });
     expect(res[0]).toEqual({
       children: [
         [{ id: 1, text: docText }],
@@ -712,11 +703,11 @@ describe("insert text", () => {
       [[0], 2],
       [[0], 2],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertText([[1], 1], "\n"),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_text",
+      at: [[1], 1],
+      text: "\n",
+    });
 
     const [before, after] = splitAt(docText2, 1);
     expect(res[0]).toEqual({
@@ -739,11 +730,11 @@ describe("insert text", () => {
       [[0], 2],
       [[0], 2],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertText([[0], docText.length], "\n"),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_text",
+      at: [[0], docText.length],
+      text: "\n",
+    });
     expect(res[0]).toEqual({
       children: [
         [{ id: 1, text: docText }],
@@ -770,11 +761,11 @@ describe("insert text", () => {
       [[0], 2],
     ];
     const text = "ABC";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertText([[0], docText.length], text),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_text",
+      at: [[0], docText.length],
+      text: text,
+    });
 
     expect(res[0]).toEqual({
       children: [
@@ -804,11 +795,11 @@ describe("insert text", () => {
     ];
     const text = "ABC";
     const text2 = "DEFG";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertText([[0], docText.length], text + "\n" + text2),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_text",
+      at: [[0], docText.length],
+      text: text + "\n" + text2,
+    });
 
     expect(res[0]).toEqual({
       children: [
@@ -837,11 +828,11 @@ describe("insert text", () => {
       [[0], 2],
       [[0], 2],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertText([[0], docText.length], "\n"),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_text",
+      at: [[0], docText.length],
+      text: "\n",
+    });
 
     expect(res[0]).toEqual({
       children: [[{ id: 1, text: docText }], [{ id: 2, text: docText2 }]],
@@ -862,11 +853,11 @@ describe("insert node", () => {
         [[1], 2],
         [[1], 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().insertFragment([[-1], 0], [[{ text: "test" }]]),
-      )!;
+      const res = applyOperation(doc, sel, {
+        type: "insert_node",
+        at: [[-1], 0],
+        fragment: [[{ text: "test" }]],
+      });
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -882,11 +873,11 @@ describe("insert node", () => {
         [[1], 2],
         [[1], 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().insertFragment([[100], 0], [[{ text: "test" }]]),
-      )!;
+      const res = applyOperation(doc, sel, {
+        type: "insert_node",
+        at: [[100], 0],
+        fragment: [[{ text: "test" }]],
+      });
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -902,11 +893,11 @@ describe("insert node", () => {
         [[1], 2],
         [[1], 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().insertFragment([[0], -1], [[{ text: "test" }]]),
-      )!;
+      const res = applyOperation(doc, sel, {
+        type: "insert_node",
+        at: [[0], -1],
+        fragment: [[{ text: "test" }]],
+      });
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -922,11 +913,11 @@ describe("insert node", () => {
         [[1], 2],
         [[1], 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().insertFragment([[0], 100], [[{ text: "test" }]]),
-      )!;
+      const res = applyOperation(doc, sel, {
+        type: "insert_node",
+        at: [[0], 100],
+        fragment: [[{ text: "test" }]],
+      });
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -942,11 +933,11 @@ describe("insert node", () => {
         [[1], 2],
         [[1], 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().insertFragment([[0], 1], []),
-      )!;
+      const res = applyOperation(doc, sel, {
+        type: "insert_node",
+        at: [[0], 1],
+        fragment: [],
+      });
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -964,11 +955,11 @@ describe("insert node", () => {
       [[1], 2],
     ];
     const text = "ABC";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertFragment([[0], 1], [[{ text }]]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_node",
+      at: [[0], 1],
+      fragment: [[{ text }]],
+    });
 
     const [before, after] = splitAt(docText, 1);
     expect(res[0]).toEqual({
@@ -992,14 +983,11 @@ describe("insert node", () => {
     ];
     const text = "ABC";
     const text2 = "DEFG";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertFragment(
-        [[0], 1],
-        [[{ text: text }], [{ text: text2 }]],
-      ),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_node",
+      at: [[0], 1],
+      fragment: [[{ text: text }], [{ text: text2 }]],
+    });
 
     const [before, after] = splitAt(docText, 1);
     expect(res[0]).toEqual({
@@ -1022,11 +1010,11 @@ describe("insert node", () => {
       [[1], 2],
       [[1], 2],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertFragment([[0], 1], [[{ foo: "bar" }]]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_node",
+      at: [[0], 1],
+      fragment: [[{ foo: "bar" }]],
+    });
 
     const [before, after] = splitAt(docText, 1);
     expect(res[0]).toEqual({
@@ -1049,11 +1037,11 @@ describe("insert node", () => {
       [[1], 2],
     ];
     const text = "ABC";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertFragment([[0], 1], [[{ text, foo: "bar" }]]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_node",
+      at: [[0], 1],
+      fragment: [[{ text, foo: "bar" }]],
+    });
 
     const [before, after] = splitAt(docText, 1);
     expect(res[0]).toEqual({
@@ -1077,11 +1065,11 @@ describe("insert node", () => {
       [[0], 2],
     ];
     const text = "ABC";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertFragment([[0], 1], [[{ text }]]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_node",
+      at: [[0], 1],
+      fragment: [[{ text }]],
+    });
 
     const [before, after] = splitAt(docText, 1);
     expect(res[0]).toEqual({
@@ -1099,14 +1087,11 @@ describe("insert node", () => {
     ];
     const text = "ABC";
     const text2 = "DEFG";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertFragment(
-        [[0], 1],
-        [[{ text: text }], [{ text: text2 }]],
-      ),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_node",
+      at: [[0], 1],
+      fragment: [[{ text: text }], [{ text: text2 }]],
+    });
 
     const [before, after] = splitAt(docText, 1);
     expect(res[0]).toEqual({
@@ -1128,11 +1113,11 @@ describe("insert node", () => {
       [[0], 2],
     ];
     const text = "ABC";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertFragment([[0], 1], [[{ text, foo: "bar" }]]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_node",
+      at: [[0], 1],
+      fragment: [[{ text, foo: "bar" }]],
+    });
 
     const [before, after] = splitAt(docText, 1);
     expect(res[0]).toEqual({
@@ -1154,11 +1139,11 @@ describe("insert node", () => {
       [[0], 2],
       [[0], 2],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertFragment([[0], 1], [[{ foo: "bar" }]]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_node",
+      at: [[0], 1],
+      fragment: [[{ foo: "bar" }]],
+    });
 
     const [before, after] = splitAt(docText, 1);
     expect(res[0]).toEqual({
@@ -1177,11 +1162,11 @@ describe("insert node", () => {
       [[0], 2],
     ];
     const text = "ABC";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertFragment([[0], 2], [[{ text }]]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_node",
+      at: [[0], 2],
+      fragment: [[{ text }]],
+    });
 
     const [before, after] = splitAt(docText, 2);
     expect(res[0]).toEqual({
@@ -1199,14 +1184,11 @@ describe("insert node", () => {
     ];
     const text = "ABC";
     const text2 = "DEFG";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertFragment(
-        [[0], 2],
-        [[{ text: text }], [{ text: text2 }]],
-      ),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_node",
+      at: [[0], 2],
+      fragment: [[{ text: text }], [{ text: text2 }]],
+    });
 
     const [before, after] = splitAt(docText, 2);
     expect(res[0]).toEqual({
@@ -1228,11 +1210,11 @@ describe("insert node", () => {
       [[0], 2],
     ];
     const text = "ABC";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertFragment([[0], 2], [[{ text, foo: "bar" }]]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_node",
+      at: [[0], 2],
+      fragment: [[{ text, foo: "bar" }]],
+    });
 
     const [before, after] = splitAt(docText, 2);
     expect(res[0]).toEqual({
@@ -1254,11 +1236,11 @@ describe("insert node", () => {
       [[0], 2],
       [[0], 2],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertFragment([[0], 2], [[{ foo: "bar" }]]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_node",
+      at: [[0], 2],
+      fragment: [[{ foo: "bar" }]],
+    });
 
     const [before, after] = splitAt(docText, 2);
     expect(res[0]).toEqual({
@@ -1277,11 +1259,11 @@ describe("insert node", () => {
       [[0], 3],
     ];
     const text = "ABC";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertFragment([[0], 2], [[{ text }]]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_node",
+      at: [[0], 2],
+      fragment: [[{ text }]],
+    });
 
     const [before, after] = splitAt(docText, 2);
     expect(res[0]).toEqual({
@@ -1299,14 +1281,11 @@ describe("insert node", () => {
     ];
     const text = "ABC";
     const text2 = "DEFG";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertFragment(
-        [[0], 2],
-        [[{ text: text }], [{ text: text2 }]],
-      ),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_node",
+      at: [[0], 2],
+      fragment: [[{ text: text }], [{ text: text2 }]],
+    });
 
     const [before, after] = splitAt(docText, 2);
     expect(res[0]).toEqual({
@@ -1330,11 +1309,11 @@ describe("insert node", () => {
       [[0], 3],
     ];
     const text = "ABC";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertFragment([[0], 2], [[{ text, foo: "bar" }]]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_node",
+      at: [[0], 2],
+      fragment: [[{ text, foo: "bar" }]],
+    });
 
     const [before, after] = splitAt(docText, 2);
     expect(res[0]).toEqual({
@@ -1356,11 +1335,11 @@ describe("insert node", () => {
       [[0], 1],
       [[0], 3],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertFragment([[0], 2], [[{ foo: "bar" }]]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_node",
+      at: [[0], 2],
+      fragment: [[{ foo: "bar" }]],
+    });
 
     const [before, after] = splitAt(docText, 2);
     expect(res[0]).toEqual({
@@ -1379,11 +1358,11 @@ describe("insert node", () => {
       [[0], 2],
     ];
     const text = "ABC";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertFragment([[0], 3], [[{ text }]]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_node",
+      at: [[0], 3],
+      fragment: [[{ text }]],
+    });
 
     const [before, after] = splitAt(docText, 3);
     expect(res[0]).toEqual({
@@ -1401,14 +1380,11 @@ describe("insert node", () => {
     ];
     const text = "ABC";
     const text2 = "DEFG";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertFragment(
-        [[0], 3],
-        [[{ text: text }], [{ text: text2 }]],
-      ),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_node",
+      at: [[0], 3],
+      fragment: [[{ text: text }], [{ text: text2 }]],
+    });
 
     const [before, after] = splitAt(docText, 3);
     expect(res[0]).toEqual({
@@ -1428,11 +1404,11 @@ describe("insert node", () => {
       [[0], 2],
     ];
     const text = "ABC";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertFragment([[0], 3], [[{ text, foo: "bar" }]]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_node",
+      at: [[0], 3],
+      fragment: [[{ text, foo: "bar" }]],
+    });
 
     const [before, after] = splitAt(docText, 3);
     expect(res[0]).toEqual({
@@ -1454,11 +1430,11 @@ describe("insert node", () => {
       [[0], 2],
       [[0], 2],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertFragment([[0], 3], [[{ foo: "bar" }]]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_node",
+      at: [[0], 3],
+      fragment: [[{ foo: "bar" }]],
+    });
 
     const [before, after] = splitAt(docText, 3);
     expect(res[0]).toEqual({
@@ -1480,11 +1456,11 @@ describe("insert node", () => {
       [[0], 2],
     ];
     const text = "ABC";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertFragment([[1], 1], [[{ text }]]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_node",
+      at: [[1], 1],
+      fragment: [[{ text }]],
+    });
 
     const [before, after] = splitAt(docText2, 1);
     expect(res[0]).toEqual({
@@ -1508,14 +1484,11 @@ describe("insert node", () => {
     ];
     const text = "ABC";
     const text2 = "DEFG";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertFragment(
-        [[1], 1],
-        [[{ text: text }], [{ text: text2 }]],
-      ),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_node",
+      at: [[1], 1],
+      fragment: [[{ text: text }], [{ text: text2 }]],
+    });
 
     const [before, after] = splitAt(docText2, 1);
     expect(res[0]).toEqual({
@@ -1539,11 +1512,11 @@ describe("insert node", () => {
       [[0], 2],
     ];
     const text = "ABC";
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertFragment([[1], 1], [[{ text, foo: "bar" }]]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_node",
+      at: [[1], 1],
+      fragment: [[{ text, foo: "bar" }]],
+    });
 
     const [before, after] = splitAt(docText2, 1);
     expect(res[0]).toEqual({
@@ -1569,11 +1542,11 @@ describe("insert node", () => {
       [[0], 2],
       [[0], 2],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().insertFragment([[1], 1], [[{ foo: "bar" }]]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "insert_node",
+      at: [[1], 1],
+      fragment: [[{ foo: "bar" }]],
+    });
 
     const [before, after] = splitAt(docText2, 1);
     expect(res[0]).toEqual({
@@ -1595,11 +1568,11 @@ describe("delete", () => {
         [[0], 2],
         [[0], 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().delete([[-1], 0], [[0], 1]),
-      )!;
+      const res = applyOperation(doc, sel, {
+        type: "delete",
+        start: [[-1], 0],
+        end: [[0], 1],
+      });
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -1612,11 +1585,11 @@ describe("delete", () => {
         [[0], 2],
         [[0], 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().delete([[0], 0], [[100], 1]),
-      )!;
+      const res = applyOperation(doc, sel, {
+        type: "delete",
+        start: [[0], 0],
+        end: [[100], 1],
+      });
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -1629,11 +1602,11 @@ describe("delete", () => {
         [[0], 2],
         [[0], 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().delete([[0], -1], [[0], 1]),
-      )!;
+      const res = applyOperation(doc, sel, {
+        type: "delete",
+        start: [[0], -1],
+        end: [[0], 1],
+      });
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -1646,11 +1619,11 @@ describe("delete", () => {
         [[0], 2],
         [[0], 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().delete([[0], 0], [[0], 100]),
-      )!;
+      const res = applyOperation(doc, sel, {
+        type: "delete",
+        start: [[0], 0],
+        end: [[0], 100],
+      });
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -1663,11 +1636,11 @@ describe("delete", () => {
         [[0], 2],
         [[0], 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().delete([[0], 1], [[0], 1]),
-      )!;
+      const res = applyOperation(doc, sel, {
+        type: "delete",
+        start: [[0], 1],
+        end: [[0], 1],
+      });
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -1680,11 +1653,11 @@ describe("delete", () => {
         [[0], 2],
         [[0], 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().delete([[0], 2], [[0], 1]),
-      )!;
+      const res = applyOperation(doc, sel, {
+        type: "delete",
+        start: [[0], 2],
+        end: [[0], 1],
+      });
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -1699,11 +1672,11 @@ describe("delete", () => {
         [[0], 2],
         [[0], 4],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().delete([[0], 1], [[0], 5]),
-      )!;
+      const res = applyOperation(doc, sel, {
+        type: "delete",
+        start: [[0], 1],
+        end: [[0], 5],
+      });
 
       expect(res[0]).toEqual({
         children: [[{ id: 1, text: deleteAt(docText, 1, 4) }]],
@@ -1721,11 +1694,11 @@ describe("delete", () => {
         [[0], 2],
         [[0], 4],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().delete([[0], 1], [[0], 3]),
-      )!;
+      const res = applyOperation(doc, sel, {
+        type: "delete",
+        start: [[0], 1],
+        end: [[0], 3],
+      });
 
       expect(res[0]).toEqual({
         children: [[{ id: 1, text: deleteAt(docText, 1, 2) }]],
@@ -1740,11 +1713,11 @@ describe("delete", () => {
         [[0], 2],
         [[0], 4],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().delete([[0], 3], [[0], 5]),
-      )!;
+      const res = applyOperation(doc, sel, {
+        type: "delete",
+        start: [[0], 3],
+        end: [[0], 5],
+      });
 
       expect(res[0]).toEqual({
         children: [[{ id: 1, text: deleteAt(docText, 3, 2) }]],
@@ -1762,11 +1735,11 @@ describe("delete", () => {
         [[0], 2],
         [[1], 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().delete([[0], 3], [[1], 1]),
-      )!;
+      const res = applyOperation(doc, sel, {
+        type: "delete",
+        start: [[0], 3],
+        end: [[1], 1],
+      });
 
       expect(res[0]).toEqual({
         children: [
@@ -1790,11 +1763,11 @@ describe("delete", () => {
       [[1], 2],
       [[1], 2],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([[0], 1], [[0], 2]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "delete",
+      start: [[0], 1],
+      end: [[0], 2],
+    });
 
     expect(res[0]).toEqual({
       children: [
@@ -1816,11 +1789,11 @@ describe("delete", () => {
       [[1], 3],
     ];
 
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([[0], 2], [[1], 1]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "delete",
+      start: [[0], 2],
+      end: [[1], 1],
+    });
 
     expect(res[0]).toEqual({
       children: [
@@ -1855,11 +1828,11 @@ describe("delete", () => {
       [[2], 3],
       [[2], 3],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([[0], 0], [[1], 2]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "delete",
+      start: [[0], 0],
+      end: [[1], 2],
+    });
 
     expect(res[0]).toEqual({
       children: [
@@ -1877,11 +1850,11 @@ describe("delete", () => {
       [[0], 3],
       [[0], 3],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([[0], 1], [[0], 2]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "delete",
+      start: [[0], 1],
+      end: [[0], 2],
+    });
 
     expect(res[0]).toEqual({
       children: [[{ id: 1, text: deleteAt(docText, 1, 1) }]],
@@ -1896,11 +1869,11 @@ describe("delete", () => {
       [[0], 3],
       [[0], 3],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([[0], 2], [[0], 3]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "delete",
+      start: [[0], 2],
+      end: [[0], 3],
+    });
 
     expect(res[0]).toEqual({
       children: [[{ id: 1, text: deleteAt(docText, 2, 1) }]],
@@ -1915,11 +1888,11 @@ describe("delete", () => {
       [[0], 3],
       [[0], 3],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([[0], 2], [[0], 4]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "delete",
+      start: [[0], 2],
+      end: [[0], 4],
+    });
 
     expect(res[0]).toEqual({
       children: [[{ id: 1, text: deleteAt(docText, 2, 2) }]],
@@ -1934,11 +1907,11 @@ describe("delete", () => {
       [[0], 3],
       [[0], 3],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([[0], 3], [[0], 4]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "delete",
+      start: [[0], 3],
+      end: [[0], 4],
+    });
 
     expect(res[0]).toEqual({
       children: [[{ id: 1, text: deleteAt(docText, 3, 1) }]],
@@ -1953,11 +1926,11 @@ describe("delete", () => {
       [[0], 3],
       [[0], 3],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([[0], 4], [[0], 5]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "delete",
+      start: [[0], 4],
+      end: [[0], 5],
+    });
 
     expect(res[0]).toEqual({
       children: [[{ id: 1, text: deleteAt(docText, 4, 1) }]],
@@ -1975,11 +1948,11 @@ describe("delete", () => {
       [[0], 2],
       [[0], 2],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([[1], 1], [[1], 2]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "delete",
+      start: [[1], 1],
+      end: [[1], 2],
+    });
 
     expect(res[0]).toEqual({
       children: [
@@ -2005,11 +1978,11 @@ describe("delete", () => {
       [[0], 2],
       [[0], 2],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([[1], 1], [[2], 1]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "delete",
+      start: [[1], 1],
+      end: [[2], 1],
+    });
 
     expect(res[0]).toEqual({
       children: [
@@ -2042,11 +2015,11 @@ describe("delete", () => {
       [[0], 2],
       [[0], 2],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([[1], 0], [[2], 1]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "delete",
+      start: [[1], 0],
+      end: [[2], 1],
+    });
 
     expect(res[0]).toEqual({
       children: [
@@ -2077,11 +2050,11 @@ describe("delete", () => {
       [[1], 3],
       [[1], 3],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([[1], 1], [[1], 2]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "delete",
+      start: [[1], 1],
+      end: [[1], 2],
+    });
 
     expect(res[0]).toEqual({
       children: [
@@ -2108,11 +2081,11 @@ describe("delete", () => {
       [[1], 2],
       [[1], 2],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([[1], 3], [[1], 4]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "delete",
+      start: [[1], 3],
+      end: [[1], 4],
+    });
 
     expect(res[0]).toEqual({
       children: [
@@ -2135,11 +2108,11 @@ describe("delete", () => {
       [[0], 2],
     ];
 
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([[0], docText.length], [[1], 0]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "delete",
+      start: [[0], docText.length],
+      end: [[1], 0],
+    });
 
     expect(res[0]).toEqual({
       children: [
@@ -2169,11 +2142,11 @@ describe("delete", () => {
       [[0], 2],
     ];
 
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([[0], docText.length], [[1], 0]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "delete",
+      start: [[0], docText.length],
+      end: [[1], 0],
+    });
 
     expect(res[0]).toEqual({
       children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
@@ -2196,11 +2169,11 @@ describe("delete", () => {
       [[0], 2],
     ];
 
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([[1], 0], [[2], 0]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "delete",
+      start: [[1], 0],
+      end: [[2], 0],
+    });
 
     expect(res[0]).toEqual({
       children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
@@ -2224,14 +2197,11 @@ describe("delete", () => {
       [[0], 2],
     ];
 
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete(
-        [[0], docText.length],
-        [[0], docText.length + 1],
-      ),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "delete",
+      start: [[0], docText.length],
+      end: [[0], docText.length + 1],
+    });
 
     expect(res[0]).toEqual({
       children: [
@@ -2260,14 +2230,11 @@ describe("delete", () => {
       [[0], 2],
     ];
 
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete(
-        [[0], docText.length - 1],
-        [[0], docText.length],
-      ),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "delete",
+      start: [[0], docText.length - 1],
+      end: [[0], docText.length],
+    });
 
     expect(res[0]).toEqual({
       children: [
@@ -2291,11 +2258,11 @@ describe("delete", () => {
       [[0], 2],
     ];
 
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().delete([[0], docText.length], [[1], 0]),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "delete",
+      start: [[0], docText.length],
+      end: [[1], 0],
+    });
 
     expect(res[0]).toEqual({
       children: [
@@ -2324,11 +2291,13 @@ describe("update attr", () => {
         [[0], 2],
         [[0], 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().attr([[-1], 0], [[0], 1], "foo", "bar"),
-      )!;
+      const res = applyOperation(doc, sel, {
+        type: "set_attr",
+        start: [[-1], 0],
+        end: [[0], 1],
+        key: "foo",
+        value: "bar",
+      });
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -2341,11 +2310,13 @@ describe("update attr", () => {
         [[0], 2],
         [[0], 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().attr([[0], 0], [[100], 1], "foo", "bar"),
-      )!;
+      const res = applyOperation(doc, sel, {
+        type: "set_attr",
+        start: [[0], 0],
+        end: [[100], 1],
+        key: "foo",
+        value: "bar",
+      });
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -2358,11 +2329,13 @@ describe("update attr", () => {
         [[0], 2],
         [[0], 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().attr([[0], -1], [[0], 1], "foo", "bar"),
-      )!;
+      const res = applyOperation(doc, sel, {
+        type: "set_attr",
+        start: [[0], -1],
+        end: [[0], 1],
+        key: "foo",
+        value: "bar",
+      });
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -2375,11 +2348,13 @@ describe("update attr", () => {
         [[0], 2],
         [[0], 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().attr([[0], 0], [[0], 100], "foo", "bar"),
-      )!;
+      const res = applyOperation(doc, sel, {
+        type: "set_attr",
+        start: [[0], 0],
+        end: [[0], 100],
+        key: "foo",
+        value: "bar",
+      });
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -2392,11 +2367,13 @@ describe("update attr", () => {
         [[0], 2],
         [[0], 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().attr([[0], 1], [[0], 1], "foo", "bar"),
-      )!;
+      const res = applyOperation(doc, sel, {
+        type: "set_attr",
+        start: [[0], 1],
+        end: [[0], 1],
+        key: "foo",
+        value: "bar",
+      });
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -2409,11 +2386,13 @@ describe("update attr", () => {
         [[0], 2],
         [[0], 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().attr([[0], 2], [[0], 1], "foo", "bar"),
-      )!;
+      const res = applyOperation(doc, sel, {
+        type: "set_attr",
+        start: [[0], 2],
+        end: [[0], 1],
+        key: "foo",
+        value: "bar",
+      });
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -2430,11 +2409,13 @@ describe("update attr", () => {
       [[1], 2],
       [[1], 2],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().attr([[0], 1], [[0], 2], "foo", "bar"),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "set_attr",
+      start: [[0], 1],
+      end: [[0], 2],
+      key: "foo",
+      value: "bar",
+    });
 
     expect(res[0]).toEqual({
       children: [
@@ -2460,11 +2441,13 @@ describe("update attr", () => {
       [[1], 3],
     ];
 
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().attr([[0], 2], [[1], 1], "foo", "bar"),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "set_attr",
+      start: [[0], 2],
+      end: [[1], 1],
+      key: "foo",
+      value: "bar",
+    });
 
     expect(res[0]).toEqual({
       children: [
@@ -2488,11 +2471,13 @@ describe("update attr", () => {
       [[0], 3],
       [[0], 3],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().attr([[0], 1], [[0], 2], "foo", "bar"),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "set_attr",
+      start: [[0], 1],
+      end: [[0], 2],
+      key: "foo",
+      value: "bar",
+    });
 
     expect(res[0]).toEqual({
       children: [
@@ -2513,11 +2498,13 @@ describe("update attr", () => {
       [[0], 3],
       [[0], 3],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().attr([[0], 2], [[0], 3], "foo", "bar"),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "set_attr",
+      start: [[0], 2],
+      end: [[0], 3],
+      key: "foo",
+      value: "bar",
+    });
 
     expect(res[0]).toEqual({
       children: [
@@ -2541,11 +2528,13 @@ describe("update attr", () => {
       [[0], 2],
       [[1], 2],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().attr([[0], 3], [[1], 1], "foo", "bar"),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "set_attr",
+      start: [[0], 3],
+      end: [[1], 1],
+      key: "foo",
+      value: "bar",
+    });
 
     expect(res[0]).toEqual({
       children: [
@@ -2569,11 +2558,13 @@ describe("update attr", () => {
       [[0], 3],
       [[0], 3],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().attr([[0], 3], [[0], 4], "foo", "bar"),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "set_attr",
+      start: [[0], 3],
+      end: [[0], 4],
+      key: "foo",
+      value: "bar",
+    });
 
     expect(res[0]).toEqual({
       children: [
@@ -2594,11 +2585,13 @@ describe("update attr", () => {
       [[0], 3],
       [[0], 3],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().attr([[0], 4], [[0], 5], "foo", "bar"),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "set_attr",
+      start: [[0], 4],
+      end: [[0], 5],
+      key: "foo",
+      value: "bar",
+    });
 
     expect(res[0]).toEqual({
       children: [
@@ -2621,11 +2614,13 @@ describe("update attr", () => {
       [[0], 2],
       [[0], 2],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().attr([[1], 1], [[1], 2], "foo", "bar"),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "set_attr",
+      start: [[1], 1],
+      end: [[1], 2],
+      key: "foo",
+      value: "bar",
+    });
 
     expect(res[0]).toEqual({
       children: [
@@ -2655,11 +2650,13 @@ describe("update attr", () => {
       [[0], 2],
       [[0], 2],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().attr([[1], 1], [[2], 1], "foo", "bar"),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "set_attr",
+      start: [[1], 1],
+      end: [[2], 1],
+      key: "foo",
+      value: "bar",
+    });
 
     expect(res[0]).toEqual({
       children: [
@@ -2687,11 +2684,11 @@ describe("selection", () => {
         [[0], 2],
         [[0], 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().select([[-1], 0], [[0], 1]),
-      )!;
+      const res = applyOperation(doc, sel, {
+        type: "select",
+        anchor: [[-1], 0],
+        focus: [[0], 1],
+      });
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -2704,11 +2701,11 @@ describe("selection", () => {
         [[0], 2],
         [[0], 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().select([[0], 0], [[100], 1]),
-      )!;
+      const res = applyOperation(doc, sel, {
+        type: "select",
+        anchor: [[0], 0],
+        focus: [[100], 1],
+      });
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -2721,11 +2718,11 @@ describe("selection", () => {
         [[0], 2],
         [[0], 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().select([[0], -1], [[0], 1]),
-      )!;
+      const res = applyOperation(doc, sel, {
+        type: "select",
+        anchor: [[0], -1],
+        focus: [[0], 1],
+      });
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -2738,11 +2735,11 @@ describe("selection", () => {
         [[0], 2],
         [[0], 2],
       ];
-      const res = applyTransaction(
-        doc,
-        sel,
-        new Transaction().select([[0], 0], [[0], 100]),
-      )!;
+      const res = applyOperation(doc, sel, {
+        type: "select",
+        anchor: [[0], 0],
+        focus: [[0], 100],
+      });
 
       expect(is(res[0], doc)).toBe(true);
       expect(res[1]).toEqual(sel);
@@ -2760,11 +2757,11 @@ describe("selection", () => {
       [[0], 1],
       [[0], 1],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().select(...nextSel),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "select",
+      anchor: nextSel[0],
+      focus: nextSel[1],
+    });
 
     expect(is(res[0], doc)).toBe(true);
     expect(res[1]).toEqual(nextSel);
@@ -2789,11 +2786,11 @@ describe("selection", () => {
       [[1], 1],
       [[2], 1],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().select(...nextSel),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "select",
+      anchor: nextSel[0],
+      focus: nextSel[1],
+    });
 
     expect(res[0]).toEqual(doc);
     expect(res[1]).toEqual(nextSel);
@@ -2813,11 +2810,11 @@ describe("selection", () => {
       [[0], 2],
       [[1], 1],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().select(...nextSel),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "select",
+      anchor: nextSel[0],
+      focus: nextSel[1],
+    });
 
     expect(res[0]).toEqual(doc);
     expect(res[1]).toEqual(nextSel);
@@ -2840,11 +2837,11 @@ describe("selection", () => {
         doc.children[doc.children.length - 1]![0]!.text.length - 1,
       ],
     ];
-    const res = applyTransaction(
-      doc,
-      sel,
-      new Transaction().select(...nextSel),
-    )!;
+    const res = applyOperation(doc, sel, {
+      type: "select",
+      anchor: nextSel[0],
+      focus: nextSel[1],
+    });
 
     expect(res[0]).toEqual(doc);
     expect(res[1]).toEqual(nextSel);

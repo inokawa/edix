@@ -7,15 +7,15 @@ export const singlelinePlugin = (): EditorPlugin => {
       element.ariaMultiLine = null;
     },
     apply: (op, next) => {
-      if (op._type === 2) {
+      if (op.type === "insert_text") {
         op = {
           ...op,
-          _text: op._text.replaceAll("\n", ""),
+          text: op.text.replaceAll("\n", ""),
         };
-      } else if (op._type === 3) {
+      } else if (op.type === "insert_node") {
         op = {
           ...op,
-          _fragment: [joinBlocks(...op._fragment)],
+          fragment: [joinBlocks(...op.fragment)],
         };
       }
       next(op);
