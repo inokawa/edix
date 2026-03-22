@@ -1010,16 +1010,48 @@ describe("insert node", () => {
       [[1], 2],
       [[1], 2],
     ];
+    const text = "ABC";
     const res = applyOperation(doc, sel, {
       type: "insert_node",
       at: [[0], 1],
-      fragment: [[{ foo: "bar" }]],
+      fragment: [[{ text, foo: "bar" }]],
     });
 
     const [before, after] = splitAt(docText, 1);
     expect(res[0]).toEqual({
       children: [
-        [{ id: 1, text: before }, { foo: "bar" }, { id: 1, text: after }],
+        [
+          { id: 1, text: before },
+          { text, foo: "bar" },
+          { id: 1, text: after },
+        ],
+        [{ id: 1, text: docText2 }],
+      ],
+    });
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("insert text with the same attr at previous line", () => {
+    const docText = "abcde";
+    const docText2 = "fghij";
+    const doc: Doc = {
+      children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+    };
+    const sel: SelectionSnapshot = [
+      [[1], 2],
+      [[1], 2],
+    ];
+    const text = "ABC";
+    const res = applyOperation(doc, sel, {
+      type: "insert_node",
+      at: [[0], 1],
+      fragment: [[{ text, id: 1 }]],
+    });
+
+    const [before, after] = splitAt(docText, 1);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: before + text + after }],
         [{ id: 1, text: docText2 }],
       ],
     });
@@ -1036,21 +1068,16 @@ describe("insert node", () => {
       [[1], 2],
       [[1], 2],
     ];
-    const text = "ABC";
     const res = applyOperation(doc, sel, {
       type: "insert_node",
       at: [[0], 1],
-      fragment: [[{ text, foo: "bar" }]],
+      fragment: [[{ foo: "bar" }]],
     });
 
     const [before, after] = splitAt(docText, 1);
     expect(res[0]).toEqual({
       children: [
-        [
-          { id: 1, text: before },
-          { text, foo: "bar" },
-          { id: 1, text: after },
-        ],
+        [{ id: 1, text: before }, { foo: "bar" }, { id: 1, text: after }],
         [{ id: 1, text: docText2 }],
       ],
     });
@@ -1128,6 +1155,27 @@ describe("insert node", () => {
           { id: 1, text: after },
         ],
       ],
+    });
+    expect(res[1]).toEqual(moveOffset(sel, text.length));
+  });
+
+  it("insert text with the same attr before caret", () => {
+    const docText = "abcde";
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
+    const sel: SelectionSnapshot = [
+      [[0], 2],
+      [[0], 2],
+    ];
+    const text = "ABC";
+    const res = applyOperation(doc, sel, {
+      type: "insert_node",
+      at: [[0], 1],
+      fragment: [[{ text, id: 1 }]],
+    });
+
+    const [before, after] = splitAt(docText, 1);
+    expect(res[0]).toEqual({
+      children: [[{ id: 1, text: before + text + after }]],
     });
     expect(res[1]).toEqual(moveOffset(sel, text.length));
   });
@@ -1225,6 +1273,27 @@ describe("insert node", () => {
           { id: 1, text: after },
         ],
       ],
+    });
+    expect(res[1]).toEqual(moveOffset(sel, text.length));
+  });
+
+  it("insert text with the same attr on caret", () => {
+    const docText = "abcde";
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
+    const sel: SelectionSnapshot = [
+      [[0], 2],
+      [[0], 2],
+    ];
+    const text = "ABC";
+    const res = applyOperation(doc, sel, {
+      type: "insert_node",
+      at: [[0], 2],
+      fragment: [[{ text, id: 1 }]],
+    });
+
+    const [before, after] = splitAt(docText, 2);
+    expect(res[0]).toEqual({
+      children: [[{ id: 1, text: before + text + after }]],
     });
     expect(res[1]).toEqual(moveOffset(sel, text.length));
   });
@@ -1328,6 +1397,27 @@ describe("insert node", () => {
     expect(res[1]).toEqual(moveOffset(sel, { focus: text.length }));
   });
 
+  it("insert text with the same attr inside selection", () => {
+    const docText = "abcde";
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
+    const sel: SelectionSnapshot = [
+      [[0], 1],
+      [[0], 3],
+    ];
+    const text = "ABC";
+    const res = applyOperation(doc, sel, {
+      type: "insert_node",
+      at: [[0], 2],
+      fragment: [[{ text, id: 1 }]],
+    });
+
+    const [before, after] = splitAt(docText, 2);
+    expect(res[0]).toEqual({
+      children: [[{ id: 1, text: before + text + after }]],
+    });
+    expect(res[1]).toEqual(moveOffset(sel, { focus: text.length }));
+  });
+
   it("insert void inside selection", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
@@ -1423,6 +1513,27 @@ describe("insert node", () => {
     expect(res[1]).toEqual(sel);
   });
 
+  it("insert text with the same attr after caret", () => {
+    const docText = "abcde";
+    const doc: Doc = { children: [[{ id: 1, text: docText }]] };
+    const sel: SelectionSnapshot = [
+      [[0], 2],
+      [[0], 2],
+    ];
+    const text = "ABC";
+    const res = applyOperation(doc, sel, {
+      type: "insert_node",
+      at: [[0], 3],
+      fragment: [[{ text, id: 1 }]],
+    });
+
+    const [before, after] = splitAt(docText, 3);
+    expect(res[0]).toEqual({
+      children: [[{ id: 1, text: before + text + after }]],
+    });
+    expect(res[1]).toEqual(sel);
+  });
+
   it("insert void after caret", () => {
     const docText = "abcde";
     const doc: Doc = { children: [[{ id: 1, text: docText }]] };
@@ -1501,7 +1612,7 @@ describe("insert node", () => {
     expect(res[1]).toEqual(sel);
   });
 
-  it("insert text at next line", () => {
+  it("insert text with attr at next line", () => {
     const docText = "abcde";
     const docText2 = "fghij";
     const doc: Doc = {
@@ -1527,6 +1638,33 @@ describe("insert node", () => {
           { text, foo: "bar" },
           { id: 1, text: after },
         ],
+      ],
+    });
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("insert text with the same attr at next line", () => {
+    const docText = "abcde";
+    const docText2 = "fghij";
+    const doc: Doc = {
+      children: [[{ id: 1, text: docText }], [{ id: 1, text: docText2 }]],
+    };
+    const sel: SelectionSnapshot = [
+      [[0], 2],
+      [[0], 2],
+    ];
+    const text = "ABC";
+    const res = applyOperation(doc, sel, {
+      type: "insert_node",
+      at: [[1], 1],
+      fragment: [[{ text, id: 1 }]],
+    });
+
+    const [before, after] = splitAt(docText2, 1);
+    expect(res[0]).toEqual({
+      children: [
+        [{ id: 1, text: docText }],
+        [{ id: 1, text: before + text + after }],
       ],
     });
     expect(res[1]).toEqual(sel);
