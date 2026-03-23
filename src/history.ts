@@ -21,8 +21,21 @@ export const createHistory = <T>(initialValue: T) => {
   };
 
   return {
-    set: (history: T) => {
-      histories[index] = history;
+    change: (prevHistory: T, history: T) => {
+      histories[index] = prevHistory;
+
+      const time = now();
+      if (index !== 0 && time - prevTime < BATCH_HISTORY_TIME) {
+        index--;
+      }
+      prevTime = time;
+
+      histories[++index] = history;
+      histories.splice(index + 1);
+      if (index > MAX_HISTORY_LENGTH) {
+        index--;
+        histories.shift();
+      }
     },
     undo: (): T | undefined => {
       if (isUndoable()) {
@@ -38,20 +51,6 @@ export const createHistory = <T>(initialValue: T) => {
         return get();
       } else {
         return;
-      }
-    },
-    push: (history: T) => {
-      const time = now();
-      if (index !== 0 && time - prevTime < BATCH_HISTORY_TIME) {
-        index--;
-      }
-      prevTime = time;
-
-      histories[++index] = history;
-      histories.splice(index + 1);
-      if (index > MAX_HISTORY_LENGTH) {
-        index--;
-        histories.shift();
       }
     },
   };

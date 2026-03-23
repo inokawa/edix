@@ -334,8 +334,7 @@ export const createEditor = <
       }
 
       if (!is(currentDoc, doc)) {
-        history.set([currentDoc, currentSelection]);
-        history.push([doc, selection]);
+        history.change([currentDoc, currentSelection], [doc, selection]);
         onChange(doc);
       }
     }
