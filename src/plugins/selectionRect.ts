@@ -10,12 +10,12 @@ export function selectionRectPlugin(
 ) {
   editor.hook("mount", (element, parser) => {
     let mounted = true;
-    let queued = false;
+    let scheduling = false;
     const cleanup = editor.on("selectionchange", () => {
-      if (queued) return;
-      queued = true;
+      if (scheduling) return;
+      scheduling = true;
       requestAnimationFrame(() => {
-        queued = false;
+        scheduling = false;
         if (!mounted) return;
         onSelectionChange(() => {
           const selection = editor.selection;

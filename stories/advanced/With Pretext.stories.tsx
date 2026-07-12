@@ -6,6 +6,7 @@ import {
   createEditor,
   internalTranferPlugin,
   plainTransferPlugin,
+  scrollToSelectionPlugin,
   type Editor,
 } from "../../src";
 
@@ -196,6 +197,7 @@ export const WithPretext: StoryObj = {
         schema: pagedSchema,
         isBlock: (n) => !!n.dataset.block,
       })
+        .exec(scrollToSelectionPlugin)
         .exec(internalTranferPlugin)
         .exec(plainTransferPlugin);
       e.on("change", () => {
@@ -217,12 +219,11 @@ export const WithPretext: StoryObj = {
       )?.[0] ?? "custom";
 
     return (
-      <div>
+      <div
+        style={{ display: "flex", flexDirection: "column", height: "100vh" }}
+      >
         <div
           style={{
-            position: "sticky",
-            top: 0,
-            zIndex: 2,
             display: "flex",
             alignItems: "center",
             gap: 12,
@@ -307,7 +308,14 @@ export const WithPretext: StoryObj = {
             px
           </label>
         </div>
-        <div style={{ background: "#e8eaed", overflowX: "auto" }}>
+        <div
+          style={{
+            flex: 1,
+            minHeight: 0,
+            background: "#e8eaed",
+            overflow: "auto",
+          }}
+        >
           <div style={{ width: "fit-content", margin: "0 auto", padding: 24 }}>
             <div
               style={{

@@ -1,0 +1,217 @@
+import { getCurrentDocument, selectionToRange } from "../dom/index.js";
+import { isElementNode } from "../dom/utils.js";
+import type { Editor } from "../editor.js";
+
+// `auto` parses to NaN and reserves nothing
+const resolveScrollPadding = (value: string, size: number): number => {
+  const px = parseFloat(value);
+  return px ? (value.endsWith("%") ? (px / 100) * size : px) : 0;
+};
+
+const getBounds = (
+  start: number,
+  size: number,
+  paddingStart: string,
+  paddingEnd: string,
+): [start: number, end: number] => [
+  start + resolveScrollPadding(paddingStart, size),
+  start + size - resolveScrollPadding(paddingEnd, size),
+];
+
+// Resolved once on mount, so this keys off the authored overflow rather than
+// whether the element currently overflows, which depends on the content. One
+// axis is enough: `visible` computes to `auto` once the other axis scrolls.
+// body/documentElement are left to the viewport scroll.
+const getNearestScrollParent = (
+  root: HTMLElement,
+  document: Document,
+  window: Window,
+): HTMLElement | null => {
+  const { body, documentElement } = document;
+  let element: HTMLElement | null = root;
+  while (element && element !== body && element !== documentElement) {
+    const { overflowY } = window.getComputedStyle(element);
+    if (
+      overflowY === "auto" ||
+      overflowY === "scroll" ||
+      overflowY === "overlay"
+    ) {
+      return element;
+    }
+    element = element.parentElement;
+  }
+  return null;
+};
+
+const overflow = (
+  start: number,
+  end: number,
+  [boundStart, boundEnd]: [number, number],
+): number =>
+  start < boundStart ? start - boundStart : end > boundEnd ? end - boundEnd : 0;
+
+// Clamping keeps the applied offset known without reading back the scroll
+// position, which stays stale during a smooth scroll.
+const clamp = (diff: number, scrolled: number, scrollable: number): number =>
+  Math.max(-scrolled, Math.min(diff, scrollable - scrolled));
+
+const scrollElement = (
+  window: Window,
+  scroller: HTMLElement,
+  rect: DOMRect,
+  behavior: ScrollBehavior,
+): [x: number, y: number] => {
+  const {
+    scrollLeft,
+    scrollTop,
+    scrollWidth,
+    scrollHeight,
+    clientLeft,
+    clientTop,
+    clientWidth,
+    clientHeight,
+  } = scroller;
+  const box = scroller.getBoundingClientRect();
+  const style = window.getComputedStyle(scroller);
+
+  // The scrollport is the padding box minus scrollbars, which is what client*
+  // describe. The border box would count borders and scrollbars as visible.
+  const top = clamp(
+    overflow(
+      rect.top,
+      rect.bottom,
+      getBounds(
+        box.top + clientTop,
+        clientHeight,
+        style.scrollPaddingTop,
+        style.scrollPaddingBottom,
+      ),
+    ),
+    scrollTop,
+    scrollHeight - clientHeight,
+  );
+  const left = clamp(
+    overflow(
+      rect.left,
+      rect.right,
+      getBounds(
+        box.left + clientLeft,
+        clientWidth,
+        style.scrollPaddingLeft,
+        style.scrollPaddingRight,
+      ),
+    ),
+    scrollLeft,
+    scrollWidth - clientWidth,
+  );
+
+  if (top || left) {
+    scroller.scrollBy({ top, left, behavior });
+  }
+  return [left, top];
+};
+
+const scrollWindow = (
+  window: Window,
+  rect: DOMRect,
+  [x, y]: [x: number, y: number],
+  behavior: ScrollBehavior,
+): void => {
+  const { documentElement } = window.document;
+  // not innerWidth/Height, which include the scrollbars
+  const { clientWidth, clientHeight } = documentElement;
+  const style = window.getComputedStyle(documentElement);
+
+  const top = overflow(
+    rect.top - y,
+    rect.bottom - y,
+    getBounds(
+      0,
+      clientHeight,
+      style.scrollPaddingTop,
+      style.scrollPaddingBottom,
+    ),
+  );
+  const left = overflow(
+    rect.left - x,
+    rect.right - x,
+    getBounds(
+      0,
+      clientWidth,
+      style.scrollPaddingLeft,
+      style.scrollPaddingRight,
+    ),
+  );
+
+  if (top || left) {
+    window.scrollBy({ top, left, behavior });
+  }
+};
+
+export interface ScrollToSelectionOptions {
+  /**
+   * Scroll smoothly instead of jumping.
+   * @default false
+   */
+  smooth?: boolean;
+}
+
+/**
+ * A plugin to scroll to the selection on document change.
+ */
+export const scrollToSelectionPlugin = (
+  editor: Editor,
+  { smooth }: ScrollToSelectionOptions = {},
+) => {
+  const behavior: ScrollBehavior = smooth ? "smooth" : "auto";
+  editor.hook("mount", (element, parser) => {
+    const document = getCurrentDocument(element);
+    const window = document.defaultView!;
+    const scroller = getNearestScrollParent(element, document, window);
+
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    // Moving the caret reveals it natively, leaving only document changes
+    const cleanup = editor.on("change", () => {
+      if (timer != null) return;
+      // Defer until the host framework has re-rendered, since the native reveal
+      // ran against the layout before it. Matches the delay in editor.input().
+      timer = setTimeout(() => {
+        timer = null;
+        const range = selectionToRange(
+          element,
+          parser,
+          editor.doc,
+          editor.selection,
+        );
+        let rect = range.getBoundingClientRect();
+        if (!rect.height) {
+          // A collapsed range around a `<br>` reports an empty rect at (0, 0),
+          // which would scroll toward the top of the document
+          const node = range.startContainer;
+          const el = isElementNode(node) ? node : node.parentElement;
+          if (el) {
+            rect = el.getBoundingClientRect();
+          }
+        }
+
+        // Walk the scroll chain inner -> outer like scrollIntoView(). Rects are
+        // viewport-relative, so fitting the caret in the scroller does not put
+        // it on screen; scrolling the scroller shifts those coords, hence
+        // subtracting the applied offset. The reverse never holds, so one pass
+        // converges. Only the nearest scroller is walked.
+        const scrolled: [number, number] = scroller
+          ? scrollElement(window, scroller, rect, behavior)
+          : [0, 0];
+
+        scrollWindow(window, rect, scrolled, behavior);
+      }, 50);
+    });
+
+    return () => {
+      if (timer != null) {
+        clearTimeout(timer);
+      }
+      cleanup();
+    };
+  });
+};
