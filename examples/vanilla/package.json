@@ -9,8 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "editate": "0.6.12",
-    "morphdom": "^2.7.4"
+    "editate": "0.6.20",
+    "morphdom": "^2.7.8"
   },
   "devDependencies": {
     "typescript": "^6.0.0",
