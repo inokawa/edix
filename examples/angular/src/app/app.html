@@ -7,10 +7,12 @@
 </style>
 
 <div #ref class="editor">
-  @for (t of text().split("\n"); track $index) {
-    <!-- https://github.com/angular/angular/issues/56323 -->
+  @for (b of doc().children; track $index) {
     <div>
-      @if (t) {{{ t }}} @else {<br />}
+      @for (n of b.children; track $index) {
+        <!-- https://github.com/angular/angular/issues/56323 -->
+        <span>@if (n.text) {{{ n.text }}} @else {<br />}</span>
+      }
     </div>
   }
 </div>

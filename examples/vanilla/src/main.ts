@@ -1,5 +1,28 @@
-import { createPlainEditor } from "editate";
+import { createEditor, plainTransferPlugin } from "editate";
 import morphdom from "morphdom";
+import * as z from "zod";
+
+const schema = z.strictObject({
+  children: z.array(
+    z.strictObject({
+      children: z.array(
+        z.strictObject({
+          text: z.string(),
+        }),
+      ),
+    }),
+  ),
+});
+
+type Doc = z.infer<typeof schema>;
+
+const initialDoc: Doc = {
+  children: [
+    { children: [{ text: "Hello world." }] },
+    { children: [{ text: "こんにちは。" }] },
+    { children: [{ text: "👍❤️🧑‍🧑‍🧒" }] },
+  ],
+};
 
 const root = document.getElementById("root")!;
 
@@ -10,21 +33,26 @@ el.style.padding = "8px";
 
 root.appendChild(el);
 
-const updateRows = (text: string) => {
+const updateRows = (doc: Doc) => {
   let rows = "";
-  for (const t of text.split("\n")) {
-    rows += `<div>${t ? t : "<br />"}</div>`;
+  for (const b of doc.children) {
+    let leaves = "";
+    for (const n of b.children) {
+      leaves += `<span>${n.text ? n.text : "<br />"}</span>`;
+    }
+    rows += `<div>${leaves}</div>`;
   }
 
   morphdom(el, `<div>${rows}</div>`, { childrenOnly: true });
 };
 
-const value = "Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒";
-updateRows(value);
+updateRows(initialDoc);
 
-createPlainEditor({
-  text: value,
-  onChange: (v) => {
-    updateRows(v);
-  },
-}).input(el);
+const editor = createEditor({
+  doc: initialDoc,
+  schema: schema,
+}).exec(plainTransferPlugin);
+editor.on("change", () => {
+  updateRows(editor.doc);
+});
+editor.input(el);

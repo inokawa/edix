@@ -8,10 +8,10 @@
   </head>
   <body>
     <div
-      x-data="{ text: 'Hello World.\nこんにちは。\n👍❤️🧑‍🧑‍🧒' }"
-      x-editable="text"
+      x-data="editor"
+      x-editable
       style="background-color: white; border: solid 1px darkgray; padding: 8px"
-    ><template x-for="v in text.split('\n')"><div><template x-if="v"><span x-text="v"></span></template><template x-if="!v"><br /></template></div></template></div>
+    ><template x-for="b in doc.children"><div><template x-for="n in b.children"><span><template x-if="n.text"><span x-text="n.text"></span></template><template x-if="!n.text"><br /></template></span></template></div></template></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

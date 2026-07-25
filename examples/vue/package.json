@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "editate": "0.6.20",
-    "vue": "^3.5.40"
+    "vue": "^3.5.40",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.8",
