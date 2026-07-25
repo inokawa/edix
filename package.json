@@ -97,7 +97,8 @@
     "solid",
     "angular",
     "preact",
-    "alpine"
+    "alpine",
+    "marko"
   ],
   "author": "inokawa <stratoooo-taster@yahoo.co.jp> (https://github.com/inokawa/)",
   "license": "MIT",
