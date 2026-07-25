@@ -1,0 +1,32 @@
+import { createPlainEditor } from "editate";
+
+<let/text="Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒">
+<div/ref
+  style={
+    "background-color": "white",
+    border: "solid 1px darkgray",
+    padding: "8px",
+  }
+>
+  <for|t| of=text.split("\n")>
+    <div>
+      <if=t>${t}</if>
+      <else><br></else>
+    </div>
+  </for>
+</div>
+<lifecycle
+  onMount() {
+    return {
+      cleanup: createPlainEditor({
+        text,
+        onChange(v) {
+          text = v;
+        },
+      }).input(ref()),
+    };
+  }
+  onDestroy() {
+    this.cleanup();
+  }
+/>
