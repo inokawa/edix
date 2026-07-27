@@ -440,6 +440,36 @@ const tagSchema = v.strictObject({
   ),
 });
 
+const TagRemoveButton = ({
+  onClick,
+}: {
+  onClick: (e: React.MouseEvent) => void;
+}) => {
+  const [hover, setHover] = useState(false);
+  return (
+    <span
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      onClick={onClick}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: 14,
+        height: 14,
+        borderRadius: "50%",
+        background: hover ? "#999" : "#c4c4c4",
+        color: "white",
+        fontSize: 9,
+        lineHeight: 1,
+        cursor: "pointer",
+      }}
+    >
+      ✕
+    </span>
+  );
+};
+
 export const Tag: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
@@ -514,27 +544,47 @@ export const Tag: StoryObj = {
               <span
                 key={j}
                 contentEditable={false}
-                onClick={(e) => {
-                  e.preventDefault();
-                  const tagIndex = doc.children.indexOf(t);
-                  if (tagIndex === -1) return;
-                  const value = window.prompt("label:", t.label);
-                  if (!value) return;
-                  const offset = doc.children
-                    .slice(0, tagIndex + 1)
-                    .reduce((acc, n) => acc + getNodeSize(n), 0);
-                  editor.exec(SetVoidAttr, "label", value, offset);
-                }}
                 style={{
-                  background: "slategray",
-                  color: "white",
-                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4,
+                  background: "#f0f0f0",
+                  color: "#444",
+                  border: "solid 1px #ccc",
                   fontSize: 12,
-                  padding: 4,
-                  borderRadius: 8,
+                  lineHeight: 1.5,
+                  padding: "1px 4px 1px 8px",
+                  borderRadius: 999,
+                  margin: "0 2px",
                 }}
               >
-                {t.label}
+                <span
+                  style={{ cursor: "pointer" }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const tagIndex = doc.children.indexOf(t);
+                    if (tagIndex === -1) return;
+                    const value = window.prompt("label:", t.label);
+                    if (!value) return;
+                    const offset = doc.children
+                      .slice(0, tagIndex + 1)
+                      .reduce((acc, n) => acc + getNodeSize(n), 0);
+                    editor.exec(SetVoidAttr, "label", value, offset);
+                  }}
+                >
+                  {t.label}
+                </span>
+                <TagRemoveButton
+                  onClick={(e) => {
+                    e.preventDefault();
+                    const tagIndex = doc.children.indexOf(t);
+                    if (tagIndex === -1) return;
+                    const start = doc.children
+                      .slice(0, tagIndex)
+                      .reduce((acc, n) => acc + getNodeSize(n), 0);
+                    editor.exec(Delete, [start, start + getNodeSize(t)]);
+                  }}
+                />
               </span>
             ),
           )}
@@ -1022,11 +1072,11 @@ export const Mention: StoryObj = {
       children: [
         {
           children: [
-            { text: "Hi, " },
-            { type: "mention", name: "Captain Gregor" },
+            { text: "Hi " },
+            { type: "mention", name: "Luke Skywalker" },
             { text: " and " },
-            { type: "mention", name: "Jaxxon" },
-            { text: " . Please enter @ to show suggestions." },
+            { type: "mention", name: "Leia Organa" },
+            { text: ", could you check this out? Type @ to mention someone." },
           ],
         },
         { children: [{ text: "" }] },
@@ -1164,32 +1214,6 @@ export const Mention: StoryObj = {
   },
 };
 
-const mediaSchema = v.strictObject({
-  children: v.array(
-    v.strictObject({
-      children: v.array(
-        v.union([
-          v.strictObject({
-            text: v.string(),
-          }),
-          v.strictObject({
-            type: v.literal("image"),
-            src: v.string(),
-          }),
-          v.strictObject({
-            type: v.literal("video"),
-            src: v.string(),
-          }),
-          v.strictObject({
-            type: v.literal("youtube"),
-            id: v.string(),
-          }),
-        ]),
-      ),
-    }),
-  ),
-});
-
 const commentSchema = v.strictObject({
   children: v.array(
     v.strictObject({
@@ -1289,13 +1313,14 @@ export const Comment: StoryObj = {
             Add comment
           </button>
         </div>
-        <div style={{ display: "flex" }}>
+        <div style={{ display: "flex", alignItems: "flex-start" }}>
           <div
             ref={ref}
             style={{
               backgroundColor: "white",
               padding: 8,
               flex: 1,
+              minHeight: 120,
             }}
           >
             {doc.children.map((b, i) => (
@@ -1317,24 +1342,37 @@ export const Comment: StoryObj = {
               </div>
             ))}
           </div>
-          <div style={{ width: 200 }}>
+          <div
+            style={{
+              width: 200,
+              background: "#f5f5f5",
+              padding: 8,
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+            }}
+          >
             {comments.map((c) => (
               <div
                 key={c.id}
                 style={{
-                  padding: 4,
-                  margin: 4,
+                  padding: 8,
+                  background: "white",
                   border:
-                    c.id === activeId ? "solid 1px orange" : "solid 1px gray",
-                  borderRadius: 4,
+                    c.id === activeId
+                      ? "solid 1px orange"
+                      : "solid 1px #e0e0e0",
+                  borderRadius: 6,
                   cursor: "pointer",
+                  fontSize: 13,
                 }}
                 onClick={() => {
                   setActiveId(c.id);
                 }}
               >
-                {c.text}
+                <div>{c.text}</div>
                 <button
+                  style={{ marginTop: 6, fontSize: 11 }}
                   onClick={(e) => {
                     e.stopPropagation();
                     const ranges: [number, number][] = [];
@@ -1362,6 +1400,28 @@ export const Comment: StoryObj = {
   },
 };
 
+const mediaSchema = v.strictObject({
+  children: v.array(
+    v.strictObject({
+      children: v.array(
+        v.union([
+          v.strictObject({
+            text: v.string(),
+          }),
+          v.strictObject({
+            type: v.literal("image"),
+            src: v.string(),
+          }),
+          v.strictObject({
+            type: v.literal("video"),
+            src: v.string(),
+          }),
+        ]),
+      ),
+    }),
+  ),
+});
+
 export const Media: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
@@ -1376,14 +1436,14 @@ export const Media: StoryObj = {
             },
             {
               type: "image",
-              src: "https://loremflickr.com/320/240/cats?lock=1",
+              src: "https://picsum.photos/seed/1/320/240",
             },
             {
               text: " world ",
             },
             {
               type: "image",
-              src: "https://loremflickr.com/320/240/cats?lock=2",
+              src: "https://picsum.photos/seed/2/320/240",
             },
           ],
         },
@@ -1394,24 +1454,10 @@ export const Media: StoryObj = {
             },
             {
               type: "video",
-              src: "https://download.samplelib.com/mp4/sample-5s.mp4",
+              src: "https://mdn.github.io/shared-assets/videos/flower.mp4",
             },
             {
               text: " world ",
-            },
-          ],
-        },
-        {
-          children: [
-            {
-              text: "Hello ",
-            },
-            {
-              type: "youtube",
-              id: "IqKz0SfHaqI",
-            },
-            {
-              text: " Youtube",
             },
           ],
         },
@@ -1443,12 +1489,6 @@ export const Media: StoryObj = {
               return {
                 type: "video",
                 src: (e.childNodes[0] as HTMLSourceElement).src,
-              };
-            },
-            iframe: (e) => {
-              return {
-                type: "youtube",
-                id: e.dataset.youtubeId!,
               };
             },
           },
@@ -1486,21 +1526,12 @@ export const Media: StoryObj = {
           >
             insert video
           </button>
-          <button
-            onClick={() => {
-              const value = window.prompt("id:");
-              if (!value) return;
-              editor.exec(InsertNode, { type: "youtube", id: value });
-            }}
-          >
-            insert youtube
-          </button>
         </div>
         <div
           ref={ref}
           style={{
             backgroundColor: "white",
-            padding: 8,
+            padding: 16,
           }}
         >
           {doc.children.map((b, i) => (
@@ -1509,27 +1540,30 @@ export const Media: StoryObj = {
                 "text" in t ? (
                   t.text || <br />
                 ) : t.type === "image" ? (
-                  <img key={j} src={t.src} style={{ maxWidth: 200 }} />
+                  <img
+                    key={j}
+                    src={t.src}
+                    style={{
+                      maxWidth: 240,
+                      borderRadius: 4,
+                      verticalAlign: "middle",
+                    }}
+                  />
                 ) : t.type === "video" ? (
                   // safari needs contentEditable="false"
                   <video
                     key={j}
-                    width={400}
+                    width={320}
                     controls
                     contentEditable="false"
                     suppressContentEditableWarning
+                    style={{
+                      borderRadius: 4,
+                      verticalAlign: "middle",
+                    }}
                   >
                     <source src={t.src} />
                   </video>
-                ) : t.type === "youtube" ? (
-                  <iframe
-                    data-youtube-id={t.id}
-                    width="560"
-                    height="315"
-                    src={"https://www.youtube.com/embed/" + t.id}
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  />
                 ) : null,
               )}
             </div>
