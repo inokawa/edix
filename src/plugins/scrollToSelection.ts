@@ -148,22 +148,11 @@ const scrollWindow = (
   }
 };
 
-export interface ScrollToSelectionOptions {
-  /**
-   * Scroll smoothly instead of jumping.
-   * @default false
-   */
-  smooth?: boolean;
-}
-
 /**
  * A plugin to scroll to the selection on document change.
  */
-export const scrollToSelectionPlugin = (
-  editor: Editor,
-  { smooth }: ScrollToSelectionOptions = {},
-) => {
-  const behavior: ScrollBehavior = smooth ? "smooth" : "auto";
+export const scrollToSelectionPlugin = (editor: Editor) => {
+  const behavior: ScrollBehavior = "auto";
   editor.hook("mount", (element, parser) => {
     const document = getCurrentDocument(element);
     const window = document.defaultView!;
