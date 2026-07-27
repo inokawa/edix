@@ -36,6 +36,7 @@
     "@standard-schema/spec": "^1.0.0"
   },
   "devDependencies": {
+    "@chenglou/pretext": "^0.0.8",
     "@playwright/test": "^1.60.0",
     "@size-limit/preset-small-lib": "^12.0.0",
     "@storybook/addon-docs": "^10.4.0",

@@ -536,3 +536,41 @@ it("undo set attr", () => {
   expect(editor.doc).toEqual(updatedDoc);
   expect(editor.selection).toEqual(selection);
 });
+
+it("undo set root attr", () => {
+  const doc: DocNode = {
+    children: [
+      { children: [{ text: "abcde" }] },
+      { children: [{ text: "fghij" }] },
+    ],
+  };
+  const selection: Selection = [1, 1];
+  const editor = createEditor({ doc });
+  editor.selection = selection;
+  expect(editor.doc).toEqual(doc);
+  expect(editor.selection).toEqual(selection);
+
+  editor.apply({
+    type: "patch_node",
+    path: [],
+    key: "foo",
+    value: "bar",
+  });
+  const updatedDoc = {
+    children: [
+      { children: [{ text: "abcde" }] },
+      { children: [{ text: "fghij" }] },
+    ],
+    foo: "bar",
+  };
+  expect(editor.doc).toEqual(updatedDoc);
+  expect(editor.selection).toEqual(selection);
+
+  editor.exec(Undo);
+  expect(editor.doc).toEqual(doc);
+  expect(editor.selection).toEqual(selection);
+
+  editor.exec(Redo);
+  expect(editor.doc).toEqual(updatedDoc);
+  expect(editor.selection).toEqual(selection);
+});

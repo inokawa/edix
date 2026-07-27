@@ -3,6 +3,7 @@ import { rebase, type Operation } from "../doc/operation.js";
 import type { DocNode, Selection } from "../doc/types.js";
 import type { Editor } from "../editor.js";
 import { keymap } from "../keyboard.js";
+import { keys } from "../utils.js";
 
 const MAX_HISTORY_LENGTH = 500;
 const BATCH_HISTORY_TIME = 500;
@@ -35,13 +36,31 @@ export function historyPlugin<T extends DocNode>(editor: Editor<T>) {
     return index < histories.length - 1;
   };
 
+  const restore = (doc: T) => {
+    editor.exec(ReplaceDoc, doc.children);
+
+    // TODO improve
+    const prev = doc as Record<string, unknown>;
+    const current = editor.doc as Record<string, unknown>;
+    for (const key of keys(prev)) {
+      if (key !== "children" && current[key] !== prev[key]) {
+        editor.apply({ type: "patch_node", path: [], key, value: prev[key] });
+      }
+    }
+    for (const key of keys(current)) {
+      if (key !== "children" && !(key in prev)) {
+        editor.apply({ type: "patch_node", path: [], key, value: undefined });
+      }
+    }
+  };
+
   const undo = () => {
     if (isUndoable()) {
       const sel = get()[1];
       index--;
       const currentDoc = editor.doc;
       undoOrRedoing = true;
-      editor.exec(ReplaceDoc, get()[0].children);
+      restore(get()[0]);
       undoOrRedoing = false;
       if (currentDoc !== editor.doc) {
         editor.selection = sel;
@@ -54,7 +73,7 @@ export function historyPlugin<T extends DocNode>(editor: Editor<T>) {
       const [doc, sel, ops] = get();
       const currentDoc = editor.doc;
       undoOrRedoing = true;
-      editor.exec(ReplaceDoc, doc.children);
+      restore(doc);
       undoOrRedoing = false;
       if (currentDoc !== editor.doc) {
         editor.selection = [rebase(sel[0], ops), rebase(sel[1], ops)];
