@@ -28,6 +28,7 @@ import {
   SetVoidAttr,
   getNodeSize,
   InsertText,
+  iterLeaves,
 } from "../../src";
 import * as v from "valibot";
 import { createPortal } from "react-dom";
@@ -1188,6 +1189,178 @@ const mediaSchema = v.strictObject({
     }),
   ),
 });
+
+const commentSchema = v.strictObject({
+  children: v.array(
+    v.strictObject({
+      children: v.array(
+        v.strictObject({
+          text: v.string(),
+          comment: v.optional(v.string()),
+        }),
+      ),
+    }),
+  ),
+});
+
+export const Comment: StoryObj = {
+  render: () => {
+    const ref = useRef<HTMLDivElement>(null);
+
+    const commentIdRef = useRef(0);
+    const [comments, setComments] = useState([
+      { id: "0", text: "This is comment." },
+    ]);
+    const [activeId, setActiveId] = useState<string | null>(null);
+    const [hasSelection, setHasSelection] = useState(false);
+    type Doc = v.InferOutput<typeof commentSchema>;
+    const [doc, setDoc] = useState<Doc>({
+      children: [
+        {
+          children: [
+            { text: "Hello " },
+            { text: " world", comment: "0" },
+            { text: "." },
+          ],
+        },
+        { children: [{ text: "Select text and add comments." }] },
+      ],
+    });
+
+    const editor = useMemo(() => {
+      const e = createEditor({
+        doc: doc,
+        schema: commentSchema,
+      })
+        .exec(internalTranferPlugin)
+        .exec(plainTransferPlugin);
+      e.on("change", () => {
+        setDoc(e.doc);
+        const ids = new Set<string>();
+        for (const [leaf] of iterLeaves(e.doc, [0, getNodeSize(e.doc)])) {
+          if (leaf.comment) {
+            ids.add(leaf.comment);
+          }
+        }
+        setComments((prev) => prev.filter((c) => ids.has(c.id)));
+      });
+      e.on("selectionchange", () => {
+        setHasSelection(e.selection[0] !== e.selection[1]);
+        let active: string | null = null;
+        for (const leaf of e.exec(LeavesInRange)) {
+          if (leaf.comment) {
+            active = leaf.comment;
+            break;
+          }
+        }
+        setActiveId(active);
+      });
+      return e;
+    }, []);
+
+    useEffect(() => {
+      if (!ref.current) return;
+      return editor.input(ref.current);
+    }, []);
+
+    const inputRef = useRef<HTMLTextAreaElement>(null);
+
+    return (
+      <div>
+        <div>
+          <textarea
+            ref={inputRef}
+            placeholder="Select text and write comment"
+          />
+          <button
+            disabled={!hasSelection}
+            onClick={() => {
+              const input = inputRef.current;
+              if (!input) return;
+              const value = input.value;
+              if (!value) return;
+              const id = String(++commentIdRef.current);
+              editor.exec(Format, "comment", id);
+              setComments((prev) => [...prev, { id, text: value }]);
+              setActiveId(id);
+              input.value = "";
+            }}
+          >
+            Add comment
+          </button>
+        </div>
+        <div style={{ display: "flex" }}>
+          <div
+            ref={ref}
+            style={{
+              backgroundColor: "white",
+              padding: 8,
+              flex: 1,
+            }}
+          >
+            {doc.children.map((b, i) => (
+              <div key={i}>
+                {b.children.map((t, j) => (
+                  <span
+                    key={j}
+                    style={{
+                      backgroundColor: t.comment
+                        ? t.comment === activeId
+                          ? "gold"
+                          : "khaki"
+                        : undefined,
+                    }}
+                  >
+                    {t.text || <br />}
+                  </span>
+                ))}
+              </div>
+            ))}
+          </div>
+          <div style={{ width: 200 }}>
+            {comments.map((c) => (
+              <div
+                key={c.id}
+                style={{
+                  padding: 4,
+                  margin: 4,
+                  border:
+                    c.id === activeId ? "solid 1px orange" : "solid 1px gray",
+                  borderRadius: 4,
+                  cursor: "pointer",
+                }}
+                onClick={() => {
+                  setActiveId(c.id);
+                }}
+              >
+                {c.text}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const ranges: [number, number][] = [];
+                    for (const [leaf, offset] of iterLeaves(editor.doc, [
+                      0,
+                      getNodeSize(editor.doc),
+                    ])) {
+                      if (leaf.comment === c.id) {
+                        ranges.push([offset, offset + getNodeSize(leaf)]);
+                      }
+                    }
+                    for (const range of ranges) {
+                      editor.exec(Format, "comment", undefined, range);
+                    }
+                  }}
+                >
+                  delete
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  },
+};
 
 export const Media: StoryObj = {
   render: () => {
