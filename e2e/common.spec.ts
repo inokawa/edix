@@ -752,9 +752,7 @@ test.describe("Keydown", () => {
     });
 
     test("handle empty spans", async ({ page }) => {
-      await page.goto(
-        storyUrl("advanced-with-prismreactrenderer--with-prism-react-renderer"),
-      );
+      await page.goto(storyUrl("advanced-with-prism--with-prism"));
 
       const editable = await getEditable(page);
       const initialValue = await getText(editable);
