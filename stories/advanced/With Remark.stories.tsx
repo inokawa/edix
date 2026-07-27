@@ -41,6 +41,13 @@ const compiler: Plugin<[], Root, ReactElement[]> = function () {
     return lines;
   };
 
+  // markdown syntax markers (e.g. "# ", "**", "](...)") are rendered dimmed
+  const marker = (text: string, key: number): ReactNode => (
+    <span key={`m${key}`} style={{ color: "#9aa2a8" }}>
+      {text}
+    </span>
+  );
+
   const renderNodeInLine = (
     node: RootContent,
     lineStart: number,
@@ -57,7 +64,7 @@ const compiler: Plugin<[], Root, ReactElement[]> = function () {
       for (const c of node.children) {
         const [cStart, cEnd] = getRange(c);
         if (offset < cStart && cStart < segEnd) {
-          children.push(value.slice(offset, cStart));
+          children.push(marker(value.slice(offset, cStart), offset));
         }
         if (cEnd > lineStart && cStart < lineEnd) {
           children.push(renderNodeInLine(c, lineStart, lineEnd, value));
@@ -65,7 +72,7 @@ const compiler: Plugin<[], Root, ReactElement[]> = function () {
         offset = Math.max(offset, Math.min(cEnd, segEnd));
       }
       if (offset < segEnd) {
-        children.push(value.slice(offset, segEnd));
+        children.push(marker(value.slice(offset, segEnd), offset));
       }
     } else {
       children = [value.slice(segStart, segEnd)];
@@ -76,16 +83,42 @@ const compiler: Plugin<[], Root, ReactElement[]> = function () {
       case "emphasis":
         return <em key={segStart}>{children}</em>;
       case "delete":
-        return <del key={segStart}>{children}</del>;
+        return (
+          <del key={segStart} style={{ color: "#9aa2a8" }}>
+            {children}
+          </del>
+        );
       case "inlineCode":
         return (
-          <code key={segStart} style={{ backgroundColor: "#ccc" }}>
+          <code
+            key={segStart}
+            style={{
+              fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+              fontSize: "0.9em",
+              backgroundColor: "rgba(0, 0, 0, 0.07)",
+              borderRadius: 3,
+              padding: "1px 3px",
+            }}
+          >
+            {children}
+          </code>
+        );
+      case "code":
+        return (
+          <code
+            key={segStart}
+            style={{
+              fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+              fontSize: "0.9em",
+            }}
+          >
             {children}
           </code>
         );
       case "link":
+      case "image":
         return (
-          <span key={segStart} style={{ color: "#1976d2" }}>
+          <span key={segStart} style={{ color: "#0079d3" }}>
             {children}
           </span>
         );
@@ -93,10 +126,22 @@ const compiler: Plugin<[], Root, ReactElement[]> = function () {
         return (
           <blockquote
             key={segStart}
-            style={{ fontStyle: "italic", color: "#888" }}
+            style={{
+              display: "inline-block",
+              margin: 0,
+              borderLeft: "solid 3px #d0d7de",
+              paddingLeft: 8,
+              color: "#66757f",
+            }}
           >
             {children}
           </blockquote>
+        );
+      case "thematicBreak":
+        return (
+          <span key={segStart} style={{ color: "#c5c9cc" }}>
+            {children}
+          </span>
         );
       case "heading": {
         const Tag = `h${node.depth}` as const;
@@ -135,8 +180,17 @@ const compiler: Plugin<[], Root, ReactElement[]> = function () {
       if (offset < end) {
         contents.push(value.slice(offset, end));
       }
+      const inCodeBlock = nodes.some((n) => n.type === "code");
       result.push(
-        <div key={i} data-block>
+        <div
+          key={i}
+          data-block
+          style={
+            inCodeBlock
+              ? { backgroundColor: "#f6f7f8", padding: "0 8px" }
+              : undefined
+          }
+        >
           {contents.length ? contents : <br />}
         </div>,
       );
@@ -154,7 +208,7 @@ export default {
 export const WithRemark: StoryObj = {
   render: () => {
     const [text, setText] = useState(
-      "# Hello world\n\nThis text is markdown.\n*Emphasis*, **importance**, and ~~strikethrough~~.",
+      "# Hello world\n\nThis text is markdown.\n*Emphasis*, **importance**, and ~~strikethrough~~.\n\n> Quote with `inline code`.\n\n- List with a [link](https://example.com)\n\n```js\nconst code = 'block';\n```\n\n---",
     );
 
     const ref = useRef<HTMLDivElement>(null);
@@ -168,7 +222,21 @@ export const WithRemark: StoryObj = {
     }, []);
 
     return (
-      <div ref={ref} style={{ background: "white", padding: 2 }}>
+      <div
+        ref={ref}
+        style={{
+          background: "white",
+          border: "solid 1px #ccc",
+          borderRadius: 8,
+          maxWidth: 640,
+          minHeight: 160,
+          padding: 16,
+          fontFamily:
+            "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+          fontSize: 15,
+          lineHeight: 1.6,
+        }}
+      >
         {processor.processSync(text).result}
       </div>
     );
