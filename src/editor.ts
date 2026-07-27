@@ -10,7 +10,11 @@ import {
 import { createMutationObserver } from "./dom/mutation.js";
 import type { DocNode, Fragment, Selection } from "./doc/types.js";
 import { isFunction, isString, microtask } from "./utils.js";
-import { domSelectionToSelection, positionToOffset } from "./doc/node.js";
+import {
+  domSelectionToSelection,
+  positionToOffset,
+  sliceText,
+} from "./doc/node.js";
 import {
   applyOperation,
   type Operation,
@@ -24,6 +28,67 @@ import { historyPlugin } from "./plugins/history.js";
 import type { Parser } from "./dom/parser.js";
 
 const empty: unknown[] = [];
+
+const ZWJ = 0x200d;
+const KEYCAP = 0x20e3;
+// Variation selectors (text/emoji presentation).
+const isVariationSelector = (c: number) => c === 0xfe0e || c === 0xfe0f;
+// Regional indicators (flags) and emoji modifiers (skin tones).
+const isEmojiGlue = (c: number) =>
+  c === ZWJ ||
+  c === KEYCAP ||
+  isVariationSelector(c) ||
+  (c >= 0x1f1e6 && c <= 0x1f1ff) ||
+  (c >= 0x1f3fb && c <= 0x1f3ff);
+
+const codePointSizeAt = (text: string, i: number) =>
+  text.codePointAt(i)! > 0xffff ? 2 : 1;
+
+const lastCodePointSize = (text: string) => {
+  const c = text.charCodeAt(text.length - 1);
+  // A low surrogate means the last code point is a pair.
+  return c >= 0xdc00 && c <= 0xdfff && text.length > 1 ? 2 : 1;
+};
+
+/**
+ * Browsers expand backward/forward deletion to a whole grapheme cluster. For
+ * scripts whose clusters span several code points - Khmer and other Brahmic
+ * scripts, Thai, Hangul jamo, combining marks - that wipes out an entire
+ * syllable per keystroke, while users expect deletion to be per character.
+ *
+ * Narrow the range to a single code point, except for emoji sequences (ZWJ
+ * sequences, flags, skin tones, keycaps, variation selectors), which are only
+ * meaningful as a whole and so keep the browser's cluster range.
+ */
+const narrowDeletion = (
+  [start, end]: Selection,
+  text: string,
+  backward: boolean,
+): Selection => {
+  if (backward) {
+    const size = lastCodePointSize(text);
+    const last = text.codePointAt(text.length - size)!;
+    if (isEmojiGlue(last)) return [start, end];
+    // The trailing code point may be the tail of a ZWJ sequence.
+    if (text.length > size) {
+      const prevSize = lastCodePointSize(text.slice(0, -size));
+      if (isEmojiGlue(text.codePointAt(text.length - size - prevSize)!)) {
+        return [start, end];
+      }
+    }
+    return [Math.max(start, end - size), end];
+  }
+
+  const size = codePointSizeAt(text, 0);
+  // The leading code point may be the head of a ZWJ sequence.
+  if (
+    isEmojiGlue(text.codePointAt(0)!) ||
+    (text.length > size && isEmojiGlue(text.codePointAt(size)!))
+  ) {
+    return [start, end];
+  }
+  return [start, Math.min(end, start + size)];
+};
 
 const noop = () => {};
 
@@ -629,10 +694,22 @@ export const createEditor = <
           }
           const ops = inputTransaction[0];
 
-          const range = domSelectionToSelection(
+          let range = domSelectionToSelection(
             doc,
             serializeRange(element, parser, domRange),
           );
+          if (
+            (inputType === "deleteContentBackward" ||
+              inputType === "deleteContentForward") &&
+            isCollapsed(selection) &&
+            !isCollapsed(range)
+          ) {
+            range = narrowDeletion(
+              range,
+              sliceText(doc, range[0], range[1]),
+              inputType === "deleteContentBackward",
+            );
+          }
           if (!isCollapsed(range)) {
             // replace or delete
             ops.push({ type: "delete", range });

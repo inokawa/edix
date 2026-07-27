@@ -398,6 +398,45 @@ two !
   },
 };
 
+export const Khmer: StoryObj = {
+  render: () => {
+    const ref = useRef<HTMLDivElement>(null);
+    const [text, setText] = useState(`ភាសាខ្មែរ
+សូមស្វាគមន៍មកកាន់ប្រទេសកម្ពុជា។
+ស្រុក ខ្ញុំ ស្អាត ណាស់។`);
+    useEffect(() => {
+      if (!ref.current) return;
+      return createPlainEditor({
+        text: text,
+        onChange: setText,
+      }).input(ref.current);
+    }, []);
+    return (
+      <div>
+        <p>
+          Khmer syllables are single grapheme clusters made of several code
+          points (base + coeng + subscript + vowels/diacritics). Backspace
+          should remove one code point at a time, not the whole syllable.
+        </p>
+        <div
+          ref={ref}
+          style={{
+            backgroundColor: "white",
+            border: "solid 1px darkgray",
+            padding: 8,
+            fontSize: 20,
+            lineHeight: 1.8,
+          }}
+        >
+          {text.split("\n").map((r, i) => (
+            <div key={i}>{r ? r : <br />}</div>
+          ))}
+        </div>
+      </div>
+    );
+  },
+};
+
 export const Vertical: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
