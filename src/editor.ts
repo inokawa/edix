@@ -162,7 +162,11 @@ export type PasteHook = (
 ) => string | Fragment | null;
 
 type EditorHookMap = {
-  apply: (op: Operation, next: (op?: Operation) => void) => void;
+  /**
+   * Call `next(op)` to continue applying the operation, or `next()` with a nullish value to cancel it.
+   * If the hook returns without calling `next`, the operation is passed through as is.
+   */
+  apply: (op: Operation, next: (op?: Operation | null) => void) => void;
   mount: (element: HTMLElement, parser: Parser) => void | (() => void);
   keyboard: KeyboardHook;
   copy: CopyHook;
@@ -326,7 +330,7 @@ export const createEditor = <
         const i = index;
         applyHooks[index]!(op, next);
         if (i === index) {
-          next();
+          next(op);
         }
       } else if (index === length) {
         index++;
@@ -344,10 +348,13 @@ export const createEditor = <
       }
     };
 
-    const next = (o?: Operation): void => {
-      if (o) {
-        op = o;
+    const next = (o?: Operation | null): void => {
+      if (o == null) {
+        // cancel
+        index = length + 1;
+        return;
       }
+      op = o;
       index++;
       dispatch();
     };
