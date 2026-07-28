@@ -2,7 +2,7 @@ import { InferLeafBlockNode } from '../doc/types-infer.js';
 import { DocNode, Range } from '../doc/types.js';
 import { Editor } from '../editor.js';
 /**
- * A plugin to make specific blocks read-only, like block locking of WordPress.
+ * A plugin to make specific blocks read-only.
  *
  * Locked blocks can still be selected and copied, but operations editing them are cancelled,
  * except ones that unlock the block and ones targeting the root (e.g. undo / redo).
