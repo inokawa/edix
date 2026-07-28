@@ -58,7 +58,11 @@ export type CopyHook = (dataTransfer: DataTransfer) => void;
  */
 export type PasteHook = (dataTransfer: DataTransfer) => string | Fragment | null;
 type EditorHookMap = {
-    apply: (op: Operation, next: (op?: Operation) => void) => void;
+    /**
+     * Call `next(op)` to continue applying the operation, or `next()` with a nullish value to cancel it.
+     * If the hook returns without calling `next`, the operation is passed through as is.
+     */
+    apply: (op: Operation, next: (op?: Operation | null) => void) => void;
     mount: (element: HTMLElement, parser: Parser) => void | (() => void);
     keyboard: KeyboardHook;
     copy: CopyHook;
