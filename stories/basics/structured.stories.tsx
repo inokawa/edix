@@ -29,6 +29,7 @@ import {
   getNodeSize,
   InsertText,
   iterLeaves,
+  blockLockPlugin,
 } from "../../src";
 import * as v from "valibot";
 import { createPortal } from "react-dom";
@@ -1566,6 +1567,155 @@ export const Media: StoryObj = {
                   </video>
                 ) : null,
               )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  },
+};
+
+const lockSchema = v.strictObject({
+  children: v.array(
+    v.strictObject({
+      locked: v.optional(v.boolean()),
+      children: v.array(
+        v.strictObject({
+          text: v.string(),
+        }),
+      ),
+    }),
+  ),
+});
+
+export const BlockLock: StoryObj = {
+  render: () => {
+    const ref = useRef<HTMLDivElement>(null);
+
+    type Doc = v.InferOutput<typeof lockSchema>;
+    const [doc, setDoc] = useState<Doc>({
+      children: [
+        { children: [{ text: "You can edit this paragraph." }] },
+        {
+          locked: true,
+          children: [
+            {
+              text: "This paragraph is locked. You can select and copy it, but can't edit it.",
+            },
+          ],
+        },
+        { children: [{ text: "You can edit this paragraph too." }] },
+      ],
+    });
+    const [blockIndex, setBlockIndex] = useState<number | null>(null);
+
+    const editor = useMemo(() => {
+      const e = createEditor({
+        doc: doc,
+        schema: lockSchema,
+      })
+        .exec(internalTranferPlugin)
+        .exec(plainTransferPlugin)
+        .exec(blockLockPlugin, { isLocked: (b) => !!b.locked });
+      e.on("change", () => {
+        setDoc(e.doc);
+      });
+      e.on("selectionchange", () => {
+        setBlockIndex(getLeafBlockAt(e.doc, e.selection[0])[2][0] ?? null);
+      });
+      return e;
+    }, []);
+
+    useEffect(() => {
+      if (!ref.current) return;
+      return editor.input(ref.current);
+    }, []);
+
+    const locked = blockIndex != null && !!doc.children[blockIndex]?.locked;
+
+    return (
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "26px 1fr",
+          columnGap: 6,
+          rowGap: 8,
+          maxWidth: 640,
+          fontFamily:
+            '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+          fontSize: 14,
+          color: "#1e1e1e",
+          background: "#fff",
+          border: "1px solid #ddd",
+          borderRadius: 4,
+          padding: 16,
+          boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
+        }}
+      >
+        <style>{`
+          .lock-toggle:not([aria-pressed="true"]):hover { border-color: #757575; }
+        `}</style>
+        {blockIndex != null && (
+          <button
+            className="lock-toggle"
+            style={{
+              gridColumn: 1,
+              gridRow: blockIndex + 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 26,
+              height: 26,
+              marginTop: 2,
+              padding: 0,
+              fontSize: 13,
+              background: locked ? "#757575" : "#fff",
+              border: `1px solid ${locked ? "#757575" : "#ccc"}`,
+              borderRadius: 2,
+              cursor: "pointer",
+            }}
+            title={locked ? "Unlock this block" : "Lock this block"}
+            aria-pressed={locked}
+            onMouseDown={(e) => {
+              e.preventDefault();
+            }}
+            onClick={() => {
+              editor.exec(ToggleBlockAttr, "locked", true, undefined);
+            }}
+          >
+            🔒
+          </button>
+        )}
+        <div
+          ref={ref}
+          style={{
+            gridColumn: 2,
+            gridRow: `1 / span ${doc.children.length}`,
+            display: "grid",
+            gridTemplateRows: "subgrid",
+            outline: "none",
+          }}
+        >
+          {doc.children.map((b, i) => (
+            <div
+              key={i}
+              style={{
+                padding: "4px 8px",
+                borderRadius: 2,
+                lineHeight: 1.6,
+                ...(b.locked && {
+                  background: "#f6f7f7",
+                  boxShadow: "inset 0 0 0 1px #ddd",
+                }),
+                ...(i === blockIndex && {
+                  outline: "1.5px solid #007cba",
+                  outlineOffset: 1,
+                }),
+              }}
+            >
+              {b.children.map((n, j) => (
+                <span key={j}>{n.text || <br />}</span>
+              ))}
             </div>
           ))}
         </div>
