@@ -13,6 +13,7 @@ interface HistoryContext {
   redo: () => void;
   undoable: () => boolean;
   redoable: () => boolean;
+  clear: () => void;
 }
 
 /**
@@ -84,6 +85,13 @@ export function historyPlugin<T extends DocNode>(editor: Editor<T>) {
     }
   };
 
+  const clear = () => {
+    histories.length = 0;
+    histories.push([editor.doc, editor.selection, []]);
+    index = 0;
+    prevTime = 0;
+  };
+
   editor.hook("apply", (op, next) => {
     if (undoOrRedoing) return;
     const doc = editor.doc;
@@ -123,6 +131,7 @@ export function historyPlugin<T extends DocNode>(editor: Editor<T>) {
     redo,
     undoable: isUndoable,
     redoable: isRedoable,
+    clear,
   });
 }
 
@@ -152,4 +161,11 @@ export function Undoable(editor: Editor): boolean {
  */
 export function Redoable(editor: Editor): boolean {
   return editor.get<HistoryContext>(historyPlugin).redoable();
+}
+
+/**
+ * Clears the history and makes the current document its oldest state.
+ */
+export function ClearHistory(editor: Editor) {
+  editor.get<HistoryContext>(historyPlugin).clear();
 }

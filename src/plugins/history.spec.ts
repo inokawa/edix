@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import type { DocNode, Selection } from "../doc/types.js";
 import { createEditor } from "../editor.js";
-import { Redo, Undo } from "./history.js";
+import { ClearHistory, Redo, Redoable, Undo, Undoable } from "./history.js";
 import { getNodeSize } from "../doc/node.js";
 
 it("empty history", () => {
@@ -573,4 +573,41 @@ it("undo set root attr", () => {
   editor.exec(Redo);
   expect(editor.doc).toEqual(updatedDoc);
   expect(editor.selection).toEqual(selection);
+});
+
+it("clear history", () => {
+  const doc: DocNode = {
+    children: [
+      { children: [{ text: "abcde" }] },
+      { children: [{ text: "fghij" }] },
+    ],
+  };
+  const selection: Selection = [1, 1];
+  const editor = createEditor({ doc });
+  editor.selection = selection;
+
+  const text = "xyz";
+  editor.apply({ type: "insert_text", at: selection[0], text });
+  const updatedDoc: DocNode = {
+    children: [
+      { children: [{ text: "axyzbcde" }] },
+      { children: [{ text: "fghij" }] },
+    ],
+  };
+  expect(editor.doc).toEqual(updatedDoc);
+  expect(editor.exec(Undoable)).toBe(true);
+
+  editor.exec(ClearHistory);
+  expect(editor.exec(Undoable)).toBe(false);
+  expect(editor.exec(Redoable)).toBe(false);
+
+  // Undo no longer restores the state before the clear
+  editor.exec(Undo);
+  expect(editor.doc).toEqual(updatedDoc);
+
+  // The history restarts from the document at the time of the clear
+  editor.apply({ type: "insert_text", at: selection[0], text: "!" });
+  expect(editor.exec(Undoable)).toBe(true);
+  editor.exec(Undo);
+  expect(editor.doc).toEqual(updatedDoc);
 });

@@ -155,11 +155,13 @@ export type KeyboardHook = (keyboard: KeyboardEvent) => boolean | void;
 export type CopyHook = (dataTransfer: DataTransfer) => void;
 
 /**
- * Functions to handle paste / drop events
+ * Functions to handle paste / drop events.
+ *
+ * Return `true` if you want to stop propagation.
  */
 export type PasteHook = (
   dataTransfer: DataTransfer,
-) => string | Fragment | null;
+) => string | Fragment | true | null;
 
 type EditorHookMap = {
   /**
@@ -527,6 +529,9 @@ export const createEditor = <
         for (const ex of getHook("paste")) {
           const pasted = ex(dataTransfer);
           if (pasted) {
+            if (pasted === true) {
+              return;
+            }
             return pasted;
           }
         }
