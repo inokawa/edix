@@ -4,9 +4,9 @@
 
 # Function: scrollToSelectionPlugin()
 
-> **scrollToSelectionPlugin**(`editor`, `__namedParameters?`): `void`
+> **scrollToSelectionPlugin**(`editor`): `void`
 
-Defined in: [plugins/scrollToSelection.ts:162](https://github.com/inokawa/editate/blob/7c508f2c32131e9588a74862389536770c8bc3d9/src/plugins/scrollToSelection.ts#L162)
+Defined in: [plugins/scrollToSelection.ts:154](https://github.com/inokawa/editate/blob/6ccc8f579ec5b2bac90139fe1fe9a402ac5b9cd9/src/plugins/scrollToSelection.ts#L154)
 
 A plugin to scroll to the selection on document change.
 
@@ -15,10 +15,6 @@ A plugin to scroll to the selection on document change.
 ### editor
 
 [`Editor`](../interfaces/Editor.md)
-
-### \_\_namedParameters?
-
-`ScrollToSelectionOptions` = `{}`
 
 ## Returns
 
