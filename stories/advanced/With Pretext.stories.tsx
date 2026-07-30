@@ -4,7 +4,7 @@ import * as v from "valibot";
 import { layoutWithLines, prepareWithSegments } from "@chenglou/pretext";
 import {
   createEditor,
-  internalTranferPlugin,
+  internalTransferPlugin,
   plainTransferPlugin,
   scrollToSelectionPlugin,
   type Editor,
@@ -198,7 +198,7 @@ export const WithPretext: StoryObj = {
         isBlock: (n) => !!n.dataset.block,
       })
         .exec(scrollToSelectionPlugin)
-        .exec(internalTranferPlugin)
+        .exec(internalTransferPlugin)
         .exec(plainTransferPlugin);
       e.on("change", () => {
         setDoc(e.doc);

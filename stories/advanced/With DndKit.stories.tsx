@@ -12,7 +12,7 @@ import { arrayMove } from "@dnd-kit/helpers";
 import * as v from "valibot";
 import {
   createEditor,
-  internalTranferPlugin,
+  internalTransferPlugin,
   plainTransferPlugin,
   ReplaceDoc,
 } from "../../src";
@@ -136,7 +136,7 @@ const BlockEditor = () => {
       doc: doc,
       schema: dndSchema,
     })
-      .exec(internalTranferPlugin)
+      .exec(internalTransferPlugin)
       .exec(plainTransferPlugin);
     e.on("change", () => {
       setDoc(e.doc);

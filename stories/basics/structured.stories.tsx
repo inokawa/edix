@@ -15,7 +15,7 @@ import {
   InsertNode,
   ToggleBlockAttr,
   keymapPlugin,
-  internalTranferPlugin,
+  internalTransferPlugin,
   htmlTransferPlugin,
   plainTransferPlugin,
   fileTransferPlugin,
@@ -64,7 +64,7 @@ export const Empty: StoryObj = {
         doc: doc,
         schema: basicSchema,
       })
-        .exec(internalTranferPlugin)
+        .exec(internalTransferPlugin)
         .exec(plainTransferPlugin);
       e.on("change", () => {
         setDoc(e.doc);
@@ -268,7 +268,7 @@ export const RichText: StoryObj = {
             setMenuRect(null);
           }
         })
-        .exec(internalTranferPlugin)
+        .exec(internalTransferPlugin)
         .exec(plainTransferPlugin);
       e.on("change", () => {
         setDoc(e.doc);
@@ -490,7 +490,7 @@ export const Tag: StoryObj = {
         doc: doc,
         schema: tagSchema,
       })
-        .exec(internalTranferPlugin)
+        .exec(internalTransferPlugin)
         .exec(plainTransferPlugin, {
           voidToString: (node) => node.label,
         })
@@ -1257,7 +1257,7 @@ export const Comment: StoryObj = {
         doc: doc,
         schema: commentSchema,
       })
-        .exec(internalTranferPlugin)
+        .exec(internalTransferPlugin)
         .exec(plainTransferPlugin);
       e.on("change", () => {
         setDoc(e.doc);
@@ -1470,7 +1470,7 @@ export const Media: StoryObj = {
         doc: doc,
         schema: mediaSchema,
       })
-        .exec(internalTranferPlugin)
+        .exec(internalTransferPlugin)
         .exec(fileTransferPlugin, {
           "image/png": (file) => ({
             type: "image",
@@ -1614,7 +1614,7 @@ export const BlockLock: StoryObj = {
         doc: doc,
         schema: lockSchema,
       })
-        .exec(internalTranferPlugin)
+        .exec(internalTransferPlugin)
         .exec(plainTransferPlugin)
         .exec(blockLockPlugin, { isLocked: (b) => !!b.locked });
       e.on("change", () => {

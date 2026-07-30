@@ -7,7 +7,7 @@ const INTERNAL_COPY_KEY = "application/x-editate-editor";
 /**
  * A plugin to handle copying / pasting between editor instances
  */
-export function internalTranferPlugin(editor: Editor) {
+export function internalTransferPlugin(editor: Editor) {
   editor.hook("copy", (dataTransfer) => {
     dataTransfer.setData(
       INTERNAL_COPY_KEY,
