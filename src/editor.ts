@@ -16,7 +16,7 @@ import {
   type Operation,
   isUnsafeOperation,
   isValidSelection,
-  rebase,
+  mapPositionWithOps,
 } from "./doc/operation.js";
 import { createParser } from "./dom/index.js";
 import { isCollapsed, toRange } from "./doc/position.js";
@@ -729,13 +729,13 @@ export const createEditor = <
           const pasted = paste(dataTransfer);
           if (pasted) {
             const offset = positionToOffset(doc, droppedPosition);
-            const pos = rebase(offset, ops);
+            const pos = mapPositionWithOps(offset, ops);
             ops.push(
               isString(pasted)
                 ? { type: "insert_text", at: pos, text: pasted }
                 : { type: "insert_node", at: pos, fragment: pasted },
             );
-            afterSelection = [pos, rebase(offset, ops)];
+            afterSelection = [pos, mapPositionWithOps(offset, ops)];
           }
           apply(ops);
           if (afterSelection) {

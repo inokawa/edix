@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { applyOperation, isValidSelection } from "./operation.js";
+import {
+  applyOperation,
+  isValidSelection,
+  mapPosition,
+  type Operation,
+} from "./operation.js";
 import { type Selection } from "./types.js";
 import { getNodeSize } from "./node.js";
 
@@ -3356,5 +3361,79 @@ describe(isValidSelection.name, () => {
       ],
     };
     expect(isValidSelection(doc, [0, getNodeSize(doc)])).toBe(true);
+  });
+});
+
+describe(mapPosition.name, () => {
+  describe("insert_text", () => {
+    const op = (at: number): Operation => ({
+      type: "insert_text",
+      at,
+      text: "xy",
+    });
+
+    it("should move position after insertion before it", () => {
+      expect(mapPosition(5, op(3))).toBe(7);
+      expect(mapPosition(5, op(3))).toBe(7);
+    });
+
+    it("should keep position before insertion after it", () => {
+      expect(mapPosition(5, op(6))).toBe(5);
+      expect(mapPosition(5, op(6))).toBe(5);
+    });
+
+    it("should respect bias on insertion at the same position", () => {
+      expect(mapPosition(5, op(5))).toBe(7);
+      expect(mapPosition(5, op(5), true)).toBe(5);
+    });
+  });
+
+  describe("insert_node", () => {
+    const fragment = [{ children: [{ text: "xy" }] }];
+    const size = getNodeSize({ children: fragment });
+    const op = (at: number): Operation => ({
+      type: "insert_node",
+      at,
+      fragment,
+    });
+
+    it("should move position after insertion before it", () => {
+      expect(mapPosition(5, op(3))).toBe(5 + size);
+      expect(mapPosition(5, op(3))).toBe(5 + size);
+    });
+
+    it("should keep position before insertion after it", () => {
+      expect(mapPosition(5, op(6))).toBe(5);
+      expect(mapPosition(5, op(6))).toBe(5);
+    });
+
+    it("should respect bias on insertion at the same position", () => {
+      expect(mapPosition(5, op(5))).toBe(5 + size);
+      expect(mapPosition(5, op(5), true)).toBe(5);
+    });
+  });
+
+  describe("delete", () => {
+    const op = (start: number, end: number): Operation => ({
+      type: "delete",
+      range: [start, end],
+    });
+
+    it("should move position after deletion before it", () => {
+      expect(mapPosition(5, op(1, 3))).toBe(3);
+      expect(mapPosition(5, op(1, 3))).toBe(3);
+    });
+
+    it("should collapse position inside deleted range to its start", () => {
+      expect(mapPosition(5, op(3, 8))).toBe(3);
+      expect(mapPosition(5, op(3, 8))).toBe(3);
+      expect(mapPosition(5, op(5, 8))).toBe(5);
+      expect(mapPosition(5, op(3, 5))).toBe(3);
+    });
+
+    it("should keep position before deletion after it", () => {
+      expect(mapPosition(5, op(6, 8))).toBe(5);
+      expect(mapPosition(5, op(6, 8))).toBe(5);
+    });
   });
 });

@@ -1,5 +1,5 @@
 import { ReplaceDoc } from "../commands.js";
-import { rebase, type Operation } from "../doc/operation.js";
+import { mapPositionWithOps, type Operation } from "../doc/operation.js";
 import type { DocNode, Selection } from "../doc/types.js";
 import type { Editor } from "../editor.js";
 import { keymap } from "../keyboard.js";
@@ -76,7 +76,10 @@ export function historyPlugin<T extends DocNode>(editor: Editor<T>) {
       restore(doc);
       undoOrRedoing = false;
       if (currentDoc !== editor.doc) {
-        editor.selection = [rebase(sel[0], ops), rebase(sel[1], ops)];
+        editor.selection = [
+          mapPositionWithOps(sel[0], ops),
+          mapPositionWithOps(sel[1], ops),
+        ];
       }
     }
   };

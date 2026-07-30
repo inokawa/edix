@@ -232,11 +232,25 @@ const isValidPosition = (doc: DocNode, offset: number): boolean => {
   return offset >= 0 && offset <= getNodeSize(doc);
 };
 
-export const rebase = (position: number, ops: readonly Operation[]): number => {
-  return ops.reduce((acc, op) => rebasePosition(acc, op), position);
+/**
+ * @internal
+ */
+export const mapPositionWithOps = (
+  position: number,
+  ops: readonly Operation[],
+): number => {
+  return ops.reduce((acc, op) => mapPosition(acc, op), position);
 };
 
-const rebasePosition = (position: number, op: Operation): number => {
+/**
+ * Remap a position through the given operation.
+ * @param stickBefore `true` to keep the position in place when content is inserted at it, instead of moving it after the inserted content.
+ */
+export const mapPosition = (
+  position: number,
+  op: Operation,
+  stickBefore?: boolean,
+): number => {
   switch (op.type) {
     case OP_DELETE: {
       const [start, end] = op.range;
@@ -255,7 +269,7 @@ const rebasePosition = (position: number, op: Operation): number => {
     case OP_INSERT_TEXT: {
       const { at, text } = op;
 
-      if (position >= at) {
+      if (stickBefore ? position > at : position >= at) {
         // at <= position
         return position + text.length;
       }
@@ -264,7 +278,7 @@ const rebasePosition = (position: number, op: Operation): number => {
     case OP_INSERT_NODE: {
       const { at, fragment } = op;
 
-      if (position >= at) {
+      if (stickBefore ? position > at : position >= at) {
         // at <= position
         return position + getNodeSize({ children: fragment });
       }
@@ -278,7 +292,7 @@ const rebaseSelection = (
   [anchor, focus]: Selection,
   op: Operation,
 ): Selection => {
-  return [rebasePosition(anchor, op), rebasePosition(focus, op)];
+  return [mapPosition(anchor, op), mapPosition(focus, op)];
 };
 
 /**
