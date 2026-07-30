@@ -31,5 +31,9 @@ type PatchNodeOperation = Readonly<{
     value: unknown;
 }>;
 export type Operation = DeleteOperation | InsertTextOperation | InsertNodeOperation | FormatOperation | PatchNodeOperation;
-export declare const rebase: (position: number, ops: readonly Operation[]) => number;
+/**
+ * Remap a position through the given operation.
+ * @param stickBefore `true` to keep the position in place when content is inserted at it, instead of moving it after the inserted content.
+ */
+export declare const mapPosition: (position: number, op: Operation, stickBefore?: boolean) => number;
 export {};
