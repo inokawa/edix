@@ -48,6 +48,7 @@
     "@types/prismjs": "^1.26.6",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
+    "ai": "^7.0.42",
     "diff": "^9.0.0",
     "esbuild": "^0.28.0",
     "jsdom": "^29.1.1",
