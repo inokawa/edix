@@ -11,6 +11,7 @@ import {
   moveSelectionToOrigin,
   waitForStyleSet,
   sumLines,
+  NON_EDITABLE_PLACEHOLDER,
 } from "./editate";
 import {
   getEditable,
@@ -1188,9 +1189,10 @@ test.describe("Keydown", () => {
 
   test.describe("User defined shortcuts", () => {
     test("combobox", async ({ page }) => {
-      await page.goto(storyUrl("advanced-combobox--combobox"));
+      await page.goto(storyUrl("basics-structured--combobox"));
 
       const editable = await getEditable(page);
+      const initialValue = await getText(editable);
 
       await editable.focus();
 
@@ -1201,15 +1203,15 @@ test.describe("Keydown", () => {
 
       // Enter(but no-op)
       await page.keyboard.press("Enter");
-      expect(await getText(editable)).toEqual([textA]);
+      expect(await getText(editable)).toEqual([textA + initialValue[0]]);
 
       // Select item with Enter
       await page.keyboard.press("ArrowDown");
       await page.keyboard.press("Enter");
-      const updatedA = await getText(editable);
-      expect(updatedA).not.toEqual([textA]);
-      expect(updatedA[0].length).toBeGreaterThan(textA.length + 1);
-      expect(updatedA[0].toLowerCase().startsWith(textA)).toBe(true);
+      // the query is consumed and the selected item is inserted as a node
+      expect(await getText(editable)).toEqual([
+        initialValue[0] + NON_EDITABLE_PLACEHOLDER,
+      ]);
 
       // Delete all
       await page.keyboard.press("ControlOrMeta+A");
@@ -1219,14 +1221,10 @@ test.describe("Keydown", () => {
       const textB = "e";
       await type(editable, textB);
 
-      // Select item with Space
+      // Select item with Enter
       await page.keyboard.press("ArrowUp");
-      // TODO fix e2e to test Safari's wrong event order
-      await page.keyboard.press("Space");
-      const updatedB = await getText(editable);
-      expect(updatedB).not.toEqual([textB]);
-      expect(updatedB[0].length).toBeGreaterThan(textB.length + 1);
-      expect(updatedB[0].toLowerCase().startsWith(textB)).toBe(true);
+      await page.keyboard.press("Enter");
+      expect(await getText(editable)).toEqual([NON_EDITABLE_PLACEHOLDER]);
     });
   });
 });
