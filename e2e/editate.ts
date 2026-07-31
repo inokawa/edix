@@ -97,7 +97,10 @@ export const getText = async (
               text += domNode<typeof type>().data;
             } else if (type === TOKEN_VOID) {
               completeText();
-              row!.push(NON_EDITABLE_PLACEHOLDER);
+              if (!row) {
+                row = [];
+              }
+              row.push(NON_EDITABLE_PLACEHOLDER);
             } else if (type === TOKEN_SOFT_BREAK) {
               completeRow();
             }

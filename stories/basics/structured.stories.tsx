@@ -471,6 +471,43 @@ const TagRemoveButton = ({
   );
 };
 
+const TagChip = ({
+  label,
+  onLabelClick,
+  onRemove,
+}: {
+  label: string;
+  onLabelClick?: (e: React.MouseEvent) => void;
+  onRemove: (e: React.MouseEvent) => void;
+}) => {
+  return (
+    <span
+      contentEditable={false}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 4,
+        background: "#f0f0f0",
+        color: "#444",
+        border: "solid 1px #ccc",
+        fontSize: 12,
+        lineHeight: 1.5,
+        padding: "1px 4px 1px 8px",
+        borderRadius: 999,
+        margin: "0 2px",
+      }}
+    >
+      <span
+        style={{ cursor: onLabelClick ? "pointer" : undefined }}
+        onClick={onLabelClick}
+      >
+        {label}
+      </span>
+      <TagRemoveButton onClick={onRemove} />
+    </span>
+  );
+};
+
 export const Tag: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
@@ -542,54 +579,292 @@ export const Tag: StoryObj = {
             "text" in t ? (
               t.text || <br />
             ) : (
-              <span
+              <TagChip
                 key={j}
-                contentEditable={false}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 4,
-                  background: "#f0f0f0",
-                  color: "#444",
-                  border: "solid 1px #ccc",
-                  fontSize: 12,
-                  lineHeight: 1.5,
-                  padding: "1px 4px 1px 8px",
-                  borderRadius: 999,
-                  margin: "0 2px",
+                label={t.label}
+                onLabelClick={(e) => {
+                  e.preventDefault();
+                  const tagIndex = doc.children.indexOf(t);
+                  if (tagIndex === -1) return;
+                  const value = window.prompt("label:", t.label);
+                  if (!value) return;
+                  const offset = doc.children
+                    .slice(0, tagIndex + 1)
+                    .reduce((acc, n) => acc + getNodeSize(n), 0);
+                  editor.exec(SetVoidAttr, "label", value, offset);
                 }}
-              >
-                <span
-                  style={{ cursor: "pointer" }}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    const tagIndex = doc.children.indexOf(t);
-                    if (tagIndex === -1) return;
-                    const value = window.prompt("label:", t.label);
-                    if (!value) return;
-                    const offset = doc.children
-                      .slice(0, tagIndex + 1)
-                      .reduce((acc, n) => acc + getNodeSize(n), 0);
-                    editor.exec(SetVoidAttr, "label", value, offset);
-                  }}
-                >
-                  {t.label}
-                </span>
-                <TagRemoveButton
-                  onClick={(e) => {
-                    e.preventDefault();
-                    const tagIndex = doc.children.indexOf(t);
-                    if (tagIndex === -1) return;
-                    const start = doc.children
-                      .slice(0, tagIndex)
-                      .reduce((acc, n) => acc + getNodeSize(n), 0);
-                    editor.exec(Delete, [start, start + getNodeSize(t)]);
-                  }}
-                />
-              </span>
+                onRemove={(e) => {
+                  e.preventDefault();
+                  const tagIndex = doc.children.indexOf(t);
+                  if (tagIndex === -1) return;
+                  const start = doc.children
+                    .slice(0, tagIndex)
+                    .reduce((acc, n) => acc + getNodeSize(n), 0);
+                  editor.exec(Delete, [start, start + getNodeSize(t)]);
+                }}
+              />
             ),
           )}
         </div>
+      </div>
+    );
+  },
+};
+
+const ComboboxMenu = ({
+  items,
+  index,
+  selected,
+  onSelect,
+}: {
+  items: string[];
+  index: number;
+  selected: ReadonlySet<string>;
+  onSelect: (item: string) => void;
+}) => {
+  const ref = useRef<HTMLUListElement>(null);
+  useEffect(() => {
+    if (index === -1) return;
+    ref.current?.children[index]?.scrollIntoView({ block: "nearest" });
+  }, [index]);
+
+  return (
+    <ul
+      ref={ref}
+      style={{
+        position: "absolute",
+        zIndex: 1,
+        top: "100%",
+        left: 0,
+        right: 0,
+        maxHeight: 200,
+        overflowY: "auto",
+        margin: "2px 0 0",
+        padding: 0,
+        listStyleType: "none",
+        fontSize: 12,
+        background: "white",
+        border: "solid 1px #ccc",
+        borderRadius: 4,
+        cursor: "pointer",
+      }}
+    >
+      {items.length ? (
+        items.map((item, i) => (
+          <li
+            key={item}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "3px 8px",
+              ...(index === i && {
+                color: "white",
+                background: "#2A6AD3",
+              }),
+            }}
+            onMouseDown={(e) => {
+              // keep focus in the editor
+              e.preventDefault();
+              onSelect(item);
+            }}
+          >
+            <span style={{ width: 10 }}>{selected.has(item) ? "✓" : ""}</span>
+            {item}
+          </li>
+        ))
+      ) : (
+        <li style={{ padding: "3px 8px", color: "#999" }}>No results</li>
+      )}
+    </ul>
+  );
+};
+
+export const Combobox: StoryObj = {
+  render: () => {
+    const ref = useRef<HTMLDivElement>(null);
+
+    type Doc = v.InferOutput<typeof tagSchema>;
+    const [doc, setDoc] = useState<Doc>({
+      children: [
+        { type: "tag", label: "Luke Skywalker", value: "Luke Skywalker" },
+      ],
+    });
+    const [open, setOpen] = useState(false);
+    const [index, setIndex] = useState(-1);
+
+    const selected = useMemo(
+      (): ReadonlySet<string> =>
+        new Set(doc.children.flatMap((n) => ("text" in n ? [] : [n.value]))),
+      [doc],
+    );
+    const query = useMemo(() => sliceText(doc), [doc]);
+    const filtered = useMemo(() => {
+      const q = query.trim().toLowerCase();
+      return q
+        ? CHARACTERS.filter((c) => c.toLowerCase().includes(q))
+        : CHARACTERS;
+    }, [query]);
+
+    if (index > filtered.length - 1) {
+      setIndex(-1);
+    }
+
+    const toggle = (item: string) => {
+      const tagIndex = doc.children.findIndex(
+        (n) => !("text" in n) && n.value === item,
+      );
+      if (tagIndex !== -1) {
+        // remove the tag if it's already inserted
+        const start = doc.children
+          .slice(0, tagIndex)
+          .reduce((acc, n) => acc + getNodeSize(n), 0);
+        editor.exec(Delete, [
+          start,
+          start + getNodeSize(doc.children[tagIndex]!),
+        ]);
+      } else {
+        // consume the query and append the tag to the end
+        const ranges: [number, number][] = [];
+        let offset = 0;
+        for (const n of doc.children) {
+          const size = getNodeSize(n);
+          if ("text" in n && n.text) {
+            ranges.push([offset, offset + size]);
+          }
+          offset += size;
+        }
+        for (const range of ranges.reverse()) {
+          editor.exec(Delete, range);
+        }
+        editor.exec(
+          InsertNode,
+          { type: "tag", label: item, value: item },
+          offset - query.length,
+        );
+      }
+      setOpen(false);
+      setIndex(-1);
+    };
+
+    const onPrev = useEffectEvent(() => {
+      if (!open || !filtered.length) return false;
+      setIndex((prev) => (prev <= 0 ? filtered.length - 1 : prev - 1));
+    });
+    const onNext = useEffectEvent(() => {
+      if (!open || !filtered.length) return false;
+      setIndex((prev) => (prev >= filtered.length - 1 ? 0 : prev + 1));
+    });
+    const onComplete = useEffectEvent(() => {
+      if (!open || index === -1) return false;
+      toggle(filtered[index]!);
+    });
+    const onClose = useEffectEvent(() => {
+      if (!open) return false;
+      setOpen(false);
+      setIndex(-1);
+    });
+
+    const editor = useMemo(() => {
+      const e = createEditor({
+        doc: doc,
+        schema: tagSchema,
+      })
+        .exec(internalTransferPlugin)
+        .exec(plainTransferPlugin, {
+          voidToString: (node) => node.label,
+        })
+        .exec(singlelinePlugin)
+        .exec(keymapPlugin, {
+          ArrowUp: onPrev,
+          ArrowDown: onNext,
+          Enter: onComplete,
+          Escape: onClose,
+        });
+      e.on("change", () => {
+        setDoc(e.doc);
+        setOpen(!!sliceText(e.doc).trim());
+        setIndex(-1);
+      });
+      return e;
+    }, []);
+
+    useEffect(() => {
+      if (!ref.current) return;
+      return editor.input(ref.current);
+    }, []);
+
+    return (
+      <div
+        style={{ position: "relative", width: 320, fontSize: 13 }}
+        onBlur={() => {
+          setOpen(false);
+          setIndex(-1);
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            background: "white",
+            border: "solid 1px darkgray",
+            borderRadius: 4,
+          }}
+        >
+          <div
+            ref={ref}
+            style={{
+              flex: 1,
+              minWidth: 0,
+              padding: 6,
+              lineHeight: 2,
+            }}
+          >
+            {doc.children.map((t, j) =>
+              "text" in t ? (
+                t.text || <br />
+              ) : (
+                <TagChip
+                  key={j}
+                  label={t.label}
+                  onRemove={(e) => {
+                    e.preventDefault();
+                    toggle(t.value);
+                  }}
+                />
+              ),
+            )}
+          </div>
+          <button
+            style={{
+              alignSelf: "stretch",
+              padding: "0 6px",
+              border: "none",
+              borderLeft: "solid 1px #ddd",
+              background: "transparent",
+              cursor: "pointer",
+            }}
+            onMouseDown={(e) => {
+              // keep focus in the editor not to close the menu
+              e.preventDefault();
+            }}
+            onClick={() => {
+              ref.current?.focus();
+              setOpen((prev) => !prev);
+              setIndex(-1);
+            }}
+          >
+            ▾
+          </button>
+        </div>
+        {open && (
+          <ComboboxMenu
+            items={filtered}
+            index={index}
+            selected={selected}
+            onSelect={toggle}
+          />
+        )}
       </div>
     );
   },
