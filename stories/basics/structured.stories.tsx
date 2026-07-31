@@ -23,6 +23,7 @@ import {
   sliceText,
   Delete,
   type Editor,
+  getLeafAt,
   getLeafBlockAt,
   LeavesInRange,
   SetVoidAttr,
@@ -680,6 +681,15 @@ const ComboboxMenu = ({
   );
 };
 
+// the text just before the caret, which the suggestion is derived from
+const getQuery = (
+  doc: v.InferOutput<typeof tagSchema>,
+  caret: number,
+): string => {
+  const leaf = getLeafAt(doc, caret, true);
+  return leaf && "text" in leaf[0] ? leaf[0].text.slice(0, leaf[1]) : "";
+};
+
 export const Combobox: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
@@ -690,6 +700,7 @@ export const Combobox: StoryObj = {
         { type: "tag", label: "Luke Skywalker", value: "Luke Skywalker" },
       ],
     });
+    const [caret, setCaret] = useState(0);
     const [open, setOpen] = useState(false);
     const [index, setIndex] = useState(-1);
 
@@ -698,7 +709,7 @@ export const Combobox: StoryObj = {
         new Set(doc.children.flatMap((n) => ("text" in n ? [] : [n.value]))),
       [doc],
     );
-    const query = useMemo(() => sliceText(doc), [doc]);
+    const query = useMemo(() => getQuery(doc, caret), [doc, caret]);
     const filtered = useMemo(() => {
       const q = query.trim().toLowerCase();
       return q
@@ -724,23 +735,15 @@ export const Combobox: StoryObj = {
           start + getNodeSize(doc.children[tagIndex]!),
         ]);
       } else {
-        // consume the query and append the tag to the end
-        const ranges: [number, number][] = [];
-        let offset = 0;
-        for (const n of doc.children) {
-          const size = getNodeSize(n);
-          if ("text" in n && n.text) {
-            ranges.push([offset, offset + size]);
-          }
-          offset += size;
-        }
-        for (const range of ranges.reverse()) {
-          editor.exec(Delete, range);
+        // replace the query with the tag
+        const start = caret - query.length;
+        if (query) {
+          editor.exec(Delete, [start, caret]);
         }
         editor.exec(
           InsertNode,
           { type: "tag", label: item, value: item },
-          offset - query.length,
+          start,
         );
       }
       setOpen(false);
@@ -782,9 +785,14 @@ export const Combobox: StoryObj = {
           Escape: onClose,
         });
       e.on("change", () => {
+        const at = Math.min(...e.selection);
         setDoc(e.doc);
-        setOpen(!!sliceText(e.doc).trim());
+        setCaret(at);
+        setOpen(!!getQuery(e.doc, at).trim());
         setIndex(-1);
+      });
+      e.on("selectionchange", () => {
+        setCaret(Math.min(...e.selection));
       });
       return e;
     }, []);
