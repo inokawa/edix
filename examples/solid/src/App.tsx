@@ -1,13 +1,39 @@
-import { createMemo, createSignal, For, onCleanup, onMount } from "solid-js";
-import { createPlainEditor } from "editate";
+import { createSignal, For, onCleanup, onMount } from "solid-js";
+import { createEditor, plainTransferPlugin } from "editate";
+import * as z from "zod";
+
+const schema = z.strictObject({
+  children: z.array(
+    z.strictObject({
+      children: z.array(
+        z.strictObject({
+          text: z.string(),
+        }),
+      ),
+    }),
+  ),
+});
+
+type Doc = z.infer<typeof schema>;
+
+const initialDoc: Doc = {
+  children: [
+    { children: [{ text: "Hello world." }] },
+    { children: [{ text: "こんにちは。" }] },
+    { children: [{ text: "👍❤️🧑‍🧑‍🧒" }] },
+  ],
+};
 
 function App() {
   let ref: HTMLDivElement | undefined;
-  const [text, setText] = createSignal("Hello world.\nこんにちは。\n👍❤️🧑‍🧑‍🧒");
+  const [doc, setDoc] = createSignal<Doc>(initialDoc);
   onMount(() => {
-    const editor = createPlainEditor({
-      text: text(),
-      onChange: setText,
+    const editor = createEditor({
+      doc: initialDoc,
+      schema: schema,
+    }).exec(plainTransferPlugin);
+    editor.on("change", () => {
+      setDoc(editor.doc);
     });
     const dispose = editor.input(ref!);
     onCleanup(() => {
@@ -24,8 +50,14 @@ function App() {
         padding: "8px",
       }}
     >
-      <For each={createMemo(() => text().split("\n"))()}>
-        {(t) => <div>{t ? t : <br />}</div>}
+      <For each={doc().children}>
+        {(b) => (
+          <div>
+            <For each={b.children}>
+              {(n) => <span>{n.text || <br />}</span>}
+            </For>
+          </div>
+        )}
       </For>
     </div>
   );

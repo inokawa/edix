@@ -10,7 +10,8 @@
     "check": "svelte-check --tsconfig ./tsconfig.json && tsc -p tsconfig.node.json"
   },
   "dependencies": {
-    "editate": "0.6.20"
+    "editate": "0.6.20",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.2.0",

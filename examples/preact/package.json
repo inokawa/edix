@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "editate": "0.6.20",
-    "preact": "^10.29.7"
+    "preact": "^10.29.7",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.10.6",

@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "editate": "0.6.20",
-    "morphdom": "^2.7.8"
+    "morphdom": "^2.7.8",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "typescript": "^6.0.0",
