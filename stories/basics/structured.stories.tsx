@@ -27,6 +27,7 @@ import {
   getLeafBlockAt,
   LeavesInRange,
   SetVoidAttr,
+  getNodeOffset,
   getNodeSize,
   InsertText,
   iterLeaves,
@@ -585,22 +586,21 @@ export const Tag: StoryObj = {
                 label={t.label}
                 onLabelClick={(e) => {
                   e.preventDefault();
-                  const tagIndex = doc.children.indexOf(t);
-                  if (tagIndex === -1) return;
+                  const start = getNodeOffset(doc, t);
+                  if (start == null) return;
                   const value = window.prompt("label:", t.label);
                   if (!value) return;
-                  const offset = doc.children
-                    .slice(0, tagIndex + 1)
-                    .reduce((acc, n) => acc + getNodeSize(n), 0);
-                  editor.exec(SetVoidAttr, "label", value, offset);
+                  editor.exec(
+                    SetVoidAttr,
+                    "label",
+                    value,
+                    start + getNodeSize(t),
+                  );
                 }}
                 onRemove={(e) => {
                   e.preventDefault();
-                  const tagIndex = doc.children.indexOf(t);
-                  if (tagIndex === -1) return;
-                  const start = doc.children
-                    .slice(0, tagIndex)
-                    .reduce((acc, n) => acc + getNodeSize(n), 0);
+                  const start = getNodeOffset(doc, t);
+                  if (start == null) return;
                   editor.exec(Delete, [start, start + getNodeSize(t)]);
                 }}
               />
@@ -722,18 +722,11 @@ export const Combobox: StoryObj = {
     }
 
     const toggle = (item: string) => {
-      const tagIndex = doc.children.findIndex(
-        (n) => !("text" in n) && n.value === item,
-      );
-      if (tagIndex !== -1) {
+      const tag = doc.children.find((n) => !("text" in n) && n.value === item);
+      const start = tag && getNodeOffset(doc, tag);
+      if (tag && start != null) {
         // remove the tag if it's already inserted
-        const start = doc.children
-          .slice(0, tagIndex)
-          .reduce((acc, n) => acc + getNodeSize(n), 0);
-        editor.exec(Delete, [
-          start,
-          start + getNodeSize(doc.children[tagIndex]!),
-        ]);
+        editor.exec(Delete, [start, start + getNodeSize(tag)]);
       } else {
         // replace the query with the tag
         const start = caret - query.length;

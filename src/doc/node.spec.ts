@@ -3,6 +3,7 @@ import {
   getLeafBlockAt,
   getChildAt,
   getLeafAt,
+  getNodeOffset,
   getNodeSize,
   iterLeafBlocks,
   iterLeaves,
@@ -43,6 +44,87 @@ describe(getNodeSize.name, () => {
     ],
   ])(`$0`, (node, res) => {
     expect(getNodeSize(node)).toEqual(res);
+  });
+});
+
+describe(getNodeOffset.name, () => {
+  describe("inline children", () => {
+    const t0 = { text: "abc" };
+    const v0 = { foo: "bar" };
+    const t1 = { text: "" };
+    const t2 = { text: "de" };
+    const doc: DocNode = { children: [t0, v0, t1, t2] };
+    it.each<[Node, number]>([
+      [t0, 0],
+      [v0, 3],
+      [t1, 4],
+      [t2, 4],
+    ])(`$0`, (node, res) => {
+      expect(getNodeOffset(doc, node)).toEqual(res);
+    });
+
+    it("should not match a different node with the same shape", () => {
+      expect(getNodeOffset(doc, { text: "abc" })).toBeNull();
+    });
+  });
+
+  describe("block children", () => {
+    const t0 = { text: "abcd" };
+    const t1 = { text: "efghi" };
+    const t2 = { text: "jklmno" };
+    const doc: DocNode = {
+      children: [{ children: [t0] }, { children: [t1] }, { children: [t2] }],
+    };
+    const b0 = doc.children[0]!;
+    const b1 = doc.children[1]!;
+    const b2 = doc.children[2]!;
+    it.each<[Node, number]>([
+      [b0, 0],
+      [t0, 0],
+      [b1, 5],
+      [t1, 5],
+      [b2, 11],
+      [t2, 11],
+    ])(`$0`, (node, res) => {
+      expect(getNodeOffset(doc, node)).toEqual(res);
+    });
+
+    it("should return null if not found", () => {
+      expect(getNodeOffset(doc, { children: [t0] })).toBeNull();
+    });
+  });
+
+  describe("nested block children", () => {
+    const t00 = { text: "ab" };
+    const t01 = { text: "cd" };
+    const t10 = { text: "ef" };
+    const doc: DocNode = {
+      children: [
+        {
+          children: [{ children: [t00] }, { children: [t01] }],
+        },
+        {
+          children: [{ children: [t10] }],
+        },
+      ],
+    };
+    const b0 = doc.children[0]! as BlockNode;
+    const b00 = b0.children[0]!;
+    const b01 = b0.children[1]!;
+    const b1 = doc.children[1]! as BlockNode;
+    const b10 = b1.children[0]!;
+    it.each<[Node, number]>([
+      [b0, 0],
+      [b00, 0],
+      [t00, 0],
+      [b01, 3],
+      [t01, 3],
+      [b1, 6],
+      [b10, 6],
+      [t10, 6],
+    ])(`$0`, (node, res) => {
+      expect(getNodeOffset(doc, node)).toEqual(res);
+    });
   });
 });
 
