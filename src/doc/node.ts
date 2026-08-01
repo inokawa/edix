@@ -129,6 +129,33 @@ export const getLeafAt = <T extends DocNode | BlockNode>(
   return null;
 };
 
+export const getNodeOffset = (
+  root: DocNode | BlockNode,
+  target: Node,
+): number | null => {
+  // TODO optimize
+  let offset = 0;
+  let count = 0;
+  for (const child of root.children) {
+    const isBlock = isBlockNode(child);
+    if (isBlock && count !== 0) {
+      offset++;
+    }
+    if (child === target) {
+      return offset;
+    }
+    if (isBlock) {
+      const found = getNodeOffset(child, target);
+      if (found != null) {
+        return offset + found;
+      }
+    }
+    offset += getNodeSize(child);
+    count++;
+  }
+  return null;
+};
+
 /**
  * @internal
  */

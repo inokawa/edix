@@ -2,6 +2,7 @@ export {
   getChildAt,
   getLeafBlockAt,
   getLeafAt,
+  getNodeOffset,
   getNodeSize,
   iterLeafBlocks,
   iterLeaves,
