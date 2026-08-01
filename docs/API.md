@@ -9,6 +9,7 @@
 - [getChildAt](functions/getChildAt.md)
 - [getLeafBlockAt](functions/getLeafBlockAt.md)
 - [getLeafAt](functions/getLeafAt.md)
+- [getNodeOffset](functions/getNodeOffset.md)
 - [getNodeSize](functions/getNodeSize.md)
 - [iterLeafBlocks](functions/iterLeafBlocks.md)
 - [iterLeaves](functions/iterLeaves.md)
@@ -41,7 +42,7 @@
 - [fileTransferPlugin](functions/fileTransferPlugin.md)
 - [plainTransferPlugin](functions/plainTransferPlugin.md)
 - [htmlTransferPlugin](functions/htmlTransferPlugin.md)
-- [internalTranferPlugin](functions/internalTranferPlugin.md)
+- [internalTransferPlugin](functions/internalTransferPlugin.md)
 
 ## Interfaces
 
