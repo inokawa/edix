@@ -329,7 +329,7 @@ export const PromptBox: StoryObj = {
         <div
           ref={chatRef}
           style={{
-            height: 240,
+            height: 200,
             overflowY: "auto",
             display: "flex",
             flexDirection: "column",
@@ -415,7 +415,16 @@ export const PromptBox: StoryObj = {
               }}
             />
           )}
-          <div ref={ref} style={{ padding: 4, minHeight: 40, outline: "none" }}>
+          <div
+            ref={ref}
+            style={{
+              padding: 4,
+              minHeight: 40,
+              maxHeight: 100,
+              overflowY: "auto",
+              outline: "none",
+            }}
+          >
             {doc.children.map((r, i) => (
               <div key={i}>
                 {r.children.map((n, j) =>
