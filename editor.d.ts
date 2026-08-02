@@ -54,9 +54,11 @@ export type KeyboardHook = (keyboard: KeyboardEvent) => boolean | void;
  */
 export type CopyHook = (dataTransfer: DataTransfer) => void;
 /**
- * Functions to handle paste / drop events
+ * Functions to handle paste / drop events.
+ *
+ * Return `true` if you want to stop propagation.
  */
-export type PasteHook = (dataTransfer: DataTransfer) => string | Fragment | null;
+export type PasteHook = (dataTransfer: DataTransfer) => string | Fragment | true | null;
 type EditorHookMap = {
     /**
      * Call `next(op)` to continue applying the operation, or `next()` with a nullish value to cancel it.
