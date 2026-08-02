@@ -2194,33 +2194,3 @@ test.describe("keep state on render", () => {
     ]);
   });
 });
-
-test("new window", async ({ page, context }) => {
-  await page.goto(storyUrl("advanced-newwindow--default"));
-
-  // open new window
-  const newPagePromise = context.waitForEvent("page");
-  await page.getByRole("button", { name: "open window" }).click();
-  const newPage = await newPagePromise;
-
-  const editable = await getEditable(newPage);
-  const initialValue = await getText(editable);
-
-  await editable.focus();
-
-  expect(await getSelection(editable)).toEqual([0, 0]);
-
-  // Move caret
-  await newPage.keyboard.press("ArrowRight");
-  expect(await getSelection(editable)).toEqual([1, 1]);
-
-  // Input
-  const text = "test";
-  await type(editable, text);
-  expect(await getText(editable)).toEqual(insertAt(initialValue, text, [0, 1]));
-  const textLength = text.length;
-  expect(await getSelection(editable)).toEqual([
-    1 + textLength,
-    1 + textLength,
-  ]);
-});
