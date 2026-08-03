@@ -1838,33 +1838,136 @@ test.describe("keep selection on render", () => {
   });
 });
 
-test("rtl", async ({ page }) => {
-  await page.goto(storyUrl("basics-plain--rtl"));
+test.describe("rtl", () => {
+  test("edit", async ({ page }) => {
+    await page.goto(storyUrl("basics-plain--rtl"));
 
-  const editable = await getEditable(page);
-  const initialValue = await getText(editable);
+    const editable = await getEditable(page);
+    const initialValue = await getText(editable);
 
-  await editable.focus();
+    await editable.focus();
 
-  expect(await getSelection(editable)).toEqual([0, 0]);
+    expect(await getSelection(editable)).toEqual([0, 0]);
 
-  // Move caret
-  await page.keyboard.press("ArrowLeft");
-  expect(await getSelection(editable)).toEqual([1, 1]);
+    {
+      // Move caret. ArrowLeft runs forward through the model here, ArrowRight back
+      const len = 4;
+      await loop(len, () => page.keyboard.press("ArrowLeft"));
+      expect(await getSelection(editable)).toEqual([len, len]);
 
-  {
-    // Input
-    const text = "test";
-    await type(editable, text);
-    const textLength = text.length;
+      await loop(len, () => page.keyboard.press("ArrowRight"));
+      expect(await getSelection(editable)).toEqual([0, 0]);
+    }
+
+    const at = 3;
+    await loop(at, () => page.keyboard.press("ArrowLeft"));
+    expect(await getSelection(editable)).toEqual([at, at]);
+
+    // Delete. the character before the caret in the model sits to its visual right
+    await page.keyboard.press("Backspace");
+    const backspaced = deleteAt(initialValue, 1, [0, at - 1]);
+    expect(await getText(editable)).toEqual(backspaced);
+    expect(await getSelection(editable)).toEqual([at - 1, at - 1]);
+
+    await page.keyboard.press("Delete");
+    const deleted = deleteAt(backspaced, 1, [0, at - 1]);
+    expect(await getText(editable)).toEqual(deleted);
+    expect(await getSelection(editable)).toEqual([at - 1, at - 1]);
+
+    {
+      // Insert. latin into hebrew, so the caret ends past an opposite-direction run
+      const text = "test";
+      await type(editable, text);
+      const textLength = text.length;
+      expect(await getText(editable)).toEqual(
+        insertAt(deleted, text, [0, at - 1]),
+      );
+      expect(await getSelection(editable)).toEqual([
+        at - 1 + textLength,
+        at - 1 + textLength,
+      ]);
+    }
+  });
+
+  test("selection direction", async ({ page }) => {
+    await page.goto(storyUrl("basics-plain--rtl"));
+
+    const editable = await getEditable(page);
+
+    await editable.focus();
+
+    expect(await getSelection(editable)).toEqual([0, 0]);
+
+    const at = 6;
+    const len = 3;
+    await loop(at, () => page.keyboard.press("ArrowLeft"));
+    expect(await getSelection(editable)).toEqual([at, at]);
+
+    // chromium and webkit extend visually, firefox logically
+    await page.keyboard.press("Shift+ArrowRight");
+    const [, probed] = await getSelection(editable);
+    const back = probed < at ? "Shift+ArrowRight" : "Shift+ArrowLeft";
+    const forth = probed < at ? "Shift+ArrowLeft" : "Shift+ArrowRight";
+    await page.keyboard.press("Shift+ArrowLeft");
+    expect(await getSelection(editable)).toEqual([at, at]);
+
+    // the anchor stays put, and a focus behind it is reported backward
+    await loop(len, () => page.keyboard.press(back));
+    expect(await getSelection(editable)).toEqual([at, at - len]);
+
+    await loop(len, () => page.keyboard.press(forth));
+    expect(await getSelection(editable)).toEqual([at, at]);
+
+    await loop(len, () => page.keyboard.press(forth));
+    expect(await getSelection(editable)).toEqual([at, at + len]);
+  });
+
+  // a hebrew letter carrying niqqud is one caret stop spanning several units
+  test("combining marks", async ({ page }) => {
+    await page.goto(storyUrl("basics-plain--rtl"));
+
+    const editable = await getEditable(page);
+    const initialValue = await getText(editable);
+
+    await editable.focus();
+
+    expect(await getSelection(editable)).toEqual([0, 0]);
+
+    const line = 2;
+    const clusters = grapheme(initialValue[line]!);
+    const cluster = clusters.find((c) => c.length > 1);
+    expect(cluster).toBeTruthy();
+
+    const clusterIndex = clusters.indexOf(cluster!);
+    // every cluster before it is a single unit, so the index doubles as an offset
+    expect(clusters.slice(0, clusterIndex).every((c) => c.length === 1)).toBe(
+      true,
+    );
+
+    const lineStart = sumLines(initialValue, line - 1);
+    const offset = clusterIndex + cluster!.length;
+    const afterOffset = lineStart + offset;
+
+    await loop(line, () => page.keyboard.press("ArrowDown"));
+    expect(await getSelection(editable)).toEqual([lineStart, lineStart]);
+    await loop(clusterIndex + 1, () => page.keyboard.press("ArrowLeft"));
+    expect(await getSelection(editable)).toEqual([afterOffset, afterOffset]);
+
+    // insert
+    const char = "a";
+    await type(editable, char);
     expect(await getText(editable)).toEqual(
-      insertAt(initialValue, text, [0, 1]),
+      insertAt(initialValue, char, [line, offset]),
     );
     expect(await getSelection(editable)).toEqual([
-      1 + textLength,
-      1 + textLength,
+      afterOffset + 1,
+      afterOffset + 1,
     ]);
-  }
+    // delete
+    await page.keyboard.press("Backspace");
+    expect(await getText(editable)).toEqual(initialValue);
+    expect(await getSelection(editable)).toEqual([afterOffset, afterOffset]);
+  });
 });
 
 test.describe("emoji", () => {
