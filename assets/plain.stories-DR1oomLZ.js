@@ -1,4 +1,4 @@
-import{c as e,i as t}from"./preload-helper-usAeo7Bx.js";import{C as n}from"./iframe-j_bRAxOU.js";import{t as r}from"./jsx-runtime-O9QVJvLM.js";import{A as i,D as a,E as o,N as s,O as c,T as l,n as u,t as d}from"./src-Bf9ZHbOL.js";var f,p,m,h,g,_,v,y,b,x,S,C,w;t((()=>{f=e(n()),d(),p=r(),m={component:u},h={render:()=>{let e=(0,f.useRef)(null),[t,n]=(0,f.useState)(`Hello world.
+import{c as e,i as t}from"./preload-helper-usAeo7Bx.js";import{C as n}from"./iframe-CtRAUZvo.js";import{t as r}from"./jsx-runtime-O9QVJvLM.js";import{A as i,D as a,E as o,N as s,O as c,T as l,n as u,t as d}from"./src-Bf9ZHbOL.js";var f,p,m,h,g,_,v,y,b,x,S,C,w;t((()=>{f=e(n()),d(),p=r(),m={component:u},h={render:()=>{let e=(0,f.useRef)(null),[t,n]=(0,f.useState)(`Hello world.
 こんにちは。
 👍❤️🧑‍🧑‍🧒`);return(0,f.useEffect)(()=>{if(e.current)return u({text:t,onChange:n}).input(e.current)},[]),(0,p.jsx)(`div`,{ref:e,style:{backgroundColor:`white`,border:`solid 1px darkgray`,padding:8},children:t.split(`
 `).map((e,t)=>(0,p.jsx)(`div`,{children:e||(0,p.jsx)(`br`,{})},t))})}},g={render:()=>{let e=(0,f.useRef)(null),[t,n]=(0,f.useState)(`Hello world.`);return(0,f.useEffect)(()=>{if(e.current)return u({text:t,singleline:!0,onChange:n}).input(e.current)},[]),(0,p.jsx)(`div`,{ref:e,style:{backgroundColor:`white`,border:`solid 1px darkgray`,padding:8},children:t||(0,p.jsx)(`br`,{})})}},_={render:()=>{let e=(0,f.useRef)(null),[t,n]=(0,f.useState)(`Hello world.`),r=(0,f.useMemo)(()=>u({text:t,singleline:!0,onChange:n}),[]),[i,a]=(0,f.useState)(r.readonly);return(0,f.useEffect)(()=>{if(!e.current)return;let t=r.input(e.current),n=r.on(`readonly`,()=>{a(r.readonly)});return()=>{t(),n()}},[]),(0,p.jsxs)(`div`,{children:[(0,p.jsx)(`div`,{children:(0,p.jsx)(`button`,{onClick:()=>{r.readonly=!i},children:i?`editable`:`readonly`})}),(0,p.jsx)(`div`,{ref:e,style:{background:`white`,color:i?`gray`:void 0},children:t||(0,p.jsx)(`br`,{})})]})}},v={render:()=>{let e=(0,f.useRef)(null),[t,n]=(0,f.useState)(``);return(0,f.useEffect)(()=>{if(e.current)return u({text:t,singleline:!0,onChange:n}).input(e.current)},[]),(0,p.jsxs)(p.Fragment,{children:[(0,p.jsx)(`div`,{ref:e,style:{backgroundColor:`white`,border:`solid 1px darkgray`,padding:8},"aria-placeholder":`Enter some text...`,children:t}),(0,p.jsx)(`style`,{children:`
@@ -14,9 +14,9 @@ import{c as e,i as t}from"./preload-helper-usAeo7Bx.js";import{C as n}from"./ifr
 `).map((e,t)=>(0,p.jsx)(`div`,{children:e||(0,p.jsx)(`br`,{})},t))})]})}},x={render:()=>{let e=(0,f.useRef)(null),[t,n]=(0,f.useState)(`Hello world.
 こんにちは。
 👍❤️🧑‍🧑‍🧒`);return(0,f.useEffect)(()=>{if(e.current)return u({text:t,isBlock:e=>!!e.dataset.line,onChange:n}).input(e.current)},[]),(0,p.jsx)(`div`,{ref:e,style:{backgroundColor:`white`,border:`solid 1px darkgray`,padding:8},children:t.split(`
-`).map((e,t)=>(0,p.jsx)(`span`,{"data-line":!0,style:{display:`block`},children:e||(0,p.jsx)(`br`,{})},t))})}},S={render:()=>{let e=(0,f.useRef)(null),[t,n]=(0,f.useState)(`אחד !
-two !
-שְׁלוֹשָׁה !`);return(0,f.useEffect)(()=>{if(e.current)return u({text:t,onChange:n}).input(e.current)},[]),(0,p.jsx)(`div`,{ref:e,style:{direction:`rtl`,background:`white`},children:t.split(`
+`).map((e,t)=>(0,p.jsx)(`span`,{"data-line":!0,style:{display:`block`},children:e||(0,p.jsx)(`br`,{})},t))})}},S={render:()=>{let e=(0,f.useRef)(null),[t,n]=(0,f.useState)(`היום התחלתי לכתוב מסמך חדש בעורך הזה.
+עורך הטקסט הזה תומך בכתיבה דו־כיוונית לפי תקן Unicode.
+המסמך כולל 3 פסקאות, וגם מעט ניקוד: שָׁלוֹם.`);return(0,f.useEffect)(()=>{if(e.current)return u({text:t,onChange:n}).input(e.current)},[]),(0,p.jsx)(`div`,{ref:e,style:{direction:`rtl`,background:`white`},children:t.split(`
 `).map((e,t)=>(0,p.jsx)(`div`,{children:e||(0,p.jsx)(`br`,{})},t))})}},C={render:()=>{let e=(0,f.useRef)(null),[t,n]=(0,f.useState)(`春は、あけぼの。やうやうしろくなりゆく山ぎは、すこし明かりて、紫だちたる雲の、細くたなびきたる。
 夏は、夜。月のころはさらなり。闇もなほ、蛍の多く飛びちがひたる。また、ただ一つ二つなど、ほのかにうち光りて行くも、をかし。雨など降るも、をかし。
 秋は、夕暮。夕日のさして、山の端いと近うなりたるに、烏の寝どころへ行くとて、三つ四つ、二つ三つなど、飛びいそぐさへあはれなり。まいて、雁などのつらねたるが、いと小さく見ゆるは、いとをかし。日入りはてて、風の音、虫の音など、はた、言ふべきにあらず。
@@ -265,9 +265,9 @@ two !
 }`,...x.parameters?.docs?.source}}},S.parameters={...S.parameters,docs:{...S.parameters?.docs,source:{originalSource:`{
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
-    const [text, setText] = useState(\`אחד !
-two !
-שְׁלוֹשָׁה !\`);
+    const [text, setText] = useState(\`היום התחלתי לכתוב מסמך חדש בעורך הזה.
+עורך הטקסט הזה תומך בכתיבה דו־כיוונית לפי תקן Unicode.
+המסמך כולל 3 פסקאות, וגם מעט ניקוד: שָׁלוֹם.\`);
     useEffect(() => {
       if (!ref.current) return;
       return createPlainEditor({
