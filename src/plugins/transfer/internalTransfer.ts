@@ -2,21 +2,28 @@ import { sliceFragment } from "../../doc/node.js";
 import { toRange } from "../../doc/position.js";
 import type { Editor } from "../../editor.js";
 
-const INTERNAL_COPY_KEY = "application/x-editate-editor";
-
 /**
  * A plugin to handle copying / pasting between editor instances
+ *
+ * @param options.mime A MIME type to store the copied fragment in clipboard. Give an app specific one if the schema is not shared with other editate based apps.
+ * @defaultValue `"application/x-editate-editor"`
  */
-export function internalTransferPlugin(editor: Editor) {
+export function internalTransferPlugin(
+  editor: Editor,
+  options?: {
+    mime?: string;
+  },
+) {
+  const mime = (options && options.mime) || "application/x-editate-editor";
   editor.hook("copy", (dataTransfer) => {
     dataTransfer.setData(
-      INTERNAL_COPY_KEY,
+      mime,
       JSON.stringify(sliceFragment(editor.doc, ...toRange(editor.selection))),
     );
   });
   editor.hook("paste", (dataTransfer) => {
     try {
-      return JSON.parse(dataTransfer.getData(INTERNAL_COPY_KEY));
+      return JSON.parse(dataTransfer.getData(mime));
     } catch (e) {
       return null;
     }
