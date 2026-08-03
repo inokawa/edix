@@ -6,7 +6,7 @@
 
 > **SetVoidAttr**\<`T`, `N`, `K`\>(`editor`, `key`, `value`, `offset?`): `void`
 
-Defined in: [commands.ts:173](https://github.com/inokawa/editate/blob/23457c97437b4d055c99e179979ffe00cd982206/src/commands.ts#L173)
+Defined in: [commands.ts:173](https://github.com/inokawa/editate/blob/480372a69e3803fb03d455ffd631e93f7caee210/src/commands.ts#L173)
 
 Set attr to a void node at the caret or specified position.
 

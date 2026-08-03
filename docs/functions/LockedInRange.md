@@ -6,7 +6,7 @@
 
 > **LockedInRange**(`editor`, `range?`): `boolean`
 
-Defined in: [plugins/blockLock.ts:126](https://github.com/inokawa/editate/blob/23457c97437b4d055c99e179979ffe00cd982206/src/plugins/blockLock.ts#L126)
+Defined in: [plugins/blockLock.ts:126](https://github.com/inokawa/editate/blob/480372a69e3803fb03d455ffd631e93f7caee210/src/plugins/blockLock.ts#L126)
 
 Check if the selection or specified range touches a locked block, which means editing operations on it will be cancelled.
 

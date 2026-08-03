@@ -6,7 +6,7 @@
 
 > **blockLockPlugin**\<`T`\>(`editor`, `options`): `void`
 
-Defined in: [plugins/blockLock.ts:23](https://github.com/inokawa/editate/blob/23457c97437b4d055c99e179979ffe00cd982206/src/plugins/blockLock.ts#L23)
+Defined in: [plugins/blockLock.ts:23](https://github.com/inokawa/editate/blob/480372a69e3803fb03d455ffd631e93f7caee210/src/plugins/blockLock.ts#L23)
 
 A plugin to make specific blocks read-only.
 

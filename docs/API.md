@@ -36,6 +36,7 @@
 - [Redo](functions/Redo.md)
 - [Undoable](functions/Undoable.md)
 - [Redoable](functions/Redoable.md)
+- [ClearHistory](functions/ClearHistory.md)
 - [scrollToSelectionPlugin](functions/scrollToSelectionPlugin.md)
 - [selectionRectPlugin](functions/selectionRectPlugin.md)
 - [singlelinePlugin](functions/singlelinePlugin.md)

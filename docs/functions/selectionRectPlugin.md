@@ -6,7 +6,7 @@
 
 > **selectionRectPlugin**(`editor`, `onSelectionChange`): `void`
 
-Defined in: [plugins/selectionRect.ts:7](https://github.com/inokawa/editate/blob/23457c97437b4d055c99e179979ffe00cd982206/src/plugins/selectionRect.ts#L7)
+Defined in: [plugins/selectionRect.ts:7](https://github.com/inokawa/editate/blob/480372a69e3803fb03d455ffd631e93f7caee210/src/plugins/selectionRect.ts#L7)
 
 A plugin to get the bounding rect of selection on selection change
 
