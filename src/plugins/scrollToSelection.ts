@@ -18,9 +18,12 @@ const getBounds = (
   start + size - resolveScrollPadding(paddingEnd, size),
 ];
 
+const isScrollable = (overflow: string): boolean =>
+  overflow === "auto" || overflow === "scroll" || overflow === "overlay";
+
 // Resolved once on mount, so this keys off the authored overflow rather than
-// whether the element currently overflows, which depends on the content. One
-// axis is enough: `visible` computes to `auto` once the other axis scrolls.
+// whether the element currently overflows, which depends on the content. Both
+// axes matter: a vertical writing mode scrolls along x.
 // body/documentElement are left to the viewport scroll.
 const getNearestScrollParent = (
   root: HTMLElement,
@@ -30,12 +33,8 @@ const getNearestScrollParent = (
   const { body, documentElement } = document;
   let element: HTMLElement | null = root;
   while (element && element !== body && element !== documentElement) {
-    const { overflowY } = window.getComputedStyle(element);
-    if (
-      overflowY === "auto" ||
-      overflowY === "scroll" ||
-      overflowY === "overlay"
-    ) {
+    const { overflowX, overflowY } = window.getComputedStyle(element);
+    if (isScrollable(overflowX) || isScrollable(overflowY)) {
       return element;
     }
     element = element.parentElement;
@@ -50,16 +49,40 @@ const overflow = (
 ): number =>
   start < boundStart ? start - boundStart : end > boundEnd ? end - boundEnd : 0;
 
+// An axis flowing back toward the scroll origin is reached through negative
+// offsets, so scrollLeft runs [-scrollable, 0] under `rtl` or `vertical-rl`.
+const isReversed = (style: CSSStyleDeclaration): [x: boolean, y: boolean] => {
+  const rtl = style.direction === "rtl";
+  switch (style.writingMode) {
+    case "vertical-rl":
+    case "sideways-rl":
+      return [true, rtl];
+    case "vertical-lr":
+      return [false, rtl];
+    // the one mode whose inline axis runs bottom-to-top while `ltr`
+    case "sideways-lr":
+      return [false, !rtl];
+    default:
+      return [rtl, false];
+  }
+};
+
 // Clamping keeps the applied offset known without reading back the scroll
 // position, which stays stale during a smooth scroll.
-const clamp = (diff: number, scrolled: number, scrollable: number): number =>
-  Math.max(-scrolled, Math.min(diff, scrollable - scrolled));
+const clamp = (
+  diff: number,
+  scrolled: number,
+  scrollable: number,
+  reversed: boolean,
+): number => {
+  const min = reversed ? -scrollable : 0;
+  return Math.max(min - scrolled, Math.min(diff, min + scrollable - scrolled));
+};
 
-const scrollElement = (
-  window: Window,
+const measureElement = (
   scroller: HTMLElement,
+  style: CSSStyleDeclaration,
   rect: DOMRect,
-  behavior: ScrollBehavior,
 ): [x: number, y: number] => {
   const {
     scrollLeft,
@@ -72,7 +95,7 @@ const scrollElement = (
     clientHeight,
   } = scroller;
   const box = scroller.getBoundingClientRect();
-  const style = window.getComputedStyle(scroller);
+  const [reversedX, reversedY] = isReversed(style);
 
   // The scrollport is the padding box minus scrollbars, which is what client*
   // describe. The border box would count borders and scrollbars as visible.
@@ -89,6 +112,7 @@ const scrollElement = (
     ),
     scrollTop,
     scrollHeight - clientHeight,
+    reversedY,
   );
   const left = clamp(
     overflow(
@@ -103,24 +127,20 @@ const scrollElement = (
     ),
     scrollLeft,
     scrollWidth - clientWidth,
+    reversedX,
   );
 
-  if (top || left) {
-    scroller.scrollBy({ top, left, behavior });
-  }
   return [left, top];
 };
 
-const scrollWindow = (
-  window: Window,
+const measureWindow = (
+  documentElement: HTMLElement,
+  style: CSSStyleDeclaration,
   rect: DOMRect,
   [x, y]: [x: number, y: number],
-  behavior: ScrollBehavior,
-): void => {
-  const { documentElement } = window.document;
+): [x: number, y: number] => {
   // not innerWidth/Height, which include the scrollbars
   const { clientWidth, clientHeight } = documentElement;
-  const style = window.getComputedStyle(documentElement);
 
   const top = overflow(
     rect.top - y,
@@ -143,8 +163,16 @@ const scrollWindow = (
     ),
   );
 
+  return [left, top];
+};
+
+const scrollBy = (
+  target: Window | HTMLElement,
+  [left, top]: [x: number, y: number],
+  behavior: ScrollBehavior,
+): void => {
   if (top || left) {
-    window.scrollBy({ top, left, behavior });
+    target.scrollBy({ top, left, behavior });
   }
 };
 
@@ -156,7 +184,11 @@ export const scrollToSelectionPlugin = (editor: Editor) => {
   editor.hook("mount", (element, parser) => {
     const document = getCurrentDocument(element);
     const window = document.defaultView!;
+    const { documentElement } = document;
     const scroller = getNearestScrollParent(element, document, window);
+    // live declarations, so the lookup is paid once but the values stay current
+    const scrollerStyle = scroller && window.getComputedStyle(scroller);
+    const rootStyle = window.getComputedStyle(documentElement);
 
     let timer: ReturnType<typeof setTimeout> | null = null;
     // Moving the caret reveals it natively, leaving only document changes
@@ -173,9 +205,10 @@ export const scrollToSelectionPlugin = (editor: Editor) => {
           editor.selection,
         );
         let rect = range.getBoundingClientRect();
-        if (!rect.height) {
-          // A collapsed range around a `<br>` reports an empty rect at (0, 0),
-          // which would scroll toward the top of the document
+        // A collapsed range around a `<br>` reports an empty rect at (0, 0),
+        // which would scroll toward the start of the document. A caret itself
+        // is flat on one axis only, on y in a vertical writing mode.
+        if (!rect.width && !rect.height) {
           const node = range.startContainer;
           const el = isElementNode(node) ? node : node.parentElement;
           if (el) {
@@ -187,12 +220,24 @@ export const scrollToSelectionPlugin = (editor: Editor) => {
         // viewport-relative, so fitting the caret in the scroller does not put
         // it on screen; scrolling the scroller shifts those coords, hence
         // subtracting the applied offset. The reverse never holds, so one pass
-        // converges. Only the nearest scroller is walked.
-        const scrolled: [number, number] = scroller
-          ? scrollElement(window, scroller, rect, behavior)
-          : [0, 0];
+        // converges. Only the nearest scroller is walked. Both passes measure
+        // before either scrolls, since a scroll would invalidate layout and
+        // force the later measurements to lay out again.
+        const scrolled: [number, number] =
+          scroller && scrollerStyle
+            ? measureElement(scroller, scrollerStyle, rect)
+            : [0, 0];
+        const scrolledWindow = measureWindow(
+          documentElement,
+          rootStyle,
+          rect,
+          scrolled,
+        );
 
-        scrollWindow(window, rect, scrolled, behavior);
+        if (scroller) {
+          scrollBy(scroller, scrolled, behavior);
+        }
+        scrollBy(window, scrolledWindow, behavior);
       }, 50);
     });
 
