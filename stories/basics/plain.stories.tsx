@@ -372,9 +372,9 @@ export const SpanAsBlock: StoryObj = {
 export const Rtl: StoryObj = {
   render: () => {
     const ref = useRef<HTMLDivElement>(null);
-    const [text, setText] = useState(`אחד !
-two !
-שְׁלוֹשָׁה !`);
+    const [text, setText] = useState(`היום התחלתי לכתוב מסמך חדש בעורך הזה.
+עורך הטקסט הזה תומך בכתיבה דו־כיוונית לפי תקן Unicode.
+המסמך כולל 3 פסקאות, וגם מעט ניקוד: שָׁלוֹם.`);
     useEffect(() => {
       if (!ref.current) return;
       return createPlainEditor({
