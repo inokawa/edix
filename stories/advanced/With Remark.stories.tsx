@@ -53,6 +53,7 @@ const compiler: Plugin<[], Root, ReactElement[]> = function () {
     lineStart: number,
     lineEnd: number,
     value: string,
+    key: number,
   ): ReactNode => {
     const [start, end] = getRange(node);
     const segStart = Math.max(start, lineStart);
@@ -64,34 +65,36 @@ const compiler: Plugin<[], Root, ReactElement[]> = function () {
       for (const c of node.children) {
         const [cStart, cEnd] = getRange(c);
         if (offset < cStart && cStart < segEnd) {
-          children.push(marker(value.slice(offset, cStart), offset));
+          children.push(marker(value.slice(offset, cStart), children.length));
         }
         if (cEnd > lineStart && cStart < lineEnd) {
-          children.push(renderNodeInLine(c, lineStart, lineEnd, value));
+          children.push(
+            renderNodeInLine(c, lineStart, lineEnd, value, children.length),
+          );
         }
         offset = Math.max(offset, Math.min(cEnd, segEnd));
       }
       if (offset < segEnd) {
-        children.push(marker(value.slice(offset, segEnd), offset));
+        children.push(marker(value.slice(offset, segEnd), children.length));
       }
     } else {
       children = [value.slice(segStart, segEnd)];
     }
     switch (node.type) {
       case "strong":
-        return <strong key={segStart}>{children}</strong>;
+        return <strong key={key}>{children}</strong>;
       case "emphasis":
-        return <em key={segStart}>{children}</em>;
+        return <em key={key}>{children}</em>;
       case "delete":
         return (
-          <del key={segStart} style={{ color: "#9aa2a8" }}>
+          <del key={key} style={{ color: "#9aa2a8" }}>
             {children}
           </del>
         );
       case "inlineCode":
         return (
           <code
-            key={segStart}
+            key={key}
             style={{
               fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
               fontSize: "0.9em",
@@ -106,7 +109,7 @@ const compiler: Plugin<[], Root, ReactElement[]> = function () {
       case "code":
         return (
           <code
-            key={segStart}
+            key={key}
             style={{
               fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
               fontSize: "0.9em",
@@ -118,14 +121,14 @@ const compiler: Plugin<[], Root, ReactElement[]> = function () {
       case "link":
       case "image":
         return (
-          <span key={segStart} style={{ color: "#0079d3" }}>
+          <span key={key} style={{ color: "#0079d3" }}>
             {children}
           </span>
         );
       case "blockquote":
         return (
           <blockquote
-            key={segStart}
+            key={key}
             style={{
               display: "inline-block",
               margin: 0,
@@ -139,14 +142,14 @@ const compiler: Plugin<[], Root, ReactElement[]> = function () {
         );
       case "thematicBreak":
         return (
-          <span key={segStart} style={{ color: "#c5c9cc" }}>
+          <span key={key} style={{ color: "#c5c9cc" }}>
             {children}
           </span>
         );
       case "heading": {
         const Tag = `h${node.depth}` as const;
         return (
-          <Tag key={segStart} style={{ display: "inline" }}>
+          <Tag key={key} style={{ display: "inline" }}>
             {children}
           </Tag>
         );
@@ -173,7 +176,9 @@ const compiler: Plugin<[], Root, ReactElement[]> = function () {
           contents.push(value.slice(offset, segStart));
         }
         if (segStart < segEnd) {
-          contents.push(renderNodeInLine(n, start, end, value));
+          contents.push(
+            renderNodeInLine(n, start, end, value, contents.length),
+          );
         }
         offset = Math.max(offset, segEnd);
       }
