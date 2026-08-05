@@ -33,6 +33,7 @@ jobs:
       - run: (cd examples/preact && npm ci && npm run build -- --base ./ --outDir ../../dist/preact)
       - run: (cd examples/alpine && npm ci && npm run build -- --base ./ --outDir ../../dist/alpine)
       - run: (cd examples/marko && npm ci && npm run build -- --base ./ --outDir ../../dist/marko)
+      - run: (cd examples/octane && npm ci && npm run build -- --base ./ --outDir ../../dist/octane)
       - run: (cd examples/vanilla && npm ci && npm run build -- --base ./ --outDir ../../dist/vanilla)
 
       - name: Deploy
