@@ -6,6 +6,7 @@ import {
   getPointedCaretPosition,
   defaultIsBlockNode,
   serializeRange,
+  isUnselectableNode,
 } from "./dom/index.js";
 import { createMutationObserver } from "./dom/mutation.js";
 import type { DocNode, Fragment, Selection } from "./doc/types.js";
@@ -554,6 +555,29 @@ export const createEditor = <
         );
       };
 
+      // The browser can park the caret on an anchor node (empty text / comment
+      // a framework interspersed between blocks). The serialized offset stays
+      // correct, but the visible caret sits on the anchor — Firefox renders it
+      // on a phantom line below the text when you click in the empty area.
+      // Re-write the DOM position so it snaps back into the real block. Only
+      // fires when an endpoint is on an anchor, so it's a no-op while editing.
+      const normalizeCaretOffAnchor = () => {
+        const sel = document.getSelection();
+        if (!sel) return;
+        const anchorNode = sel.anchorNode;
+        // Only inspect the focus endpoint when it differs from the anchor (a
+        // collapsed caret shares both), so the common case does one check.
+        if (
+          (anchorNode != null && isUnselectableNode(anchorNode)) ||
+          (sel.focusNode != null &&
+            sel.focusNode !== anchorNode &&
+            isUnselectableNode(sel.focusNode))
+        ) {
+          setSelectionToDOM(element, parser, doc, selection);
+          domSelection = selection;
+        }
+      };
+
       const flushInput = () => {
         const queue = observer._flush();
 
@@ -648,6 +672,22 @@ export const createEditor = <
           if (!isCollapsed(range)) {
             // replace or delete
             ops.push({ type: "delete", range });
+          } else if (data == null && inputType.startsWith("delete")) {
+            // A collapsed delete target range. Some browsers report a collapsed
+            // range for a Backspace/Delete that should cross a block boundary —
+            // notably Firefox when blocks are separated by framework anchor
+            // nodes. Fall back to deleting one position in the delete direction
+            // so the merge still happens; isValidSelection keeps a delete at the
+            // document edge a no-op.
+            const at = range[0];
+            const fallback: Selection | null = inputType.endsWith("Backward")
+              ? [at - 1, at]
+              : inputType.endsWith("Forward")
+                ? [at, at + 1]
+                : null;
+            if (fallback && isValidSelection(doc, fallback)) {
+              ops.push({ type: "delete", range: fallback });
+            }
           }
           if (data) {
             // replace or insert
@@ -672,6 +712,7 @@ export const createEditor = <
       const onFocus = () => {
         hasFocus = true;
         syncSelection();
+        normalizeCaretOffAnchor();
       };
       const onBlur = () => {
         hasFocus = false;
@@ -681,6 +722,7 @@ export const createEditor = <
         // Safari may dispatch selectionchange event after dragstart
         if (hasFocus && !isComposing && !isDragging) {
           syncSelection();
+          normalizeCaretOffAnchor();
         }
       };
 

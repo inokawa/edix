@@ -1,4 +1,9 @@
-import { type TokenType, type Parser, TOKEN_BLOCK } from "./parser.js";
+import {
+  type TokenType,
+  type Parser,
+  TOKEN_BLOCK,
+  isHiddenNode,
+} from "./parser.js";
 import type {
   DocNode,
   Selection as JsSelection,
@@ -9,7 +14,7 @@ import type {
 import { selectionToDomSelection } from "../doc/node.js";
 import { isCollapsed } from "../doc/position.js";
 import { min } from "../utils.js";
-import { isElementNode } from "./utils.js";
+import { isElementNode, isTextNode, isCommentNode } from "./utils.js";
 
 export {
   createParser,
@@ -179,6 +184,17 @@ export const findPosition = (
 };
 
 /**
+ * A node the tokenizer emits no selectable token for: empty text, a comment, or
+ * a hidden element. Frameworks (e.g. Svelte's `{#each}`) intersperse such
+ * "anchor" nodes around the real block elements.
+ * @internal
+ */
+export const isUnselectableNode = (node: Node): boolean =>
+  isCommentNode(node) ||
+  (isTextNode(node) && node.data.length === 0) ||
+  (isElementNode(node) && isHiddenNode(node));
+
+/**
  * @internal
  */
 export const serializePosition = (
@@ -206,6 +222,38 @@ export const serializePosition = (
     node = node.childNodes[index]!;
     excludeEnd = index === offsetAtNode;
     offsetAtNode = 0;
+  }
+
+  if (isUnselectableNode(node)) {
+    // Boundary landed on an anchor node (comment / empty text / hidden). The
+    // block-walk below would climb to the root and miscount the inter-block
+    // separators (e.g. Firefox's Ctrl+A parks the end boundary on a trailing
+    // anchor). Snap to the nearest selectable sibling: forward at the anchor's
+    // start, backward at its end; fall back to the other side when one has none.
+    const forward = excludeEnd;
+    let sibling: Node | null = node;
+    while (
+      (sibling = forward ? sibling!.nextSibling : sibling!.previousSibling)
+    ) {
+      if (!isUnselectableNode(sibling)) {
+        node = sibling;
+        offsetAtNode = 0;
+        break;
+      }
+    }
+    if (isUnselectableNode(node)) {
+      sibling = node;
+      while (
+        (sibling = forward ? sibling!.previousSibling : sibling!.nextSibling)
+      ) {
+        if (!isUnselectableNode(sibling)) {
+          node = sibling;
+          offsetAtNode = 0;
+          excludeEnd = !forward;
+          break;
+        }
+      }
+    }
   }
 
   return parse(

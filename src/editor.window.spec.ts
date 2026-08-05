@@ -132,3 +132,72 @@ it("should sync selection and input with another document", async () => {
 
   dispose();
 });
+
+it("merges blocks on a collapsed deleteContentBackward target range", async () => {
+  // Firefox reports a collapsed target range for a Backspace that should cross a
+  // block boundary when blocks are separated by framework anchor nodes (e.g.
+  // Svelte's `{#each}`). The editor falls back to deleting one position backward
+  // so the two blocks still merge.
+  const { editor, element, getText, dispose } = init("a\nb");
+
+  element.dispatchEvent(new childWindow.FocusEvent("focus"));
+
+  // Caret at the very start of the second block ("b") — doc offset 2
+  // (block "a" is size 1, plus the inter-block separator).
+  setCaret(element.childNodes[1]!.firstChild!, 0);
+  await nextTask();
+  expect(editor.selection).toEqual([2, 2]);
+
+  const event = new childWindow.InputEvent("beforeinput", {
+    inputType: "deleteContentBackward",
+    bubbles: true,
+    cancelable: true,
+  });
+  (event as any).getTargetRanges = () => [
+    new childWindow.StaticRange({
+      startContainer: element.childNodes[1]!.firstChild!,
+      startOffset: 0,
+      endContainer: element.childNodes[1]!.firstChild!,
+      endOffset: 0,
+    }),
+  ];
+  element.dispatchEvent(event);
+  await nextTask();
+
+  expect(getText()).toBe("ab");
+  expect(editor.selection).toEqual([1, 1]);
+
+  dispose();
+});
+
+it("keeps a collapsed backward delete at the document start a no-op", async () => {
+  const { editor, element, getText, dispose } = init("a\nb");
+
+  element.dispatchEvent(new childWindow.FocusEvent("focus"));
+
+  // Caret at the very start of the document — there is nothing to delete
+  // backward, so the collapsed-range fallback must not underflow past 0.
+  setCaret(element.childNodes[0]!.firstChild!, 0);
+  await nextTask();
+  expect(editor.selection).toEqual([0, 0]);
+
+  const event = new childWindow.InputEvent("beforeinput", {
+    inputType: "deleteContentBackward",
+    bubbles: true,
+    cancelable: true,
+  });
+  (event as any).getTargetRanges = () => [
+    new childWindow.StaticRange({
+      startContainer: element.childNodes[0]!.firstChild!,
+      startOffset: 0,
+      endContainer: element.childNodes[0]!.firstChild!,
+      endOffset: 0,
+    }),
+  ];
+  element.dispatchEvent(event);
+  await nextTask();
+
+  expect(getText()).toBe("a\nb");
+
+  dispose();
+});

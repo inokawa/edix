@@ -1307,3 +1307,69 @@ const elToString = (element: Element): string => {
     expect(serializePosition(doc, parser, ...domPos2)).toEqual(pos);
   });
 }
+
+// Framework anchor nodes — comment / empty text nodes that frameworks (e.g.
+// Svelte's `{#each}`) intersperse around the real blocks. A boundary must never
+// stick to one: Firefox's Ctrl+A parks the end boundary on a trailing anchor,
+// which previously climbed to the root and miscounted the inter-block
+// separators (dropping the last character on delete).
+{
+  const comment = () => document.createComment("");
+  const emptyText = () => document.createTextNode("");
+  const build = (children: Node[]): HTMLElement => {
+    const root = document.createElement("div");
+    children.forEach((c) => root.appendChild(c));
+    return root;
+  };
+
+  it("trailing empty-text anchor: Ctrl+A end resolves to end of last block", () => {
+    const doc = build([h("p", ["Hello"]), h("p", ["world"]), emptyText()]);
+    // Firefox Ctrl+A: (root, 0)..(root, childCount)
+    expect(serializePosition(doc, parser, doc, 0)).toEqual([[0], 0]);
+    expect(serializePosition(doc, parser, doc, 3)).toEqual([[1], 5]);
+    // just before the trailing anchor is still the end of the document
+    expect(serializePosition(doc, parser, doc, 2)).toEqual([[1], 5]);
+    // round-trips through findPosition
+    const domPos = toRange(findPosition(doc, parser, [[1], 5]));
+    expect(serializePosition(doc, parser, ...domPos)).toEqual([[1], 5]);
+  });
+
+  it("trailing comment anchor: Ctrl+A end resolves to end of last block", () => {
+    const doc = build([h("p", ["Hello"]), h("p", ["world"]), comment()]);
+    expect(serializePosition(doc, parser, doc, 0)).toEqual([[0], 0]);
+    expect(serializePosition(doc, parser, doc, 3)).toEqual([[1], 5]);
+  });
+
+  it("comments interspersed around every block", () => {
+    const doc = build([
+      comment(),
+      h("p", ["Hello"]),
+      comment(),
+      h("p", ["world"]),
+      comment(),
+    ]);
+    expect(serializePosition(doc, parser, doc, 0)).toEqual([[0], 0]);
+    expect(serializePosition(doc, parser, doc, 5)).toEqual([[1], 5]);
+    // boundary on the comment between the blocks -> start of the next block
+    expect(serializePosition(doc, parser, doc, 2)).toEqual([[1], 0]);
+  });
+
+  it("empty-text anchor between blocks: caret on the anchor resolves forward", () => {
+    const anchor = emptyText();
+    const doc = build([h("p", ["Hello"]), anchor, h("p", ["world"])]);
+    // caret parked directly on the anchor node (the click / phantom-caret case)
+    expect(serializePosition(doc, parser, anchor, 0)).toEqual([[1], 0]);
+    // and via the parent-relative offset
+    expect(serializePosition(doc, parser, doc, 1)).toEqual([[1], 0]);
+  });
+
+  it("leading anchors resolve forward to the first block", () => {
+    const doc = build([comment(), emptyText(), h("p", ["Hello"])]);
+    expect(serializePosition(doc, parser, doc, 0)).toEqual([[0], 0]);
+    // caret parked directly on the leading comment
+    expect(serializePosition(doc, parser, doc.childNodes[0]!, 0)).toEqual([
+      [0],
+      0,
+    ]);
+  });
+}
