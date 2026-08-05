@@ -1,0 +1,21 @@
+{
+  "name": "octane",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsrx-tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "editate": "0.6.20",
+    "octane": "^0.1.25",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@tsrx/typescript-plugin": "^0.3.118",
+    "typescript": "^5.9.3",
+    "vite": "^8.0.13"
+  }
+}

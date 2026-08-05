@@ -60,6 +60,8 @@ jobs:
         run: (cd examples/alpine && npm ci && npm link editate) && FRAMEWORK_DIR=examples/alpine npm run e2e
       - name: Smoke marko
         run: (cd examples/marko && npm ci && npm link editate) && FRAMEWORK_DIR=examples/marko npm run e2e
+      - name: Smoke octane
+        run: (cd examples/octane && npm ci && npm link editate) && FRAMEWORK_DIR=examples/octane npm run e2e
       - name: Smoke vanilla
         run: (cd examples/vanilla && npm ci && npm link editate) && FRAMEWORK_DIR=examples/vanilla npm run e2e
       # - uses: actions/upload-artifact@v3
