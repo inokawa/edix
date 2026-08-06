@@ -4,7 +4,7 @@
 
 # Interface: Editor\<T\>
 
-Defined in: [editor.ts:181](https://github.com/inokawa/editate/blob/480372a69e3803fb03d455ffd631e93f7caee210/src/editor.ts#L181)
+Defined in: [editor.ts:181](https://github.com/inokawa/editate/blob/a521ba6024711e4d344001f6ed11da96554d4213/src/editor.ts#L181)
 
 The editor instance.
 
@@ -20,7 +20,7 @@ The editor instance.
 
 > **apply**(`op`): `this`
 
-Defined in: [editor.ts:193](https://github.com/inokawa/editate/blob/480372a69e3803fb03d455ffd631e93f7caee210/src/editor.ts#L193)
+Defined in: [editor.ts:193](https://github.com/inokawa/editate/blob/a521ba6024711e4d344001f6ed11da96554d4213/src/editor.ts#L193)
 
 Dispatches editing operations.
 
@@ -44,7 +44,7 @@ Dispatches editing operations.
 
 > **exec**\<`A`\>(`fn`, ...`args`): `this`
 
-Defined in: [editor.ts:199](https://github.com/inokawa/editate/blob/480372a69e3803fb03d455ffd631e93f7caee210/src/editor.ts#L199)
+Defined in: [editor.ts:199](https://github.com/inokawa/editate/blob/a521ba6024711e4d344001f6ed11da96554d4213/src/editor.ts#L199)
 
 Executes a function with editor bound as context.
 
@@ -76,7 +76,7 @@ arguments of the function
 
 > **exec**\<`A`, `V`\>(`fn`, ...`args`): `V`
 
-Defined in: [editor.ts:203](https://github.com/inokawa/editate/blob/480372a69e3803fb03d455ffd631e93f7caee210/src/editor.ts#L203)
+Defined in: [editor.ts:203](https://github.com/inokawa/editate/blob/a521ba6024711e4d344001f6ed11da96554d4213/src/editor.ts#L203)
 
 ##### Type Parameters
 
@@ -108,7 +108,7 @@ Defined in: [editor.ts:203](https://github.com/inokawa/editate/blob/480372a69e38
 
 > **on**\<`K`\>(`key`, `callback`): () => `void`
 
-Defined in: [editor.ts:208](https://github.com/inokawa/editate/blob/480372a69e3803fb03d455ffd631e93f7caee210/src/editor.ts#L208)
+Defined in: [editor.ts:208](https://github.com/inokawa/editate/blob/a521ba6024711e4d344001f6ed11da96554d4213/src/editor.ts#L208)
 
 A function to subscribe editor events.
 
@@ -140,7 +140,7 @@ cleanup function
 
 > **hook**\<`K`\>(`key`, `callback`): () => `void`
 
-Defined in: [editor.ts:216](https://github.com/inokawa/editate/blob/480372a69e3803fb03d455ffd631e93f7caee210/src/editor.ts#L216)
+Defined in: [editor.ts:216](https://github.com/inokawa/editate/blob/a521ba6024711e4d344001f6ed11da96554d4213/src/editor.ts#L216)
 
 A function to register editor hooks.
 
@@ -172,7 +172,7 @@ cleanup function
 
 > **get**\<`V`\>(`key`): `V`
 
-Defined in: [editor.ts:223](https://github.com/inokawa/editate/blob/480372a69e3803fb03d455ffd631e93f7caee210/src/editor.ts#L223)
+Defined in: [editor.ts:223](https://github.com/inokawa/editate/blob/a521ba6024711e4d344001f6ed11da96554d4213/src/editor.ts#L223)
 
 Get a value from the context.
 
@@ -198,7 +198,7 @@ Get a value from the context.
 
 > **set**\<`V`\>(`key`, `value`): `this`
 
-Defined in: [editor.ts:227](https://github.com/inokawa/editate/blob/480372a69e3803fb03d455ffd631e93f7caee210/src/editor.ts#L227)
+Defined in: [editor.ts:227](https://github.com/inokawa/editate/blob/a521ba6024711e4d344001f6ed11da96554d4213/src/editor.ts#L227)
 
 Set a value for the context.
 
@@ -228,7 +228,7 @@ Set a value for the context.
 
 > `readonly` **doc**: `T`
 
-Defined in: [editor.ts:182](https://github.com/inokawa/editate/blob/480372a69e3803fb03d455ffd631e93f7caee210/src/editor.ts#L182)
+Defined in: [editor.ts:182](https://github.com/inokawa/editate/blob/a521ba6024711e4d344001f6ed11da96554d4213/src/editor.ts#L182)
 
 ***
 
@@ -236,7 +236,7 @@ Defined in: [editor.ts:182](https://github.com/inokawa/editate/blob/480372a69e38
 
 > **selection**: `Selection`
 
-Defined in: [editor.ts:183](https://github.com/inokawa/editate/blob/480372a69e3803fb03d455ffd631e93f7caee210/src/editor.ts#L183)
+Defined in: [editor.ts:183](https://github.com/inokawa/editate/blob/a521ba6024711e4d344001f6ed11da96554d4213/src/editor.ts#L183)
 
 ***
 
@@ -244,7 +244,7 @@ Defined in: [editor.ts:183](https://github.com/inokawa/editate/blob/480372a69e38
 
 > **readonly**: `boolean`
 
-Defined in: [editor.ts:188](https://github.com/inokawa/editate/blob/480372a69e3803fb03d455ffd631e93f7caee210/src/editor.ts#L188)
+Defined in: [editor.ts:188](https://github.com/inokawa/editate/blob/a521ba6024711e4d344001f6ed11da96554d4213/src/editor.ts#L188)
 
 The getter/setter for the editor's read-only state.
 `true` to read-only. `false` to editable.
@@ -255,7 +255,7 @@ The getter/setter for the editor's read-only state.
 
 > **input**: (`element`) => () => `void`
 
-Defined in: [editor.ts:232](https://github.com/inokawa/editate/blob/480372a69e3803fb03d455ffd631e93f7caee210/src/editor.ts#L232)
+Defined in: [editor.ts:232](https://github.com/inokawa/editate/blob/a521ba6024711e4d344001f6ed11da96554d4213/src/editor.ts#L232)
 
 A function to make DOM editable.
 

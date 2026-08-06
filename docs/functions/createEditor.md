@@ -6,7 +6,7 @@
 
 > **createEditor**\<`T`, `S`\>(`__namedParameters`): [`Editor`](../interfaces/Editor.md)\<`T`\>
 
-Defined in: [editor.ts:238](https://github.com/inokawa/editate/blob/480372a69e3803fb03d455ffd631e93f7caee210/src/editor.ts#L238)
+Defined in: [editor.ts:238](https://github.com/inokawa/editate/blob/a521ba6024711e4d344001f6ed11da96554d4213/src/editor.ts#L238)
 
 A function to initialize [Editor](../interfaces/Editor.md).
 

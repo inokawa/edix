@@ -6,7 +6,7 @@
 
 > **iterLeaves**\<`T`\>(`node`, `range`): `Generator`\<\[[`InferInlineNode`](../type-aliases/InferInlineNode.md)\<`T`\>, `number`\], `void`, `void`\>
 
-Defined in: [doc/node.ts:301](https://github.com/inokawa/editate/blob/480372a69e3803fb03d455ffd631e93f7caee210/src/doc/node.ts#L301)
+Defined in: [doc/node.ts:301](https://github.com/inokawa/editate/blob/a521ba6024711e4d344001f6ed11da96554d4213/src/doc/node.ts#L301)
 
 ## Type Parameters
 
