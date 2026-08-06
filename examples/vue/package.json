@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "editate": "0.6.20",
+    "editate": "0.6.26",
     "vue": "^3.5.40",
     "zod": "^4.4.3"
   },
