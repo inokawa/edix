@@ -6,7 +6,7 @@
 
 > **getChildAt**\<`T`\>(`__namedParameters`, `offset`, `isBackwardAffinity?`): \[`T`\[`"children"`\]\[`number`\], `number`, `number`\] \| `null`
 
-Defined in: [doc/node.ts:71](https://github.com/inokawa/editate/blob/a521ba6024711e4d344001f6ed11da96554d4213/src/doc/node.ts#L71)
+Defined in: [doc/node.ts:71](https://github.com/inokawa/editate/blob/fc2a276691616b582f8904cca31ccbe1682d98e2/src/doc/node.ts#L71)
 
 ## Type Parameters
 
