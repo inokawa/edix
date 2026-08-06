@@ -258,6 +258,23 @@ export const createParser = (
     });
   };
 
+  const isInvisibleToken = (): boolean => {
+    const t = readToken();
+    return t === TOKEN_NULL || t === TOKEN_HIDDEN;
+  };
+
+  const moveToSibling = (backward: boolean, block?: boolean): boolean => {
+    while (
+      (_token = null) ||
+      (node = backward ? walker!.previousSibling() : walker!.nextSibling())
+    ) {
+      if (block ? readToken() === TOKEN_BLOCK : !isInvisibleToken()) {
+        return true;
+      }
+    }
+    return false;
+  };
+
   const context: ParserContext = {
     _next: (): TokenType | void => {
       while (nextNode()) {
@@ -282,20 +299,21 @@ export const createParser = (
     _moveTo: (nextNode) => {
       _token = null;
       walker!.currentNode = node = nextNode;
+      // https://github.com/inokawa/editate/pull/446
+      if (isInvisibleToken() && !moveToSibling(true)) {
+        _token = null;
+        walker!.currentNode = node = nextNode;
+        if (!moveToSibling(false)) {
+          _token = null;
+          walker!.currentNode = node = nextNode;
+        }
+      }
     },
     _prevBlock: () => {
-      while ((_token = null) || (node = walker!.previousSibling())) {
-        if (readToken() === TOKEN_BLOCK) {
-          return;
-        }
-      }
+      moveToSibling(true, true);
     },
     _nextBlock: () => {
-      while ((_token = null) || (node = walker!.nextSibling())) {
-        if (readToken() === TOKEN_BLOCK) {
-          return;
-        }
-      }
+      moveToSibling(false, true);
     },
     _parentBlock: () => {
       while ((_token = null) || (node = walker!.parentNode())) {
