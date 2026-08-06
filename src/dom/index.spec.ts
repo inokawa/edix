@@ -1018,6 +1018,90 @@ const elToString = (element: Element): string => {
 }
 
 {
+  const doc = h("div", ["", h("div", ["Hello"]), "", h("div", ["world"]), ""]);
+
+  it.for<[DomPosition, DomPosition]>([
+    [
+      [[0], 0],
+      [[0], 0],
+    ],
+    [
+      [[1, 0], 0],
+      [[0], 0],
+    ],
+    [
+      [[1, 0], 5],
+      [[0], 5],
+    ],
+    [
+      [[2], 0],
+      [[0], 5],
+    ],
+    [
+      [[3, 0], 0],
+      [[1], 0],
+    ],
+    [
+      [[3, 0], 5],
+      [[1], 5],
+    ],
+    [
+      [[4], 0],
+      [[1], 5],
+    ],
+    // firefox
+    [
+      [[], 0],
+      [[0], 0],
+    ],
+    [
+      [[], 6],
+      [[1], 5],
+    ],
+  ])(`${elToString(doc)}: $0 $1`, ([p, expectedPos]) => {
+    const domPos = posAt(doc, ...p);
+    const pos = serializePosition(doc, parser, ...domPos);
+    expect(pos).toEqual(expectedPos);
+    const domPos2 = toRange(findPosition(doc, parser, pos));
+    expect(serializePosition(doc, parser, ...domPos2)).toEqual(pos);
+  });
+}
+
+{
+  const doc = h("div", [""]);
+
+  it.for<[DomPosition, DomPosition]>([
+    [
+      [[0], 0],
+      [[], 0],
+    ],
+  ])(`${elToString(doc)}: $0 $1`, ([p, expectedPos]) => {
+    const domPos = posAt(doc, ...p);
+    const pos = serializePosition(doc, parser, ...domPos);
+    expect(pos).toEqual(expectedPos);
+    const domPos2 = toRange(findPosition(doc, parser, pos));
+    expect(serializePosition(doc, parser, ...domPos2)).toEqual(pos);
+  });
+}
+
+{
+  const doc = h("div", [h("div", ["Hello", "", "world"])]);
+
+  it.for<[DomPosition, DomPosition]>([
+    [
+      [[0, 1], 0],
+      [[0], 5],
+    ],
+  ])(`${elToString(doc)}: $0 $1`, ([p, expectedPos]) => {
+    const domPos = posAt(doc, ...p);
+    const pos = serializePosition(doc, parser, ...domPos);
+    expect(pos).toEqual(expectedPos);
+    const domPos2 = toRange(findPosition(doc, parser, pos));
+    expect(serializePosition(doc, parser, ...domPos2)).toEqual(pos);
+  });
+}
+
+{
   const doc = h("div", [
     h("ul", [h("li", ["Hello"]), h("li", ["world"]), h("li", ["world"])]),
   ]);
