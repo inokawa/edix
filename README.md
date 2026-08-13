@@ -247,6 +247,7 @@ If you find a problem, feel free to create an [issue](https://github.com/inokawa
 - [Lexical](https://github.com/facebook/lexical)
 - [Quill](https://github.com/slab/quill)
 - [Tiptap](https://github.com/ueberdosis/tiptap)
+- [Wordgard](https://wordgard.net/)
 - [Draft.js](https://github.com/facebookarchive/draft-js)
 - [rich-textarea](https://github.com/inokawa/rich-textarea) (my early project)
 - [use-editable](https://github.com/FormidableLabs/use-editable)
