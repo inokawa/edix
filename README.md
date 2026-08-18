@@ -37,8 +37,8 @@ Both desktop and mobile browsers that support [beforeinput event](https://develo
 2. Define your editor view declaratively. There are rules you have to follow:
    - You must render all texts in the document as Text nodes in DOM.
    - You must render `<br/>` in empty blocks (limitation of contenteditable).
-   - You must render hard breaks in the document as [block element](https://github.com/inokawa/editate/blob/ecd70f084f2fbb54d36bfd3b682f2dd8bbc3f547/src/dom/default.ts#L25).
-   - You must render void nodes in the document as [void element](https://github.com/inokawa/editate/blob/ecd70f084f2fbb54d36bfd3b682f2dd8bbc3f547/src/dom/default.ts#L47).
+   - You must render hard breaks in the document as [block element](https://github.com/inokawa/editate/blob/e466e941bd0bd4fd3f668ca365cd076f1cb333a2/src/dom/default.ts#L26).
+   - You must render void nodes in the document as [void element](https://github.com/inokawa/editate/blob/e466e941bd0bd4fd3f668ca365cd076f1cb333a2/src/dom/parser.ts#L174-L188).
 3. Use `createPlainEditor`/`createEditor` to initialize `Editor` with the document.
 4. Call `Editor.input` on mount, with `HTMLElement` which is the root of editor view.
 5. Update your state with `onChange`, which will be called on edit.
