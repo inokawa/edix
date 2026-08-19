@@ -178,8 +178,8 @@ export const splitBlock = <T extends DocNode | BlockNode>(
         { ...node, children: after },
       ];
     } else {
-      const before = children.slice(0, i);
-      const after = children.slice(i + 1);
+      const before: T["children"][number][] = children.slice(0, i);
+      const after: T["children"][number][] = children.slice(i + 1);
       if (isTextNode(child)) {
         const beforeText = child.text.slice(0, offsetAtChild);
         const afterText = child.text.slice(offsetAtChild);
