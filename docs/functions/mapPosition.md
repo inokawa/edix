@@ -6,7 +6,7 @@
 
 > **mapPosition**(`position`, `op`, `stickBefore?`): `number`
 
-Defined in: [doc/operation.ts:249](https://github.com/inokawa/editate/blob/fc2a276691616b582f8904cca31ccbe1682d98e2/src/doc/operation.ts#L249)
+Defined in: [doc/operation.ts:249](https://github.com/inokawa/editate/blob/f40074584f982d89983e034df674fd6e901e116f/src/doc/operation.ts#L249)
 
 Remap a position through the given operation.
 
