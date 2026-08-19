@@ -2,6 +2,8 @@ export interface TextNode {
     readonly text: string;
 }
 export interface VoidNode {
+    readonly [key: string]: any;
+    readonly text?: never;
 }
 export type InlineNode = TextNode | VoidNode;
 export interface BlockNode {
