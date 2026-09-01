@@ -218,6 +218,7 @@ export const App = () => {
 - Alpine ([Demo](https://inokawa.github.io/editate/alpine), [Source](./examples/alpine))
 - Marko ([Demo](https://inokawa.github.io/editate/marko), [Source](./examples/marko))
 - Octane ([Demo](https://inokawa.github.io/editate/octane), [Source](./examples/octane))
+- Remix ([Demo](https://inokawa.github.io/editate/remix), [Source](./examples/remix))
 - Vanilla ([Demo](https://inokawa.github.io/editate/vanilla), [Source](./examples/vanilla))
 
 ...and more! Contribution welcome!
