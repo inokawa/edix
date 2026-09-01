@@ -209,16 +209,16 @@ export const App = () => {
 
 ### Other examples
 
-- React ([Demo](https://inokawa.github.io/editate/react), [Source](./examples/react))
-- Vue ([Demo](https://inokawa.github.io/editate/vue), [Source](./examples/vue))
-- Svelte ([Demo](https://inokawa.github.io/editate/svelte), [Source](./examples/svelte))
-- Solid ([Demo](https://inokawa.github.io/editate/solid), [Source](./examples/solid))
-- Angular ([Demo](https://inokawa.github.io/editate/angular), [Source](./examples/angular))
-- Preact ([Demo](https://inokawa.github.io/editate/preact), [Source](./examples/preact))
-- Alpine ([Demo](https://inokawa.github.io/editate/alpine), [Source](./examples/alpine))
-- Marko ([Demo](https://inokawa.github.io/editate/marko), [Source](./examples/marko))
-- Octane ([Demo](https://inokawa.github.io/editate/octane), [Source](./examples/octane))
-- Remix ([Demo](https://inokawa.github.io/editate/remix), [Source](./examples/remix))
+- [React](https://react.dev) ([Demo](https://inokawa.github.io/editate/react), [Source](./examples/react))
+- [Vue](https://vuejs.org) ([Demo](https://inokawa.github.io/editate/vue), [Source](./examples/vue))
+- [Svelte](https://svelte.dev) ([Demo](https://inokawa.github.io/editate/svelte), [Source](./examples/svelte))
+- [Solid](https://solidjs.com) ([Demo](https://inokawa.github.io/editate/solid), [Source](./examples/solid))
+- [Angular](https://angular.dev) ([Demo](https://inokawa.github.io/editate/angular), [Source](./examples/angular))
+- [Preact](https://preactjs.com) ([Demo](https://inokawa.github.io/editate/preact), [Source](./examples/preact))
+- [Alpine](https://alpinejs.dev) ([Demo](https://inokawa.github.io/editate/alpine), [Source](./examples/alpine))
+- [Marko](https://markojs.com) ([Demo](https://inokawa.github.io/editate/marko), [Source](./examples/marko))
+- [Octane](https://octanejs.dev) ([Demo](https://inokawa.github.io/editate/octane), [Source](./examples/octane))
+- [Remix](https://remix.run) ([Demo](https://inokawa.github.io/editate/remix), [Source](./examples/remix))
 - Vanilla ([Demo](https://inokawa.github.io/editate/vanilla), [Source](./examples/vanilla))
 
 ...and more! Contribution welcome!
