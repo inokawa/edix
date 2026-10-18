@@ -1,6 +1,6 @@
 import type { StoryObj } from "@storybook/react-vite";
-import React, { useEffect, useRef, useState } from "react";
-import { createPlainEditor } from "../../src";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { createPlainEditor, nodeIdPlugin, NodeId } from "../../src";
 import { createHighlighter, type Highlighter } from "shiki";
 
 const THEME = "vitesse-dark";
@@ -28,6 +28,14 @@ function Example() {
 }`,
     );
 
+    const editor = useMemo(
+      () => createPlainEditor({ text, onChange: setText }).exec(nodeIdPlugin),
+      [],
+    );
+    // the lines are keyed by node id, so the doc is needed in addition to the text
+    const [doc, setDoc] = useState(() => editor.doc);
+    useEffect(() => editor.on("change", () => setDoc(editor.doc)), []);
+
     const [highlighter, setHighlighter] = useState<Highlighter | null>(null);
     useEffect(() => {
       let disposed = false;
@@ -46,10 +54,7 @@ function Example() {
     const ref = useRef<HTMLPreElement>(null);
     useEffect(() => {
       if (!highlighter || !ref.current) return;
-      return createPlainEditor({
-        text,
-        onChange: setText,
-      }).input(ref.current);
+      return editor.input(ref.current);
     }, [highlighter]);
 
     if (!highlighter) return null;
@@ -69,7 +74,7 @@ function Example() {
         }}
       >
         {tokens.map((line, i) => (
-          <div key={i}>
+          <div key={NodeId(editor, doc.children[i]!)}>
             {line.length ? (
               line.map((t, j) => (
                 <span key={j} style={{ color: t.color }}>

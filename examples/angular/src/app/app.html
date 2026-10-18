@@ -7,9 +7,9 @@
 </style>
 
 <div #ref class="editor">
-  @for (b of doc().children; track $index) {
+  @for (b of doc().children; track NodeId(editor, b)) {
     <div>
-      @for (n of b.children; track $index) {
+      @for (n of b.children; track NodeId(editor, n)) {
         <!-- https://github.com/angular/angular/issues/56323 -->
         <span>@if (n.text) {{{ n.text }}} @else {<br />}</span>
       }

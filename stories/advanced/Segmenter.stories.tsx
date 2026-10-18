@@ -1,6 +1,6 @@
 import type { StoryObj } from "@storybook/react-vite";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { createPlainEditor } from "../../src";
+import { createPlainEditor, nodeIdPlugin, NodeId } from "../../src";
 
 export default {
   component: createPlainEditor,
@@ -38,13 +38,18 @@ export const Segmenter: StoryObj = {
       "すもももももももものうち。\n\n吾輩 （ わがはい ） は猫である。名前はまだ無い。",
     );
 
+    const editor = useMemo(
+      () => createPlainEditor({ text, onChange: setText }).exec(nodeIdPlugin),
+      [],
+    );
+    // the lines are keyed by node id, so the doc is needed in addition to the text
+    const [doc, setDoc] = useState(() => editor.doc);
+    useEffect(() => editor.on("change", () => setDoc(editor.doc)), []);
+
     const ref = useRef<HTMLDivElement>(null);
     useEffect(() => {
       if (!ref.current) return;
-      return createPlainEditor({
-        text,
-        onChange: setText,
-      }).input(ref.current);
+      return editor.input(ref.current);
     }, []);
 
     const [locale, setLocale] = useState("ja");
@@ -82,7 +87,11 @@ export const Segmenter: StoryObj = {
         </div>
         <div ref={ref} style={style}>
           {text.split("\n").map((t, i) => (
-            <Row key={i} text={t} segmenter={segmenter} />
+            <Row
+              key={NodeId(editor, doc.children[i]!)}
+              text={t}
+              segmenter={segmenter}
+            />
           ))}
         </div>
       </div>

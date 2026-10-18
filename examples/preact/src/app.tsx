@@ -1,5 +1,10 @@
-import { useEffect, useRef, useState } from "preact/hooks";
-import { createEditor, plainTransferPlugin } from "editate";
+import { useEffect, useMemo, useRef, useState } from "preact/hooks";
+import {
+  createEditor,
+  plainTransferPlugin,
+  nodeIdPlugin,
+  NodeId,
+} from "editate";
 import * as z from "zod";
 
 const schema = z.strictObject({
@@ -27,15 +32,20 @@ const initialDoc: Doc = {
 export function App() {
   const ref = useRef<HTMLDivElement>(null);
   const [doc, setDoc] = useState<Doc>(initialDoc);
-  useEffect(() => {
-    if (!ref.current) return;
-    const editor = createEditor({
+  const editor = useMemo(() => {
+    const e = createEditor({
       doc: initialDoc,
       schema: schema,
-    }).exec(plainTransferPlugin);
-    editor.on("change", () => {
-      setDoc(editor.doc);
+    })
+      .exec(plainTransferPlugin)
+      .exec(nodeIdPlugin);
+    e.on("change", () => {
+      setDoc(e.doc);
     });
+    return e;
+  }, []);
+  useEffect(() => {
+    if (!ref.current) return;
     return editor.input(ref.current);
   }, []);
 
@@ -48,10 +58,10 @@ export function App() {
         padding: 8,
       }}
     >
-      {doc.children.map((b, i) => (
-        <div key={i}>
-          {b.children.map((n, j) => (
-            <span key={j}>{n.text || <br />}</span>
+      {doc.children.map((b) => (
+        <div key={NodeId(editor, b)}>
+          {b.children.map((n) => (
+            <span key={NodeId(editor, n)}>{n.text || <br />}</span>
           ))}
         </div>
       ))}

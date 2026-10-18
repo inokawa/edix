@@ -1,6 +1,6 @@
 import type { StoryObj } from "@storybook/react-vite";
-import React, { useEffect, useRef, useState } from "react";
-import { createPlainEditor } from "../../src";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { createPlainEditor, nodeIdPlugin, NodeId } from "../../src";
 import Prism, { type Token } from "prismjs";
 import "prismjs/components/prism-jsx";
 import "prismjs/themes/prism-tomorrow.css";
@@ -74,19 +74,24 @@ function Example() {
 }`,
     );
 
+    const editor = useMemo(
+      () => createPlainEditor({ text, onChange: setText }).exec(nodeIdPlugin),
+      [],
+    );
+    // the lines are keyed by node id, so the doc is needed in addition to the text
+    const [doc, setDoc] = useState(() => editor.doc);
+    useEffect(() => editor.on("change", () => setDoc(editor.doc)), []);
+
     const ref = useRef<HTMLPreElement>(null);
     useEffect(() => {
       if (!ref.current) return;
-      return createPlainEditor({
-        text,
-        onChange: setText,
-      }).input(ref.current);
+      return editor.input(ref.current);
     }, []);
 
     return (
       <pre ref={ref} className="language-jsx" style={{ padding: 4 }}>
         {tokenizeLines(text).map((line, i) => (
-          <div key={i}>
+          <div key={NodeId(editor, doc.children[i]!)}>
             {line.length ? (
               line.map((seg, j) => (
                 <span key={j} className={seg.className}>
