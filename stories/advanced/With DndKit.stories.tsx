@@ -15,6 +15,9 @@ import {
   internalTransferPlugin,
   plainTransferPlugin,
   ReplaceDoc,
+  nodeIdPlugin,
+  NodeId,
+  type Editor,
 } from "../../src";
 
 export default {
@@ -41,10 +44,12 @@ const textStyle = {
 };
 
 const BlockView = ({
+  editor,
   block,
   dimmed,
   onMouseEnter,
 }: {
+  editor: Editor<Doc>;
   block: Block;
   dimmed?: boolean;
   onMouseEnter?: () => void;
@@ -61,8 +66,8 @@ const BlockView = ({
       ...(dimmed && { opacity: 0.35 }),
     }}
   >
-    {block.children.map((n, j) => (
-      <span key={j}>{n.text || <br />}</span>
+    {block.children.map((n) => (
+      <span key={NodeId(editor, n)}>{n.text || <br />}</span>
     ))}
   </div>
 );
@@ -137,7 +142,8 @@ const BlockEditor = () => {
       schema: dndSchema,
     })
       .exec(internalTransferPlugin)
-      .exec(plainTransferPlugin);
+      .exec(plainTransferPlugin)
+      .exec(nodeIdPlugin);
     e.on("change", () => {
       setDoc(e.doc);
     });
@@ -227,7 +233,8 @@ const BlockEditor = () => {
         >
           {doc.children.map((b, i) => (
             <BlockView
-              key={i}
+              key={NodeId(editor, b)}
+              editor={editor}
               block={b}
               dimmed={i === activeIndex}
               onMouseEnter={() => {
@@ -246,7 +253,7 @@ const BlockEditor = () => {
         style={{ ...textStyle, opacity: 0.85, background: "white" }}
       >
         {activeIndex != null && doc.children[activeIndex] && (
-          <BlockView block={doc.children[activeIndex]} />
+          <BlockView editor={editor} block={doc.children[activeIndex]} />
         )}
       </DragOverlay>
     </>

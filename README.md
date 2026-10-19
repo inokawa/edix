@@ -101,6 +101,8 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import {
   createEditor,
   plainTransferPlugin,
+  nodeIdPlugin,
+  NodeId,
   ToggleFormat,
   ToggleBlockAttr,
 } from "editate";
@@ -142,7 +144,9 @@ export const App = () => {
     const e = createEditor({
       doc,
       schema,
-    }).exec(plainTransferPlugin);
+    })
+      .exec(plainTransferPlugin)
+      .exec(nodeIdPlugin);
     e.on("change", () => {
       setDoc(e.doc);
     });
@@ -186,11 +190,11 @@ export const App = () => {
           padding: 8,
         }}
       >
-        {doc.children.map((b, i) => (
-          <div key={i} style={{ textAlign: b.align }}>
-            {b.children.map((n, j) => (
+        {doc.children.map((b) => (
+          <div key={NodeId(editor, b)} style={{ textAlign: b.align }}>
+            {b.children.map((n) => (
               <span
-                key={j}
+                key={NodeId(editor, n)}
                 style={{
                   fontWeight: n.bold ? "bold" : undefined,
                   fontStyle: n.italic ? "italic" : undefined,

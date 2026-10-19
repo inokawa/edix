@@ -1,7 +1,7 @@
 import type { StoryObj } from "@storybook/react-vite";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { createPlainEditor } from "../../src";
+import { createPlainEditor, nodeIdPlugin, NodeId } from "../../src";
 import { getTokenizer, Tokenizer, KuromojiToken } from "kuromojin";
 
 export default {
@@ -89,20 +89,25 @@ const Editor = ({ tokenizer }: { tokenizer: Tokenizer }) => {
     "すもももももももものうち。\n\n吾輩 （ わがはい ） は猫である。名前はまだ無い。\n\nあのイーハトーヴォのすきとおった風、夏でも底に冷たさをもつ青いそら、うつくしい森で飾られたモリーオ市、郊外のぎらぎらひかる草の波。\n\n山路を登りながら、こう考えた。智に働けば角が立つ。情に棹させば流される。意地を通せば窮屈だ。とかくに人の世は住みにくい。住みにくさが高じると、安い所へ引き越したくなる。どこへ越しても住みにくいと悟った時、詩が生れて、画が出来る。",
   );
 
+  const editor = useMemo(
+    () => createPlainEditor({ text, onChange: setText }).exec(nodeIdPlugin),
+    [],
+  );
+  // the lines are keyed by node id, so the doc is needed in addition to the text
+  const [doc, setDoc] = useState(() => editor.doc);
+  useEffect(() => editor.on("change", () => setDoc(editor.doc)), []);
+
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!ref.current) return;
-    return createPlainEditor({
-      text,
-      onChange: setText,
-    }).input(ref.current);
+    return editor.input(ref.current);
   }, []);
 
   return (
     <div ref={ref} style={style}>
       {text.split("\n").map((v, i) => {
         return (
-          <div key={i}>
+          <div key={NodeId(editor, doc.children[i]!)}>
             {v ? (
               tokenizer.tokenize(v).map((token) => {
                 return (

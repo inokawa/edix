@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, shallowRef } from 'vue';
-import { createEditor, plainTransferPlugin } from "editate";
+import { createEditor, plainTransferPlugin, nodeIdPlugin, NodeId } from "editate";
 import * as z from "zod";
 
 const schema = z.strictObject({
@@ -28,14 +28,16 @@ const initialDoc: Doc = {
 const doc = shallowRef<Doc>(initialDoc)
 const element = ref<HTMLDivElement>()
 let cleanup: (() => void) | null = null
+const editor = createEditor({
+  doc: initialDoc,
+  schema: schema,
+})
+  .exec(plainTransferPlugin)
+  .exec(nodeIdPlugin)
+editor.on("change", () => {
+  doc.value = editor.doc
+})
 onMounted(() => {
-  const editor = createEditor({
-    doc: initialDoc,
-    schema: schema,
-  }).exec(plainTransferPlugin)
-  editor.on("change", () => {
-    doc.value = editor.doc
-  })
   cleanup = editor.input(element.value!)
 })
 onUnmounted(() => {
@@ -45,8 +47,8 @@ onUnmounted(() => {
 
 <template>
   <div ref="element" class="editor">
-    <div v-for="(b, i) in doc.children" :key="i">
-      <span v-for="(n, j) in b.children" :key="j">
+    <div v-for="b in doc.children" :key="NodeId(editor, b)">
+      <span v-for="n in b.children" :key="NodeId(editor, n)">
         <template v-if="n.text">{{ n.text }}</template>
         <br v-else />
       </span>

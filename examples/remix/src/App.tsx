@@ -1,5 +1,10 @@
 import { css, ref, type Handle } from "remix/component";
-import { createEditor, plainTransferPlugin } from "editate";
+import {
+  createEditor,
+  plainTransferPlugin,
+  nodeIdPlugin,
+  NodeId,
+} from "editate";
 import * as z from "zod";
 
 const schema = z.strictObject({
@@ -32,28 +37,30 @@ const editorStyle = css({
 
 export function App(handle: Handle) {
   let doc: Doc = initialDoc;
+  const editor = createEditor({
+    doc: initialDoc,
+    schema: schema,
+  })
+    .exec(plainTransferPlugin)
+    .exec(nodeIdPlugin);
+  editor.on("change", () => {
+    doc = editor.doc;
+    handle.update();
+  });
 
   return () => (
     <div
       mix={[
         editorStyle,
         ref((node, signal) => {
-          const editor = createEditor({
-            doc: initialDoc,
-            schema: schema,
-          }).exec(plainTransferPlugin);
-          editor.on("change", () => {
-            doc = editor.doc;
-            handle.update();
-          });
           signal.addEventListener("abort", editor.input(node));
         }),
       ]}
     >
-      {doc.children.map((b, i) => (
-        <div key={i}>
-          {b.children.map((n, j) => (
-            <span key={j}>{n.text || <br />}</span>
+      {doc.children.map((b) => (
+        <div key={NodeId(editor, b)}>
+          {b.children.map((n) => (
+            <span key={NodeId(editor, n)}>{n.text || <br />}</span>
           ))}
         </div>
       ))}

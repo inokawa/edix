@@ -1,7 +1,7 @@
 import type { StoryObj } from "@storybook/react-vite";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { createPlainEditor } from "../../src";
+import { createPlainEditor, nodeIdPlugin, NodeId } from "../../src";
 import { TextlintKernel, TextlintMessage } from "@textlint/kernel";
 import { TextlintKernelOptions } from "@textlint/kernel/lib/src/textlint-kernel-interface";
 
@@ -115,13 +115,18 @@ export const WithTextlint: StoryObj = {
     const [text, setText] = useState(
       "⾼齢者の活躍と地域における⽀えあいの\u0019推進\u0010。\nホ゜ケット エンシ゛ン\nテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテストテスト",
     );
+    const editor = useMemo(
+      () => createPlainEditor({ text, onChange: setText }).exec(nodeIdPlugin),
+      [],
+    );
+    // the lines are keyed by node id, so the doc is needed in addition to the text
+    const [doc, setDoc] = useState(() => editor.doc);
+    useEffect(() => editor.on("change", () => setDoc(editor.doc)), []);
+
     const ref = useRef<HTMLDivElement>(null);
     useEffect(() => {
       if (!ref.current) return;
-      return createPlainEditor({
-        text,
-        onChange: setText,
-      }).input(ref.current);
+      return editor.input(ref.current);
     }, []);
 
     const [tokens, setTokens] = useState<TextlintMessage[]>([]);
@@ -168,7 +173,11 @@ export const WithTextlint: StoryObj = {
             }
             texts.push(l.slice(prevEnd));
 
-            return <div key={i}>{l ? texts : <br />}</div>;
+            return (
+              <div key={NodeId(editor, doc.children[i]!)}>
+                {l ? texts : <br />}
+              </div>
+            );
           })}
         </div>
       </div>

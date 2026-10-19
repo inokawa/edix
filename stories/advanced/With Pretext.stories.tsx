@@ -7,6 +7,8 @@ import {
   internalTransferPlugin,
   plainTransferPlugin,
   scrollToSelectionPlugin,
+  nodeIdPlugin,
+  NodeId,
   type Editor,
 } from "../../src";
 
@@ -199,7 +201,8 @@ export const WithPretext: StoryObj = {
       })
         .exec(scrollToSelectionPlugin)
         .exec(internalTransferPlugin)
-        .exec(plainTransferPlugin);
+        .exec(plainTransferPlugin)
+        .exec(nodeIdPlugin);
       e.on("change", () => {
         setDoc(e.doc);
       });
@@ -351,8 +354,8 @@ export const WithPretext: StoryObj = {
                   lineHeight: `${LINE_HEIGHT}px`,
                 }}
               >
-                {doc.children.map((_, i) => (
-                  <div key={i} data-block>
+                {doc.children.map((b, i) => (
+                  <div key={NodeId(editor, b)} data-block>
                     {blocks[i]!.map((c, j) => (
                       <span
                         key={j}

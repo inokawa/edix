@@ -1,5 +1,5 @@
 import { Component, ElementRef, signal, viewChild } from '@angular/core';
-import { createEditor, plainTransferPlugin } from 'editate';
+import { createEditor, plainTransferPlugin, nodeIdPlugin, NodeId } from 'editate';
 import * as z from 'zod';
 
 const schema = z.strictObject({
@@ -33,16 +33,23 @@ export class AppComponent {
   ref = viewChild<ElementRef<HTMLDivElement>>('ref');
   doc = signal<Doc>(initialDoc);
   cleanup: (() => void) | null = null;
+  editor = createEditor({
+    doc: initialDoc,
+    schema: schema,
+  })
+    .exec(plainTransferPlugin)
+    .exec(nodeIdPlugin);
+
+  constructor() {
+    this.editor.on('change', () => {
+      this.doc.set(this.editor.doc);
+    });
+  }
+
+  protected readonly NodeId = NodeId;
 
   ngAfterViewInit() {
-    const editor = createEditor({
-      doc: initialDoc,
-      schema: schema,
-    }).exec(plainTransferPlugin);
-    editor.on('change', () => {
-      this.doc.set(editor.doc);
-    });
-    this.cleanup = editor.input(this.ref()!.nativeElement);
+    this.cleanup = this.editor.input(this.ref()!.nativeElement);
   }
 
   ngOnDestroy() {
