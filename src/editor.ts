@@ -585,12 +585,26 @@ export const createEditor = <
       const onKeyDown = (e: KeyboardEvent) => {
         if (isComposing) return;
 
+        stopKeyRecording();
+
         for (const handler of getHook("keyboard")) {
           if (handler(e)) {
             e.preventDefault();
             observer._record(false);
             return;
           }
+        }
+
+        // Some keys mutate DOM without cancelable beforeinput (e.g. Backspace in an empty editor on iOS Safari).
+        // So we record mutations from keydown, and revert them if input event is dispatched without beforeinput.
+        // Mutations are still handled as usual until then, because they may be caused by re-render.
+        observer._record(true, false);
+      };
+      // Stop recording mutations started at keydown without reverting them
+      const stopKeyRecording = () => {
+        if (!isComposing) {
+          observer._flush();
+          observer._record(false);
         }
       };
 
@@ -601,6 +615,8 @@ export const createEditor = <
       };
       const onBeforeInput = (e: InputEvent) => {
         e.preventDefault();
+
+        stopKeyRecording();
 
         const inputType = e.inputType as InputType;
 
@@ -675,6 +691,7 @@ export const createEditor = <
       };
       const onBlur = () => {
         hasFocus = false;
+        stopKeyRecording();
       };
 
       const onSelectionChange = () => {
@@ -761,6 +778,7 @@ export const createEditor = <
 
       document.addEventListener("selectionchange", onSelectionChange);
       element.addEventListener("keydown", onKeyDown);
+      element.addEventListener("keyup", stopKeyRecording);
       element.addEventListener("input", onInput);
       element.addEventListener("beforeinput", onBeforeInput);
       element.addEventListener("compositionstart", onCompositionStart);
@@ -800,6 +818,7 @@ export const createEditor = <
 
         document.removeEventListener("selectionchange", onSelectionChange);
         element.removeEventListener("keydown", onKeyDown);
+        element.removeEventListener("keyup", stopKeyRecording);
         element.removeEventListener("input", onInput);
         element.removeEventListener("beforeinput", onBeforeInput);
         element.removeEventListener("compositionstart", onCompositionStart);
