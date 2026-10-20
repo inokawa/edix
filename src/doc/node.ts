@@ -238,14 +238,11 @@ export const selectionToDomSelection = (
 function* iterChildren<T extends Node>(
   node: T,
   [start, end]: Range,
-): Generator<[node: Node, offset: number], void, void> {
-  if (start >= end) {
+): Generator<[node: Node, offset: number, range: Range], void, void> {
+  if (start > end || !isBlockNode(node)) {
     return;
   }
-  if (!isBlockNode(node)) {
-    return;
-  }
-  const res = getChildAt(node, start);
+  const res = getChildAt(node, start) || getChildAt(node, start, true);
   if (res) {
     let offset = start - res[1];
     let i = res[2];
@@ -253,10 +250,15 @@ function* iterChildren<T extends Node>(
     const length = children.length;
     while (offset <= end && i < length) {
       const targetNode = children[i]!;
-      yield [targetNode, offset];
+      const size = getNodeSize(targetNode);
+      yield [
+        targetNode,
+        offset,
+        [max(start, offset) - offset, min(end, offset + size) - offset],
+      ];
 
       i++;
-      offset += getNodeSize(targetNode);
+      offset += size;
       if (isBlockNode(targetNode)) {
         offset++;
       }
@@ -267,16 +269,19 @@ function* iterChildren<T extends Node>(
 export function* iterLeafBlocks<T extends Node>(
   node: T,
   range: Range,
-): Generator<[node: InferLeafBlockNode<T>, offset: number], void, void> {
+): Generator<
+  [node: InferLeafBlockNode<T>, offset: number, range: Range],
+  void,
+  void
+> {
   if (isBlockNode(node) && !hasBlockChildren(node.children)) {
-    yield [node as InferLeafBlockNode<T>, 0];
+    yield [node as InferLeafBlockNode<T>, 0, range];
     return;
   }
-  for (const n of iterChildren(node, range)) {
-    const [child, offset] = n;
-    for (const r of iterLeafBlocks(child, [0, getNodeSize(child)])) {
+  for (const [child, offset, childRange] of iterChildren(node, range)) {
+    for (const r of iterLeafBlocks(child, childRange)) {
       r[1] += offset;
-      yield r as [InferLeafBlockNode<T>, number];
+      yield r as [InferLeafBlockNode<T>, number, Range];
     }
   }
 }
@@ -284,15 +289,19 @@ export function* iterLeafBlocks<T extends Node>(
 export function* iterLeaves<T extends Node>(
   node: T,
   range: Range,
-): Generator<[node: InferInlineNode<T>, offset: number], void, void> {
+): Generator<
+  [node: InferInlineNode<T>, offset: number, range: Range],
+  void,
+  void
+> {
   if (!isBlockNode(node)) {
-    yield [node as InferInlineNode<T>, 0];
+    yield [node as InferInlineNode<T>, 0, range];
     return;
   }
-  for (const [child, offset] of iterChildren(node, range)) {
-    for (const leaf of iterLeaves(child, [0, getNodeSize(child)])) {
+  for (const [child, offset, childRange] of iterChildren(node, range)) {
+    for (const leaf of iterLeaves(child, childRange)) {
       leaf[1] += offset;
-      yield leaf as [InferInlineNode<T>, number];
+      yield leaf as [InferInlineNode<T>, number, Range];
     }
   }
 }
@@ -305,7 +314,7 @@ export const sliceText = <T extends Node>(
 ): string => {
   let str = "";
   let offset = start;
-  for (const [leaf, leafStart] of iterLeaves(node, [start, end])) {
+  for (const [leaf, leafStart, [from, to]] of iterLeaves(node, [start, end])) {
     for (let i = leafStart - offset; i > 0; i--) {
       str += "\n";
     }
@@ -313,14 +322,9 @@ export const sliceText = <T extends Node>(
     const size = getNodeSize(leaf);
     const leafEnd = leafStart + size;
     if (isTextNode(leaf)) {
-      const textStart = max(leafStart, start) - leafStart;
-      const textEnd = min(leafEnd, end) - leafStart;
-      str +=
-        textStart === 0 && textEnd === size
-          ? leaf.text
-          : leaf.text.slice(textStart, textEnd);
+      str += from === 0 && to === size ? leaf.text : leaf.text.slice(from, to);
     } else {
-      if (voidToString) {
+      if (voidToString && from < to) {
         str += voidToString(leaf as InferVoidNode<T>);
       }
     }

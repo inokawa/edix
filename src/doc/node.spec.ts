@@ -461,67 +461,98 @@ describe(iterLeafBlocks.name, () => {
   const t1s = t1.length;
   const t2s = t2.length;
 
-  it.each<[Range, [Node, number][]]>([
+  it.each<[Range, [Node, number, Range][]]>([
     [[1, 0], []],
-    [[1, 1], []],
-    [[0, 0], []],
-    [[0, 1], [[n0, 0]]],
-    [[0, t0s], [[n0, 0]]],
+    [[1, 1], [[n0, 0, [1, 1]]]],
+    [[0, 0], [[n0, 0, [0, 0]]]],
+    [[0, 1], [[n0, 0, [0, 1]]]],
+    [[0, t0s], [[n0, 0, [0, t0s]]]],
     [
       [0, t0s + 1],
       [
-        [n0, 0],
-        [n1, t0s + 1],
+        [n0, 0, [0, t0s]],
+        [n1, t0s + 1, [0, 0]],
       ],
     ],
     [
       [0, t0s + 2],
       [
-        [n0, 0],
-        [n1, t0s + 1],
+        [n0, 0, [0, t0s]],
+        [n1, t0s + 1, [0, 1]],
       ],
     ],
     [
       [0, t0s + 1 + t1s],
       [
-        [n0, 0],
-        [n1, t0s + 1],
+        [n0, 0, [0, t0s]],
+        [n1, t0s + 1, [0, t1s]],
       ],
     ],
     [
       [0, t0s + 1 + t1s + 1],
       [
-        [n0, 0],
-        [n1, t0s + 1],
-        [n2, t0s + 1 + t1s + 1],
+        [n0, 0, [0, t0s]],
+        [n1, t0s + 1, [0, t1s]],
+        [n2, t0s + 1 + t1s + 1, [0, 0]],
       ],
     ],
     [
       [0, t0s + 1 + t1s + 2],
       [
-        [n0, 0],
-        [n1, t0s + 1],
-        [n2, t0s + 1 + t1s + 1],
+        [n0, 0, [0, t0s]],
+        [n1, t0s + 1, [0, t1s]],
+        [n2, t0s + 1 + t1s + 1, [0, 1]],
       ],
     ],
     [
       [0, t0s + 1 + t1s + 1 + t2s],
       [
-        [n0, 0],
-        [n1, t0s + 1],
-        [n2, t0s + 1 + t1s + 1],
+        [n0, 0, [0, t0s]],
+        [n1, t0s + 1, [0, t1s]],
+        [n2, t0s + 1 + t1s + 1, [0, t2s]],
       ],
     ],
     [
       [0, Infinity],
       [
-        [n0, 0],
-        [n1, t0s + 1],
-        [n2, t0s + 1 + t1s + 1],
+        [n0, 0, [0, t0s]],
+        [n1, t0s + 1, [0, t1s]],
+        [n2, t0s + 1 + t1s + 1, [0, t2s]],
       ],
     ],
   ])(`$0`, (range, res) => {
     expect([...iterLeafBlocks(doc, range)]).toEqual(res);
+  });
+
+  describe("nested empty block", () => {
+    const t0 = "ab";
+    const doc: DocNode = {
+      children: [
+        { children: [{ text: t0 }] },
+        {
+          children: [
+            { children: [{ text: "" }] },
+            { children: [{ text: "c" }] },
+          ],
+        },
+      ],
+    };
+    const n0 = nodeAtPath(doc, [0]);
+    const n1 = nodeAtPath(doc, [1, 0]);
+    const t0s = t0.length;
+
+    it.each<[Range, [Node, number, Range][]]>([
+      [[t0s + 1, t0s + 1], [[n1, t0s + 1, [0, 0]]]],
+      [
+        [1, t0s + 1],
+        [
+          [n0, 0, [1, t0s]],
+          [n1, t0s + 1, [0, 0]],
+        ],
+      ],
+    ])(`$0`, (range, res) => {
+      expect([...iterLeafBlocks(doc, range)]).toEqual(res);
+    });
   });
 });
 
@@ -543,89 +574,120 @@ describe(iterLeaves.name, () => {
   const t1s = t1.length;
   const t2s = t2.length;
 
-  it.each<[Range, [Node, number][]]>([
+  it.each<[Range, [Node, number, Range][]]>([
     [[1, 0], []],
-    [[1, 1], []],
-    [[0, 0], []],
-    [[0, 1], [[n0, 0]]],
-    [[0, t0s], [[n0, 0]]],
+    [[1, 1], [[n0, 0, [1, 1]]]],
+    [[0, 0], [[n0, 0, [0, 0]]]],
+    [[0, 1], [[n0, 0, [0, 1]]]],
+    [[0, t0s], [[n0, 0, [0, t0s]]]],
     [
       [0, t0s + 1],
       [
-        [n0, 0],
-        [n1, t0s + 1],
+        [n0, 0, [0, t0s]],
+        [n1, t0s + 1, [0, 0]],
       ],
     ],
     [
       [0, t0s + 2],
       [
-        [n0, 0],
-        [n1, t0s + 1],
+        [n0, 0, [0, t0s]],
+        [n1, t0s + 1, [0, 1]],
       ],
     ],
     [
       [0, t0s + 1 + t1s],
       [
-        [n0, 0],
-        [n1, t0s + 1],
+        [n0, 0, [0, t0s]],
+        [n1, t0s + 1, [0, t1s]],
       ],
     ],
     [
       [0, t0s + 1 + t1s + 1],
       [
-        [n0, 0],
-        [n1, t0s + 1],
-        [n2, t0s + 1 + t1s + 1],
+        [n0, 0, [0, t0s]],
+        [n1, t0s + 1, [0, t1s]],
+        [n2, t0s + 1 + t1s + 1, [0, 0]],
       ],
     ],
     [
       [0, t0s + 1 + t1s + 2],
       [
-        [n0, 0],
-        [n1, t0s + 1],
-        [n2, t0s + 1 + t1s + 1],
+        [n0, 0, [0, t0s]],
+        [n1, t0s + 1, [0, t1s]],
+        [n2, t0s + 1 + t1s + 1, [0, 1]],
       ],
     ],
     [
       [0, t0s + 1 + t1s + 1 + t2s],
       [
-        [n0, 0],
-        [n1, t0s + 1],
-        [n2, t0s + 1 + t1s + 1],
+        [n0, 0, [0, t0s]],
+        [n1, t0s + 1, [0, t1s]],
+        [n2, t0s + 1 + t1s + 1, [0, t2s]],
       ],
     ],
     [
       [0, Infinity],
       [
-        [n0, 0],
-        [n1, t0s + 1],
-        [n2, t0s + 1 + t1s + 1],
+        [n0, 0, [0, t0s]],
+        [n1, t0s + 1, [0, t1s]],
+        [n2, t0s + 1 + t1s + 1, [0, t2s]],
       ],
     ],
     [
       [3, t0s + 2],
       [
-        [n0, 0],
-        [n1, t0s + 1],
+        [n0, 0, [3, t0s]],
+        [n1, t0s + 1, [0, 1]],
       ],
     ],
     [
       [3, t0s + 1 + t1s + 2],
       [
-        [n0, 0],
-        [n1, t0s + 1],
-        [n2, t0s + 1 + t1s + 1],
+        [n0, 0, [3, t0s]],
+        [n1, t0s + 1, [0, t1s]],
+        [n2, t0s + 1 + t1s + 1, [0, 1]],
       ],
     ],
     [
       [t0s, t0s + 1],
       [
-        [n0, 0],
-        [n1, t0s + 1],
+        [n0, 0, [t0s, t0s]],
+        [n1, t0s + 1, [0, 0]],
       ],
     ],
   ])(`$0`, (range, res) => {
     expect([...iterLeaves(doc, range)]).toEqual(res);
+  });
+
+  describe("nested empty block", () => {
+    const t0 = "ab";
+    const doc: DocNode = {
+      children: [
+        { children: [{ text: t0 }] },
+        {
+          children: [
+            { children: [{ text: "" }] },
+            { children: [{ text: "c" }] },
+          ],
+        },
+      ],
+    };
+    const n0 = nodeAtPath(doc, [0, 0]);
+    const n1 = nodeAtPath(doc, [1, 0, 0]);
+    const t0s = t0.length;
+
+    it.each<[Range, [Node, number, Range][]]>([
+      [[t0s + 1, t0s + 1], [[n1, t0s + 1, [0, 0]]]],
+      [
+        [1, t0s + 1],
+        [
+          [n0, 0, [1, t0s]],
+          [n1, t0s + 1, [0, 0]],
+        ],
+      ],
+    ])(`$0`, (range, res) => {
+      expect([...iterLeaves(doc, range)]).toEqual(res);
+    });
   });
 });
 
@@ -823,5 +885,49 @@ describe(sliceText.name, () => {
     expect(sliceText(doc, 1, t0s + 1 + 1 + 1 + t1s - 1, (n) => n.foo)).toEqual(
       t0.slice(1) + "\n" + "bar" + "\n" + t1.slice(0, -1),
     );
+  });
+
+  it("slice from inside a nested block", () => {
+    const doc = {
+      children: [
+        {
+          children: [
+            { children: [{ text: "ab" }] },
+            { children: [{ text: "cd" }] },
+          ],
+        },
+        { children: [{ text: "ef" }] },
+      ],
+    };
+    expect(sliceText(doc, 4, 7)).toEqual("d\ne");
+  });
+
+  it("slice a block of several runs until the middle", () => {
+    const doc = {
+      children: [{ children: [{ text: "ab" }, { text: "cd", bold: true }] }],
+    };
+    expect(sliceText(doc, 0, 1)).toEqual("a");
+    expect(sliceText(doc, 1, 3)).toEqual("bc");
+  });
+
+  it("exclude the void before the range", () => {
+    const doc = {
+      children: [
+        { children: [{ foo: "bar" }, { text: "bc" }] },
+        { children: [{ text: "d" }] },
+      ],
+    };
+    expect(sliceText(doc, 2, 4, (n) => n.foo)).toEqual("c\n");
+  });
+
+  it("exclude the void the range ends at", () => {
+    const doc = {
+      children: [
+        { children: [{ text: "abc" }, { foo: "bar" }, { text: "d" }] },
+      ],
+    };
+    expect(sliceText(doc, 0, 3, (n) => n.foo)).toEqual("abc");
+    expect(sliceText(doc, 3, 3, (n) => n.foo)).toEqual("");
+    expect(sliceText(doc, 3, 4, (n) => n.foo)).toEqual("bar");
   });
 });
