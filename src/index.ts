@@ -29,7 +29,7 @@ export {
   ToggleBlockAttr,
   SetVoidAttr,
 } from "./commands.js";
-export { LeavesInRange } from "./queries.js";
+export { LeavesInRange, BlocksInRange } from "./queries.js";
 export { createEditor } from "./editor.js";
 export type { EditorOptions, Editor, EditorContext } from "./editor.js";
 export * from "./presets/index.js";

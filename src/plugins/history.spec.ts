@@ -514,10 +514,11 @@ it("undo set attr", () => {
   expect(editor.selection).toEqual(selection);
 
   editor.apply({
-    type: "patch_node",
-    path: [0],
+    type: "format",
+    range: [1, 1],
     key: "foo",
     value: "bar",
+    depth: -2,
   });
   const updatedDoc = {
     children: [
@@ -551,10 +552,11 @@ it("undo set root attr", () => {
   expect(editor.selection).toEqual(selection);
 
   editor.apply({
-    type: "patch_node",
-    path: [],
+    type: "format",
+    range: [1, 1],
     key: "foo",
     value: "bar",
+    depth: 0,
   });
   const updatedDoc = {
     children: [

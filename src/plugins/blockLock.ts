@@ -1,12 +1,8 @@
-import {
-  getLeafBlockAt,
-  getNodeSize,
-  isBlockNode,
-  iterLeafBlocks,
-} from "../doc/node.js";
-import { isCollapsed, toRange } from "../doc/position.js";
+import { iterLeafBlocks } from "../doc/node.js";
+import { applyOperation } from "../doc/operation.js";
+import { toRange } from "../doc/position.js";
 import type { InferLeafBlockNode } from "../doc/types-infer.js";
-import type { BlockNode, DocNode, Node, Range } from "../doc/types.js";
+import type { BlockNode, DocNode, Range } from "../doc/types.js";
 import type { Editor } from "../editor.js";
 import { microtask } from "../utils.js";
 
@@ -31,20 +27,9 @@ export function blockLockPlugin<T extends DocNode>(
 ) {
   const isLockedNode = options.isLocked as (node: BlockNode) => boolean;
 
-  const isLockedAt = (offset: number): boolean => {
-    return isLockedNode(getLeafBlockAt(editor.doc, offset)[0]);
-  };
-
-  const hasLockedBlock = (range: Range, includesEdge: boolean): boolean => {
-    const [start, end] = range;
-    for (const [block, offset] of iterLeafBlocks(editor.doc, range)) {
-      const blockEnd = offset + getNodeSize(block);
-      if (
-        (includesEdge
-          ? end >= offset && start <= blockEnd
-          : end > offset && start < blockEnd) &&
-        isLockedNode(block)
-      ) {
+  const hasLockedBlock = (range: Range): boolean => {
+    for (const [block] of iterLeafBlocks(editor.doc, range)) {
+      if (isLockedNode(block)) {
         return true;
       }
     }
@@ -59,7 +44,7 @@ export function blockLockPlugin<T extends DocNode>(
 
     switch (op.type) {
       case "delete": {
-        if (hasLockedBlock(toRange(op.range), true)) {
+        if (hasLockedBlock(toRange(op.range))) {
           // also cancel an insert paired with this delete (e.g. input and paste dispatch [delete, insert])
           suppressInsert = true;
           microtask(() => {
@@ -71,40 +56,25 @@ export function blockLockPlugin<T extends DocNode>(
       }
       case "insert_text":
       case "insert_node": {
-        if (wasSuppressed || isLockedAt(op.at)) {
+        if (wasSuppressed || hasLockedBlock([op.at, op.at])) {
           return next(null);
         }
         break;
       }
       case "format": {
+        if (op.depth === 0) {
+          // undo and redo replace the root
+          break;
+        }
+        const doc = editor.doc;
         const range = toRange(op.range);
-        if (
-          isCollapsed(range)
-            ? isLockedAt(range[0])
-            : hasLockedBlock(range, false)
-        ) {
-          return next(null);
-        }
-        break;
-      }
-      case "patch_node": {
-        const path = op.path;
-        let node: Node = editor.doc;
-        for (let i = 0; i < path.length; i++) {
-          const child: Node | undefined = (node as BlockNode).children?.[
-            path[i]!
-          ];
-          if (!child) {
-            break;
-          }
-          node = child;
-          if (i < path.length - 1 && isBlockNode(node) && isLockedNode(node)) {
-            return next(null);
-          }
-        }
-        if (node !== editor.doc && isBlockNode(node) && isLockedNode(node)) {
-          // allow only patches that unlock the block
-          if (isLockedNode({ ...node, [op.key]: op.value })) {
+        const after = iterLeafBlocks(
+          applyOperation(doc, editor.selection, op)[0],
+          range,
+        );
+        for (const [b] of iterLeafBlocks(doc, range)) {
+          const a = after.next().value?.[0];
+          if (a && b !== a && isLockedNode(b) && isLockedNode(a)) {
             return next(null);
           }
         }
@@ -115,8 +85,7 @@ export function blockLockPlugin<T extends DocNode>(
   });
 
   editor.set<BlockLockContext>(blockLockPlugin, {
-    locked: (range) =>
-      isCollapsed(range) ? isLockedAt(range[0]) : hasLockedBlock(range, true),
+    locked: hasLockedBlock,
   });
 }
 

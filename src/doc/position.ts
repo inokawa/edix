@@ -17,10 +17,6 @@ export const isCollapsed = ([a, b]: Selection | Range): boolean => {
 /**
  * @internal
  */
-export const hasIntersection = (
-  [aStart, aEnd]: Range,
-  [bStart, bEnd]: Range,
-): boolean => {
-  // ignore edge for now
-  return aStart < bEnd && bStart < aEnd;
+export const isCovered = ([start, end]: Range, size: number): boolean => {
+  return size ? start < end : start <= end;
 };
