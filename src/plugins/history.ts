@@ -40,17 +40,17 @@ export function historyPlugin<T extends DocNode>(editor: Editor<T>) {
   const restore = (doc: T) => {
     editor.exec(ReplaceDoc, doc.children);
 
-    // TODO improve
     const prev = doc as Record<string, unknown>;
     const current = editor.doc as Record<string, unknown>;
-    for (const key of keys(prev)) {
+    for (const key of keys({ ...current, ...prev })) {
       if (key !== "children" && current[key] !== prev[key]) {
-        editor.apply({ type: "patch_node", path: [], key, value: prev[key] });
-      }
-    }
-    for (const key of keys(current)) {
-      if (key !== "children" && !(key in prev)) {
-        editor.apply({ type: "patch_node", path: [], key, value: undefined });
+        editor.apply({
+          type: "format",
+          range: [0, 0],
+          key,
+          value: prev[key],
+          depth: 0,
+        });
       }
     }
   };

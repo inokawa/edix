@@ -3587,10 +3587,41 @@ describe("format", () => {
           attr: 0,
           children: [
             { attr: 0, text: "ab", mark: true },
-            { foo: "bar" },
+            { foo: "bar", mark: true },
             { attr: 0, text: "cd", mark: true },
           ],
         },
+      ],
+    });
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("update the empty text the range ends at", () => {
+    const docText = "abcde";
+    const doc: Doc = {
+      children: [
+        { attr: 0, children: [{ attr: 0, text: docText }] },
+        { attr: 1, children: [{ attr: 0, text: "" }] },
+      ],
+    };
+    const sel: Selection = [2, 2];
+    const res = applyOperation(doc, sel, {
+      type: "format",
+      range: [1, docText.length + 1],
+      key: "foo",
+      value: "bar",
+    });
+
+    expect(res[0]).toEqual({
+      children: [
+        {
+          attr: 0,
+          children: [
+            { attr: 0, text: "a" },
+            { attr: 0, text: "bcde", foo: "bar" },
+          ],
+        },
+        { attr: 1, children: [{ attr: 0, text: "", foo: "bar" }] },
       ],
     });
     expect(res[1]).toEqual(sel);
@@ -3699,36 +3730,38 @@ describe("format", () => {
   });
 });
 
-describe("patch node", () => {
+describe("format with depth", () => {
   describe("validation", () => {
-    it("path less than min", () => {
+    it("depth less than min", () => {
       const docText = "abcde";
       const doc: Doc = {
         children: [{ attr: 0, children: [{ attr: 0, text: docText }] }],
       };
       const sel: Selection = [2, 2];
       const res = applyOperation(doc, sel, {
-        type: "patch_node",
-        path: [-1],
+        type: "format",
+        range: [1, 2],
         key: "foo",
         value: "bar",
+        depth: -4,
       });
 
       expect(res[0] === doc).toBe(true);
       expect(res[1]).toEqual(sel);
     });
 
-    it("path more than max", () => {
+    it("depth more than max", () => {
       const docText = "abcde";
       const doc: Doc = {
         children: [{ attr: 0, children: [{ attr: 0, text: docText }] }],
       };
       const sel: Selection = [2, 2];
       const res = applyOperation(doc, sel, {
-        type: "patch_node",
-        path: [100],
+        type: "format",
+        range: [1, 2],
         key: "foo",
         value: "bar",
+        depth: 3,
       });
 
       expect(res[0] === doc).toBe(true);
@@ -3747,10 +3780,11 @@ describe("patch node", () => {
     };
     const sel: Selection = [docText.length + 1 + 2, docText.length + 1 + 2];
     const res = applyOperation(doc, sel, {
-      type: "patch_node",
-      path: [],
+      type: "format",
+      range: [0, 0],
       key: "foo",
       value: "bar",
+      depth: 0,
     });
 
     expect(res[0]).toEqual({
@@ -3774,10 +3808,11 @@ describe("patch node", () => {
     };
     const sel: Selection = [docText.length + 1 + 2, docText.length + 1 + 2];
     const res = applyOperation(doc, sel, {
-      type: "patch_node",
-      path: [0],
+      type: "format",
+      range: [2, 2],
       key: "foo",
       value: "bar",
+      depth: -2,
     });
 
     expect(res[0]).toEqual({
@@ -3800,15 +3835,142 @@ describe("patch node", () => {
     };
     const sel: Selection = [docText.length + 1 + 2, docText.length + 1 + 2];
     const res = applyOperation(doc, sel, {
-      type: "patch_node",
-      path: [1],
+      type: "format",
+      range: [docText.length + 1 + 2, docText.length + 1 + 2],
       key: "foo",
       value: "bar",
+      depth: -2,
     });
 
     expect(res[0]).toEqual({
       children: [
         { attr: 0, children: [{ attr: 0, text: docText }] },
+        { attr: 1, foo: "bar", children: [{ attr: 0, text: docText2 }] },
+      ],
+    });
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("update block node with positive depth", () => {
+    const docText = "abcde";
+    const docText2 = "fghij";
+    const doc: Doc = {
+      children: [
+        { attr: 0, children: [{ attr: 0, text: docText }] },
+        { attr: 1, children: [{ attr: 0, text: docText2 }] },
+      ],
+    };
+    const sel: Selection = [2, 2];
+    const res = applyOperation(doc, sel, {
+      type: "format",
+      range: [2, 2],
+      key: "foo",
+      value: "bar",
+      depth: 1,
+    });
+
+    expect(res[0]).toEqual({
+      children: [
+        { attr: 0, foo: "bar", children: [{ attr: 0, text: docText }] },
+        { attr: 1, children: [{ attr: 0, text: docText2 }] },
+      ],
+    });
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("update the empty block the range ends at", () => {
+    const docText = "abcde";
+    const doc: Doc = {
+      children: [
+        { attr: 0, children: [{ attr: 0, text: docText }] },
+        { attr: 1, children: [{ attr: 0, text: "" }] },
+      ],
+    };
+    const sel: Selection = [2, 2];
+    const res = applyOperation(doc, sel, {
+      type: "format",
+      range: [1, docText.length + 1],
+      key: "foo",
+      value: "bar",
+      depth: -2,
+    });
+
+    expect(res[0]).toEqual({
+      children: [
+        { attr: 0, foo: "bar", children: [{ attr: 0, text: docText }] },
+        { attr: 1, foo: "bar", children: [{ attr: 0, text: "" }] },
+      ],
+    });
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("update the empty item of a list the range ends at", () => {
+    type Item = { attr: number; children: { attr: number; text: string }[] };
+    const doc: { children: (Item | { attr: number; children: Item[] })[] } = {
+      children: [
+        { attr: 0, children: [{ attr: 0, text: "abcde" }] },
+        {
+          attr: 1,
+          children: [
+            { attr: 2, children: [{ attr: 0, text: "" }] },
+            { attr: 3, children: [{ attr: 0, text: "fghij" }] },
+          ],
+        },
+      ],
+    };
+    const sel: Selection = [2, 2];
+    const item = applyOperation(doc, sel, {
+      type: "format",
+      range: [1, 6],
+      key: "foo",
+      value: "bar",
+      depth: -2,
+    })[0];
+    const text = applyOperation(doc, sel, {
+      type: "format",
+      range: [1, 6],
+      key: "foo",
+      value: "bar",
+    })[0];
+
+    expect(item.children[1]).toEqual({
+      attr: 1,
+      children: [
+        { attr: 2, foo: "bar", children: [{ attr: 0, text: "" }] },
+        { attr: 3, children: [{ attr: 0, text: "fghij" }] },
+      ],
+    });
+    expect(text.children[1]).toEqual({
+      attr: 1,
+      children: [
+        { attr: 2, children: [{ attr: 0, text: "", foo: "bar" }] },
+        { attr: 3, children: [{ attr: 0, text: "fghij" }] },
+      ],
+    });
+    expect(sel).toEqual([2, 2]);
+  });
+
+  it("update block nodes with expanded range", () => {
+    const docText = "abcde";
+    const docText2 = "fghij";
+    const doc: Doc = {
+      children: [
+        { attr: 0, children: [{ attr: 0, text: docText }] },
+        { attr: 1, children: [{ attr: 0, text: docText2 }] },
+      ],
+    };
+    const sel: Selection = [2, 2];
+    const res = applyOperation(doc, sel, {
+      type: "format",
+      range: [1, docText.length + 1 + 2],
+      key: "foo",
+      value: "bar",
+      depth: -2,
+    });
+
+    expect(res[0]).toEqual({
+      children: [
+        { attr: 0, foo: "bar", children: [{ attr: 0, text: docText }] },
         { attr: 1, foo: "bar", children: [{ attr: 0, text: docText2 }] },
       ],
     });
@@ -3826,10 +3988,11 @@ describe("patch node", () => {
     };
     const sel: Selection = [2, 2];
     const res = applyOperation(doc, sel, {
-      type: "patch_node",
-      path: [0, 0],
+      type: "format",
+      range: [0, docText.length],
       key: "foo",
       value: "bar",
+      depth: -1,
     });
 
     expect(res[0]).toEqual({
@@ -3860,8 +4023,8 @@ describe("patch node", () => {
     };
     const sel: Selection = [2, 2];
     const res = applyOperation(doc, sel, {
-      type: "patch_node",
-      path: [0, 0],
+      type: "format",
+      range: [0, 1],
       key: "foo",
       value: "bar",
     });
@@ -3875,6 +4038,367 @@ describe("patch node", () => {
         { attr: 1, children: [{ attr: 0, text: docText2 }] },
       ],
     });
+    expect(res[1]).toEqual(sel);
+  });
+});
+
+describe("format with depth in nested doc", () => {
+  type NestedDoc = {
+    children: {
+      attr: number;
+      children: { attr: number; children: { attr: number; text: string }[] }[];
+    }[];
+  };
+
+  it("update text node", () => {
+    const docText = "abcde";
+    const doc: NestedDoc = {
+      children: [
+        {
+          attr: 0,
+          children: [{ attr: 1, children: [{ attr: 2, text: docText }] }],
+        },
+      ],
+    };
+    const sel: Selection = [1, 1];
+    const res = applyOperation(doc, sel, {
+      type: "format",
+      range: [1, 3],
+      key: "foo",
+      value: "bar",
+    });
+
+    expect(res[0]).toEqual({
+      children: [
+        {
+          attr: 0,
+          children: [
+            {
+              attr: 1,
+              children: [
+                { attr: 2, text: docText.slice(0, 1) },
+                { attr: 2, text: docText.slice(1, 3), foo: "bar" },
+                { attr: 2, text: docText.slice(3) },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("update inner block node", () => {
+    const docText = "abcde";
+    const doc: NestedDoc = {
+      children: [
+        {
+          attr: 0,
+          children: [{ attr: 1, children: [{ attr: 2, text: docText }] }],
+        },
+      ],
+    };
+    const sel: Selection = [1, 1];
+    const res = applyOperation(doc, sel, {
+      type: "format",
+      range: [1, 3],
+      key: "foo",
+      value: "bar",
+      depth: -2,
+    });
+
+    expect(res[0]).toEqual({
+      children: [
+        {
+          attr: 0,
+          children: [
+            {
+              attr: 1,
+              foo: "bar",
+              children: [{ attr: 2, text: docText }],
+            },
+          ],
+        },
+      ],
+    });
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("update outer block node with collapsed range", () => {
+    const docText = "abcde";
+    const doc: NestedDoc = {
+      children: [
+        {
+          attr: 0,
+          children: [{ attr: 1, children: [{ attr: 2, text: docText }] }],
+        },
+      ],
+    };
+    const sel: Selection = [1, 1];
+    const res = applyOperation(doc, sel, {
+      type: "format",
+      range: [1, 1],
+      key: "foo",
+      value: "bar",
+      depth: -3,
+    });
+
+    expect(res[0]).toEqual({
+      children: [
+        {
+          attr: 0,
+          foo: "bar",
+          children: [{ attr: 1, children: [{ attr: 2, text: docText }] }],
+        },
+      ],
+    });
+    expect(res[1]).toEqual(sel);
+  });
+});
+
+describe("format with depth in unevenly nested doc", () => {
+  type UnevenDoc = {
+    children: (
+      | { type: "p"; align?: string; children: { text: string }[] }
+      | {
+          type: "table";
+          width?: number;
+          children: {
+            type: "row";
+            height?: number;
+            children: {
+              type: "cell";
+              align?: string;
+              children: { text: string }[];
+            }[];
+          }[];
+        }
+    )[];
+  };
+  type TableNode = Extract<UnevenDoc["children"][number], { type: "table" }>;
+  const docText = "abcde";
+  const cellText = "1";
+  const cellText2 = "2";
+  const doc: UnevenDoc = {
+    children: [
+      { type: "p", children: [{ text: docText }] },
+      {
+        type: "table",
+        children: [
+          {
+            type: "row",
+            children: [
+              { type: "cell", children: [{ text: cellText }] },
+              { type: "cell", children: [{ text: cellText2 }] },
+            ],
+          },
+          {
+            type: "row",
+            children: [
+              { type: "cell", children: [{ text: "3" }] },
+              { type: "cell", children: [{ text: "4" }] },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+  const table = doc.children[1] as TableNode;
+  const cell2Start = docText.length + 1 + cellText.length + 1;
+
+  it("update cell at caret with leaf block depth", () => {
+    const sel: Selection = [cell2Start, cell2Start];
+    const res = applyOperation(doc, sel, {
+      type: "format",
+      range: [cell2Start, cell2Start],
+      key: "align",
+      value: "right",
+      depth: -2,
+    });
+
+    expect((res[0].children[1] as TableNode).children[0]!.children[1]).toEqual({
+      type: "cell",
+      align: "right",
+      children: [{ text: cellText2 }],
+    });
+    expect(res[0].children[0] === doc.children[0]).toBe(true);
+    expect(
+      (res[0].children[1] as TableNode).children[1] === table.children[1],
+    ).toBe(true);
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("update paragraph and cells inside selection with leaf block depth", () => {
+    const sel: Selection = [2, cell2Start + cellText2.length];
+    const res = applyOperation(doc, sel, {
+      type: "format",
+      range: sel,
+      key: "align",
+      value: "right",
+      depth: -2,
+    });
+
+    expect(res[0]).toEqual({
+      children: [
+        { type: "p", align: "right", children: [{ text: docText }] },
+        {
+          type: "table",
+          children: [
+            {
+              type: "row",
+              children: [
+                {
+                  type: "cell",
+                  align: "right",
+                  children: [{ text: cellText }],
+                },
+                {
+                  type: "cell",
+                  align: "right",
+                  children: [{ text: cellText2 }],
+                },
+              ],
+            },
+            table.children[1],
+          ],
+        },
+      ],
+    });
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("update row and table above caret with negative depth", () => {
+    const sel: Selection = [cell2Start, cell2Start];
+    const row = applyOperation(doc, sel, {
+      type: "format",
+      range: sel,
+      key: "height",
+      value: 20,
+      depth: -3,
+    })[0];
+    const widened = applyOperation(doc, sel, {
+      type: "format",
+      range: sel,
+      key: "width",
+      value: 100,
+      depth: -4,
+    })[0];
+
+    expect((row.children[1] as TableNode).children[0]).toEqual({
+      type: "row",
+      height: 20,
+      children: table.children[0]!.children,
+    });
+    expect(
+      (row.children[1] as TableNode).children[1] === table.children[1],
+    ).toBe(true);
+    expect(widened.children[1]).toEqual({ ...table, width: 100 });
+    expect((widened.children[1] as TableNode).children === table.children).toBe(
+      true,
+    );
+  });
+
+  it("update top-level block at caret with positive depth", () => {
+    const sel: Selection = [cell2Start, cell2Start];
+    const res = applyOperation(doc, sel, {
+      type: "format",
+      range: sel,
+      key: "width",
+      value: 100,
+      depth: 1,
+    });
+
+    expect(res[0].children[1]).toEqual({ ...table, width: 100 });
+    expect(res[0].children[0] === doc.children[0]).toBe(true);
+  });
+
+  it("update block at caret at end of text", () => {
+    const sel: Selection = [docText.length, docText.length];
+    const res = applyOperation(doc, sel, {
+      type: "format",
+      range: sel,
+      key: "align",
+      value: "right",
+      depth: -2,
+    });
+
+    expect(res[0].children[0]).toEqual({
+      type: "p",
+      align: "right",
+      children: [{ text: docText }],
+    });
+    expect(res[0].children[1] === doc.children[1]).toBe(true);
+  });
+
+  it("depth beyond root", () => {
+    const sel: Selection = [cell2Start, cell2Start];
+    const res = applyOperation(doc, sel, {
+      type: "format",
+      range: sel,
+      key: "width",
+      value: 100,
+      depth: -6,
+    });
+
+    expect(res[0] === doc).toBe(true);
+    expect(res[1]).toEqual(sel);
+  });
+});
+
+describe("format without value", () => {
+  type MarkDoc = {
+    children: {
+      attr: number;
+      mark?: boolean;
+      children: { attr: number; text: string; mark?: boolean }[];
+    }[];
+  };
+
+  it("remove attr with undefined value and merge texts", () => {
+    const doc: MarkDoc = {
+      children: [
+        {
+          attr: 0,
+          children: [
+            { attr: 0, text: "ab", mark: true },
+            { attr: 0, text: "cd" },
+          ],
+        },
+      ],
+    };
+    const sel: Selection = [1, 1];
+    const res = applyOperation(doc, sel, {
+      type: "format",
+      range: [0, 2],
+      key: "mark",
+      value: undefined,
+    });
+
+    expect(res[0]).toEqual({
+      children: [{ attr: 0, children: [{ attr: 0, text: "abcd" }] }],
+    });
+    expect("mark" in res[0].children[0]!.children[0]!).toBe(false);
+    expect(res[1]).toEqual(sel);
+  });
+
+  it("remove attr with omitted value", () => {
+    const doc: MarkDoc = {
+      children: [
+        { attr: 0, mark: true, children: [{ attr: 0, text: "abcde" }] },
+      ],
+    };
+    const sel: Selection = [1, 1];
+    const res = applyOperation(doc, sel, {
+      type: "format",
+      range: [1, 1],
+      key: "mark",
+      depth: -2,
+    });
+
+    expect(res[0]).toEqual({
+      children: [{ attr: 0, children: [{ attr: 0, text: "abcde" }] }],
+    });
+    expect("mark" in res[0].children[0]!).toBe(false);
     expect(res[1]).toEqual(sel);
   });
 });

@@ -46,16 +46,29 @@ type Doc = v.InferOutput<typeof pagedSchema>;
 
 function SetPageSize(editor: Editor<Doc>, width: number, height: number) {
   editor
-    .apply({ type: "patch_node", path: [], key: "pageWidth", value: width })
-    .apply({ type: "patch_node", path: [], key: "pageHeight", value: height });
+    .apply({
+      type: "format",
+      range: [0, 0],
+      key: "pageWidth",
+      value: width,
+      depth: 0,
+    })
+    .apply({
+      type: "format",
+      range: [0, 0],
+      key: "pageHeight",
+      value: height,
+      depth: 0,
+    });
 }
 
 function SetPageMargin(editor: Editor<Doc>, margin: number) {
   editor.apply({
-    type: "patch_node",
-    path: [],
+    type: "format",
+    range: [0, 0],
     key: "pageMargin",
     value: margin,
+    depth: 0,
   });
 }
 

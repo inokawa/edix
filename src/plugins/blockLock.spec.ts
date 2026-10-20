@@ -297,7 +297,7 @@ it("format range touching edge of locked block", () => {
   expect(editor.doc.children[1]).toEqual(doc.children[1]);
 });
 
-it("patch_node on locked block", () => {
+it("format block attr on locked block", () => {
   const doc: LockDoc = {
     children: [
       { children: [{ text: "abcde" }] },
@@ -308,11 +308,17 @@ it("patch_node on locked block", () => {
   const editor = createEditor({ doc }).exec(blockLockPlugin, {
     isLocked: (b) => !!b.locked,
   });
-  editor.apply({ type: "patch_node", path: [1], key: "align", value: "right" });
+  editor.apply({
+    type: "format",
+    range: [7, 7],
+    key: "align",
+    value: "right",
+    depth: -2,
+  });
   expect(editor.doc).toEqual(doc);
 });
 
-it("patch_node inside locked block", () => {
+it("format block attr on range including locked block", () => {
   const doc: LockDoc = {
     children: [
       { children: [{ text: "abcde" }] },
@@ -323,11 +329,17 @@ it("patch_node inside locked block", () => {
   const editor = createEditor({ doc }).exec(blockLockPlugin, {
     isLocked: (b) => !!b.locked,
   });
-  editor.apply({ type: "patch_node", path: [1, 0], key: "bold", value: true });
+  editor.apply({
+    type: "format",
+    range: [1, 13],
+    key: "align",
+    value: "right",
+    depth: -2,
+  });
   expect(editor.doc).toEqual(doc);
 });
 
-it("patch_node unlocking locked block", () => {
+it("format inside locked block", () => {
   const doc: LockDoc = {
     children: [
       { children: [{ text: "abcde" }] },
@@ -338,7 +350,28 @@ it("patch_node unlocking locked block", () => {
   const editor = createEditor({ doc }).exec(blockLockPlugin, {
     isLocked: (b) => !!b.locked,
   });
-  editor.apply({ type: "patch_node", path: [1], key: "locked", value: false });
+  editor.apply({ type: "format", range: [7, 9], key: "bold", value: true });
+  expect(editor.doc).toEqual(doc);
+});
+
+it("format unlocking locked block", () => {
+  const doc: LockDoc = {
+    children: [
+      { children: [{ text: "abcde" }] },
+      { locked: true, children: [{ text: "fghij" }] },
+      { children: [{ text: "klmno" }] },
+    ],
+  };
+  const editor = createEditor({ doc }).exec(blockLockPlugin, {
+    isLocked: (b) => !!b.locked,
+  });
+  editor.apply({
+    type: "format",
+    range: [7, 7],
+    key: "locked",
+    value: false,
+    depth: -2,
+  });
   expect(editor.doc.children[1]).toEqual({
     locked: false,
     children: [{ text: "fghij" }],
@@ -350,7 +383,7 @@ it("patch_node unlocking locked block", () => {
   });
 });
 
-it("patch_node locking unlocked block", () => {
+it("format locking unlocked block", () => {
   const doc: LockDoc = {
     children: [
       { children: [{ text: "abcde" }] },
@@ -361,7 +394,13 @@ it("patch_node locking unlocked block", () => {
   const editor = createEditor({ doc }).exec(blockLockPlugin, {
     isLocked: (b) => !!b.locked,
   });
-  editor.apply({ type: "patch_node", path: [0], key: "locked", value: true });
+  editor.apply({
+    type: "format",
+    range: [2, 2],
+    key: "locked",
+    value: true,
+    depth: -2,
+  });
   expect(editor.doc.children[0]).toEqual({
     locked: true,
     children: [{ text: "abcde" }],
@@ -373,18 +412,85 @@ it("patch_node locking unlocked block", () => {
   });
 });
 
-it("patch_node on root", () => {
+it("format block attr on range ending at an empty locked block", () => {
   const doc: LockDoc = {
     children: [
       { children: [{ text: "abcde" }] },
-      { locked: true, children: [{ text: "fghij" }] },
+      { locked: true, children: [{ text: "" }] },
+    ],
+  };
+  const editor = createEditor({ doc }).exec(blockLockPlugin, {
+    isLocked: (b) => !!b.locked,
+  });
+  editor.apply({
+    type: "format",
+    range: [1, 6],
+    key: "align",
+    value: "right",
+    depth: -2,
+  });
+  expect(editor.doc).toEqual(doc);
+});
+
+it("format block attr on the table containing a locked cell", () => {
+  type TableDoc = {
+    children: {
+      width?: number;
+      children: {
+        children: { locked?: boolean; children: { text: string }[] }[];
+      }[];
+    }[];
+  };
+  const doc: TableDoc = {
+    children: [
+      {
+        children: [
+          {
+            children: [
+              { locked: true, children: [{ text: "abcde" }] },
+              { children: [{ text: "fghij" }] },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+  const editor = createEditor({ doc }).exec(blockLockPlugin, {
+    isLocked: (b) => !!b.locked,
+  });
+  editor.apply({
+    type: "format",
+    range: [2, 2],
+    key: "width",
+    value: 100,
+    depth: -4,
+  });
+  expect(editor.doc).toEqual({
+    children: [{ ...doc.children[0], width: 100 }],
+  });
+  expect(editor.doc.children[0]!.children[0]!.children[0]).toBe(
+    doc.children[0]!.children[0]!.children[0],
+  );
+});
+
+it("format on root", () => {
+  const doc: LockDoc = {
+    children: [
+      { locked: true, children: [{ text: "abcde" }] },
+      { children: [{ text: "fghij" }] },
       { children: [{ text: "klmno" }] },
     ],
   };
   const editor = createEditor({ doc }).exec(blockLockPlugin, {
     isLocked: (b) => !!b.locked,
   });
-  editor.apply({ type: "patch_node", path: [], key: "foo", value: 1 });
+  editor.apply({
+    type: "format",
+    range: [0, 0],
+    key: "foo",
+    value: 1,
+    depth: 0,
+  });
   expect(editor.doc).toEqual({ ...doc, foo: 1 });
 });
 
@@ -408,6 +514,24 @@ it("undo and redo", () => {
 
   editor.exec(Redo);
   expect(editor.doc).toEqual(updatedDoc);
+});
+
+it("paste at a caret inside locked block is rejected as a whole", () => {
+  const doc: LockDoc = {
+    children: [
+      { children: [{ text: "abcde" }] },
+      { locked: true, children: [{ text: "fghij" }] },
+    ],
+  };
+  const editor = createEditor({ doc }).exec(blockLockPlugin, {
+    isLocked: (b) => !!b.locked,
+  });
+  // a paste dispatches a delete of the selection, even a collapsed one, and an insert
+  editor.apply([
+    { type: "delete", range: [8, 8] },
+    { type: "insert_text", at: 8, text: "x" },
+  ]);
+  expect(editor.doc).toEqual(doc);
 });
 
 it("rejected delete also cancels paired insert", async () => {

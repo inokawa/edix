@@ -235,10 +235,17 @@ export const selectionToDomSelection = (
   return [offsetToPosition(doc, anchor), offsetToPosition(doc, focus)];
 };
 
-function* iterChildren<T extends Node>(
+/**
+ * @internal
+ */
+export function* iterChildren<T extends Node>(
   node: T,
   [start, end]: Range,
-): Generator<[node: Node, offset: number, range: Range], void, void> {
+): Generator<
+  [node: Node, offset: number, index: number, range: Range],
+  void,
+  void
+> {
   if (start > end || !isBlockNode(node)) {
     return;
   }
@@ -254,6 +261,7 @@ function* iterChildren<T extends Node>(
       yield [
         targetNode,
         offset,
+        i,
         [max(start, offset) - offset, min(end, offset + size) - offset],
       ];
 
@@ -278,7 +286,7 @@ export function* iterLeafBlocks<T extends Node>(
     yield [node as InferLeafBlockNode<T>, 0, range];
     return;
   }
-  for (const [child, offset, childRange] of iterChildren(node, range)) {
+  for (const [child, offset, , childRange] of iterChildren(node, range)) {
     for (const r of iterLeafBlocks(child, childRange)) {
       r[1] += offset;
       yield r as [InferLeafBlockNode<T>, number, Range];
@@ -298,7 +306,7 @@ export function* iterLeaves<T extends Node>(
     yield [node as InferInlineNode<T>, 0, range];
     return;
   }
-  for (const [child, offset, childRange] of iterChildren(node, range)) {
+  for (const [child, offset, , childRange] of iterChildren(node, range)) {
     for (const leaf of iterLeaves(child, childRange)) {
       leaf[1] += offset;
       yield leaf as [InferInlineNode<T>, number, Range];
@@ -314,7 +322,10 @@ export const sliceText = <T extends Node>(
 ): string => {
   let str = "";
   let offset = start;
-  for (const [leaf, leafStart, [from, to]] of iterLeaves(node, [start, end])) {
+  for (const [leaf, leafStart, [textStart, textEnd]] of iterLeaves(node, [
+    start,
+    end,
+  ])) {
     for (let i = leafStart - offset; i > 0; i--) {
       str += "\n";
     }
@@ -322,9 +333,12 @@ export const sliceText = <T extends Node>(
     const size = getNodeSize(leaf);
     const leafEnd = leafStart + size;
     if (isTextNode(leaf)) {
-      str += from === 0 && to === size ? leaf.text : leaf.text.slice(from, to);
+      str +=
+        textStart === 0 && textEnd === size
+          ? leaf.text
+          : leaf.text.slice(textStart, textEnd);
     } else {
-      if (voidToString && from < to) {
+      if (voidToString && textStart < textEnd) {
         str += voidToString(leaf as InferVoidNode<T>);
       }
     }

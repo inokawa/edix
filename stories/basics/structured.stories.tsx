@@ -25,6 +25,7 @@ import {
   type Editor,
   getLeafAt,
   getLeafBlockAt,
+  BlocksInRange,
   LeavesInRange,
   SetVoidAttr,
   getNodeOffset,
@@ -124,27 +125,54 @@ const richSchema = v.strictObject({
 
 type RichDoc = v.InferOutput<typeof richSchema>;
 
-function Indent(editor: Editor<RichDoc>, offset: number = editor.selection[0]) {
-  const [block, , path] = getLeafBlockAt(editor.doc, offset);
-  editor.apply({
-    type: "patch_node",
-    path,
-    key: "indent",
-    value: (block.indent ?? 0) + 1,
-  });
+function Indent(editor: Editor<RichDoc>) {
+  // group consecutive blocks sharing an indent into one operation
+  const runs: [indent: number, start: number, end: number][] = [];
+  for (const [block, offset] of editor.exec(BlocksInRange)) {
+    const indent = block.indent ?? 0;
+    const end = offset + getNodeSize(block);
+    const last = runs[runs.length - 1];
+    if (last && last[0] === indent) {
+      last[2] = end;
+    } else {
+      runs.push([indent, offset, end]);
+    }
+  }
+
+  for (const [indent, start, end] of runs) {
+    editor.apply({
+      type: "format",
+      range: [start, end],
+      key: "indent",
+      value: indent + 1,
+      depth: -2,
+    });
+  }
 }
 
-function Outdent(
-  editor: Editor<RichDoc>,
-  offset: number = editor.selection[0],
-) {
-  const [block, , path] = getLeafBlockAt(editor.doc, offset);
-  editor.apply({
-    type: "patch_node",
-    path,
-    key: "indent",
-    value: Math.max((block.indent ?? 0) - 1, 0),
-  });
+function Outdent(editor: Editor<RichDoc>) {
+  // group consecutive blocks sharing an indent into one operation
+  const runs: [indent: number, start: number, end: number][] = [];
+  for (const [block, offset] of editor.exec(BlocksInRange)) {
+    const indent = block.indent ?? 0;
+    const end = offset + getNodeSize(block);
+    const last = runs[runs.length - 1];
+    if (last && last[0] === indent) {
+      last[2] = end;
+    } else {
+      runs.push([indent, offset, end]);
+    }
+  }
+
+  for (const [indent, start, end] of runs) {
+    editor.apply({
+      type: "format",
+      range: [start, end],
+      key: "indent",
+      value: Math.max(indent - 1, 0),
+      depth: -2,
+    });
+  }
 }
 
 const defaultFontSize = 10;

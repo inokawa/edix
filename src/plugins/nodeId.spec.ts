@@ -428,8 +428,9 @@ it("move nodes before reading all of them", () => {
   );
 
   editor.apply({
-    type: "patch_node",
-    path: [],
+    type: "format",
+    range: [0, 0],
+    depth: 0,
     key: "children",
     value: [third, first, second],
   });
@@ -463,8 +464,9 @@ it("restore replaced nodes", () => {
   const newTextId = NodeId(editor, editedChildren[0]!.children[0]!);
 
   editor.apply({
-    type: "patch_node",
-    path: [],
+    type: "format",
+    range: [0, 0],
+    depth: 0,
     key: "children",
     value: children,
   });
@@ -476,8 +478,9 @@ it("restore replaced nodes", () => {
   expect(NodeId(editor, b!.children[0]!)).toBe(secondTextId);
 
   editor.apply({
-    type: "patch_node",
-    path: [],
+    type: "format",
+    range: [0, 0],
+    depth: 0,
     key: "children",
     value: editedChildren,
   });
@@ -508,7 +511,13 @@ it("set attr", () => {
     second!.children[0]!,
   ].map((n) => NodeId(editor, n));
 
-  editor.apply({ type: "patch_node", path: [0], key: "foo", value: "bar" });
+  editor.apply({
+    type: "format",
+    range: [0, 0],
+    depth: -2,
+    key: "foo",
+    value: "bar",
+  });
 
   const [a, b] = editor.doc.children;
   expect(NodeId(editor, a!)).toBe(firstBlockId);
