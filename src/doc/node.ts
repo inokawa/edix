@@ -45,14 +45,12 @@ const calcBlockSize = (
   end: number = children.length,
 ): number => {
   let size = 0;
-  let count = 0;
   for (let i = start; i < end; i++) {
     const n = children[i]!;
     size += getNodeSize(n);
-    if (count !== 0 && isBlockNode(n)) {
+    if (i !== start && isBlockNode(n)) {
       size++;
     }
-    count++;
   }
   return size;
 };
@@ -99,17 +97,10 @@ export const getLeafBlockAt = <T extends DocNode | BlockNode>(
   offset: number,
 ): [node: InferLeafBlockNode<T>, offset: number, path: Path] => {
   const path: number[] = [];
-  while (node) {
-    const found = getChildAt(node, offset);
-    if (!found) {
-      break;
-    }
-    const nextNode = found[0];
-    if (!isBlockNode(nextNode)) {
-      break;
-    }
+  let found;
+  while ((found = getChildAt(node, offset)) && isBlockNode(found[0])) {
     offset = found[1];
-    node = nextNode as T;
+    node = found[0] as T;
     path.push(found[2]);
   }
   return [node as InferLeafBlockNode<T>, offset, path];
@@ -165,44 +156,36 @@ export const splitBlock = <T extends DocNode | BlockNode>(
 ): [T, T] => {
   const children = node.children;
   const target = getChildAt(node, pos);
-  if (target) {
-    const [child, offsetAtChild, i] = target;
-    if (isBlockNode(child)) {
-      const [childBefore, childAfter] = splitBlock(child, offsetAtChild);
-      const before = children.slice(0, i);
-      const after = children.slice(i + 1);
-      before.push(childBefore);
-      after.unshift(childAfter);
-      return [
-        { ...node, children: before },
-        { ...node, children: after },
-      ];
-    } else {
-      const before: T["children"][number][] = children.slice(0, i);
-      const after: T["children"][number][] = children.slice(i + 1);
-      if (isTextNode(child)) {
-        const beforeText = child.text.slice(0, offsetAtChild);
-        const afterText = child.text.slice(offsetAtChild);
-        if (beforeText || !before.length) {
-          before.push({ ...child, text: beforeText });
-        }
-        if (afterText || !after.length) {
-          after.unshift({ ...child, text: afterText });
-        }
-      } else {
-        // node size must be 1
-        after.unshift(child);
-      }
-      return [
-        { ...node, children: before },
-        { ...node, children: after },
-      ];
-    }
+  if (!target) {
+    const last = children[children.length - 1]!;
+    return [
+      node,
+      { ...node, children: isTextNode(last) ? [{ ...last, text: "" }] : [] },
+    ];
   }
-  const last = children[children.length - 1]!;
+  const [child, offsetAtChild, i] = target;
+  const before: Node[] = children.slice(0, i);
+  const after: Node[] = children.slice(i + 1);
+  if (isBlockNode(child)) {
+    const [childBefore, childAfter] = splitBlock(child, offsetAtChild);
+    before.push(childBefore);
+    after.unshift(childAfter);
+  } else if (isTextNode(child)) {
+    const beforeText = child.text.slice(0, offsetAtChild);
+    const afterText = child.text.slice(offsetAtChild);
+    if (beforeText || !before.length) {
+      before.push({ ...child, text: beforeText });
+    }
+    if (afterText || !after.length) {
+      after.unshift({ ...child, text: afterText });
+    }
+  } else {
+    // node size must be 1
+    after.unshift(child);
+  }
   return [
-    node,
-    { ...node, children: isTextNode(last) ? [{ ...last, text: "" }] : [] },
+    { ...node, children: before },
+    { ...node, children: after },
   ];
 };
 

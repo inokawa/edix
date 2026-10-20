@@ -14,7 +14,6 @@ import type {
   Fragment,
   InlineNode,
   Selection,
-  TextNode,
   Path,
   BlockNode,
   Node,
@@ -76,12 +75,9 @@ const isSameNode = (a: InlineNode, b: InlineNode): boolean => {
   if (aKeys.length !== keys(b).length) {
     return false;
   }
-  return aKeys.every((k) => {
-    if (!(k in b)) {
-      return false;
-    }
-    return k === "text" || is((a as any)[k], (b as any)[k]);
-  });
+  return aKeys.every(
+    (k) => k in b && (k === "text" || is((a as any)[k], (b as any)[k])),
+  );
 };
 
 const normalizeInline = (
@@ -116,58 +112,36 @@ const normalizeInline = (
   }
 };
 
-const normalizeBlock = (
-  array: BlockNode[],
-  start: number = 0,
-  end: number = array.length - 1,
-): void => {
-  let i = start + 1;
-  while (i <= end) {
-    const prev = array[i - 1]!;
-    const curr = array[i]!;
-    // merge block nodes
-    array[i - 1] = joinBlocks(prev, curr);
-    array.splice(i, 1);
-    end--;
-  }
-};
-
-const concat = <T extends Node>(a: T[], b: readonly T[]): void => {
-  if (b.length) {
-    const prevLength = a.length;
-    a.push(...b);
-    if (prevLength) {
-      const aLastIndex = prevLength - 1;
-      const aLastNode = a[aLastIndex]!;
-      const bFirstNode = a[prevLength]!;
-      const isALastBlock = isBlockNode(aLastNode);
-      const isBFirstBlock = isBlockNode(bFirstNode);
-      if (isALastBlock) {
-        if (isBFirstBlock) {
-          normalizeBlock(a as BlockNode[], prevLength - 1, prevLength);
-        }
-      } else if (!isALastBlock) {
-        if (!isBFirstBlock) {
-          normalizeInline(a as TextNode[], prevLength - 1, prevLength);
-        }
+const concat = <T extends Node>(a: readonly T[], b: readonly T[]): T[] => {
+  const i = a.length - 1;
+  const array = a.concat(b);
+  if (i >= 0 && b.length) {
+    const isBlock = isBlockNode(array[i]!);
+    if (isBlock === isBlockNode(array[i + 1]!)) {
+      if (isBlock) {
+        array.splice(
+          i,
+          2,
+          joinBlocks(array.slice(i, i + 2) as BlockNode[]) as T,
+        );
+      } else {
+        normalizeInline(array as InlineNode[], i, i + 1);
       }
     }
   }
-  if (!a.length) {
-    a.push({ text: "" } as T);
+  if (!array.length) {
+    array.push({ text: "" } as T);
   }
+  return array;
 };
 
 /**
  * @internal
  */
-export const joinBlocks = <T extends BlockNode>(...blocks: T[]): T => {
+export const joinBlocks = <T extends BlockNode>(blocks: readonly T[]): T => {
   return {
     ...blocks[0]!,
-    children: blocks.reduce((acc, b) => {
-      concat(acc, b.children);
-      return acc;
-    }, []),
+    children: blocks.reduce<Node[]>((acc, b) => concat(acc, b.children), []),
   };
 };
 
@@ -211,21 +185,16 @@ const replaceRange = <T extends DocNode>(
   const [before, maybeAfter] = splitBlock(doc, start);
   const after = start < end ? splitBlock(doc, end)[1] : maybeAfter;
 
-  const isDocBlock = hasBlockChildren(doc.children);
-  if (hasBlockChildren(inserted)) {
-    if (!isDocBlock) {
-      inserted = joinBlocks(...inserted).children;
-    }
-  } else {
-    if (isDocBlock) {
-      inserted = [{ children: inserted }];
-    }
+  const isBlock = hasBlockChildren(inserted);
+  if (isBlock !== hasBlockChildren(doc.children)) {
+    inserted = isBlock
+      ? joinBlocks(inserted as BlockNode[]).children
+      : [{ children: inserted }];
   }
-  const array = before.children.slice();
-  concat(array, inserted);
-  concat(array, after.children);
-
-  return { ...doc, children: array };
+  return {
+    ...doc,
+    children: concat(concat(before.children, inserted), after.children),
+  };
 };
 
 const isValidPosition = (doc: DocNode, offset: number): boolean => {
@@ -316,11 +285,7 @@ export const applyOperation = <T extends DocNode>(
   switch (op.type) {
     case OP_DELETE: {
       const [start, end] = op.range;
-      if (
-        isValidPosition(doc, start) &&
-        isValidPosition(doc, end) &&
-        start < end
-      ) {
+      if (isValidSelection(doc, op.range) && start < end) {
         doc = replaceRange(doc, start, end, []);
         selection = rebaseSelection(selection, op);
       }
@@ -332,19 +297,15 @@ export const applyOperation = <T extends DocNode>(
         // inherit style from previous block/text node
         const [block, offset] = getLeafBlockAt(doc, at);
         const res = getChildAt(block, offset, true);
-        let anchorNode: TextNode | undefined;
-        if (res) {
-          const node = res[0];
-          if (isTextNode(node)) {
-            anchorNode = node;
-          }
-        }
-
         doc = replaceRange(
           doc,
           at,
           at,
-          stringToFragment(text, anchorNode, block),
+          stringToFragment(
+            text,
+            res && isTextNode(res[0]) ? res[0] : undefined,
+            block,
+          ),
         );
         selection = rebaseSelection(selection, op);
       }

@@ -20,7 +20,7 @@ export function singlelinePlugin(editor: Editor) {
       op = {
         ...op,
         fragment: hasBlockChildren(fragment)
-          ? [joinBlocks(...fragment)]
+          ? [joinBlocks(fragment)]
           : fragment,
       };
     }
