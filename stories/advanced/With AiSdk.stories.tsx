@@ -91,8 +91,14 @@ const insertTextStream = async (
   onRangeChange: (range: [number, number] | null) => void,
 ): Promise<void> => {
   let range: [number, number] = [at, at];
-  const unhook = editor.hook("apply", (op) => {
-    range = [mapPosition(range[0], op, true), mapPosition(range[1], op)];
+  const unhook = editor.hook("apply", (op, next) => {
+    const applied = next(op);
+    if (applied) {
+      range = [
+        mapPosition(range[0], applied, true),
+        mapPosition(range[1], applied),
+      ];
+    }
   });
   const unsubscribe = editor.on("change", () => {
     onRangeChange([range[0], range[1]]);

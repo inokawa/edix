@@ -166,9 +166,14 @@ export type PasteHook = (
 type EditorHookMap = {
   /**
    * Call `next(op)` to continue applying the operation, or `next()` with a nullish value to cancel it.
+   * `next` returns the operation applied to the document after the following hooks, or null if it was cancelled or rejected.
+   *
    * If the hook returns without calling `next`, the operation is passed through as is.
    */
-  apply: (op: Operation, next: (op?: Operation | null) => void) => void;
+  apply: (
+    op: Operation,
+    next: (op?: Operation | null) => Operation | null,
+  ) => void;
   mount: (element: HTMLElement, parser: Parser) => void | (() => void);
   keyboard: KeyboardHook;
   copy: CopyHook;
@@ -326,6 +331,7 @@ export const createEditor = <
     const length = applyHooks.length;
 
     let index = 0;
+    let applied: Operation | null = null;
 
     const dispatch = () => {
       if (index < length) {
@@ -342,6 +348,7 @@ export const createEditor = <
           if (!isUnsafeOperation(op) || validate(nextDoc)) {
             doc = nextDoc;
             updateSelection(nextSelection);
+            applied = op;
           }
         } catch (e) {
           // rollback
@@ -350,15 +357,16 @@ export const createEditor = <
       }
     };
 
-    const next = (o?: Operation | null): void => {
+    const next = (o?: Operation | null): Operation | null => {
       if (o == null) {
         // cancel
         index = length + 1;
-        return;
+      } else {
+        op = o;
+        index++;
+        dispatch();
       }
-      op = o;
-      index++;
-      dispatch();
+      return applied;
     };
 
     dispatch();

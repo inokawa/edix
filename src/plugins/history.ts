@@ -96,10 +96,10 @@ export function historyPlugin<T extends DocNode>(editor: Editor<T>) {
     if (undoOrRedoing) return;
     const doc = editor.doc;
     const selection = editor.selection;
-    next(op);
+    const applied = next(op);
     const newDoc = editor.doc;
 
-    if (doc !== newDoc) {
+    if (applied && doc !== newDoc) {
       const time = now();
       if (index === 0 || time - prevTime >= BATCH_HISTORY_TIME) {
         index++;
@@ -112,7 +112,7 @@ export function historyPlugin<T extends DocNode>(editor: Editor<T>) {
       }
       prevTime = time;
       histories[index]![0] = newDoc;
-      histories[index]![2].push(op);
+      histories[index]![2].push(applied);
       if (histories.length > index + 1) {
         histories.length = index + 1;
       }
