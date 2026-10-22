@@ -50,14 +50,16 @@ export function blockLockPlugin<T extends DocNode>(
           microtask(() => {
             suppressInsert = false;
           });
-          return next(null);
+          next(null);
+          return;
         }
         break;
       }
       case "insert_text":
       case "insert_node": {
         if (wasSuppressed || hasLockedBlock([op.at, op.at])) {
-          return next(null);
+          next(null);
+          return;
         }
         break;
       }
@@ -75,7 +77,8 @@ export function blockLockPlugin<T extends DocNode>(
         for (const [b] of iterLeafBlocks(doc, range)) {
           const a = after.next().value?.[0];
           if (a && b !== a && isLockedNode(b) && isLockedNode(a)) {
-            return next(null);
+            next(null);
+            return;
           }
         }
         break;

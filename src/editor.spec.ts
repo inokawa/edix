@@ -1,4 +1,5 @@
 import { expect, it } from "vitest";
+import type { StandardSchemaV1 } from "@standard-schema/spec";
 import type { DocNode } from "./doc/types.js";
 import { createEditor } from "./editor.js";
 
@@ -52,3 +53,54 @@ it.each([null, undefined])(
     expect(changed).toBe(false);
   },
 );
+
+it("next returns operation applied after the following hooks", () => {
+  const editor = createEditor({ doc: createDoc() });
+  let applied;
+  editor.hook("apply", (op, next) => {
+    applied = next(op);
+  });
+  editor.hook("apply", (op, next) => {
+    next(
+      op.type === "insert_text" ? { ...op, text: op.text.toUpperCase() } : op,
+    );
+  });
+  editor.apply({ type: "insert_text", at: 1, text: "x" });
+  expect(applied).toEqual({ type: "insert_text", at: 1, text: "X" });
+});
+
+it("next returns null if a following hook cancels operation", () => {
+  const editor = createEditor({ doc: createDoc() });
+  let applied;
+  editor.hook("apply", (op, next) => {
+    applied = next(op);
+  });
+  editor.hook("apply", (_op, next) => {
+    next(null);
+  });
+  editor.apply({ type: "insert_text", at: 1, text: "x" });
+  expect(applied).toBe(null);
+});
+
+it("next returns null if schema rejects operation", () => {
+  const doc = createDoc();
+  const schema: StandardSchemaV1<DocNode, DocNode> = {
+    "~standard": {
+      version: 1,
+      vendor: "test",
+      validate: (value) =>
+        value === doc ? { value: doc } : { issues: [{ message: "rejected" }] },
+    },
+  };
+  const editor = createEditor({ doc, schema, onWarn: () => {} });
+  let applied;
+  editor.hook("apply", (op, next) => {
+    applied = next(op);
+  });
+  editor.apply({
+    type: "insert_node",
+    at: 1,
+    fragment: [{ children: [{ text: "x" }] }],
+  });
+  expect(applied).toBe(null);
+});

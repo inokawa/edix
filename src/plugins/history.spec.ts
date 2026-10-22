@@ -577,6 +577,45 @@ it("undo set root attr", () => {
   expect(editor.selection).toEqual(selection);
 });
 
+it("redo insert text replaced by a following apply hook", () => {
+  const doc: DocNode = {
+    children: [
+      { children: [{ text: "abcde" }] },
+      { children: [{ text: "fghij" }] },
+    ],
+  };
+  const selection: Selection = [1, 1];
+  const editor = createEditor({ doc });
+  editor.selection = selection;
+  editor.hook("apply", (op, next) => {
+    next(
+      op.type === "insert_text"
+        ? { ...op, text: op.text.replaceAll("\n", "") }
+        : op,
+    );
+  });
+
+  editor.apply({ type: "insert_text", at: selection[0], text: "x\ny" });
+  const updatedDoc: DocNode = {
+    children: [
+      { children: [{ text: "axybcde" }] },
+      { children: [{ text: "fghij" }] },
+    ],
+  };
+  const updatedSelection: Selection = [selection[0] + 2, selection[1] + 2];
+  expect(editor.doc).toEqual(updatedDoc);
+  expect(editor.selection).toEqual(updatedSelection);
+
+  editor.exec(Undo);
+  expect(editor.doc).toEqual(doc);
+  expect(editor.selection).toEqual(selection);
+
+  // the selection is mapped through the applied operation, not the requested one
+  editor.exec(Redo);
+  expect(editor.doc).toEqual(updatedDoc);
+  expect(editor.selection).toEqual(updatedSelection);
+});
+
 it("clear history", () => {
   const doc: DocNode = {
     children: [
