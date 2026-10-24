@@ -74,36 +74,24 @@ const isSameNode = (a: InlineNode, b: InlineNode): boolean => {
   );
 };
 
-const normalizeInline = (
-  array: InlineNode[],
-  start: number = 0,
-  end: number = array.length - 1,
-): void => {
-  let i = start + 1;
-  while (i <= end) {
-    const prev = array[i - 1]!;
-    const curr = array[i]!;
+const normalizeInline = (nodes: readonly InlineNode[]): InlineNode[] => {
+  const array: InlineNode[] = [];
+  let prev: InlineNode | undefined;
+  for (const n of nodes) {
+    // remove empty text nodes, leaving at least one node per block
+    if (isTextNode(n) && !n.text) {
+      continue;
+    }
     // merge text nodes with same attrs
-    if (isTextNode(prev) && isTextNode(curr) && isSameNode(prev, curr)) {
-      array[i - 1] = { ...prev, text: prev.text + curr.text };
-      array.splice(i, 1);
-      end--;
+    if (prev && isTextNode(prev) && isTextNode(n) && isSameNode(prev, n)) {
+      prev = { ...prev, text: prev.text + n.text };
+      array[array.length - 1] = prev;
     } else {
-      i++;
+      prev = n;
+      array.push(n);
     }
   }
-
-  // remove empty text nodes, leaving at least one node per block
-  i = start;
-  while (i <= end) {
-    const node = array[i]!;
-    if (isTextNode(node) && !node.text && array.length > 1) {
-      array.splice(i, 1);
-      end--;
-    } else {
-      i++;
-    }
-  }
+  return array.length ? array : nodes.slice(-1);
 };
 
 const concat = <T extends Node>(a: readonly T[], b: readonly T[]): T[] => {
@@ -119,7 +107,11 @@ const concat = <T extends Node>(a: readonly T[], b: readonly T[]): T[] => {
           joinBlocks(array.slice(i, i + 2) as BlockNode[]) as T,
         );
       } else {
-        normalizeInline(array as InlineNode[], i, i + 1);
+        array.splice(
+          i,
+          2,
+          ...(normalizeInline(array.slice(i, i + 2) as InlineNode[]) as T[]),
+        );
       }
     }
   }
@@ -198,8 +190,9 @@ const updateRange = <T extends DocNode | BlockNode>(
   }
   let next = node;
   if (changed) {
-    const array = nodes!.concat(node.children.slice(endIndex + 1));
-    normalizeInline(array as InlineNode[]);
+    const array = normalizeInline(
+      nodes!.concat(node.children.slice(endIndex + 1)) as InlineNode[],
+    );
     next = { ...node, children: array as T["children"] };
   }
   if (isTarget(mask, level)) {
@@ -357,11 +350,11 @@ export const applyOperation = <T extends DocNode>(
         const isTarget = (mask: number, level: number): boolean =>
           depth < 0 ? !!(mask & (1 << (-depth - 1))) : depth === level;
         const patch = <N extends Node | DocNode>(n: N): N => {
-          const next: Record<string, unknown> = { ...n, [key]: value };
-          if (value === undefined) {
-            delete next[key];
+          if (value !== undefined) {
+            return { ...n, [key]: value };
           }
-          return next as N;
+          const { [key]: removed, ...rest } = n as N & Record<string, unknown>;
+          return rest as N;
         };
         doc = updateRange(
           doc,
