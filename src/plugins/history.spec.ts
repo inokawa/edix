@@ -1,5 +1,6 @@
 import { expect, it } from "vitest";
-import type { DocNode, Selection } from "../doc/types.js";
+import type { StandardSchemaV1 } from "@standard-schema/spec";
+import type { DocNode, Node, Selection } from "../doc/types.js";
 import { createEditor } from "../editor.js";
 import { ClearHistory, Redo, Redoable, Undo, Undoable } from "./history.js";
 import { getNodeSize } from "../doc/node.js";
@@ -614,6 +615,239 @@ it("redo insert text replaced by a following apply hook", () => {
   editor.exec(Redo);
   expect(editor.doc).toEqual(updatedDoc);
   expect(editor.selection).toEqual(updatedSelection);
+});
+
+it("undo and redo cancelled by an apply hook keep the history where it was", () => {
+  const doc: DocNode = { children: [{ children: [{ text: "abcde" }] }] };
+  const editor = createEditor({ doc });
+  let cancelling = false;
+  editor.hook("apply", (op, next) => {
+    next(cancelling ? null : op);
+  });
+  editor.apply({ type: "insert_text", at: 1, text: "x" });
+  const updatedDoc: DocNode = {
+    children: [{ children: [{ text: "axbcde" }] }],
+  };
+
+  cancelling = true;
+  editor.exec(Undo);
+  expect(editor.doc).toEqual(updatedDoc);
+  cancelling = false;
+  editor.exec(Redo);
+  expect(editor.doc).toEqual(updatedDoc);
+  editor.exec(Undo);
+  expect(editor.doc).toEqual(doc);
+
+  cancelling = true;
+  editor.exec(Redo);
+  expect(editor.doc).toEqual(doc);
+  cancelling = false;
+  editor.exec(Undo);
+  expect(editor.doc).toEqual(doc);
+  editor.exec(Redo);
+  expect(editor.doc).toEqual(updatedDoc);
+});
+
+it("undo skips a transaction cancelled by an apply hook", () => {
+  const doc: DocNode = { children: [{ children: [{ text: "abcde" }] }] };
+  const editor = createEditor({ doc });
+  editor.hook("apply", (op, next) => {
+    next(op.type === "insert_text" && op.text === "y" ? null : op);
+  });
+  editor.apply({ type: "insert_text", at: 1, text: "x" });
+  // the first operation is applied before the second one cancels the transaction
+  editor.apply([
+    { type: "delete", range: [0, 1] },
+    { type: "insert_text", at: 0, text: "y" },
+  ]);
+  expect(editor.doc).toEqual({
+    children: [{ children: [{ text: "axbcde" }] }],
+  });
+
+  editor.exec(Undo);
+  expect(editor.doc).toEqual(doc);
+  expect(editor.exec(Undoable)).toBe(false);
+});
+
+it("undo skips a transaction rejected by the schema", () => {
+  const doc: DocNode = { children: [{ children: [{ text: "abcde" }] }] };
+  const schema: StandardSchemaV1<DocNode, DocNode> = {
+    "~standard": {
+      version: 1,
+      vendor: "test",
+      validate: (value) =>
+        (value as DocNode).children.length === 1
+          ? { value: value as DocNode }
+          : { issues: [{ message: "one block only" }] },
+    },
+  };
+  const editor = createEditor({ doc, schema, onWarn: () => {} });
+  editor.apply({ type: "insert_text", at: 1, text: "x" });
+  editor.apply({
+    type: "insert_node",
+    at: 3,
+    fragment: [{ children: [{ text: "" }] }, { children: [{ text: "" }] }],
+  });
+  expect(editor.doc).toEqual({
+    children: [{ children: [{ text: "axbcde" }] }],
+  });
+
+  editor.exec(Undo);
+  expect(editor.doc).toEqual(doc);
+  expect(editor.exec(Undoable)).toBe(false);
+});
+
+it("undo right after an edit, before the change event", () => {
+  const doc: DocNode = { children: [{ children: [{ text: "abcde" }] }] };
+  const editor = createEditor({ doc });
+  editor.apply({ type: "insert_text", at: 1, text: "x" });
+  expect(editor.exec(Undoable)).toBe(true);
+
+  editor.exec(Undo);
+  expect(editor.doc).toEqual(doc);
+});
+
+it("undo replace text with an out of range deletion", () => {
+  const doc: DocNode = { children: [{ children: [{ text: "abcde" }] }] };
+  const editor = createEditor({ doc });
+  editor.apply([
+    { type: "delete", range: [3, 100] },
+    { type: "insert_text", at: 3, text: "x" },
+  ]);
+  expect(editor.doc).toEqual({
+    children: [{ children: [{ text: "abcxde" }] }],
+  });
+
+  editor.exec(Undo);
+  expect(editor.doc).toEqual(doc);
+});
+
+it("undo thrown by an apply hook keeps recording the following edits", () => {
+  const doc: DocNode = { children: [{ children: [{ text: "abcde" }] }] };
+  const editor = createEditor({ doc });
+  let throwing = false;
+  editor.hook("apply", (op, next) => {
+    if (throwing) {
+      throw new Error("hook bug");
+    }
+    next(op);
+  });
+  editor.apply({ type: "insert_text", at: 1, text: "x" });
+
+  throwing = true;
+  expect(() => editor.exec(Undo)).toThrow("hook bug");
+  throwing = false;
+  editor.exec(ClearHistory);
+  editor.apply({ type: "insert_text", at: 1, text: "y" });
+  expect(editor.exec(Undoable)).toBe(true);
+});
+
+it("undo through a state the schema rejects", () => {
+  const doc: DocNode = {
+    children: [{ children: [{ text: "abc" }] }, { children: [{ text: "de" }] }],
+  };
+  const warnings: string[] = [];
+  const schema: StandardSchemaV1<DocNode, DocNode> = {
+    "~standard": {
+      version: 1,
+      vendor: "test",
+      validate: (value) =>
+        (value as DocNode).children.every(
+          (b) =>
+            "children" in b &&
+            b.children.some((n: Node) => "text" in n && n.text),
+        )
+          ? { value: value as DocNode }
+          : { issues: [{ message: "empty block" }] },
+    },
+  };
+  const editor = createEditor({
+    doc,
+    schema,
+    onWarn: (message) => {
+      warnings.push(String(message));
+    },
+  });
+  const selection: Selection = [6, 6];
+  editor.selection = selection;
+
+  // deletes are not validated, so the state between them has an empty block the schema rejects
+  editor
+    .apply({ type: "delete", range: [4, 6] })
+    .apply({ type: "delete", range: [3, 4] });
+  const updatedDoc: DocNode = { children: [{ children: [{ text: "abc" }] }] };
+  expect(editor.doc).toEqual(updatedDoc);
+
+  editor.exec(Undo);
+  expect(editor.doc).toEqual(doc);
+  expect(editor.selection).toEqual(selection);
+
+  editor.exec(Redo);
+  expect(editor.doc).toEqual(updatedDoc);
+  expect(warnings).toEqual([]);
+});
+
+it("undo paste into an empty editor leaves no attrs for the next input", () => {
+  const doc: DocNode = { children: [{ children: [{ text: "" }] }] };
+  const editor = createEditor({ doc });
+  editor.selection = [0, 0];
+  editor.apply({
+    type: "insert_node",
+    at: 0,
+    fragment: [{ children: [{ text: "hello", bold: true }] }],
+  });
+  expect(editor.doc).toEqual({
+    children: [{ children: [{ text: "hello", bold: true }] }],
+  });
+
+  editor.exec(Undo);
+  expect(editor.doc).toEqual(doc);
+
+  editor.apply({ type: "insert_text", at: 0, text: "x" });
+  expect(editor.doc).toEqual({ children: [{ children: [{ text: "x" }] }] });
+});
+
+it("undo joining an empty line into a formatted line keeps the line plain", () => {
+  const doc: DocNode = {
+    children: [
+      { children: [{ text: "ab", bold: true }] },
+      { children: [{ text: "" }] },
+    ],
+  };
+  const editor = createEditor({ doc });
+  editor.selection = [3, 3];
+  editor.apply({ type: "delete", range: [2, 3] });
+  expect(editor.doc).toEqual({
+    children: [{ children: [{ text: "ab", bold: true }] }],
+  });
+
+  editor.exec(Undo);
+  expect(editor.doc).toEqual(doc);
+  expect(editor.selection).toEqual([3, 3]);
+});
+
+it("undo a document-wide format restores the mixed formats", () => {
+  const doc: DocNode = {
+    children: [
+      { children: [{ text: "ab" }, { text: "cd", bold: true }] },
+      { children: [{ text: "ef", bold: true }, { text: "gh" }] },
+    ],
+  };
+  const editor = createEditor({ doc });
+  editor.apply({ type: "format", range: [0, 9], key: "bold", value: true });
+  const updatedDoc: DocNode = {
+    children: [
+      { children: [{ text: "abcd", bold: true }] },
+      { children: [{ text: "efgh", bold: true }] },
+    ],
+  };
+  expect(editor.doc).toEqual(updatedDoc);
+
+  editor.exec(Undo);
+  expect(editor.doc).toEqual(doc);
+
+  editor.exec(Redo);
+  expect(editor.doc).toEqual(updatedDoc);
 });
 
 it("clear history", () => {

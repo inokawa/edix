@@ -165,8 +165,8 @@ export type PasteHook = (
 
 type EditorHookMap = {
   /**
-   * Call `next(op)` to continue applying the operation, or `next()` with a nullish value to cancel it.
-   * `next` returns the operation applied to the document after the following hooks, or null if it was cancelled or rejected.
+   * Call `next(op)` to continue applying the operation, or `next()` with a nullish value to cancel it, which aborts the transaction the operation belongs to.
+   * `next` returns the operation applied to the document after the following hooks, or null if it was cancelled or threw. The transaction may still be discarded afterwards.
    *
    * If the hook returns without calling `next`, the operation is passed through as is.
    */
@@ -192,10 +192,10 @@ export interface Editor<T extends DocNode = DocNode> {
    */
   readonly: boolean;
   /**
-   * Dispatches editing operations.
+   * Applies editing operations as a transaction: either all of them are applied to the document, or none if one is cancelled or the result is rejected by the schema.
    * @param op {@link Operation}
    */
-  apply(op: Operation | Operation[]): this;
+  apply(op: Operation | readonly Operation[]): this;
   /**
    * Executes a function with editor bound as context.
    * @param fn {@link EditorCommandOrPlugin} or {@link EditorQuery}
@@ -313,21 +313,37 @@ export const createEditor = <
     }
   };
 
-  const apply = (op: Operation | Operation[]) => {
+  const apply = (input: Operation | readonly Operation[]) => {
     if (!readonly) {
-      if (Array.isArray(op)) {
-        for (const o of op) {
-          applyOp(o);
+      const before = doc;
+      const beforeSelection = selection;
+      let ok = false;
+      try {
+        let unsafe = false;
+        for (const op of Array.isArray(input) ? input : [input]) {
+          const applied = applyOp(op);
+          if (!applied) {
+            return editor;
+          }
+          if (isUnsafeOperation(applied)) {
+            unsafe = true;
+          }
         }
-      } else {
-        applyOp(op);
+        ok = !unsafe || validate(doc);
+      } finally {
+        if (!ok) {
+          doc = before;
+          selection = beforeSelection;
+        }
+      }
+      if (doc !== before) {
+        publish("change");
       }
     }
     return editor;
   };
 
-  const applyOp = (op: Operation) => {
-    const currentDoc = doc;
+  const applyOp = (op: Operation): Operation | null => {
     const applyHooks = getHook("apply");
     const length = applyHooks.length;
 
@@ -346,11 +362,9 @@ export const createEditor = <
 
         try {
           const [nextDoc, nextSelection] = applyOperation(doc, selection, op);
-          if (!isUnsafeOperation(op) || validate(nextDoc)) {
-            doc = nextDoc;
-            updateSelection(nextSelection);
-            applied = op;
-          }
+          doc = nextDoc;
+          updateSelection(nextSelection);
+          applied = op;
         } catch (e) {
           // rollback
           onWarn("rollback operation: " + e);
@@ -372,9 +386,7 @@ export const createEditor = <
 
     dispatch();
 
-    if (currentDoc !== doc) {
-      publish("change");
-    }
+    return applied;
   };
 
   const updateSelection = (s: Selection) => {

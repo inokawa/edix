@@ -1,11 +1,13 @@
-import { ReplaceDoc } from "../commands.js";
-import { mapPositionWithOps, type Operation } from "../doc/operation.js";
+import {
+  invertOperation,
+  mapPositionWithOps,
+  type Operation,
+} from "../doc/operation.js";
 import type { DocNode, Selection } from "../doc/types.js";
 import type { Editor } from "../editor.js";
 import { keymap } from "../keyboard.js";
-import { keys } from "../utils.js";
 
-const MAX_HISTORY_LENGTH = 500;
+const MAX_HISTORY_LENGTH = 100;
 const BATCH_HISTORY_TIME = 500;
 
 interface HistoryContext {
@@ -20,76 +22,93 @@ interface HistoryContext {
  * @internal
  */
 export function historyPlugin<T extends DocNode>(editor: Editor<T>) {
-  type History = [T, Selection, Operation[]];
+  type History = [
+    selection: Selection,
+    ops: Operation[],
+    invertedOps: Operation[],
+  ];
+  const compose = (
+    [selection, ops, invertedOps]: History,
+    [, nextOps, nextInvertedOps]: History,
+  ): History => [
+    selection,
+    ops.concat(nextOps),
+    nextInvertedOps.concat(invertedOps),
+  ];
   let index = 0;
   let prevTime = 0;
   let undoOrRedoing = false;
   const now = Date.now;
-  const histories: History[] = [[editor.doc, editor.selection, []]];
+  const histories: History[] = [];
 
-  const get = () => histories[index]!;
+  // keyed by the document the operations led to, since a discarded transaction restores the document it started from
+  let recorded = new WeakMap<T, History>();
 
-  const isUndoable = (): boolean => {
-    return index > 0;
-  };
-
-  const isRedoable = (): boolean => {
-    return index < histories.length - 1;
-  };
-
-  const restore = (doc: T) => {
-    editor.exec(ReplaceDoc, doc.children);
-
-    const prev = doc as Record<string, unknown>;
-    const current = editor.doc as Record<string, unknown>;
-    for (const key of keys({ ...current, ...prev })) {
-      if (key !== "children" && current[key] !== prev[key]) {
-        editor.apply({
-          type: "format",
-          range: [0, 0],
-          key,
-          value: prev[key],
-          depth: 0,
-        });
+  const commit = () => {
+    let pending = recorded.get(editor.doc);
+    recorded = new WeakMap();
+    if (pending) {
+      const time = now();
+      if (index && time - prevTime < BATCH_HISTORY_TIME) {
+        pending = compose(histories[--index]!, pending);
+      }
+      prevTime = time;
+      histories[index++] = pending;
+      histories.length = index;
+      if (index > MAX_HISTORY_LENGTH) {
+        index--;
+        histories.shift();
       }
     }
   };
 
+  const isUndoable = (): boolean => {
+    commit();
+    return index > 0;
+  };
+
+  const isRedoable = (): boolean => {
+    commit();
+    return index < histories.length;
+  };
+
+  const restore = (ops: readonly Operation[]): boolean => {
+    const before = editor.doc;
+    undoOrRedoing = true;
+    try {
+      editor.apply(ops);
+    } finally {
+      undoOrRedoing = false;
+    }
+    return before !== editor.doc;
+  };
+
   const undo = () => {
     if (isUndoable()) {
-      const sel = get()[1];
-      index--;
-      const currentDoc = editor.doc;
-      undoOrRedoing = true;
-      restore(get()[0]);
-      undoOrRedoing = false;
-      if (currentDoc !== editor.doc) {
-        editor.selection = sel;
+      const [selection, , invertedOps] = histories[index - 1]!;
+      if (restore(invertedOps)) {
+        editor.selection = selection;
+        index--;
       }
     }
   };
   const redo = () => {
     if (isRedoable()) {
-      index++;
-      const [doc, sel, ops] = get();
-      const currentDoc = editor.doc;
-      undoOrRedoing = true;
-      restore(doc);
-      undoOrRedoing = false;
-      if (currentDoc !== editor.doc) {
+      const [selection, ops] = histories[index]!;
+      if (restore(ops)) {
         editor.selection = [
-          mapPositionWithOps(sel[0], ops),
-          mapPositionWithOps(sel[1], ops),
+          mapPositionWithOps(selection[0], ops),
+          mapPositionWithOps(selection[1], ops),
         ];
+        index++;
       }
     }
   };
 
   const clear = () => {
+    recorded = new WeakMap();
     histories.length = 0;
-    histories.push([editor.doc, editor.selection, []]);
     index = 0;
-    prevTime = 0;
   };
 
   editor.hook("apply", (op, next) => {
@@ -97,31 +116,17 @@ export function historyPlugin<T extends DocNode>(editor: Editor<T>) {
     const doc = editor.doc;
     const selection = editor.selection;
     const applied = next(op);
-    const newDoc = editor.doc;
-
-    if (applied && doc !== newDoc) {
-      const time = now();
-      if (index === 0 || time - prevTime >= BATCH_HISTORY_TIME) {
-        index++;
-        const history: History = [doc, selection, []];
-        if (index >= histories.length) {
-          histories.push(history);
-        } else {
-          histories[index] = history;
-        }
-      }
-      prevTime = time;
-      histories[index]![0] = newDoc;
-      histories[index]![2].push(applied);
-      if (histories.length > index + 1) {
-        histories.length = index + 1;
-      }
-      if (index > MAX_HISTORY_LENGTH) {
-        index--;
-        histories.shift();
-      }
+    if (applied && doc !== editor.doc) {
+      const entry: History = [
+        selection,
+        [applied],
+        invertOperation(doc, applied),
+      ];
+      const prev = recorded.get(doc);
+      recorded.set(editor.doc, prev ? compose(prev, entry) : entry);
     }
   });
+  editor.on("change", commit);
 
   editor.hook("keyboard", keymap("Mod+Z", undo));
   editor.hook("keyboard", keymap("Shift+Mod+Z", redo));

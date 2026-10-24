@@ -1,10 +1,9 @@
-import { iterLeafBlocks } from "../doc/node.js";
+import { getNodeSize, iterLeafBlocks } from "../doc/node.js";
 import { applyOperation } from "../doc/operation.js";
 import { toRange } from "../doc/position.js";
 import type { InferLeafBlockNode } from "../doc/types-infer.js";
 import type { BlockNode, DocNode, Range } from "../doc/types.js";
 import type { Editor } from "../editor.js";
-import { microtask } from "../utils.js";
 
 interface BlockLockContext {
   locked: (range: Range) => boolean;
@@ -13,8 +12,8 @@ interface BlockLockContext {
 /**
  * A plugin to make specific blocks read-only.
  *
- * Locked blocks can still be selected and copied, but operations editing them are cancelled,
- * except ones that unlock the block and ones targeting the root (e.g. undo / redo).
+ * Locked blocks can still be selected and copied, but operations editing them are cancelled with the transaction they belong to,
+ * except ones that unlock the block.
  */
 export function blockLockPlugin<T extends DocNode>(
   editor: Editor<T>,
@@ -36,20 +35,10 @@ export function blockLockPlugin<T extends DocNode>(
     return false;
   };
 
-  let suppressInsert = false;
-
   editor.hook("apply", (op, next) => {
-    const wasSuppressed = suppressInsert;
-    suppressInsert = false;
-
     switch (op.type) {
       case "delete": {
         if (hasLockedBlock(toRange(op.range))) {
-          // also cancel an insert paired with this delete (e.g. input and paste dispatch [delete, insert])
-          suppressInsert = true;
-          microtask(() => {
-            suppressInsert = false;
-          });
           next(null);
           return;
         }
@@ -57,19 +46,16 @@ export function blockLockPlugin<T extends DocNode>(
       }
       case "insert_text":
       case "insert_node": {
-        if (wasSuppressed || hasLockedBlock([op.at, op.at])) {
+        if (hasLockedBlock([op.at, op.at])) {
           next(null);
           return;
         }
         break;
       }
       case "format": {
-        if (op.depth === 0) {
-          // undo and redo replace the root
-          break;
-        }
         const doc = editor.doc;
-        const range = toRange(op.range);
+        const range: Range =
+          op.depth === 0 ? [0, getNodeSize(doc)] : toRange(op.range);
         const after = iterLeafBlocks(
           applyOperation(doc, editor.selection, op)[0],
           range,
