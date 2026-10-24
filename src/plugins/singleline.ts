@@ -4,6 +4,8 @@ import type { Editor } from "../editor.js";
 
 /**
  * A plugin to restrict input to a single line
+ *
+ * A document whose children are inline nodes requires this plugin.
  */
 export function singlelinePlugin(editor: Editor) {
   editor.hook("mount", (element) => {

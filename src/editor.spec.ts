@@ -104,3 +104,21 @@ it("next returns null if schema rejects operation", () => {
   });
   expect(applied).toBe(null);
 });
+
+it("change made in a change listener is published again", async () => {
+  const editor = createEditor({ doc: createDoc() });
+  const docs: DocNode[] = [];
+  editor.on("change", () => {
+    docs.push(editor.doc);
+    if (docs.length === 1) {
+      editor.apply({ type: "insert_text", at: 0, text: "x" });
+    }
+  });
+  editor.apply({ type: "insert_text", at: 0, text: "y" });
+  await Promise.resolve();
+  await Promise.resolve();
+  expect(docs).toEqual([
+    { children: [{ children: [{ text: "yabcde" }] }] },
+    { children: [{ children: [{ text: "xyabcde" }] }] },
+  ]);
+});
