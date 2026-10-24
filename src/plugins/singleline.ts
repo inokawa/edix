@@ -3,7 +3,7 @@ import { joinBlocks } from "../doc/operation.js";
 import type { Editor } from "../editor.js";
 
 /**
- * A plugin to restrict input to a single line
+ * A plugin to restrict input to a single line. It is required for a single line document of inline nodes.
  */
 export function singlelinePlugin(editor: Editor) {
   editor.hook("mount", (element) => {
